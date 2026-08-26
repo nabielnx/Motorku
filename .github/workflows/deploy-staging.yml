@@ -1,0 +1,89 @@
+name: Deploy Mie Amour (Staging)
+
+on:
+  push:
+    branches:
+      - develop
+
+env:
+  APP_NAME: "Mie Amour"
+  DOMAIN: "preview-002.fanacode.com"
+
+  PHP_VERSION: "8.3"
+  NODE_VERSION: "22"
+
+  DEPLOY_PATH: "/home/${{ secrets.HOSTINGER_USER_STAGING }}/domains/fanacode.com/public_html/preview-002"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: mbstring, xml, ctype, iconv, intl, pdo_mysql, bcmath
+
+      - name: Install Composer Dependencies
+        run: composer install --no-dev --optimize-autoloader --no-interaction
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install & Build Frontend Assets (Inertia/Vite)
+        run: |
+          npm ci
+          npm run build
+
+      - name: Upload Project via SCP
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.HOSTINGER_IP_STAGING }}
+          username: ${{ secrets.HOSTINGER_USER_STAGING }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.HOSTINGER_PORT_STAGING }}
+          source: "., !.git, !.github, !node_modules"
+          target: ${{ env.DEPLOY_PATH }}
+          strip_components: 0
+
+      - name: Execute Deployment Commands
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.HOSTINGER_IP_STAGING }}
+          username: ${{ secrets.HOSTINGER_USER_STAGING }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.HOSTINGER_PORT_STAGING }}
+          script: |
+            echo "=============================="
+            echo "Deploying ${{ env.APP_NAME }} (Staging)"
+            echo "=============================="
+
+            cd ${{ env.DEPLOY_PATH }}
+
+            php artisan down || true
+
+            php artisan storage:link || true
+            php artisan migrate --force
+            php artisan optimize:clear
+            php artisan optimize
+            php artisan queue:restart || true
+
+            find storage -type d -exec chmod 775 {} \;
+            find storage -type f -exec chmod 664 {} \;
+            find bootstrap/cache -type d -exec chmod 775 {} \;
+            find bootstrap/cache -type f -exec chmod 664 {} \;
+
+            php artisan up
+            echo "Deployment Finished Successfully"
+
+      - name: Health Check
+        run: |
+          sleep 5
+          curl --fail --silent https://${{ env.DOMAIN }} > /dev/null
+          echo "Application is online."
