@@ -22,17 +22,96 @@ function MotorIconPlaceholder({ size = 22, className = "" }) {
     );
 }
 
-// Category group badge colors for distinct visual grouping (Solid, crisp high-contrast colors)
+// Category group badge colors for distinct visual grouping (Solid, vibrant, high-contrast colors)
 const GROUP_COLORS = {
-    pelumas_cairan: 'bg-amber-100 dark:bg-amber-900 text-amber-950 dark:text-amber-100 border-amber-300 dark:border-amber-700',
-    kaki_kaki_roda: 'bg-indigo-100 dark:bg-indigo-900 text-indigo-950 dark:text-indigo-100 border-indigo-300 dark:border-indigo-700',
-    pengereman: 'bg-rose-100 dark:bg-rose-900 text-rose-950 dark:text-rose-100 border-rose-300 dark:border-rose-700',
-    transmisi_penggerak: 'bg-purple-100 dark:bg-purple-900 text-purple-950 dark:text-purple-100 border-purple-300 dark:border-purple-700',
-    kelistrikan_pengapian: 'bg-yellow-100 dark:bg-yellow-900 text-yellow-950 dark:text-yellow-100 border-yellow-300 dark:border-yellow-700',
-    lampu_saklar: 'bg-cyan-100 dark:bg-cyan-900 text-cyan-950 dark:text-cyan-100 border-cyan-300 dark:border-cyan-700',
-    mesin_filter: 'bg-emerald-100 dark:bg-emerald-900 text-emerald-950 dark:text-emerald-100 border-emerald-300 dark:border-emerald-700',
-    bodi_aksesoris: 'bg-orange-100 dark:bg-orange-900 text-orange-950 dark:text-orange-100 border-orange-300 dark:border-orange-700',
-    lainnya: 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 border-slate-300 dark:border-slate-700',
+    pelumas_cairan: 'bg-amber-500 text-slate-950 border-amber-600 font-bold',
+    kaki_kaki_roda: 'bg-indigo-600 text-white border-indigo-700 font-bold',
+    pengereman: 'bg-rose-600 text-white border-rose-700 font-bold',
+    transmisi_penggerak: 'bg-purple-600 text-white border-purple-700 font-bold',
+    kelistrikan_pengapian: 'bg-yellow-400 text-slate-950 border-yellow-500 font-bold',
+    lampu_saklar: 'bg-cyan-600 text-white border-cyan-700 font-bold',
+    mesin_filter: 'bg-emerald-600 text-white border-emerald-700 font-bold',
+    bodi_aksesoris: 'bg-orange-600 text-white border-orange-700 font-bold',
+    lainnya: 'bg-slate-700 text-white border-slate-800 font-bold',
+};
+
+// Brand Identity Config (Solid, vibrant colors representing each OEM manufacturer)
+const BRAND_CONFIG = {
+    Honda: {
+        badge: 'bg-red-600 text-white border-red-700 font-black',
+        activeBtn: 'bg-red-600 text-white border-red-700 shadow-xs font-bold',
+        inactiveBtn: 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:border-red-500 hover:text-red-600',
+        countActive: 'bg-red-800 text-white',
+        countInactive: 'bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-300 font-bold',
+        dot: 'bg-red-600',
+    },
+    Yamaha: {
+        badge: 'bg-blue-600 text-white border-blue-700 font-black',
+        activeBtn: 'bg-blue-600 text-white border-blue-700 shadow-xs font-bold',
+        inactiveBtn: 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:border-blue-500 hover:text-blue-600',
+        countActive: 'bg-blue-800 text-white',
+        countInactive: 'bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 font-bold',
+        dot: 'bg-blue-600',
+    },
+    Kawasaki: {
+        badge: 'bg-emerald-600 text-white border-emerald-700 font-black',
+        activeBtn: 'bg-emerald-600 text-white border-emerald-700 shadow-xs font-bold',
+        inactiveBtn: 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:border-emerald-500 hover:text-emerald-600',
+        countActive: 'bg-emerald-800 text-white',
+        countInactive: 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-bold',
+        dot: 'bg-emerald-600',
+    },
+    Suzuki: {
+        badge: 'bg-sky-600 text-white border-sky-700 font-black',
+        activeBtn: 'bg-sky-600 text-white border-sky-700 shadow-xs font-bold',
+        inactiveBtn: 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:border-sky-500 hover:text-sky-600',
+        countActive: 'bg-sky-800 text-white',
+        countInactive: 'bg-sky-100 dark:bg-sky-950 text-sky-700 dark:text-sky-300 font-bold',
+        dot: 'bg-sky-600',
+    },
+    Vespa: {
+        badge: 'bg-amber-600 text-white border-amber-700 font-black',
+        activeBtn: 'bg-amber-600 text-white border-amber-700 shadow-xs font-bold',
+        inactiveBtn: 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:border-amber-500 hover:text-amber-600',
+        countActive: 'bg-amber-800 text-white',
+        countInactive: 'bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 font-bold',
+        dot: 'bg-amber-600',
+    },
+    default: {
+        badge: 'bg-purple-600 text-white border-purple-700 font-black',
+        activeBtn: 'bg-purple-600 text-white border-purple-700 shadow-xs font-bold',
+        inactiveBtn: 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:border-purple-500 hover:text-purple-600',
+        countActive: 'bg-purple-800 text-white',
+        countInactive: 'bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 font-bold',
+        dot: 'bg-purple-600',
+    }
+};
+
+const getBrandConfig = (brand) => BRAND_CONFIG[brand] || BRAND_CONFIG.default;
+
+// Engine Type Badges & Segmented Buttons
+const ENGINE_CONFIG = {
+    matic: {
+        badge: 'bg-amber-500 text-slate-950 border border-amber-600 font-black',
+        activeBtn: 'bg-amber-500 text-slate-950 shadow-xs font-black',
+        label: 'Matic',
+    },
+    bebek: {
+        badge: 'bg-teal-600 text-white border border-teal-700 font-black',
+        activeBtn: 'bg-teal-600 text-white shadow-xs font-black',
+        label: 'Bebek',
+    },
+    sport: {
+        badge: 'bg-rose-600 text-white border border-rose-700 font-black',
+        activeBtn: 'bg-rose-600 text-white shadow-xs font-black',
+        label: 'Sport',
+    },
+};
+
+const getEngineConfig = (type) => ENGINE_CONFIG[type?.toLowerCase()] || {
+    badge: 'bg-slate-700 text-white border border-slate-800 font-bold',
+    activeBtn: 'bg-slate-800 text-white font-bold',
+    label: type || 'Lainnya',
 };
 
 // Integrated Searchable Product Dropdown Component
@@ -280,11 +359,14 @@ function SearchableMotorDropdown({ motorcycles = [], value, onChange, error }) {
                             {selectedMotor.image_url ? (
                                 <img src={selectedMotor.image_url} alt={selectedMotor.model} className="w-full h-full object-cover" />
                             ) : (
-                                <MotorIconPlaceholder size={16} className="text-indigo-600 dark:text-indigo-400" />
+                                <MotorIconPlaceholder size={16} className="text-slate-400" />
                             )}
                         </div>
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded ${getBrandConfig(selectedMotor.brand).badge}`}>
+                            {selectedMotor.brand}
+                        </span>
                         <span className="truncate font-bold text-slate-900 dark:text-white">
-                            {selectedMotor.brand} {selectedMotor.model}
+                            {selectedMotor.model}
                         </span>
                         <span className="text-[10px] text-slate-500 dark:text-slate-400 shrink-0 font-medium">
                             ({selectedMotor.engine_cc}cc · {selectedMotor.engine_type.toUpperCase()} · {selectedMotor.year_start}{selectedMotor.year_end ? `-${selectedMotor.year_end}` : '-sekarang'})
@@ -326,20 +408,24 @@ function SearchableMotorDropdown({ motorcycles = [], value, onChange, error }) {
 
                         {/* Brand filter pills */}
                         <div className="flex items-center gap-1 overflow-x-auto no-scrollbar py-0.5">
-                            {brands.map(brand => (
-                                <button
-                                    key={brand}
-                                    type="button"
-                                    onClick={() => setBrandFilter(brand)}
-                                    className={`px-2 py-0.5 rounded text-[10px] font-bold whitespace-nowrap transition cursor-pointer shrink-0 ${
-                                        brandFilter === brand
-                                            ? 'bg-indigo-600 text-white'
-                                            : 'bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-100'
-                                    }`}
-                                >
-                                    {brand === 'semua' ? 'Semua Brand' : brand}
-                                </button>
-                            ))}
+                            {brands.map(brand => {
+                                const bCfg = getBrandConfig(brand);
+                                const isBrandActive = brandFilter === brand;
+                                return (
+                                    <button
+                                        key={brand}
+                                        type="button"
+                                        onClick={() => setBrandFilter(brand)}
+                                        className={`px-2 py-0.5 rounded text-[10px] font-bold whitespace-nowrap transition cursor-pointer shrink-0 ${
+                                            isBrandActive
+                                                ? (brand === 'semua' ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900' : bCfg.badge)
+                                                : 'bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-100'
+                                        }`}
+                                    >
+                                        {brand === 'semua' ? 'Semua Brand' : brand}
+                                    </button>
+                                );
+                            })}
                         </div>
                     </div>
 
@@ -347,6 +433,7 @@ function SearchableMotorDropdown({ motorcycles = [], value, onChange, error }) {
                     <div className="max-h-56 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-700/60">
                         {filtered.map(m => {
                             const isSelected = m.id === value;
+                            const bCfg = getBrandConfig(m.brand);
                             return (
                                 <div
                                     key={m.id}
@@ -356,8 +443,8 @@ function SearchableMotorDropdown({ motorcycles = [], value, onChange, error }) {
                                     }}
                                     className={`flex items-center justify-between p-2 text-xs cursor-pointer transition ${
                                         isSelected
-                                            ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-900 dark:text-indigo-200 font-bold'
-                                            : 'hover:bg-slate-50 dark:hover:bg-slate-750 text-slate-800 dark:text-slate-200'
+                                            ? 'bg-slate-100 dark:bg-slate-750 text-slate-900 dark:text-white font-bold border-l-4 border-l-indigo-600'
+                                            : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200'
                                     }`}
                                 >
                                     <div className="flex items-center gap-2 min-w-0 flex-1 pr-2">
@@ -369,8 +456,13 @@ function SearchableMotorDropdown({ motorcycles = [], value, onChange, error }) {
                                             )}
                                         </div>
                                         <div className="min-w-0 flex-1">
-                                            <p className="font-extrabold truncate">{m.brand} {m.model}</p>
-                                            <p className="text-[10px] text-slate-400 truncate">
+                                            <div className="flex items-center gap-1.5 truncate">
+                                                <span className={`text-[9px] px-1 py-0.2 rounded shrink-0 ${bCfg.badge}`}>
+                                                    {m.brand}
+                                                </span>
+                                                <p className="font-extrabold truncate text-slate-900 dark:text-white">{m.model}</p>
+                                            </div>
+                                            <p className="text-[10px] text-slate-400 truncate mt-0.5">
                                                 {m.engine_cc}cc · {m.engine_type.toUpperCase()} · {m.year_start}{m.year_end ? `-${m.year_end}` : '-sekarang'}
                                             </p>
                                         </div>
@@ -1044,30 +1136,32 @@ export default function MotorcycleIndex({
                             <button
                                 type="button"
                                 onClick={() => { setActiveBrand('semua'); setPage(1); }}
-                                className={`px-3 py-1.5 rounded-md text-xs font-bold whitespace-nowrap transition-all cursor-pointer shrink-0 ${
+                                className={`px-3 py-1.5 rounded-md text-xs font-bold whitespace-nowrap transition-all cursor-pointer shrink-0 border ${
                                     activeBrand === 'semua'
-                                        ? 'bg-blue-600 text-white shadow-xs'
-                                        : 'bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700'
+                                        ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-950 border-slate-900 dark:border-white shadow-xs'
+                                        : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700'
                                 }`}
                             >
                                 Semua Brand ({motorcycles.length})
                             </button>
                             {brands.map(brand => {
                                 const count = motorcycles.filter(m => m.brand === brand).length;
+                                const bCfg = getBrandConfig(brand);
+                                const isBrandActive = activeBrand === brand;
+
                                 return (
                                     <button
                                         key={brand}
                                         type="button"
                                         onClick={() => { setActiveBrand(brand); setPage(1); }}
-                                        className={`px-3 py-1.5 rounded-md text-xs font-bold whitespace-nowrap transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
-                                            activeBrand === brand
-                                                ? 'bg-blue-600 text-white shadow-xs'
-                                                : 'bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700'
+                                        className={`px-3 py-1.5 rounded-md text-xs font-bold whitespace-nowrap transition-all cursor-pointer shrink-0 flex items-center gap-2 border ${
+                                            isBrandActive ? bCfg.activeBtn : bCfg.inactiveBtn
                                         }`}
                                     >
+                                        <span className={`w-2 h-2 rounded-full shrink-0 ${isBrandActive ? 'bg-white' : bCfg.dot}`} />
                                         <span>{brand}</span>
-                                        <span className={`text-[10px] px-1.5 py-0.2 rounded ${
-                                            activeBrand === brand ? 'bg-blue-800 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold'
+                                        <span className={`text-[10px] px-1.5 py-0.2 rounded font-extrabold ${
+                                            isBrandActive ? bCfg.countActive : bCfg.countInactive
                                         }`}>
                                             {count}
                                         </span>
@@ -1078,20 +1172,24 @@ export default function MotorcycleIndex({
 
                         {/* Engine Type Segmented Buttons */}
                         <div className="flex items-center gap-1 overflow-x-auto no-scrollbar scroll-smooth self-start lg:self-auto bg-slate-100 dark:bg-slate-800 p-1 rounded-md border border-slate-300 dark:border-slate-700">
-                            {['semua', 'matic', 'bebek', 'sport'].map(type => (
-                                <button
-                                    key={type}
-                                    type="button"
-                                    onClick={() => { setActiveType(type); setPage(1); }}
-                                    className={`px-2.5 py-1 rounded text-[11px] font-bold whitespace-nowrap transition-all cursor-pointer shrink-0 ${
-                                        activeType === type
-                                            ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs font-extrabold'
-                                            : 'text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white'
-                                    }`}
-                                >
-                                    {type === 'semua' ? 'Semua Tipe' : type.charAt(0).toUpperCase() + type.slice(1)}
-                                </button>
-                            ))}
+                            {['semua', 'matic', 'bebek', 'sport'].map(type => {
+                                const isTypeActive = activeType === type;
+                                const engCfg = getEngineConfig(type);
+                                return (
+                                    <button
+                                        key={type}
+                                        type="button"
+                                        onClick={() => { setActiveType(type); setPage(1); }}
+                                        className={`px-2.5 py-1 rounded text-[11px] font-bold whitespace-nowrap transition-all cursor-pointer shrink-0 ${
+                                            isTypeActive
+                                                ? (type === 'semua' ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs' : engCfg.activeBtn)
+                                                : 'text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white'
+                                        }`}
+                                    >
+                                        {type === 'semua' ? 'Semua Tipe' : engCfg.label}
+                                    </button>
+                                );
+                            })}
                         </div>
                     </div>
                 </div>
@@ -1121,6 +1219,8 @@ export default function MotorcycleIndex({
                                 const currentMotorParts = partsData[m.id] || { data: [], total: 0, current_page: 1, last_page: 1, total_mapped: m.parts_count || 0 };
                                 const filter = partsFilter[m.id] || { search: '', category: 'semua', group: 'semua', is_recommended: false, page: 1, per_page: 5 };
                                 const isLoading = loadingParts[m.id];
+                                const bCfg = getBrandConfig(m.brand);
+                                const engCfg = getEngineConfig(m.engine_type);
 
                                 return (
                                     <div key={m.id} className="transition-colors">
@@ -1143,12 +1243,12 @@ export default function MotorcycleIndex({
 
                                                 <div className="min-w-0">
                                                     <div className="flex items-center gap-2 flex-wrap">
-                                                        <span className="font-black text-sm text-slate-900 dark:text-white leading-snug">{m.model}</span>
-                                                        <span className="text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-2 py-0.5 rounded border border-slate-300 dark:border-slate-700">
+                                                        <span className={`text-[11px] px-2 py-0.5 rounded shadow-xs ${bCfg.badge}`}>
                                                             {m.brand}
                                                         </span>
+                                                        <span className="font-black text-sm text-slate-900 dark:text-white leading-snug">{m.model}</span>
                                                     </div>
-                                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-medium">
+                                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">
                                                         Tahun Rilis: <span className="text-slate-700 dark:text-slate-300 font-semibold">{m.year_start}{m.year_end ? ` - ${m.year_end}` : ' - sekarang'}</span>
                                                     </p>
                                                 </div>
@@ -1158,17 +1258,17 @@ export default function MotorcycleIndex({
                                             <div className="flex items-center gap-2.5 sm:gap-3 shrink-0 pl-14 md:pl-0">
                                                 {/* Specs */}
                                                 <div className="flex items-center gap-1.5">
-                                                    <span className="text-xs font-extrabold bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 px-2 py-0.5 rounded-md">
+                                                    <span className="text-xs font-black bg-slate-800 text-white dark:bg-slate-100 dark:text-slate-950 border border-slate-900 dark:border-slate-300 px-2 py-0.5 rounded-md shadow-xs">
                                                         {m.engine_cc}cc
                                                     </span>
-                                                    <span className="text-xs font-bold uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 px-2 py-0.5 rounded-md">
+                                                    <span className={`text-xs uppercase tracking-wider px-2 py-0.5 rounded-md shadow-xs ${engCfg.badge}`}>
                                                         {m.engine_type}
                                                     </span>
                                                 </div>
 
                                                 {/* Mapping Status */}
-                                                <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-xs font-extrabold">
-                                                    <FiCheckCircle size={13} className="text-emerald-600 dark:text-emerald-400" />
+                                                <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-emerald-600 text-white border border-emerald-700 text-xs font-black shadow-xs">
+                                                    <FiCheckCircle size={13} className="text-white" />
                                                     <span>{currentMotorParts.total_mapped ?? m.parts_count ?? 0} Part</span>
                                                 </div>
                                             </div>
@@ -1801,6 +1901,9 @@ export default function MotorcycleIndex({
                                         <div className="max-h-48 overflow-y-auto border border-slate-200 dark:border-slate-700 rounded-lg divide-y divide-slate-100 dark:divide-slate-750">
                                             {filteredMotorcyclesForBulk.map(m => {
                                                 const isSelected = bulkMotorIds.includes(m.id);
+                                                const bCfg = getBrandConfig(m.brand);
+                                                const engCfg = getEngineConfig(m.engine_type);
+
                                                 return (
                                                     <div
                                                         key={m.id}
@@ -1812,7 +1915,7 @@ export default function MotorcycleIndex({
                                                             }
                                                         }}
                                                         className={`flex items-center justify-between p-2 text-xs cursor-pointer transition ${
-                                                            isSelected ? 'bg-indigo-50/70 dark:bg-indigo-950/40' : 'hover:bg-slate-50 dark:hover:bg-slate-800'
+                                                            isSelected ? 'bg-slate-100 dark:bg-slate-800 border-l-4 border-l-indigo-600' : 'hover:bg-slate-50 dark:hover:bg-slate-800'
                                                         }`}
                                                     >
                                                         <div className="flex items-center gap-2.5 flex-1 min-w-0 pr-2">
@@ -1827,11 +1930,16 @@ export default function MotorcycleIndex({
                                                                 )}
                                                             </div>
                                                             <div className="flex-1 min-w-0">
-                                                                <p className="font-extrabold text-slate-900 dark:text-white truncate">
-                                                                    {m.brand} {m.model}
-                                                                </p>
-                                                                <p className="text-[10px] text-slate-400 truncate">
-                                                                    {m.engine_cc}cc · {m.engine_type.toUpperCase()} · {m.year_start}{m.year_end ? `-${m.year_end}` : '-sekarang'}
+                                                                <div className="flex items-center gap-1.5 truncate">
+                                                                    <span className={`text-[9px] px-1.5 py-0.2 rounded font-black shrink-0 ${bCfg.badge}`}>
+                                                                        {m.brand}
+                                                                    </span>
+                                                                    <p className="font-extrabold text-slate-900 dark:text-white truncate">
+                                                                        {m.model}
+                                                                    </p>
+                                                                </div>
+                                                                <p className="text-[10px] text-slate-400 truncate mt-0.5">
+                                                                    {m.engine_cc}cc · {engCfg.label} · {m.year_start}{m.year_end ? `-${m.year_end}` : '-sekarang'}
                                                                 </p>
                                                             </div>
                                                         </div>
