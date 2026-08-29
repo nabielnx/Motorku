@@ -1154,11 +1154,10 @@ export default function MotorcycleIndex({
                                         key={brand}
                                         type="button"
                                         onClick={() => { setActiveBrand(brand); setPage(1); }}
-                                        className={`px-3 py-1.5 rounded-md text-xs font-bold whitespace-nowrap transition-all cursor-pointer shrink-0 flex items-center gap-2 border ${
+                                        className={`px-3 py-1.5 rounded-md text-xs font-bold whitespace-nowrap transition-all cursor-pointer shrink-0 flex items-center gap-1.5 border ${
                                             isBrandActive ? bCfg.activeBtn : bCfg.inactiveBtn
                                         }`}
                                     >
-                                        <span className={`w-2 h-2 rounded-full shrink-0 ${isBrandActive ? 'bg-white' : bCfg.dot}`} />
                                         <span>{brand}</span>
                                         <span className={`text-[10px] px-1.5 py-0.2 rounded font-extrabold ${
                                             isBrandActive ? bCfg.countActive : bCfg.countInactive
