@@ -145,8 +145,8 @@ function SearchableProductDropdown({ products = [], value, onChange, error }) {
                 onClick={() => setIsOpen(!isOpen)}
                 role="button"
                 tabIndex={0}
-                className={`w-full px-3 py-2 bg-slate-50 dark:bg-slate-750 border rounded-lg text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200 cursor-pointer flex items-center justify-between gap-2 transition select-none ${
-                    isOpen ? 'border-indigo-500 ring-2 ring-indigo-500/20 bg-white dark:bg-slate-800' : 'border-slate-200 dark:border-slate-600 hover:border-slate-300'
+                className={`w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border rounded-md text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200 cursor-pointer flex items-center justify-between gap-2 transition select-none ${
+                    isOpen ? 'border-indigo-500 ring-2 ring-indigo-500/20 bg-white dark:bg-slate-800' : 'border-slate-300 dark:border-slate-700 hover:border-slate-400'
                 } ${error ? 'border-red-500' : ''}`}
             >
                 {selectedProduct ? (
@@ -179,7 +179,7 @@ function SearchableProductDropdown({ products = [], value, onChange, error }) {
 
             {/* Dropdown Floating Panel */}
             {isOpen && (
-                <div className="absolute z-50 left-0 right-0 mt-1 bg-white dark:bg-slate-850 border border-slate-300 dark:border-slate-700 rounded-lg shadow-xl overflow-hidden">
+                <div className="absolute z-50 left-0 right-0 mt-1 bg-white dark:bg-slate-850 border border-slate-300 dark:border-slate-700 rounded-md shadow-xl overflow-hidden">
                     {/* Integrated Search & Filter Header */}
                     <div className="p-2 border-b border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 space-y-1.5">
                         <div className="relative">
@@ -331,8 +331,8 @@ function SearchableMotorDropdown({ motorcycles = [], value, onChange, error }) {
                 onClick={() => setIsOpen(!isOpen)}
                 role="button"
                 tabIndex={0}
-                className={`w-full px-3 py-2 bg-slate-50 dark:bg-slate-750 border rounded-lg text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200 cursor-pointer flex items-center justify-between gap-2 transition select-none ${
-                    isOpen ? 'border-indigo-500 ring-2 ring-indigo-500/20 bg-white dark:bg-slate-800' : 'border-slate-200 dark:border-slate-600 hover:border-slate-300'
+                className={`w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border rounded-md text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200 cursor-pointer flex items-center justify-between gap-2 transition select-none ${
+                    isOpen ? 'border-indigo-500 ring-2 ring-indigo-500/20 bg-white dark:bg-slate-800' : 'border-slate-300 dark:border-slate-700 hover:border-slate-400'
                 } ${error ? 'border-red-500' : ''}`}
             >
                 {selectedMotor ? (
@@ -364,7 +364,7 @@ function SearchableMotorDropdown({ motorcycles = [], value, onChange, error }) {
 
             {/* Dropdown Floating Panel */}
             {isOpen && (
-                <div className="absolute z-50 left-0 right-0 mt-1 bg-white dark:bg-slate-850 border border-slate-300 dark:border-slate-700 rounded-lg shadow-xl overflow-hidden">
+                <div className="absolute z-50 left-0 right-0 mt-1 bg-white dark:bg-slate-850 border border-slate-300 dark:border-slate-700 rounded-md shadow-xl overflow-hidden">
                     {/* Integrated Search & Filter Header */}
                     <div className="p-2 border-b border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 space-y-1.5">
                         <div className="relative">
@@ -1442,7 +1442,7 @@ export default function MotorcycleIndex({
                                                                     {/* Left: Product Thumbnail & Info */}
                                                                     <div className="flex items-center gap-2.5 sm:gap-3 flex-1 min-w-0">
                                                                         {/* Product Image Thumbnail */}
-                                                                        <div className="w-10 h-10 rounded-lg shrink-0 border border-slate-200/80 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 overflow-hidden flex items-center justify-center shadow-2xs">
+                                                                        <div className="w-10 h-10 rounded-md shrink-0 border border-slate-200/80 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 overflow-hidden flex items-center justify-center shadow-2xs">
                                                                             <img
                                                                                 src={getProductImage(part.product?.image_path, part.product?.category?.name)}
                                                                                 alt={part.product?.name || 'Sparepart'}
@@ -1677,7 +1677,7 @@ export default function MotorcycleIndex({
 
                         {/* Error Alert */}
                         {bulkErrors.general && (
-                            <div className="p-3 bg-red-50 dark:bg-red-950/60 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-xs rounded-lg font-semibold flex items-center gap-2">
+                            <div className="p-3 bg-red-50 dark:bg-red-950/60 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-xs rounded-md font-semibold flex items-center gap-2">
                                 <FiAlertCircle size={15} /> {bulkErrors.general}
                             </div>
                         )}
@@ -1736,7 +1736,7 @@ export default function MotorcycleIndex({
                                                     placeholder="Cari sparepart..."
                                                     value={bulkSearch}
                                                     onChange={e => setBulkSearch(e.target.value)}
-                                                    className="w-full pl-8 pr-7 py-1.5 text-xs bg-slate-50 dark:bg-slate-750 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                                    className="w-full pl-8 pr-7 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                                                 />
                                                 {bulkSearch && (
                                                     <button onClick={() => setBulkSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer">
@@ -1747,7 +1747,7 @@ export default function MotorcycleIndex({
                                             <select
                                                 value={bulkCategoryFilter}
                                                 onChange={e => setBulkCategoryFilter(e.target.value)}
-                                                className="w-full py-1.5 px-2 text-xs bg-slate-50 dark:bg-slate-750 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-700 dark:text-slate-200 font-medium"
+                                                className="w-full py-1.5 px-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-slate-700 dark:text-slate-200 font-medium"
                                             >
                                                 <option value="semua">Semua Kategori Katalog</option>
                                                 {productCategoriesList.map(cat => (
@@ -1757,7 +1757,7 @@ export default function MotorcycleIndex({
                                         </div>
 
                                         {/* Checkable List */}
-                                        <div className="max-h-48 overflow-y-auto border border-slate-200 dark:border-slate-700 rounded-lg divide-y divide-slate-100 dark:divide-slate-750">
+                                        <div className="max-h-48 overflow-y-auto border border-slate-200 dark:border-slate-700 rounded-md divide-y divide-slate-100 dark:divide-slate-750">
                                             {filteredProductsForBulk.map(p => {
                                                 const isSelected = bulkProductIds.includes(p.id);
                                                 return (
@@ -1866,7 +1866,7 @@ export default function MotorcycleIndex({
                                                     placeholder="Cari model motor..."
                                                     value={bulkSearch}
                                                     onChange={e => setBulkSearch(e.target.value)}
-                                                    className="w-full pl-8 pr-7 py-1.5 text-xs bg-slate-50 dark:bg-slate-750 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                                    className="w-full pl-8 pr-7 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                                                 />
                                                 {bulkSearch && (
                                                     <button onClick={() => setBulkSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer">
@@ -1877,7 +1877,7 @@ export default function MotorcycleIndex({
                                             <select
                                                 value={bulkBrandFilter}
                                                 onChange={e => setBulkBrandFilter(e.target.value)}
-                                                className="w-full py-1.5 px-2 text-xs bg-slate-50 dark:bg-slate-750 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-700 dark:text-slate-200 font-medium"
+                                                className="w-full py-1.5 px-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-slate-700 dark:text-slate-200 font-medium"
                                             >
                                                 <option value="semua">Semua Brand Motor</option>
                                                 {brands.map(b => (
@@ -1887,7 +1887,7 @@ export default function MotorcycleIndex({
                                         </div>
 
                                         {/* Checkable List */}
-                                        <div className="max-h-48 overflow-y-auto border border-slate-200 dark:border-slate-700 rounded-lg divide-y divide-slate-100 dark:divide-slate-750">
+                                        <div className="max-h-48 overflow-y-auto border border-slate-200 dark:border-slate-700 rounded-md divide-y divide-slate-100 dark:divide-slate-750">
                                             {filteredMotorcyclesForBulk.map(m => {
                                                 const isSelected = bulkMotorIds.includes(m.id);
                                                 const bCfg = getBrandConfig(m.brand);
@@ -1958,7 +1958,7 @@ export default function MotorcycleIndex({
                                     <select
                                         value={bulkCategory}
                                         onChange={e => setBulkCategory(e.target.value)}
-                                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-750 border border-slate-200 dark:border-slate-600 rounded-lg text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200 focus:ring-1 focus:ring-indigo-500 focus:outline-none"
+                                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200 focus:ring-1 focus:ring-indigo-500 focus:outline-none"
                                     >
                                         {Object.entries(categoryGroups).map(([gKey, group]) => (
                                             <optgroup key={gKey} label={group.name}>
@@ -1981,14 +1981,14 @@ export default function MotorcycleIndex({
                                             value={bulkNotes}
                                             onChange={e => setBulkNotes(e.target.value)}
                                             placeholder="Contoh: Cocok untuk varian standar & racing"
-                                            className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-750 border border-slate-200 dark:border-slate-600 rounded-lg text-xs font-medium focus:ring-1 focus:ring-indigo-500 focus:outline-none"
+                                            className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs font-medium focus:ring-1 focus:ring-indigo-500 focus:outline-none"
                                         />
                                     </div>
                                     <div>
                                         <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 block">
                                             Tanda Rekomendasi
                                         </label>
-                                        <label className="flex items-center gap-2 cursor-pointer bg-slate-50 dark:bg-slate-750 px-3 py-2 h-[38px] rounded-lg border border-slate-200 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition">
+                                        <label className="flex items-center gap-2 cursor-pointer bg-slate-50 dark:bg-slate-800 px-3 py-2 h-[38px] rounded-md border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 transition">
                                             <input
                                                 type="checkbox"
                                                 checked={bulkIsRecommended}
@@ -2018,7 +2018,7 @@ export default function MotorcycleIndex({
                                 <button
                                     type="button"
                                     onClick={() => setShowBulkModal(false)}
-                                    className="flex-1 sm:flex-none px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-bold border border-slate-300 dark:border-slate-700 transition cursor-pointer"
+                                    className="flex-1 sm:flex-none px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-md text-xs font-bold border border-slate-300 dark:border-slate-700 transition cursor-pointer"
                                 >
                                     Batal
                                 </button>
@@ -2026,7 +2026,7 @@ export default function MotorcycleIndex({
                                     type="button"
                                     onClick={() => handleSaveBulkMapping()}
                                     disabled={bulkSaving}
-                                    className="flex-1 sm:flex-none px-5 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition cursor-pointer shadow-xs"
+                                    className="flex-1 sm:flex-none px-5 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-md text-xs font-bold flex items-center justify-center gap-2 transition cursor-pointer shadow-xs"
                                 >
                                     {bulkSaving ? (
                                         <>
@@ -2058,7 +2058,7 @@ export default function MotorcycleIndex({
                         </div>
 
                         {formErrors.general && (
-                            <div className="p-3 bg-red-50 dark:bg-red-950/60 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-xs rounded-lg font-semibold flex items-center gap-2">
+                            <div className="p-3 bg-red-50 dark:bg-red-950/60 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-xs rounded-md font-semibold flex items-center gap-2">
                                 <FiAlertCircle size={15} /> {formErrors.general}
                             </div>
                         )}
@@ -2070,7 +2070,7 @@ export default function MotorcycleIndex({
                                     <select
                                         value={formData.brand}
                                         onChange={e => setFormData({ ...formData, brand: e.target.value })}
-                                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-xs sm:text-sm font-semibold"
+                                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs sm:text-sm font-semibold"
                                     >
                                         <option value="Honda">Honda</option>
                                         <option value="Yamaha">Yamaha</option>
@@ -2086,7 +2086,7 @@ export default function MotorcycleIndex({
                                         value={formData.model}
                                         onChange={e => setFormData({ ...formData, model: e.target.value })}
                                         placeholder="Beat, Vario 160..."
-                                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-xs sm:text-sm font-semibold"
+                                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs sm:text-sm font-semibold"
                                     />
                                     {formErrors.model && <p className="text-[11px] text-red-500 font-bold mt-1">{formErrors.model}</p>}
                                 </div>
@@ -2099,7 +2099,7 @@ export default function MotorcycleIndex({
                                         type="number"
                                         value={formData.year_start}
                                         onChange={e => setFormData({ ...formData, year_start: parseInt(e.target.value) || '' })}
-                                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-xs sm:text-sm font-semibold"
+                                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs sm:text-sm font-semibold"
                                     />
                                     {formErrors.year_start && <p className="text-[11px] text-red-500 font-bold mt-1">{formErrors.year_start}</p>}
                                 </div>
@@ -2110,7 +2110,7 @@ export default function MotorcycleIndex({
                                         value={formData.year_end}
                                         onChange={e => setFormData({ ...formData, year_end: e.target.value ? parseInt(e.target.value) : '' })}
                                         placeholder="Sekarang"
-                                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-xs sm:text-sm font-semibold"
+                                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs sm:text-sm font-semibold"
                                     />
                                     {formErrors.year_end && <p className="text-[11px] text-red-500 font-bold mt-1">{formErrors.year_end}</p>}
                                 </div>
@@ -2120,7 +2120,7 @@ export default function MotorcycleIndex({
                                         type="number"
                                         value={formData.engine_cc}
                                         onChange={e => setFormData({ ...formData, engine_cc: parseInt(e.target.value) || '' })}
-                                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-xs sm:text-sm font-semibold"
+                                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs sm:text-sm font-semibold"
                                     />
                                     {formErrors.engine_cc && <p className="text-[11px] text-red-500 font-bold mt-1">{formErrors.engine_cc}</p>}
                                 </div>
@@ -2131,7 +2131,7 @@ export default function MotorcycleIndex({
                                 <select
                                     value={formData.engine_type}
                                     onChange={e => setFormData({ ...formData, engine_type: e.target.value })}
-                                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-xs sm:text-sm font-semibold"
+                                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs sm:text-sm font-semibold"
                                 >
                                     <option value="matic">Matic</option>
                                     <option value="bebek">Bebek</option>
@@ -2144,7 +2144,7 @@ export default function MotorcycleIndex({
                                 <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 block">Foto Motor (Upload File / URL Gambar)</label>
                                 <div className="flex items-center gap-3">
                                     {(formData.image_file || formData.image_url) && (
-                                        <div className="w-12 h-12 rounded-lg bg-slate-100 dark:bg-slate-800 overflow-hidden shrink-0 border border-slate-300 dark:border-slate-700 flex items-center justify-center">
+                                        <div className="w-12 h-12 rounded-md bg-slate-100 dark:bg-slate-800 overflow-hidden shrink-0 border border-slate-300 dark:border-slate-700 flex items-center justify-center">
                                             <img
                                                 src={formData.image_file ? URL.createObjectURL(formData.image_file) : formData.image_url}
                                                 alt="Preview"
@@ -2175,14 +2175,14 @@ export default function MotorcycleIndex({
                         <div className="flex gap-3 pt-3 border-t border-slate-200 dark:border-slate-800">
                             <button
                                 onClick={() => setShowAddModal(false)}
-                                className="flex-1 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 rounded-lg text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 cursor-pointer transition"
+                                className="flex-1 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 rounded-md text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 cursor-pointer transition"
                             >
                                 Batal
                             </button>
                             <button
                                 onClick={handleSaveMotor}
                                 disabled={saving}
-                                className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs sm:text-sm font-bold cursor-pointer disabled:opacity-50 transition shadow-xs"
+                                className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-xs sm:text-sm font-bold cursor-pointer disabled:opacity-50 transition shadow-xs"
                             >
                                 {saving ? 'Menyimpan...' : editMotorcycle ? 'Simpan Perubahan' : 'Tambah Motor'}
                             </button>
@@ -2204,7 +2204,7 @@ export default function MotorcycleIndex({
                         </div>
 
                         {partFormErrors.general && (
-                            <div className="p-3 bg-red-50 dark:bg-red-950/60 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-xs rounded-lg font-semibold flex items-center gap-2">
+                            <div className="p-3 bg-red-50 dark:bg-red-950/60 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-xs rounded-md font-semibold flex items-center gap-2">
                                 <FiAlertCircle size={15} /> {partFormErrors.general}
                             </div>
                         )}
@@ -2216,7 +2216,7 @@ export default function MotorcycleIndex({
                                 <select
                                     value={partFormData.part_category}
                                     onChange={e => setPartFormData({ ...partFormData, part_category: e.target.value })}
-                                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-xs sm:text-sm font-semibold"
+                                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs sm:text-sm font-semibold"
                                 >
                                     {Object.entries(categoryGroups).map(([gKey, group]) => (
                                         <optgroup key={gKey} label={group.name}>
@@ -2248,7 +2248,7 @@ export default function MotorcycleIndex({
                                         value={partSearch}
                                         onChange={e => setPartSearch(e.target.value)}
                                         placeholder="Cari nama, SKU, atau kategori..."
-                                        className="w-full pl-9 pr-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-xs sm:text-sm font-medium"
+                                        className="w-full pl-9 pr-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs sm:text-sm font-medium"
                                     />
                                     {partSearch && (
                                         <button onClick={() => setPartSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer">
@@ -2260,7 +2260,7 @@ export default function MotorcycleIndex({
                             </div>
 
                             {/* Product Select List */}
-                            <div className="max-h-56 overflow-y-auto border border-slate-200 dark:border-slate-700 rounded-lg divide-y divide-slate-100 dark:divide-slate-750">
+                            <div className="max-h-56 overflow-y-auto border border-slate-200 dark:border-slate-700 rounded-md divide-y divide-slate-100 dark:divide-slate-750">
                                 {filteredProductsForModal.map(p => (
                                     <div
                                         key={p.id}
@@ -2319,7 +2319,7 @@ export default function MotorcycleIndex({
                                         value={partFormData.notes}
                                         onChange={e => setPartFormData({ ...partFormData, notes: e.target.value })}
                                         placeholder="Contoh: Cocok untuk varian CBS & ABS"
-                                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-xs font-medium focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs font-medium focus:ring-1 focus:ring-blue-500 focus:outline-none"
                                     />
                                     {partFormErrors.notes && <p className="text-[11px] text-red-500 font-bold mt-1">{partFormErrors.notes}</p>}
                                 </div>
@@ -2327,7 +2327,7 @@ export default function MotorcycleIndex({
                                     <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 block">
                                         Rekomendasi (Opsional)
                                     </label>
-                                    <label className="flex items-center gap-2 cursor-pointer bg-slate-50 dark:bg-slate-800 px-3 py-2 h-[38px] rounded-lg border border-slate-300 dark:border-slate-700 w-full hover:bg-slate-100 dark:hover:bg-slate-750 transition">
+                                    <label className="flex items-center gap-2 cursor-pointer bg-slate-50 dark:bg-slate-800 px-3 py-2 h-[38px] rounded-md border border-slate-300 dark:border-slate-700 w-full hover:bg-slate-100 dark:hover:bg-slate-750 transition">
                                         <input
                                             type="checkbox"
                                             checked={partFormData.is_recommended}
@@ -2345,14 +2345,14 @@ export default function MotorcycleIndex({
                         <div className="flex gap-3 pt-3 border-t border-slate-200 dark:border-slate-800">
                             <button
                                 onClick={() => setShowPartModal(null)}
-                                className="flex-1 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 rounded-lg text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 cursor-pointer transition"
+                                className="flex-1 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 rounded-md text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 cursor-pointer transition"
                             >
                                 Batal
                             </button>
                             <button
                                 onClick={handleAttachPart}
                                 disabled={saving || !partFormData.product_id}
-                                className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs sm:text-sm font-bold cursor-pointer disabled:opacity-50 transition shadow-xs"
+                                className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md text-xs sm:text-sm font-bold cursor-pointer disabled:opacity-50 transition shadow-xs"
                             >
                                 {saving ? 'Menyimpan...' : 'Tambah Mapping'}
                             </button>
@@ -2374,7 +2374,7 @@ export default function MotorcycleIndex({
                         </div>
 
                         {partFormErrors.general && (
-                            <div className="p-3 bg-red-50 dark:bg-red-950/60 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-xs rounded-lg font-semibold flex items-center gap-2">
+                            <div className="p-3 bg-red-50 dark:bg-red-950/60 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-xs rounded-md font-semibold flex items-center gap-2">
                                 <FiAlertCircle size={15} /> {partFormErrors.general}
                             </div>
                         )}
@@ -2385,7 +2385,7 @@ export default function MotorcycleIndex({
                                 <select
                                     value={partFormData.part_category}
                                     onChange={e => setPartFormData({ ...partFormData, part_category: e.target.value })}
-                                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-xs sm:text-sm font-semibold"
+                                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs sm:text-sm font-semibold"
                                 >
                                     {Object.entries(categoryGroups).map(([gKey, group]) => (
                                         <optgroup key={gKey} label={group.name}>
@@ -2405,14 +2405,14 @@ export default function MotorcycleIndex({
                                     value={partFormData.notes}
                                     onChange={e => setPartFormData({ ...partFormData, notes: e.target.value })}
                                     placeholder="Contoh: Cocok untuk varian CBS & ABS"
-                                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-xs font-medium focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs font-medium focus:ring-1 focus:ring-blue-500 focus:outline-none"
                                 />
                                 {partFormErrors.notes && <p className="text-[11px] text-red-500 font-bold mt-1">{partFormErrors.notes}</p>}
                             </div>
 
                             <div>
                                 <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 block">Rekomendasi</label>
-                                <label className="flex items-center gap-2 cursor-pointer bg-slate-50 dark:bg-slate-800 px-3 py-2 h-[38px] rounded-lg border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-750 transition">
+                                <label className="flex items-center gap-2 cursor-pointer bg-slate-50 dark:bg-slate-800 px-3 py-2 h-[38px] rounded-md border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-750 transition">
                                     <input
                                         type="checkbox"
                                         checked={partFormData.is_recommended}
@@ -2429,14 +2429,14 @@ export default function MotorcycleIndex({
                         <div className="flex gap-3 pt-3 border-t border-slate-200 dark:border-slate-800">
                             <button
                                 onClick={() => setEditPartModal(null)}
-                                className="flex-1 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 rounded-lg text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 cursor-pointer transition"
+                                className="flex-1 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 rounded-md text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 cursor-pointer transition"
                             >
                                 Batal
                             </button>
                             <button
                                 onClick={handleUpdatePart}
                                 disabled={saving}
-                                className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs sm:text-sm font-bold cursor-pointer disabled:opacity-50 transition shadow-xs"
+                                className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-xs sm:text-sm font-bold cursor-pointer disabled:opacity-50 transition shadow-xs"
                             >
                                 {saving ? 'Menyimpan...' : 'Simpan Perubahan'}
                             </button>
