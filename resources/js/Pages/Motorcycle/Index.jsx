@@ -1055,7 +1055,7 @@ export default function MotorcycleIndex({
 
             {/* Floating Global Notification Alert */}
             {notification && (
-                <div className={`fixed top-4 right-4 z-50 flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-xl text-xs sm:text-sm font-bold border transition-all animate-in fade-in slide-in-from-top-2 ${
+                <div className={`fixed top-4 right-4 z-50 flex items-center gap-2.5 px-4 py-3 rounded-lg shadow-xl text-xs sm:text-sm font-bold border transition-all animate-in fade-in slide-in-from-top-2 ${
                     notification.type === 'success'
                         ? 'bg-emerald-50 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-200 border-emerald-200 dark:border-emerald-800'
                         : 'bg-rose-50 dark:bg-rose-950/80 text-rose-800 dark:text-rose-200 border-rose-200 dark:border-rose-800'
@@ -1200,76 +1200,102 @@ export default function MotorcycleIndex({
 
                                 return (
                                     <div key={m.id} className="transition-colors">
-                                        {/* Main Motor Header Row (Multi-column) */}
+                                        {/* Main Motor Header Row (Multi-column Desktop, Clean 2-Tier Mobile/Tablet) */}
                                         <div
-                                            className={`flex flex-col md:flex-row items-stretch md:items-center justify-between p-3 sm:px-4 cursor-pointer transition-colors gap-3 ${
+                                            className={`p-3 sm:px-4 cursor-pointer transition-colors ${
                                                 isExpanded ? 'bg-slate-50 dark:bg-slate-800/60' : 'hover:bg-slate-50 dark:hover:bg-slate-800/40'
                                             }`}
                                             onClick={() => toggleExpandMotor(m.id)}
                                         >
-                                            {/* Left Column: Motor Thumbnail & Model Info */}
-                                            <div className="flex items-center gap-3 min-w-0 flex-1">
-                                                <div className="w-11 h-11 rounded-md shrink-0 border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 overflow-hidden flex items-center justify-center p-0.5 shadow-2xs">
-                                                    {m.image_url ? (
-                                                        <img src={m.image_url} alt={m.model} className="w-full h-full object-cover rounded" />
-                                                    ) : (
-                                                        <MotorIconPlaceholder className="text-slate-400 dark:text-slate-500" size={22} />
-                                                    )}
-                                                </div>
+                                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-2.5 md:gap-3">
+                                                {/* Left Section: Motor Thumbnail, Brand Badge & Model Info */}
+                                                <div className="flex items-center justify-between gap-3 min-w-0 flex-1">
+                                                    <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                                                        <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-md shrink-0 border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 overflow-hidden flex items-center justify-center p-0.5 shadow-2xs">
+                                                            {m.image_url ? (
+                                                                <img src={m.image_url} alt={m.model} className="w-full h-full object-cover rounded-xs" />
+                                                            ) : (
+                                                                <MotorIconPlaceholder className="text-slate-400 dark:text-slate-500" size={20} />
+                                                            )}
+                                                        </div>
 
-                                                <div className="min-w-0">
-                                                    <div className="flex items-center gap-2 flex-wrap">
-                                                        <span className={`text-[11px] px-2 py-0.5 rounded shadow-xs ${bCfg.badge}`}>
-                                                            {m.brand}
-                                                        </span>
-                                                        <span className="font-black text-sm text-slate-900 dark:text-white leading-snug">{m.model}</span>
+                                                        <div className="min-w-0">
+                                                            <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                                                                <span className={`text-[11px] px-2 py-0.5 rounded shadow-xs ${bCfg.badge}`}>
+                                                                    {m.brand}
+                                                                </span>
+                                                                <span className="font-black text-sm text-slate-900 dark:text-white leading-snug">{m.model}</span>
+                                                            </div>
+                                                            <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-medium">
+                                                                Tahun Rilis: <span className="text-slate-700 dark:text-slate-300 font-semibold">{m.year_start}{m.year_end ? ` - ${m.year_end}` : ' - sekarang'}</span>
+                                                            </p>
+                                                        </div>
                                                     </div>
-                                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">
-                                                        Tahun Rilis: <span className="text-slate-700 dark:text-slate-300 font-semibold">{m.year_start}{m.year_end ? ` - ${m.year_end}` : ' - sekarang'}</span>
-                                                    </p>
-                                                </div>
-                                            </div>
 
-                                            {/* Center Column: Specs Badges & Mapping Status */}
-                                            <div className="flex items-center gap-2.5 sm:gap-3 shrink-0 pl-14 md:pl-0">
-                                                {/* Specs */}
-                                                <div className="flex items-center gap-1.5">
-                                                    <span className="text-xs font-black bg-slate-800 text-white dark:bg-slate-100 dark:text-slate-950 border border-slate-900 dark:border-slate-300 px-2 py-0.5 rounded-md shadow-xs">
-                                                        {m.engine_cc}cc
-                                                    </span>
-                                                    <span className={`text-xs uppercase tracking-wider px-2 py-0.5 rounded-md shadow-xs ${engCfg.badge}`}>
-                                                        {m.engine_type}
-                                                    </span>
+                                                    {/* Mobile Quick Action Buttons (shown on mobile < md) */}
+                                                    <div className="flex md:hidden items-center gap-1 shrink-0">
+                                                        <button
+                                                            type="button"
+                                                            onClick={(e) => { e.stopPropagation(); openEditMotor(m); }}
+                                                            className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition cursor-pointer"
+                                                            title="Edit Motor"
+                                                        >
+                                                            <FiEdit2 size={14} />
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={(e) => { e.stopPropagation(); handleDeleteMotor(m.id, `${m.brand} ${m.model}`); }}
+                                                            className="p-1.5 text-slate-500 hover:text-red-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition cursor-pointer"
+                                                            title="Hapus Motor"
+                                                        >
+                                                            <FiTrash2 size={14} />
+                                                        </button>
+                                                    </div>
                                                 </div>
 
-                                                {/* Mapping Status */}
-                                                <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-emerald-600 text-white border border-emerald-700 text-xs font-black shadow-xs">
-                                                    <FiCheckCircle size={13} className="text-white" />
-                                                    <span>{currentMotorParts.total_mapped ?? m.parts_count ?? 0} Part</span>
-                                                </div>
-                                            </div>
+                                                {/* Right/Bottom Section: Specs, Mapping Status & Actions */}
+                                                <div className="flex items-center justify-between md:justify-end gap-2 sm:gap-3 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-slate-100 dark:border-slate-800">
+                                                    {/* Specs */}
+                                                    <div className="flex items-center gap-1.5">
+                                                        <span className="text-[11px] sm:text-xs font-black bg-slate-800 text-white dark:bg-slate-100 dark:text-slate-950 border border-slate-900 dark:border-slate-300 px-2 py-0.5 rounded-md shadow-xs">
+                                                            {m.engine_cc}cc
+                                                        </span>
+                                                        <span className={`text-[11px] sm:text-xs uppercase tracking-wider px-2 py-0.5 rounded-md shadow-xs ${engCfg.badge}`}>
+                                                            {m.engine_type}
+                                                        </span>
+                                                    </div>
 
-                                            {/* Right Column: Actions & Toggle */}
-                                            <div className="flex items-center justify-end gap-1 shrink-0 pl-14 md:pl-0 border-t md:border-t-0 pt-2 md:pt-0 border-slate-200 dark:border-slate-800">
-                                                <button
-                                                    type="button"
-                                                    onClick={(e) => { e.stopPropagation(); openEditMotor(m); }}
-                                                    className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition cursor-pointer"
-                                                    title="Edit Motor"
-                                                >
-                                                    <FiEdit2 size={15} />
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={(e) => { e.stopPropagation(); handleDeleteMotor(m.id, `${m.brand} ${m.model}`); }}
-                                                    className="p-1.5 text-slate-500 hover:text-red-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition cursor-pointer"
-                                                    title="Hapus Motor"
-                                                >
-                                                    <FiTrash2 size={15} />
-                                                </button>
-                                                <div className="flex items-center gap-1 text-xs font-bold text-slate-700 dark:text-slate-300 ml-1 bg-slate-100 dark:bg-slate-800 px-2.5 py-1.5 rounded-md border border-slate-300 dark:border-slate-700">
-                                                    <span>{isExpanded ? 'Tutup' : 'Lihat Part'}</span>
-                                                    {isExpanded ? <FiChevronUp size={16} className="text-blue-600" /> : <FiChevronDown size={16} />}
+                                                    {/* Mapping Status */}
+                                                    <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-emerald-600 text-white border border-emerald-700 text-[11px] sm:text-xs font-black shadow-xs">
+                                                        <FiCheckCircle size={13} className="text-white" />
+                                                        <span>{currentMotorParts.total_mapped ?? m.parts_count ?? 0} Part</span>
+                                                    </div>
+
+                                                    {/* Desktop Actions (hidden on mobile, shown on md+) */}
+                                                    <div className="hidden md:flex items-center gap-1 shrink-0 ml-1">
+                                                        <button
+                                                            type="button"
+                                                            onClick={(e) => { e.stopPropagation(); openEditMotor(m); }}
+                                                            className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition cursor-pointer"
+                                                            title="Edit Motor"
+                                                        >
+                                                            <FiEdit2 size={15} />
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={(e) => { e.stopPropagation(); handleDeleteMotor(m.id, `${m.brand} ${m.model}`); }}
+                                                            className="p-1.5 text-slate-500 hover:text-red-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition cursor-pointer"
+                                                            title="Hapus Motor"
+                                                        >
+                                                            <FiTrash2 size={15} />
+                                                        </button>
+                                                    </div>
+
+                                                    {/* Expand Toggle Button */}
+                                                    <div className="flex items-center gap-1 text-xs font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2.5 py-1.5 rounded-md border border-slate-300 dark:border-slate-700">
+                                                        <span>{isExpanded ? 'Tutup' : 'Lihat Part'}</span>
+                                                        {isExpanded ? <FiChevronUp size={15} className="text-blue-600" /> : <FiChevronDown size={15} />}
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -1595,7 +1621,7 @@ export default function MotorcycleIndex({
                         )}
                     </div>
                 ) : (
-                    <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 text-center py-16 text-slate-400">
+                    <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 text-center py-16 text-slate-400">
                         <p className="text-lg font-extrabold text-slate-700 dark:text-slate-300">Tidak ada data motor</p>
                         <p className="text-xs font-semibold mt-1">
                             {searchMotor ? 'Tidak ditemukan motor yang cocok dengan pencarian.' : 'Klik "Tambah Motor" untuk mulai menambahkan model motor.'}
