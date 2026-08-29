@@ -1314,7 +1314,7 @@ export default function MotorcycleIndex({
                                                                     }));
                                                                     fetchParts(m.id, { group: g, category: 'semua', page: 1 });
                                                                 }}
-                                                                className="w-full sm:w-auto py-1.5 sm:py-1 px-2 text-xs bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-md text-slate-700 dark:text-slate-200 font-medium focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                                                className="w-full sm:w-auto py-1.5 sm:py-1 pl-2.5 pr-8 text-xs bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-slate-800 dark:text-slate-200 font-bold focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
                                                             >
                                                                 <option value="semua">Semua Grup</option>
                                                                 {Object.entries(categoryGroups).map(([gKey, gVal]) => (
@@ -1333,7 +1333,7 @@ export default function MotorcycleIndex({
                                                                     }));
                                                                     fetchParts(m.id, { category: c, page: 1 });
                                                                 }}
-                                                                className="w-full sm:w-auto py-1.5 sm:py-1 px-2 text-xs bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-md text-slate-700 dark:text-slate-200 font-medium focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                                                className="w-full sm:w-auto py-1.5 sm:py-1 pl-2.5 pr-8 text-xs bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-slate-800 dark:text-slate-200 font-bold focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
                                                             >
                                                                 <option value="semua">Semua Tipe Part</option>
                                                                 {Object.entries(categoryGroups).map(([gKey, gVal]) => {
@@ -1530,7 +1530,7 @@ export default function MotorcycleIndex({
                                                                     }));
                                                                     fetchParts(m.id, { per_page: pp, page: 1 });
                                                                 }}
-                                                                className="px-2 py-0.5 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded text-xs font-bold text-slate-700 dark:text-slate-200"
+                                                                className="pl-2.5 pr-8 py-1 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs font-bold text-slate-800 dark:text-slate-200 focus:outline-none cursor-pointer"
                                                             >
                                                                 <option value={5}>5 / hal</option>
                                                                 <option value={10}>10 / hal</option>
