@@ -15,6 +15,7 @@ class MotorcycleManagementTest extends TestCase
     use RefreshDatabase;
 
     private User $user;
+    private User $cashierUser;
     private Category $category;
 
     protected function setUp(): void
@@ -24,6 +25,9 @@ class MotorcycleManagementTest extends TestCase
 
         $this->user = User::factory()->create();
         $this->user->assignRole('owner');
+
+        $this->cashierUser = User::factory()->create();
+        $this->cashierUser->assignRole('cashier');
 
         $this->category = Category::factory()->create();
     }
@@ -48,6 +52,29 @@ class MotorcycleManagementTest extends TestCase
                 ->has('partCategories')
                 ->has('categoryGroups')
         );
+    }
+
+    public function test_non_owner_cannot_access_motorcycle_management(): void
+    {
+        // Cashier attempts to access
+        $resIndex = $this->actingAs($this->cashierUser)->get('/motorcycles');
+        $resIndex->assertStatus(403);
+
+        $resStore = $this->actingAs($this->cashierUser)->postJson('/motorcycles', [
+            'brand'       => 'Honda',
+            'model'       => 'Beat',
+            'year_start'  => 2023,
+            'engine_cc'   => 110,
+            'engine_type' => 'matic',
+        ]);
+        $resStore->assertStatus(403);
+
+        $resBulk = $this->actingAs($this->cashierUser)->postJson('/motorcycles/bulk-attach', [
+            'motorcycle_ids' => ['some-uuid'],
+            'product_ids'    => ['some-uuid'],
+            'part_category'  => 'oli_mesin',
+        ]);
+        $resBulk->assertStatus(403);
     }
 
     public function test_can_create_motorcycle_with_validation(): void
@@ -150,6 +177,87 @@ class MotorcycleManagementTest extends TestCase
             'part_category' => 'oli_mesin',
         ]);
         $dupRes->assertStatus(422);
+    }
+
+    public function test_can_bulk_attach_parts_mode_one_motor_to_many_products(): void
+    {
+        $motor = Motorcycle::create([
+            'brand'       => 'Honda',
+            'model'       => 'ADV 160',
+            'slug'        => 'honda-adv-160-2023',
+            'year_start'  => 2023,
+            'engine_cc'   => 160,
+            'engine_type' => 'matic',
+        ]);
+
+        $p1 = Product::factory()->create(['name' => 'Oli Mesin A', 'category_id' => $this->category->id]);
+        $p2 = Product::factory()->create(['name' => 'Oli Mesin B', 'category_id' => $this->category->id]);
+        $p3 = Product::factory()->create(['name' => 'Oli Mesin C', 'category_id' => $this->category->id]);
+
+        $response = $this->actingAs($this->user)->postJson('/motorcycles/bulk-attach', [
+            'motorcycle_ids' => [$motor->id],
+            'product_ids'    => [$p1->id, $p2->id, $p3->id],
+            'part_category'  => 'oli_mesin',
+            'notes'          => 'Bulk batch test',
+            'is_recommended' => true,
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'data' => [
+                    'attached' => 3,
+                    'skipped'  => 0,
+                    'total'    => 3,
+                ],
+            ]);
+
+        $this->assertEquals(3, MotorcyclePart::where('motorcycle_id', $motor->id)->count());
+
+        // Test duplicate skipping: add p2, p3, and a new p4
+        $p4 = Product::factory()->create(['name' => 'Oli Mesin D', 'category_id' => $this->category->id]);
+        $response2 = $this->actingAs($this->user)->postJson('/motorcycles/bulk-attach', [
+            'motorcycle_ids' => [$motor->id],
+            'product_ids'    => [$p2->id, $p3->id, $p4->id],
+            'part_category'  => 'oli_mesin',
+        ]);
+
+        $response2->assertStatus(200)
+            ->assertJson([
+                'data' => [
+                    'attached' => 1,
+                    'skipped'  => 2,
+                    'total'    => 3,
+                ],
+            ]);
+
+        $this->assertEquals(4, MotorcyclePart::where('motorcycle_id', $motor->id)->count());
+    }
+
+    public function test_can_bulk_attach_parts_mode_one_product_to_many_motors(): void
+    {
+        $m1 = Motorcycle::create(['brand' => 'Honda', 'model' => 'Beat 2020', 'slug' => 'honda-beat-2020', 'year_start' => 2020, 'engine_cc' => 110, 'engine_type' => 'matic']);
+        $m2 = Motorcycle::create(['brand' => 'Honda', 'model' => 'Scoopy 2020', 'slug' => 'honda-scoopy-2020', 'year_start' => 2020, 'engine_cc' => 110, 'engine_type' => 'matic']);
+        $m3 = Motorcycle::create(['brand' => 'Honda', 'model' => 'Genio 2020', 'slug' => 'honda-genio-2020', 'year_start' => 2020, 'engine_cc' => 110, 'engine_type' => 'matic']);
+
+        $product = Product::factory()->create(['name' => 'Busi Universal Honda', 'category_id' => $this->category->id]);
+
+        $response = $this->actingAs($this->user)->postJson('/motorcycles/bulk-attach', [
+            'motorcycle_ids' => [$m1->id, $m2->id, $m3->id],
+            'product_ids'    => [$product->id],
+            'part_category'  => 'busi',
+            'is_recommended' => true,
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'data' => [
+                    'attached' => 3,
+                    'skipped'  => 0,
+                    'total'    => 3,
+                ],
+            ]);
+
+        $this->assertEquals(3, MotorcyclePart::where('product_id', $product->id)->count());
     }
 
     public function test_can_filter_search_and_paginate_motorcycle_parts(): void

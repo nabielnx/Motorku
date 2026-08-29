@@ -69,9 +69,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // Motorcycle management (admin)
-    Route::prefix('motorcycles')->group(function () {
+    Route::prefix('motorcycles')->middleware('role:owner')->group(function () {
         Route::get('/', [MotorcycleController::class, 'indexWeb'])->name('motorcycles.index');
         Route::post('/', [MotorcycleController::class, 'store'])->name('motorcycles.store');
+        Route::post('/bulk-attach', [MotorcycleController::class, 'bulkAttach'])->name('motorcycles.bulk-attach');
         Route::put('/{id}', [MotorcycleController::class, 'update'])->name('motorcycles.update');
         Route::delete('/{id}', [MotorcycleController::class, 'destroy'])->name('motorcycles.destroy');
         Route::get('/{id}/parts', [MotorcycleController::class, 'parts'])->name('motorcycles.parts');

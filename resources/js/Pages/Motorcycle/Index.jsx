@@ -6,7 +6,8 @@ import { toast } from 'sonner';
 import {
     FiPlus, FiEdit2, FiTrash2, FiLink, FiX, FiSearch,
     FiCheck, FiStar, FiChevronDown, FiChevronUp, FiFilter,
-    FiRefreshCw, FiBox, FiAlertCircle, FiCheckCircle
+    FiRefreshCw, FiBox, FiAlertCircle, FiCheckCircle,
+    FiLayers, FiCheckSquare, FiSquare
 } from 'react-icons/fi';
 
 function MotorIconPlaceholder({ size = 22, className = "" }) {
@@ -33,6 +34,370 @@ const GROUP_COLORS = {
     bodi_aksesoris: 'bg-orange-100 dark:bg-orange-950/60 text-orange-800 dark:text-orange-300 border-orange-200 dark:border-orange-800/60',
     lainnya: 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700',
 };
+
+// Integrated Searchable Product Dropdown Component
+function SearchableProductDropdown({ products = [], value, onChange, error }) {
+    const [isOpen, setIsOpen] = useState(false);
+    const [search, setSearch] = useState('');
+    const [categoryFilter, setCategoryFilter] = useState('semua');
+    const containerRef = useRef(null);
+
+    const selectedProduct = useMemo(() => {
+        return products.find(p => p.id === value) || null;
+    }, [products, value]);
+
+    const categories = useMemo(() => {
+        return ['semua', ...new Set(products.map(p => p.category?.name).filter(Boolean))];
+    }, [products]);
+
+    const filtered = useMemo(() => {
+        const q = search.trim().toLowerCase();
+        return products.filter(p => {
+            const matchesCat = categoryFilter !== 'semua' ? p.category?.name === categoryFilter : true;
+            const matchesSearch = q ? (
+                p.name.toLowerCase().includes(q) ||
+                (p.sku && p.sku.toLowerCase().includes(q)) ||
+                (p.category?.name && p.category.name.toLowerCase().includes(q))
+            ) : true;
+            return matchesCat && matchesSearch;
+        });
+    }, [products, search, categoryFilter]);
+
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (containerRef.current && !containerRef.current.contains(e.target)) {
+                setIsOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    return (
+        <div className="relative" ref={containerRef}>
+            <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 block">
+                Pilih Produk Sparepart *
+            </label>
+
+            {/* Dropdown Trigger */}
+            <div
+                onClick={() => setIsOpen(!isOpen)}
+                role="button"
+                tabIndex={0}
+                className={`w-full px-3 py-2 bg-slate-50 dark:bg-slate-750 border rounded-lg text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200 cursor-pointer flex items-center justify-between gap-2 transition select-none ${
+                    isOpen ? 'border-indigo-500 ring-2 ring-indigo-500/20 bg-white dark:bg-slate-800' : 'border-slate-200 dark:border-slate-600 hover:border-slate-300'
+                } ${error ? 'border-red-500' : ''}`}
+            >
+                {selectedProduct ? (
+                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                        <div className="w-6 h-6 rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden shrink-0 flex items-center justify-center">
+                            <img
+                                src={getProductImage(selectedProduct.image_path, selectedProduct.category?.name)}
+                                alt={selectedProduct.name}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                    e.target.onerror = null;
+                                    e.target.src = getProductImage(null, selectedProduct.category?.name);
+                                }}
+                            />
+                        </div>
+                        <span className="truncate font-bold text-slate-900 dark:text-white">
+                            {selectedProduct.name}
+                        </span>
+                        <span className="text-[10px] text-slate-500 dark:text-slate-400 shrink-0 font-medium">
+                            ({selectedProduct.sku || 'No SKU'} · Rp {Number(selectedProduct.price).toLocaleString('id-ID')})
+                        </span>
+                    </div>
+                ) : (
+                    <span className="text-slate-400 font-normal">-- Pilih / Cari Produk Sparepart --</span>
+                )}
+                <div className="flex items-center gap-1 shrink-0 text-slate-400">
+                    <FiChevronDown size={16} className={`transition-transform duration-200 ${isOpen ? 'rotate-180 text-indigo-600' : ''}`} />
+                </div>
+            </div>
+
+            {/* Dropdown Floating Panel */}
+            {isOpen && (
+                <div className="absolute z-50 left-0 right-0 mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl overflow-hidden">
+                    {/* Integrated Search & Filter Header */}
+                    <div className="p-2 border-b border-slate-100 dark:border-slate-700 bg-slate-50/90 dark:bg-slate-750/90 space-y-1.5">
+                        <div className="relative">
+                            <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" size={13} />
+                            <input
+                                type="text"
+                                autoFocus
+                                value={search}
+                                onChange={e => setSearch(e.target.value)}
+                                placeholder="Ketik nama produk, SKU, atau kategori..."
+                                className="w-full pl-8 pr-7 py-1.5 text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-800 dark:text-slate-200 font-semibold focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                            />
+                            {search && (
+                                <button
+                                    type="button"
+                                    onClick={() => setSearch('')}
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5"
+                                >
+                                    <FiX size={12} />
+                                </button>
+                            )}
+                        </div>
+
+                        {/* Category filter pills */}
+                        <div className="flex items-center gap-1 overflow-x-auto no-scrollbar py-0.5">
+                            {categories.map(cat => (
+                                <button
+                                    key={cat}
+                                    type="button"
+                                    onClick={() => setCategoryFilter(cat)}
+                                    className={`px-2 py-0.5 rounded text-[10px] font-bold whitespace-nowrap transition cursor-pointer shrink-0 ${
+                                        categoryFilter === cat
+                                            ? 'bg-indigo-600 text-white'
+                                            : 'bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-100'
+                                    }`}
+                                >
+                                    {cat === 'semua' ? 'Semua' : cat}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Scrollable Products List */}
+                    <div className="max-h-56 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-700/60">
+                        {filtered.map(p => {
+                            const isSelected = p.id === value;
+                            return (
+                                <div
+                                    key={p.id}
+                                    onClick={() => {
+                                        onChange(p.id);
+                                        setIsOpen(false);
+                                    }}
+                                    className={`flex items-center justify-between p-2 text-xs cursor-pointer transition ${
+                                        isSelected
+                                            ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-900 dark:text-indigo-200 font-bold'
+                                            : 'hover:bg-slate-50 dark:hover:bg-slate-750 text-slate-800 dark:text-slate-200'
+                                    }`}
+                                >
+                                    <div className="flex items-center gap-2 min-w-0 flex-1 pr-2">
+                                        <div className="w-7 h-7 rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden shrink-0 flex items-center justify-center">
+                                            <img
+                                                src={getProductImage(p.image_path, p.category?.name)}
+                                                alt={p.name}
+                                                className="w-full h-full object-cover"
+                                                onError={(e) => {
+                                                    e.target.onerror = null;
+                                                    e.target.src = getProductImage(null, p.category?.name);
+                                                }}
+                                            />
+                                        </div>
+                                        <div className="min-w-0 flex-1">
+                                            <p className="font-extrabold truncate">{p.name}</p>
+                                            <p className="text-[10px] text-slate-400 truncate">
+                                                {p.sku ? `${p.sku} · ` : ''}{p.category?.name || 'Katalog'} · Rp {Number(p.price).toLocaleString('id-ID')}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-2 shrink-0">
+                                        <span className="text-[10px] font-semibold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-1.5 py-0.5 rounded">
+                                            Stok: {p.stock}
+                                        </span>
+                                        {isSelected && (
+                                            <FiCheck size={15} className="text-indigo-600 dark:text-indigo-400 shrink-0" />
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                        {filtered.length === 0 && (
+                            <div className="py-6 text-center text-xs text-slate-400">
+                                Tidak ada produk sparepart yang cocok.
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+            {error && <p className="text-[11px] text-red-500 font-bold mt-1">{error}</p>}
+        </div>
+    );
+}
+
+// Integrated Searchable Motor Dropdown Component
+function SearchableMotorDropdown({ motorcycles = [], value, onChange, error }) {
+    const [isOpen, setIsOpen] = useState(false);
+    const [search, setSearch] = useState('');
+    const [brandFilter, setBrandFilter] = useState('semua');
+    const containerRef = useRef(null);
+
+    const selectedMotor = useMemo(() => {
+        return motorcycles.find(m => m.id === value) || null;
+    }, [motorcycles, value]);
+
+    const brands = useMemo(() => {
+        return ['semua', ...new Set(motorcycles.map(m => m.brand))];
+    }, [motorcycles]);
+
+    const filtered = useMemo(() => {
+        const q = search.trim().toLowerCase();
+        return motorcycles.filter(m => {
+            const matchesBrand = brandFilter !== 'semua' ? m.brand === brandFilter : true;
+            const matchesSearch = q ? (
+                m.model.toLowerCase().includes(q) ||
+                m.brand.toLowerCase().includes(q) ||
+                m.engine_type.toLowerCase().includes(q)
+            ) : true;
+            return matchesBrand && matchesSearch;
+        });
+    }, [motorcycles, search, brandFilter]);
+
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (containerRef.current && !containerRef.current.contains(e.target)) {
+                setIsOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    return (
+        <div className="relative" ref={containerRef}>
+            <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 block">
+                Pilih Model Motor Sasaran *
+            </label>
+
+            {/* Dropdown Trigger */}
+            <div
+                onClick={() => setIsOpen(!isOpen)}
+                role="button"
+                tabIndex={0}
+                className={`w-full px-3 py-2 bg-slate-50 dark:bg-slate-750 border rounded-lg text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200 cursor-pointer flex items-center justify-between gap-2 transition select-none ${
+                    isOpen ? 'border-indigo-500 ring-2 ring-indigo-500/20 bg-white dark:bg-slate-800' : 'border-slate-200 dark:border-slate-600 hover:border-slate-300'
+                } ${error ? 'border-red-500' : ''}`}
+            >
+                {selectedMotor ? (
+                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                        <div className="w-6 h-6 rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden shrink-0 flex items-center justify-center">
+                            {selectedMotor.image_url ? (
+                                <img src={selectedMotor.image_url} alt={selectedMotor.model} className="w-full h-full object-cover" />
+                            ) : (
+                                <MotorIconPlaceholder size={16} className="text-indigo-600 dark:text-indigo-400" />
+                            )}
+                        </div>
+                        <span className="truncate font-bold text-slate-900 dark:text-white">
+                            {selectedMotor.brand} {selectedMotor.model}
+                        </span>
+                        <span className="text-[10px] text-slate-500 dark:text-slate-400 shrink-0 font-medium">
+                            ({selectedMotor.engine_cc}cc · {selectedMotor.engine_type.toUpperCase()} · {selectedMotor.year_start}{selectedMotor.year_end ? `-${selectedMotor.year_end}` : '-sekarang'})
+                        </span>
+                    </div>
+                ) : (
+                    <span className="text-slate-400 font-normal">-- Pilih / Cari Model Motor --</span>
+                )}
+                <div className="flex items-center gap-1 shrink-0 text-slate-400">
+                    <FiChevronDown size={16} className={`transition-transform duration-200 ${isOpen ? 'rotate-180 text-indigo-600' : ''}`} />
+                </div>
+            </div>
+
+            {/* Dropdown Floating Panel */}
+            {isOpen && (
+                <div className="absolute z-50 left-0 right-0 mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl overflow-hidden">
+                    {/* Integrated Search & Filter Header */}
+                    <div className="p-2 border-b border-slate-100 dark:border-slate-700 bg-slate-50/90 dark:bg-slate-750/90 space-y-1.5">
+                        <div className="relative">
+                            <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" size={13} />
+                            <input
+                                type="text"
+                                autoFocus
+                                value={search}
+                                onChange={e => setSearch(e.target.value)}
+                                placeholder="Ketik model motor atau brand..."
+                                className="w-full pl-8 pr-7 py-1.5 text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-800 dark:text-slate-200 font-semibold focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                            />
+                            {search && (
+                                <button
+                                    type="button"
+                                    onClick={() => setSearch('')}
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5"
+                                >
+                                    <FiX size={12} />
+                                </button>
+                            )}
+                        </div>
+
+                        {/* Brand filter pills */}
+                        <div className="flex items-center gap-1 overflow-x-auto no-scrollbar py-0.5">
+                            {brands.map(brand => (
+                                <button
+                                    key={brand}
+                                    type="button"
+                                    onClick={() => setBrandFilter(brand)}
+                                    className={`px-2 py-0.5 rounded text-[10px] font-bold whitespace-nowrap transition cursor-pointer shrink-0 ${
+                                        brandFilter === brand
+                                            ? 'bg-indigo-600 text-white'
+                                            : 'bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-100'
+                                    }`}
+                                >
+                                    {brand === 'semua' ? 'Semua Brand' : brand}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Scrollable Motors List */}
+                    <div className="max-h-56 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-700/60">
+                        {filtered.map(m => {
+                            const isSelected = m.id === value;
+                            return (
+                                <div
+                                    key={m.id}
+                                    onClick={() => {
+                                        onChange(m.id);
+                                        setIsOpen(false);
+                                    }}
+                                    className={`flex items-center justify-between p-2 text-xs cursor-pointer transition ${
+                                        isSelected
+                                            ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-900 dark:text-indigo-200 font-bold'
+                                            : 'hover:bg-slate-50 dark:hover:bg-slate-750 text-slate-800 dark:text-slate-200'
+                                    }`}
+                                >
+                                    <div className="flex items-center gap-2 min-w-0 flex-1 pr-2">
+                                        <div className="w-7 h-7 rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden shrink-0 flex items-center justify-center">
+                                            {m.image_url ? (
+                                                <img src={m.image_url} alt={m.model} className="w-full h-full object-cover" />
+                                            ) : (
+                                                <MotorIconPlaceholder size={16} className="text-slate-400" />
+                                            )}
+                                        </div>
+                                        <div className="min-w-0 flex-1">
+                                            <p className="font-extrabold truncate">{m.brand} {m.model}</p>
+                                            <p className="text-[10px] text-slate-400 truncate">
+                                                {m.engine_cc}cc · {m.engine_type.toUpperCase()} · {m.year_start}{m.year_end ? `-${m.year_end}` : '-sekarang'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-2 shrink-0">
+                                        <span className="text-[10px] font-semibold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-1.5 py-0.5 rounded">
+                                            {m.parts_count || 0} part
+                                        </span>
+                                        {isSelected && (
+                                            <FiCheck size={15} className="text-indigo-600 dark:text-indigo-400 shrink-0" />
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                        {filtered.length === 0 && (
+                            <div className="py-6 text-center text-xs text-slate-400">
+                                Tidak ada model motor yang sesuai.
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+            {error && <p className="text-[11px] text-red-500 font-bold mt-1">{error}</p>}
+        </div>
+    );
+}
 
 export default function MotorcycleIndex({
     motorcycles = [],
@@ -75,7 +440,7 @@ export default function MotorcycleIndex({
         };
     }, []);
 
-    // Mapping Modals (Add / Edit Part Mapping)
+    // Mapping Modals (Add / Edit Single Part Mapping)
     const [showPartModal, setShowPartModal] = useState(null); // motorId or null
     const [editPartModal, setEditPartModal] = useState(null); // { motorId, part } or null
     const [partFormData, setPartFormData] = useState({
@@ -85,6 +450,45 @@ export default function MotorcycleIndex({
     const [partSearch, setPartSearch] = useState('');
     const [saving, setSaving] = useState(false);
     const [notification, setNotification] = useState(null);
+
+    // ==========================================
+    // BULK MAPPING STATE & HANDLERS
+    // ==========================================
+    const [showBulkModal, setShowBulkModal] = useState(false);
+    const [bulkMode, setBulkMode] = useState('motor_to_parts'); // 'motor_to_parts' | 'part_to_motors'
+    const [bulkMotorId, setBulkMotorId] = useState('');
+    const [bulkMotorIds, setBulkMotorIds] = useState([]);
+    const [bulkProductId, setBulkProductId] = useState('');
+    const [bulkProductIds, setBulkProductIds] = useState([]);
+    const [bulkCategory, setBulkCategory] = useState('oli_mesin');
+    const [bulkNotes, setBulkNotes] = useState('');
+    const [bulkIsRecommended, setBulkIsRecommended] = useState(false);
+    const [bulkSearch, setBulkSearch] = useState('');
+    const [bulkBrandFilter, setBulkBrandFilter] = useState('semua');
+    const [bulkCategoryFilter, setBulkCategoryFilter] = useState('semua');
+    const [bulkErrors, setBulkErrors] = useState({});
+    const [bulkSaving, setBulkSaving] = useState(false);
+
+    // Reset Bulk Form
+    const resetBulkForm = (initialMotorId = null) => {
+        setBulkMode('motor_to_parts');
+        setBulkMotorId(initialMotorId || (motorcycles[0]?.id || ''));
+        setBulkMotorIds(initialMotorId ? [initialMotorId] : []);
+        setBulkProductId(products[0]?.id || '');
+        setBulkProductIds([]);
+        setBulkCategory('oli_mesin');
+        setBulkNotes('');
+        setBulkIsRecommended(false);
+        setBulkSearch('');
+        setBulkBrandFilter('semua');
+        setBulkCategoryFilter('semua');
+        setBulkErrors({});
+    };
+
+    const openBulkModal = (initialMotorId = null) => {
+        resetBulkForm(initialMotorId);
+        setShowBulkModal(true);
+    };
 
     // Auto-dismiss notification
     useEffect(() => {
@@ -178,7 +582,6 @@ export default function MotorcycleIndex({
 
     // Debounced search handler for motorcycle spareparts
     const handleSearchParts = useCallback((motorId, val) => {
-        // 1. Immediately update UI state so typing has zero lag
         setPartsFilter(prev => ({
             ...prev,
             [motorId]: {
@@ -188,12 +591,10 @@ export default function MotorcycleIndex({
             }
         }));
 
-        // 2. Clear any pending debounced timer for this motorId
         if (searchTimersRef.current[motorId]) {
             clearTimeout(searchTimersRef.current[motorId]);
         }
 
-        // 3. Debounce the network request by 300ms
         searchTimersRef.current[motorId] = setTimeout(() => {
             fetchParts(motorId, { search: val, page: 1 });
         }, 300);
@@ -221,7 +622,6 @@ export default function MotorcycleIndex({
             setExpandedMotor(null);
         } else {
             setExpandedMotor(motorId);
-            // If parts not loaded yet or need refresh
             if (!partsData[motorId]) {
                 fetchParts(motorId, { page: 1, per_page: 5, search: '', category: 'semua', group: 'semua', is_recommended: false });
             }
@@ -335,7 +735,7 @@ export default function MotorcycleIndex({
         }
     };
 
-    // Frontend validation for attaching part mapping
+    // Frontend validation for attaching single part mapping
     const validatePartForm = () => {
         const errors = {};
         if (!partFormData.product_id) errors.product_id = 'Pilih produk sparepart yang akan di-mapping.';
@@ -345,7 +745,7 @@ export default function MotorcycleIndex({
         return Object.keys(errors).length === 0;
     };
 
-    // Attach part to motorcycle
+    // Attach single part to motorcycle
     const handleAttachPart = async () => {
         if (!validatePartForm() || !showPartModal) return;
 
@@ -354,11 +754,11 @@ export default function MotorcycleIndex({
             await window.axios.post(`/motorcycles/${showPartModal}/parts`, partFormData);
             const prod = products.find(p => p.id === partFormData.product_id);
             toast.success(`Sparepart "${prod?.name || 'Produk'}" berhasil di-mapping ke motor!`);
+            const targetMotorId = showPartModal;
             setShowPartModal(null);
             setPartFormData({ product_id: '', part_category: 'oli_mesin', notes: '', is_recommended: false });
             setPartFormErrors({});
-            // Reload parts for this motor
-            fetchParts(showPartModal);
+            fetchParts(targetMotorId);
             router.reload({ only: ['motorcycles'] });
         } catch (e) {
             if (e.response?.status === 422 && e.response.data?.errors) {
@@ -447,7 +847,64 @@ export default function MotorcycleIndex({
         }
     };
 
-    // Filtered products for mapping modal search
+    // ==========================================
+    // BULK MAPPING SUBMIT & LOGIC
+    // ==========================================
+    const handleSaveBulkMapping = async () => {
+        const errors = {};
+        const motorIds = bulkMode === 'motor_to_parts' ? (bulkMotorId ? [bulkMotorId] : []) : bulkMotorIds;
+        const prodIds = bulkMode === 'motor_to_parts' ? bulkProductIds : (bulkProductId ? [bulkProductId] : []);
+
+        if (motorIds.length === 0) {
+            errors.motorcycles = 'Pilih minimal 1 model motor.';
+        }
+        if (prodIds.length === 0) {
+            errors.products = 'Pilih minimal 1 produk sparepart.';
+        }
+        if (!bulkCategory) {
+            errors.part_category = 'Pilih kategori / tipe sparepart.';
+        }
+
+        if (Object.keys(errors).length > 0) {
+            setBulkErrors(errors);
+            return;
+        }
+
+        setBulkSaving(true);
+        setBulkErrors({});
+        try {
+            const payload = {
+                motorcycle_ids: motorIds,
+                product_ids: prodIds,
+                part_category: bulkCategory,
+                notes: bulkNotes || null,
+                is_recommended: bulkIsRecommended,
+            };
+
+            const res = await window.axios.post('/motorcycles/bulk-attach', payload);
+            toast.success(res.data.message || 'Bulk mapping berhasil disimpan!');
+            setShowBulkModal(false);
+            resetBulkForm();
+
+            // Refresh expanded motor data if affected
+            motorIds.forEach(mId => {
+                if (expandedMotor === mId) {
+                    fetchParts(mId);
+                }
+            });
+            router.reload({ only: ['motorcycles'] });
+        } catch (e) {
+            if (e.response?.status === 422 && e.response.data?.errors) {
+                setBulkErrors(e.response.data.errors);
+            } else {
+                toast.error(e.response?.data?.message || 'Gagal menyimpan bulk mapping.');
+            }
+        } finally {
+            setBulkSaving(false);
+        }
+    };
+
+    // Filtered products for single mapping modal search
     const filteredProductsForModal = useMemo(() => {
         if (!partSearch.trim()) return products;
         const q = partSearch.toLowerCase();
@@ -457,6 +914,40 @@ export default function MotorcycleIndex({
             (p.category?.name && p.category.name.toLowerCase().includes(q))
         );
     }, [products, partSearch]);
+
+    // Filtered products for bulk mapping modal (Mode A: multi-select parts)
+    const filteredProductsForBulk = useMemo(() => {
+        return products.filter(p => {
+            const matchesCategory = bulkCategoryFilter !== 'semua' ? (p.category?.name === bulkCategoryFilter) : true;
+            const q = bulkSearch.trim().toLowerCase();
+            const matchesSearch = q ? (
+                p.name.toLowerCase().includes(q) ||
+                (p.sku && p.sku.toLowerCase().includes(q)) ||
+                (p.category?.name && p.category.name.toLowerCase().includes(q))
+            ) : true;
+            return matchesCategory && matchesSearch;
+        });
+    }, [products, bulkCategoryFilter, bulkSearch]);
+
+    // Filtered motorcycles for bulk mapping modal (Mode B: multi-select motors)
+    const filteredMotorcyclesForBulk = useMemo(() => {
+        return motorcycles.filter(m => {
+            const matchesBrand = bulkBrandFilter !== 'semua' ? (m.brand === bulkBrandFilter) : true;
+            const q = bulkSearch.trim().toLowerCase();
+            const matchesSearch = q ? (
+                m.model.toLowerCase().includes(q) ||
+                m.brand.toLowerCase().includes(q) ||
+                m.engine_type.toLowerCase().includes(q)
+            ) : true;
+            return matchesBrand && matchesSearch;
+        });
+    }, [motorcycles, bulkBrandFilter, bulkSearch]);
+
+    // Distinct product categories for bulk filter
+    const productCategoriesList = useMemo(() => {
+        const set = new Set(products.map(p => p.category?.name).filter(Boolean));
+        return Array.from(set);
+    }, [products]);
 
     // Distinct brands list
     const brands = useMemo(() => {
@@ -508,8 +999,8 @@ export default function MotorcycleIndex({
                         <h3 className="text-sm sm:text-base font-black text-slate-900 dark:text-white">Data Motor & Compatible Mapping</h3>
                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-medium">Kelola model motor dan mapping sparepart kompatibel per tipe komponen.</p>
                     </div>
-                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 w-full md:w-auto">
-                        <div className="relative flex-1 sm:w-64 md:w-72">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-2.5 w-full md:w-auto">
+                        <div className="relative flex-1 sm:w-60 md:w-64">
                             <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" size={15} />
                             <input
                                 type="text"
@@ -524,6 +1015,17 @@ export default function MotorcycleIndex({
                                 </button>
                             )}
                         </div>
+
+                        {/* Bulk Mapping Button */}
+                        <button
+                            onClick={() => openBulkModal()}
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg text-xs sm:text-sm font-extrabold flex items-center justify-center gap-1.5 cursor-pointer transition shadow-2xs shrink-0"
+                            title="Mapping sparepart ke banyak motor sekaligus"
+                        >
+                            <FiLayers size={15} /> <span>Bulk Mapping</span>
+                        </button>
+
+                        {/* Add Motor Button */}
                         <button
                             onClick={() => { resetMotorForm(); setEditMotorcycle(null); setShowAddModal(true); }}
                             className="bg-blue-600 hover:bg-blue-700 text-white px-3.5 py-2 rounded-lg text-xs sm:text-sm font-extrabold flex items-center justify-center gap-2 cursor-pointer transition shadow-2xs shrink-0"
@@ -641,7 +1143,7 @@ export default function MotorcycleIndex({
                                             </div>
                                         </div>
 
-                                        {/* EXPANDED PANEL: Seamless Unified Sub-Table without bulky nested cards */}
+                                        {/* EXPANDED PANEL: Seamless Unified Sub-Table */}
                                         {isExpanded && (
                                             <div className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
                                                 {/* Unified Compact Responsive Control Bar */}
@@ -738,18 +1240,27 @@ export default function MotorcycleIndex({
                                                         </button>
                                                     </div>
 
-                                                    {/* Right: Tambah Part Button */}
-                                                    <button
-                                                        onClick={() => {
-                                                            setShowPartModal(m.id);
-                                                            setPartSearch('');
-                                                            setPartFormData({ product_id: '', part_category: 'oli_mesin', notes: '', is_recommended: false });
-                                                            setPartFormErrors({});
-                                                        }}
-                                                        className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 sm:py-1 rounded-md font-bold flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer shrink-0 transition"
-                                                    >
-                                                        <FiLink size={13} /> Tambah Part
-                                                    </button>
+                                                    {/* Right: Tambah Part & Quick Bulk Buttons */}
+                                                    <div className="flex items-center gap-2 shrink-0">
+                                                        <button
+                                                            onClick={() => openBulkModal(m.id)}
+                                                            className="text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 dark:bg-indigo-950/60 dark:hover:bg-indigo-900/80 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 px-2.5 py-1.5 sm:py-1 rounded-md font-bold flex items-center justify-center gap-1 shadow-2xs cursor-pointer transition"
+                                                            title="Bulk mapping banyak part ke motor ini"
+                                                        >
+                                                            <FiLayers size={13} /> Bulk Part
+                                                        </button>
+                                                        <button
+                                                            onClick={() => {
+                                                                setShowPartModal(m.id);
+                                                                setPartSearch('');
+                                                                setPartFormData({ product_id: '', part_category: 'oli_mesin', notes: '', is_recommended: false });
+                                                                setPartFormErrors({});
+                                                            }}
+                                                            className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 sm:py-1 rounded-md font-bold flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer shrink-0 transition"
+                                                        >
+                                                            <FiLink size={13} /> Tambah Part
+                                                        </button>
+                                                    </div>
                                                 </div>
 
                                                 {/* SPAREPARTS LIST - Clean Seamless Table Rows */}
@@ -768,7 +1279,7 @@ export default function MotorcycleIndex({
                                                         <p className="text-[11px] text-slate-400 mt-1">
                                                             {filter.search || filter.category !== 'semua' || filter.group !== 'semua' || filter.is_recommended
                                                                 ? 'Coba ganti kata kunci pencarian atau reset filter di atas.'
-                                                                : 'Klik tombol "Tambah Part" di atas untuk menambahkan sparepart kompatibel.'}
+                                                                : 'Klik tombol "Tambah Part" atau "Bulk Part" di atas untuk menambahkan sparepart kompatibel.'}
                                                         </p>
                                                     </div>
                                                 ) : (
@@ -962,6 +1473,417 @@ export default function MotorcycleIndex({
                 )}
             </div>
 
+            {/* ======================================================== */}
+            {/* BULK MAPPING MODAL (High-Quality Dual-Mode Interface) */}
+            {/* ======================================================== */}
+            {showBulkModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-3 sm:p-4" onClick={() => setShowBulkModal(false)}>
+                    <div className="bg-white dark:bg-slate-850 rounded-2xl shadow-2xl w-full max-w-2xl p-5 sm:p-6 space-y-4 max-h-[92vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+                        {/* Header */}
+                        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-700 pb-3">
+                            <div className="flex items-center gap-2.5">
+                                <div className="p-2 rounded-lg bg-indigo-100 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300">
+                                    <FiLayers size={20} />
+                                </div>
+                                <div>
+                                    <h3 className="font-extrabold text-base sm:text-lg text-slate-900 dark:text-white">
+                                        Bulk Mapping Sparepart
+                                    </h3>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                                        Petakan banyak komponen ke model motor sekaligus secara efisien.
+                                    </p>
+                                </div>
+                            </div>
+                            <button onClick={() => setShowBulkModal(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer p-1">
+                                <FiX size={20} />
+                            </button>
+                        </div>
+
+                        {/* Mode Selector Tabs */}
+                        <div className="grid grid-cols-2 gap-2 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setBulkMode('motor_to_parts');
+                                    setBulkSearch('');
+                                }}
+                                className={`py-2 px-3 rounded-lg text-xs font-extrabold transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                                    bulkMode === 'motor_to_parts'
+                                        ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-300 shadow-xs'
+                                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                                }`}
+                            >
+                                <span>1 Motor → Banyak Part</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setBulkMode('part_to_motors');
+                                    setBulkSearch('');
+                                }}
+                                className={`py-2 px-3 rounded-lg text-xs font-extrabold transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                                    bulkMode === 'part_to_motors'
+                                        ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-300 shadow-xs'
+                                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                                }`}
+                            >
+                                <span>1 Part → Banyak Motor</span>
+                            </button>
+                        </div>
+
+                        {/* Error Alert */}
+                        {bulkErrors.general && (
+                            <div className="p-3 bg-red-50 dark:bg-red-950/60 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-xs rounded-lg font-semibold flex items-center gap-2">
+                                <FiAlertCircle size={15} /> {bulkErrors.general}
+                            </div>
+                        )}
+
+                        <div className="space-y-3.5 overflow-y-auto pr-1 flex-1">
+                            {/* MODE A: 1 Motor -> Many Parts */}
+                            {bulkMode === 'motor_to_parts' && (
+                                <>
+                                    {/* Integrated Searchable Single Motor Dropdown */}
+                                    <SearchableMotorDropdown
+                                        motorcycles={motorcycles}
+                                        value={bulkMotorId}
+                                        onChange={setBulkMotorId}
+                                        error={bulkErrors.motorcycles}
+                                    />
+
+                                    {/* Multi-Select Products */}
+                                    <div>
+                                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 mb-1.5">
+                                            <div className="flex items-center gap-2">
+                                                <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                                                    Pilih Sparepart Kompatibel *
+                                                </label>
+                                                <span className="text-[11px] font-extrabold bg-indigo-100 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300 px-2 py-0.5 rounded-md">
+                                                    {bulkProductIds.length} dipilih
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center gap-2 text-xs">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const allIds = filteredProductsForBulk.map(p => p.id);
+                                                        setBulkProductIds(Array.from(new Set([...bulkProductIds, ...allIds])));
+                                                    }}
+                                                    className="text-indigo-600 dark:text-indigo-400 font-bold hover:underline cursor-pointer"
+                                                >
+                                                    Pilih Semua ({filteredProductsForBulk.length})
+                                                </button>
+                                                <span className="text-slate-300 dark:text-slate-600">|</span>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setBulkProductIds([])}
+                                                    className="text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 font-semibold cursor-pointer"
+                                                >
+                                                    Reset Pilihan
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {/* Product Filters & Search */}
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
+                                            <div className="relative">
+                                                <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" size={13} />
+                                                <input
+                                                    type="text"
+                                                    placeholder="Cari sparepart..."
+                                                    value={bulkSearch}
+                                                    onChange={e => setBulkSearch(e.target.value)}
+                                                    className="w-full pl-8 pr-7 py-1.5 text-xs bg-slate-50 dark:bg-slate-750 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                                />
+                                                {bulkSearch && (
+                                                    <button onClick={() => setBulkSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer">
+                                                        <FiX size={12} />
+                                                    </button>
+                                                )}
+                                            </div>
+                                            <select
+                                                value={bulkCategoryFilter}
+                                                onChange={e => setBulkCategoryFilter(e.target.value)}
+                                                className="w-full py-1.5 px-2 text-xs bg-slate-50 dark:bg-slate-750 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-700 dark:text-slate-200 font-medium"
+                                            >
+                                                <option value="semua">Semua Kategori Katalog</option>
+                                                {productCategoriesList.map(cat => (
+                                                    <option key={cat} value={cat}>{cat}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+
+                                        {/* Checkable List */}
+                                        <div className="max-h-48 overflow-y-auto border border-slate-200 dark:border-slate-700 rounded-lg divide-y divide-slate-100 dark:divide-slate-750">
+                                            {filteredProductsForBulk.map(p => {
+                                                const isSelected = bulkProductIds.includes(p.id);
+                                                return (
+                                                    <div
+                                                        key={p.id}
+                                                        onClick={() => {
+                                                            if (isSelected) {
+                                                                setBulkProductIds(bulkProductIds.filter(id => id !== p.id));
+                                                            } else {
+                                                                setBulkProductIds([...bulkProductIds, p.id]);
+                                                            }
+                                                        }}
+                                                        className={`flex items-center justify-between p-2 text-xs cursor-pointer transition ${
+                                                            isSelected ? 'bg-indigo-50/70 dark:bg-indigo-950/40' : 'hover:bg-slate-50 dark:hover:bg-slate-800'
+                                                        }`}
+                                                    >
+                                                        <div className="flex items-center gap-2.5 flex-1 min-w-0 pr-2">
+                                                            <div className={`p-1 rounded text-indigo-600 dark:text-indigo-400 ${isSelected ? 'text-indigo-600' : 'text-slate-400'}`}>
+                                                                {isSelected ? <FiCheckSquare size={16} /> : <FiSquare size={16} />}
+                                                            </div>
+                                                            <div className="w-8 h-8 rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden shrink-0 flex items-center justify-center">
+                                                                <img
+                                                                    src={getProductImage(p.image_path, p.category?.name)}
+                                                                    alt={p.name}
+                                                                    className="w-full h-full object-cover"
+                                                                    onError={(e) => {
+                                                                        e.target.onerror = null;
+                                                                        e.target.src = getProductImage(null, p.category?.name);
+                                                                    }}
+                                                                />
+                                                            </div>
+                                                            <div className="flex-1 min-w-0">
+                                                                <p className="font-extrabold text-slate-900 dark:text-white truncate">{p.name}</p>
+                                                                <p className="text-[10px] text-slate-400 truncate">
+                                                                    {p.sku ? `${p.sku} · ` : ''}{p.category?.name || 'Katalog'} · {formatRp(p.price)}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                        <span className="text-[11px] font-semibold text-slate-500 shrink-0">
+                                                            Stok: {p.stock}
+                                                        </span>
+                                                    </div>
+                                                );
+                                            })}
+                                            {filteredProductsForBulk.length === 0 && (
+                                                <p className="text-xs text-slate-400 text-center py-6">
+                                                    Tidak ada sparepart yang sesuai dengan filter.
+                                                </p>
+                                            )}
+                                        </div>
+                                        {bulkErrors.products && <p className="text-[11px] text-red-500 font-bold mt-1">{bulkErrors.products}</p>}
+                                    </div>
+                                </>
+                            )}
+
+                            {/* MODE B: 1 Part -> Many Motors */}
+                            {bulkMode === 'part_to_motors' && (
+                                <>
+                                    {/* Integrated Searchable Single Product Dropdown */}
+                                    <SearchableProductDropdown
+                                        products={products}
+                                        value={bulkProductId}
+                                        onChange={setBulkProductId}
+                                        error={bulkErrors.products}
+                                    />
+
+                                    {/* Multi-Select Motorcycles */}
+                                    <div>
+                                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 mb-1.5">
+                                            <div className="flex items-center gap-2">
+                                                <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                                                    Pilih Model Motor Sasaran *
+                                                </label>
+                                                <span className="text-[11px] font-extrabold bg-indigo-100 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300 px-2 py-0.5 rounded-md">
+                                                    {bulkMotorIds.length} dipilih
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center gap-2 text-xs">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const allIds = filteredMotorcyclesForBulk.map(m => m.id);
+                                                        setBulkMotorIds(Array.from(new Set([...bulkMotorIds, ...allIds])));
+                                                    }}
+                                                    className="text-indigo-600 dark:text-indigo-400 font-bold hover:underline cursor-pointer"
+                                                >
+                                                    Pilih Semua ({filteredMotorcyclesForBulk.length})
+                                                </button>
+                                                <span className="text-slate-300 dark:text-slate-600">|</span>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setBulkMotorIds([])}
+                                                    className="text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 font-semibold cursor-pointer"
+                                                >
+                                                    Reset Pilihan
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {/* Motor Filters & Search */}
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
+                                            <div className="relative">
+                                                <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" size={13} />
+                                                <input
+                                                    type="text"
+                                                    placeholder="Cari model motor..."
+                                                    value={bulkSearch}
+                                                    onChange={e => setBulkSearch(e.target.value)}
+                                                    className="w-full pl-8 pr-7 py-1.5 text-xs bg-slate-50 dark:bg-slate-750 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                                />
+                                                {bulkSearch && (
+                                                    <button onClick={() => setBulkSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer">
+                                                        <FiX size={12} />
+                                                    </button>
+                                                )}
+                                            </div>
+                                            <select
+                                                value={bulkBrandFilter}
+                                                onChange={e => setBulkBrandFilter(e.target.value)}
+                                                className="w-full py-1.5 px-2 text-xs bg-slate-50 dark:bg-slate-750 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-700 dark:text-slate-200 font-medium"
+                                            >
+                                                <option value="semua">Semua Brand Motor</option>
+                                                {brands.map(b => (
+                                                    <option key={b} value={b}>{b}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+
+                                        {/* Checkable List */}
+                                        <div className="max-h-48 overflow-y-auto border border-slate-200 dark:border-slate-700 rounded-lg divide-y divide-slate-100 dark:divide-slate-750">
+                                            {filteredMotorcyclesForBulk.map(m => {
+                                                const isSelected = bulkMotorIds.includes(m.id);
+                                                return (
+                                                    <div
+                                                        key={m.id}
+                                                        onClick={() => {
+                                                            if (isSelected) {
+                                                                setBulkMotorIds(bulkMotorIds.filter(id => id !== m.id));
+                                                            } else {
+                                                                setBulkMotorIds([...bulkMotorIds, m.id]);
+                                                            }
+                                                        }}
+                                                        className={`flex items-center justify-between p-2 text-xs cursor-pointer transition ${
+                                                            isSelected ? 'bg-indigo-50/70 dark:bg-indigo-950/40' : 'hover:bg-slate-50 dark:hover:bg-slate-800'
+                                                        }`}
+                                                    >
+                                                        <div className="flex items-center gap-2.5 flex-1 min-w-0 pr-2">
+                                                            <div className={`p-1 rounded text-indigo-600 dark:text-indigo-400 ${isSelected ? 'text-indigo-600' : 'text-slate-400'}`}>
+                                                                {isSelected ? <FiCheckSquare size={16} /> : <FiSquare size={16} />}
+                                                            </div>
+                                                            <div className="w-8 h-8 rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden shrink-0 flex items-center justify-center">
+                                                                {m.image_url ? (
+                                                                    <img src={m.image_url} alt={m.model} className="w-full h-full object-cover" />
+                                                                ) : (
+                                                                    <MotorIconPlaceholder size={18} className="text-slate-400" />
+                                                                )}
+                                                            </div>
+                                                            <div className="flex-1 min-w-0">
+                                                                <p className="font-extrabold text-slate-900 dark:text-white truncate">
+                                                                    {m.brand} {m.model}
+                                                                </p>
+                                                                <p className="text-[10px] text-slate-400 truncate">
+                                                                    {m.engine_cc}cc · {m.engine_type.toUpperCase()} · {m.year_start}{m.year_end ? `-${m.year_end}` : '-sekarang'}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                        <span className="text-[10px] font-bold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-1.5 py-0.5 rounded">
+                                                            {m.parts_count || 0} part
+                                                        </span>
+                                                    </div>
+                                                );
+                                            })}
+                                            {filteredMotorcyclesForBulk.length === 0 && (
+                                                <p className="text-xs text-slate-400 text-center py-6">
+                                                    Tidak ada model motor yang sesuai dengan filter.
+                                                </p>
+                                            )}
+                                        </div>
+                                        {bulkErrors.motorcycles && <p className="text-[11px] text-red-500 font-bold mt-1">{bulkErrors.motorcycles}</p>}
+                                    </div>
+                                </>
+                            )}
+
+                            {/* Common Bulk Fields (Category, Notes, Recommendation) */}
+                            <div className="pt-2 border-t border-slate-100 dark:border-slate-700 space-y-3">
+                                <div>
+                                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 block">
+                                        Tipe / Kategori Part yang Ditetapkan *
+                                    </label>
+                                    <select
+                                        value={bulkCategory}
+                                        onChange={e => setBulkCategory(e.target.value)}
+                                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-750 border border-slate-200 dark:border-slate-600 rounded-lg text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200 focus:ring-1 focus:ring-indigo-500 focus:outline-none"
+                                    >
+                                        {Object.entries(categoryGroups).map(([gKey, group]) => (
+                                            <optgroup key={gKey} label={group.name}>
+                                                {Object.entries(group.items || {}).map(([cKey, cLabel]) => (
+                                                    <option key={cKey} value={cKey}>{cLabel}</option>
+                                                ))}
+                                            </optgroup>
+                                        ))}
+                                    </select>
+                                    {bulkErrors.part_category && <p className="text-[11px] text-red-500 font-bold mt-1">{bulkErrors.part_category}</p>}
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div>
+                                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 block">
+                                            Catatan Kompatibilitas (Opsional)
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={bulkNotes}
+                                            onChange={e => setBulkNotes(e.target.value)}
+                                            placeholder="Contoh: Cocok untuk varian standar & racing"
+                                            className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-750 border border-slate-200 dark:border-slate-600 rounded-lg text-xs font-medium focus:ring-1 focus:ring-indigo-500 focus:outline-none"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 block">
+                                            Tanda Rekomendasi
+                                        </label>
+                                        <label className="flex items-center gap-2 cursor-pointer bg-slate-50 dark:bg-slate-750 px-3 py-2 h-[38px] rounded-lg border border-slate-200 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition">
+                                            <input
+                                                type="checkbox"
+                                                checked={bulkIsRecommended}
+                                                onChange={e => setBulkIsRecommended(e.target.checked)}
+                                                className="rounded text-amber-500 focus:ring-amber-400 cursor-pointer"
+                                            />
+                                            <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 select-none">
+                                                <FiStar size={13} className="text-amber-500 fill-amber-400 shrink-0" /> Tandai Rekomendasi
+                                            </span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Footer Action */}
+                        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-100 dark:border-slate-700">
+                            <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                                Total kombinasi:{' '}
+                                <span className="font-extrabold text-indigo-600 dark:text-indigo-400">
+                                    {bulkMode === 'motor_to_parts'
+                                        ? `${bulkProductIds.length} part ke 1 motor`
+                                        : `${bulkMotorIds.length} motor ke 1 part`}
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-2 w-full sm:w-auto">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowBulkModal(false)}
+                                    className="flex-1 sm:flex-none px-4 py-2 border border-slate-200 dark:border-slate-600 rounded-xl text-xs sm:text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer"
+                                >
+                                    Batal
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleSaveBulkMapping}
+                                    disabled={bulkSaving}
+                                    className="flex-1 sm:flex-none px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs sm:text-sm font-extrabold cursor-pointer disabled:opacity-50 transition shadow-2xs"
+                                >
+                                    {bulkSaving ? 'Memproses...' : 'Terapkan Bulk Mapping'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* ADD/EDIT MOTORCYCLE MODAL */}
             {showAddModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4" onClick={() => setShowAddModal(false)}>
@@ -1107,7 +2029,7 @@ export default function MotorcycleIndex({
                 </div>
             )}
 
-            {/* ADD PART MAPPING MODAL */}
+            {/* ADD SINGLE PART MAPPING MODAL */}
             {showPartModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4" onClick={() => setShowPartModal(null)}>
                     <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-lg p-6 space-y-4 max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
@@ -1189,7 +2111,6 @@ export default function MotorcycleIndex({
                                         }`}
                                     >
                                         <div className="flex items-center gap-3 flex-1 min-w-0 pr-2">
-                                            {/* Product image thumbnail in modal */}
                                             <div className="w-12 h-12 rounded-lg shrink-0 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden flex items-center justify-center p-0.5 shadow-2xs">
                                                 <img
                                                     src={getProductImage(p.image_path, p.category?.name)}
@@ -1221,7 +2142,7 @@ export default function MotorcycleIndex({
                                 ))}
                                 {filteredProductsForModal.length === 0 && (
                                     <p className="text-xs text-slate-400 text-center py-6">
-                                        Tidak ada sparepart ditemukan untuk kata kunci &quot;{partSearch}&quot; (dari {products.length} total sparepart).
+                                        Tidak ada sparepart ditemukan untuk kata kunci &quot;{partSearch}&quot;.
                                     </p>
                                 )}
                             </div>
@@ -1278,7 +2199,7 @@ export default function MotorcycleIndex({
                 </div>
             )}
 
-            {/* EDIT PART MAPPING MODAL */}
+            {/* EDIT SINGLE PART MAPPING MODAL */}
             {editPartModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4" onClick={() => setEditPartModal(null)}>
                     <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>

@@ -41,6 +41,9 @@ class MotorcyclePartSeeder extends Seeder
             $isAerox = str_contains($model, 'aerox');
             $isPcx160 = str_contains($model, 'pcx 160');
             $isPcx150 = str_contains($model, 'pcx 150') || (str_contains($model, 'pcx') && !$isPcx160);
+            $isAdv160 = str_contains($model, 'adv 160');
+            $isAdv150 = str_contains($model, 'adv 150') || (str_contains($model, 'adv') && !$isAdv160);
+            $isAdv = str_contains($model, 'adv');
             $isVario160 = str_contains($model, 'vario 160');
             $isVarioMid = str_contains($model, 'vario 125') || str_contains($model, 'vario 150');
             $isVario110 = str_contains($model, 'vario 110');
@@ -52,7 +55,7 @@ class MotorcyclePartSeeder extends Seeder
             $isMio = str_contains($model, 'mio') || str_contains($model, 'fino') || str_contains($model, 'soul') || str_contains($model, 'gear');
             
             $isRetroR12 = $isScoopyR12 || $isFazzio;
-            $isMaticR14Std = $isMatic && !$isNmax && !$isAerox && !$isPcx160 && !$isPcx150 && !$isVario160 && !$isVarioMid && !$isRetroR12;
+            $isMaticR14Std = $isMatic && !$isNmax && !$isAerox && !$isPcx160 && !$isPcx150 && !$isAdv && !$isVario160 && !$isVarioMid && !$isRetroR12;
 
             $isSupra = str_contains($model, 'supra');
             $isRevo = str_contains($model, 'revo') || str_contains($model, 'blade');
@@ -161,22 +164,40 @@ class MotorcyclePartSeeder extends Seeder
             // 2. KAKI-KAKI & RODA (BAN: HANYA IRC & FEDERAL AHM)
             // =================================================================
             // --- Ban Depan & Ban Belakang ---
-            if ($isRetroR12) {
+            if ($isAdv) {
+                // Honda ADV 150 / ADV 160 (Depan: 110/80-14, Belakang: 130/70-13)
+                $map('BAN-D14-009', 'ban_depan', 'Ban depan Federal AHM FT297 110/80-14 Tubeless Dual Purpose OEM ADV', true);
+                $map('BAN-B13-002', 'ban_belakang', 'Ban belakang Federal AHM FT297 130/70-13 Tubeless Dual Purpose OEM ADV', true);
+                $map('BAN-B13-001', 'ban_belakang', 'Ban belakang IRC SS-560R 130/70-13 Tubeless');
+            } elseif ($isPcx160) {
+                // Honda PCX 160 (Depan: 110/70-14, Belakang: 130/70-13)
+                $map('BAN-D14-010', 'ban_depan', 'Ban depan IRC SCT-006 110/70-14 Tubeless OEM PCX 160', true);
+                $map('BAN-B13-001', 'ban_belakang', 'Ban belakang IRC SS-560R 130/70-13 Tubeless OEM PCX 160', true);
+                $map('BAN-B13-002', 'ban_belakang', 'Ban belakang Federal AHM FT297 130/70-13 Tubeless');
+            } elseif ($isPcx150 || $isVario160) {
+                // Honda PCX 150 & Vario 160 (Depan: 100/80-14, Belakang: 120/70-14)
+                $map('BAN-D14-011', 'ban_depan', 'Ban depan Federal AHM FT235 100/80-14 Tubeless OEM Vario 160 / PCX 150', true);
+                $map('BAN-B14-009', 'ban_belakang', 'Ban belakang Federal AHM FT235 120/70-14 Tubeless OEM Vario 160 / PCX 150', true);
+            } elseif ($isNmax) {
+                // Ring 13 (NMAX 155 - Depan: 110/70-13, Belakang: 130/70-13)
+                $map('BAN-D13-001', 'ban_depan', 'Ban depan IRC SS-560F 110/70-13 Tubeless OEM NMAX', true);
+                $map('BAN-B13-001', 'ban_belakang', 'Ban belakang IRC SS-560R 130/70-13 Tubeless OEM NMAX', true);
+            } elseif ($isAerox) {
+                // Yamaha Aerox 155 (Depan: 110/80-14, Belakang: 140/70-14)
+                $map('BAN-D14-009', 'ban_depan', 'Ban depan Federal AHM / IRC 110/80-14 Tubeless OEM Aerox 155', true);
+                $map('BAN-B14-010', 'ban_belakang', 'Ban belakang IRC SCT-005R 140/70-14 Tubeless OEM Aerox 155', true);
+            } elseif ($isRetroR12) {
                 // Ring 12 (Scoopy R12, Fazzio, Filano, FreeGo)
                 $map('BAN-D12-001', 'ban_depan', 'Ban depan Federal AHM 100/90-12 Tubeless', $isHonda);
                 $map('BAN-D12-002', 'ban_depan', 'Ban depan IRC NR90 100/90-12 Tubeless', $isYamaha);
                 $map('BAN-B12-001', 'ban_belakang', 'Ban belakang Federal AHM 110/90-12 Tubeless', $isHonda);
                 $map('BAN-B12-002', 'ban_belakang', 'Ban belakang IRC NR90 110/90-12 Tubeless', $isYamaha);
-            } elseif ($isNmax) {
-                // Ring 13 (NMAX 155)
-                $map('BAN-D13-001', 'ban_depan', 'Ban depan IRC SS-560F 110/70-13 Tubeless OEM NMAX', true);
-                $map('BAN-B13-001', 'ban_belakang', 'Ban belakang IRC SS-560R 130/70-13 Tubeless OEM NMAX', true);
-            } elseif ($isVarioMid || $isVario160 || $isPcx150 || $isPcx160 || $isAerox) {
-                // Ring 14 Mid & Wide (Vario 125/150/160, Aerox, PCX)
-                $map('BAN-D14-007', 'ban_depan', 'Ban depan Federal AHM FT235 90/80-14 Tubeless', $isHonda);
-                $map('BAN-D14-008', 'ban_depan', 'Ban depan IRC Exato NR88 90/80-14 Tubeless', $isYamaha);
-                $map('BAN-B14-007', 'ban_belakang', 'Ban belakang Federal AHM FT235 100/80-14 Tubeless', $isHonda);
-                $map('BAN-B14-008', 'ban_belakang', 'Ban belakang IRC Exato NR88 100/80-14 Tubeless', $isYamaha);
+            } elseif ($isVarioMid) {
+                // Ring 14 Mid (Vario 125 & Vario 150)
+                $map('BAN-D14-007', 'ban_depan', 'Ban depan Federal AHM FT235 90/80-14 Tubeless OEM Vario 125/150', true);
+                $map('BAN-D14-008', 'ban_depan', 'Ban depan IRC Exato NR88 90/80-14 Tubeless');
+                $map('BAN-B14-007', 'ban_belakang', 'Ban belakang Federal AHM FT235 100/80-14 Tubeless OEM Vario 125/150', true);
+                $map('BAN-B14-008', 'ban_belakang', 'Ban belakang IRC Exato NR88 100/80-14 Tubeless');
             } elseif ($isMatic) {
                 // Ring 14 Standar Matic (Beat, Vario 110, Mio M3, Fino, Gear, Nex)
                 $map('BAN-D14-001', 'ban_depan', 'Ban depan Federal AHM FT235 80/90-14 Tubeless', $isHonda);
@@ -258,7 +279,11 @@ class MotorcyclePartSeeder extends Seeder
 
             // --- Shockbreaker Belakang ---
             if ($isHonda && $isMatic) {
-                if ($isVarioMid || $isVario160) {
+                if ($isAdv) {
+                    $map('KK-SHK-011', 'shockbreaker_belakang', 'Shockbreaker belakang ganda tabung OEM Honda ADV 150 / ADV 160 (395mm)', true);
+                } elseif ($isPcx160 || $isPcx150) {
+                    $map('KK-SHK-011', 'shockbreaker_belakang', 'Shockbreaker belakang ganda original Honda AHM PCX 150/160 365mm', true);
+                } elseif ($isVarioMid || $isVario160) {
                     $map('KK-SHK-011', 'shockbreaker_belakang', 'Shockbreaker belakang original Honda AHM Vario 125/150 330mm', true);
                 } else {
                     $map('KK-SHK-010', 'shockbreaker_belakang', 'Shockbreaker belakang original Honda AHM Beat/Scoopy 300mm', true);
@@ -298,7 +323,7 @@ class MotorcyclePartSeeder extends Seeder
             // =================================================================
             // --- Kampas Rem Depan / Cakram ---
             if ($isHonda && $isMatic) {
-                $map('REM-001', 'kampas_rem_depan', 'Kampas rem cakram depan original Honda AHM Beat/Vario/Scoopy', true);
+                $map('REM-001', 'kampas_rem_depan', 'Kampas rem cakram depan original Honda AHM Beat/Vario/Scoopy/ADV/PCX', true);
                 $map('REM-007', 'kampas_rem_depan', 'Kampas rem cakram depan Astra Aspira Honda Matic');
             } elseif ($isHonda && $isBebek) {
                 $map('REM-002', 'kampas_rem_depan', 'Kampas rem cakram depan original Honda AHM Supra X 125/Revo', true);
@@ -323,8 +348,15 @@ class MotorcyclePartSeeder extends Seeder
 
             // --- Kampas Rem Belakang / Tromol & Cakram ---
             if ($isHonda && $isMatic) {
-                $map('REM-009', 'kampas_rem_belakang', 'Kampas rem tromol belakang original Honda AHM Beat/Vario/Scoopy', true);
-                $map('REM-013', 'kampas_rem_belakang', 'Kampas rem tromol belakang Astra Aspira Honda Matic');
+                if ($isAdv || $isPcx160 || $isPcx150) {
+                    $map('REM-010', 'kampas_rem_belakang', 'Kampas rem cakram belakang original Honda AHM ADV 150/160 & PCX 150/160', true);
+                } elseif ($isVario160) {
+                    $map('REM-010', 'kampas_rem_belakang', 'Kampas rem cakram belakang original Honda AHM Vario 160 ABS', true);
+                    $map('REM-009', 'kampas_rem_belakang', 'Kampas rem tromol belakang original Honda AHM Vario 160 CBS');
+                } else {
+                    $map('REM-009', 'kampas_rem_belakang', 'Kampas rem tromol belakang original Honda AHM Beat/Vario/Scoopy', true);
+                    $map('REM-013', 'kampas_rem_belakang', 'Kampas rem tromol belakang Astra Aspira Honda Matic');
+                }
             } elseif ($isHonda && $isBebek) {
                 $map('REM-009', 'kampas_rem_belakang', 'Kampas rem tromol belakang original Honda AHM Supra X 125/Revo', true);
                 $map('REM-010', 'kampas_rem_belakang', 'Kampas rem cakram belakang original Honda AHM Supra X 125 Double Disk');
@@ -412,14 +444,14 @@ class MotorcyclePartSeeder extends Seeder
             if ($isMatic) {
                 // --- V-Belt, Roller, Per CVT, Kampas Ganda KHUSUS MATIC ---
                 if ($isHonda) {
-                    if ($isVarioMid) {
-                        $map('CVT-002', 'v_belt', 'V-Belt original Honda AHM (K35) Vario 125/150', true);
-                        $map('CVT-008', 'v_belt', 'V-Belt Kit + Roller Astra Aspira Vario 125');
-                        $map('CVT-011', 'roller', 'Roller weight 11g original Honda AHM Vario 125', true);
-                        $map('CVT-017', 'per_cvt', 'Per CVT original Honda AHM Vario 125/150', true);
-                        $map('CVT-023', 'kampas_ganda', 'Kampas ganda original Honda AHM Vario 125/150', true);
-                    } elseif ($isPcx160 || $isVario160 || str_contains($model, 'adv 160')) {
-                        $map('CVT-003', 'v_belt', 'V-Belt original Honda AHM (K1Z) PCX 160/Vario 160', true);
+                    if ($isAdv160 || $isPcx160 || $isVario160) {
+                        $map('CVT-003', 'v_belt', 'V-Belt original Honda AHM (23100-K1Z-N21) PCX 160/ADV 160/Vario 160', true);
+                    } elseif ($isAdv150 || $isPcx150 || $isVarioMid) {
+                        $map('CVT-002', 'v_belt', 'V-Belt original Honda AHM (23100-K36-J01 / K97) Vario 125/150/PCX 150/ADV 150', true);
+                        $map('CVT-008', 'v_belt', 'V-Belt Kit + Roller Astra Aspira Vario 125/150');
+                        $map('CVT-011', 'roller', 'Roller weight 11g original Honda AHM Vario 125/150/PCX', true);
+                        $map('CVT-017', 'per_cvt', 'Per CVT original Honda AHM Vario 125/150/PCX', true);
+                        $map('CVT-023', 'kampas_ganda', 'Kampas ganda original Honda AHM Vario 125/150/PCX', true);
                     } else {
                         // Beat, Scoopy, Genio, Vario 110
                         $map('CVT-001', 'v_belt', 'V-Belt original Honda AHM (K44) Beat ESP/Scoopy/Genio', true);
@@ -523,8 +555,8 @@ class MotorcyclePartSeeder extends Seeder
 
             // --- Busi ---
             if ($isHonda && $isMatic) {
-                if ($isVarioMid || $isVario160 || $isPcx150 || $isPcx160) {
-                    $map('ELC-007', 'busi', 'Busi original Honda AHM (CPR6EA-9) Vario 125/150/PCX', true);
+                if ($isAdv || $isPcx160 || $isPcx150 || $isVarioMid || $isVario160) {
+                    $map('ELC-007', 'busi', 'Busi original Honda AHM (CPR6EA-9 / CPR9EA-9) ADV/PCX/Vario 125/150/160', true);
                 } else {
                     $map('ELC-006', 'busi', 'Busi original Honda AHM (CPR9EA-9) Beat/Scoopy/Genio', true);
                     $map('ELC-013', 'busi', 'Busi Astra Aspira CPR9EA-9');
@@ -691,8 +723,8 @@ class MotorcyclePartSeeder extends Seeder
             // =================================================================
             // --- Filter Udara ---
             if ($isHonda && $isMatic) {
-                if ($isVarioMid) {
-                    $map('FLT-002', 'filter_udara', 'Filter udara original Honda AHM Vario 125/150', true);
+                if ($isAdv || $isPcx160 || $isPcx150 || $isVarioMid || $isVario160) {
+                    $map('FLT-002', 'filter_udara', 'Filter udara original Honda AHM Vario/PCX/ADV', true);
                 } else {
                     $map('FLT-001', 'filter_udara', 'Filter udara original Honda AHM Beat ESP/Scoopy', true);
                     $map('FLT-009', 'filter_udara', 'Filter udara Astra Aspira Beat ESP');
