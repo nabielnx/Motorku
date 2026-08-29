@@ -416,7 +416,7 @@ export default function MotorcycleIndex({
 
     // Filter & Search for Motorcycle List
     const [searchMotor, setSearchMotor] = useState('');
-    const [activeBrand, setActiveBrand] = useState(motorcycles[0]?.brand || 'Honda');
+    const [activeBrand, setActiveBrand] = useState('semua');
     const [activeType, setActiveType] = useState('semua');
     const [page, setPage] = useState(1);
     const perPage = 10;
@@ -958,7 +958,7 @@ export default function MotorcycleIndex({
     // Filtered motorcycle list
     const filteredMotorcycles = useMemo(() => {
         return motorcycles.filter(m => {
-            const matchesBrand = activeBrand ? m.brand === activeBrand : true;
+            const matchesBrand = activeBrand && activeBrand !== 'semua' ? m.brand === activeBrand : true;
             const matchesType = activeType !== 'semua' ? m.engine_type === activeType : true;
             const matchesSearch = searchMotor
                 ? (m.model.toLowerCase().includes(searchMotor.toLowerCase()) ||
@@ -992,93 +992,124 @@ export default function MotorcycleIndex({
                 </div>
             )}
 
-            <div className="w-full space-y-4">
-                {/* Header & Main Search Bar */}
-                <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-3 bg-white dark:bg-slate-900 p-3.5 sm:p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xs">
-                    <div>
-                        <h3 className="text-sm sm:text-base font-black text-slate-900 dark:text-white">Data Motor & Compatible Mapping</h3>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-medium">Kelola model motor dan mapping sparepart kompatibel per tipe komponen.</p>
-                    </div>
-                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-2.5 w-full md:w-auto">
-                        <div className="relative flex-1 sm:w-60 md:w-64">
+            <div className="w-full space-y-3.5">
+                {/* UNIFIED CONTROL TOOLBAR */}
+                <div className="bg-white dark:bg-slate-900 p-3 sm:p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xs space-y-3">
+                    {/* Top Row: Search & Management Action Buttons */}
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
+                        {/* Search Input */}
+                        <div className="relative flex-1 sm:max-w-md">
                             <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" size={15} />
                             <input
                                 type="text"
-                                placeholder="Cari model, brand, tipe..."
+                                placeholder="Cari model motor, brand, cc, tipe..."
                                 value={searchMotor}
-                                onChange={e => setSearchMotor(e.target.value)}
-                                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg pl-9 pr-8 py-2 text-xs sm:text-sm text-slate-800 dark:text-slate-200 font-semibold focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all"
+                                onChange={e => { setSearchMotor(e.target.value); setPage(1); }}
+                                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl pl-9 pr-8 py-2 text-xs sm:text-sm text-slate-800 dark:text-slate-200 font-semibold focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all"
                             />
                             {searchMotor && (
-                                <button onClick={() => setSearchMotor('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1">
+                                <button onClick={() => { setSearchMotor(''); setPage(1); }} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer">
                                     <FiX size={14} />
                                 </button>
                             )}
                         </div>
 
-                        {/* Bulk Mapping Button */}
-                        <button
-                            onClick={() => openBulkModal()}
-                            className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg text-xs sm:text-sm font-extrabold flex items-center justify-center gap-1.5 cursor-pointer transition shadow-2xs shrink-0"
-                            title="Mapping sparepart ke banyak motor sekaligus"
-                        >
-                            <FiLayers size={15} /> <span>Bulk Mapping</span>
-                        </button>
-
-                        {/* Add Motor Button */}
-                        <button
-                            onClick={() => { resetMotorForm(); setEditMotorcycle(null); setShowAddModal(true); }}
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-3.5 py-2 rounded-lg text-xs sm:text-sm font-extrabold flex items-center justify-center gap-2 cursor-pointer transition shadow-2xs shrink-0"
-                        >
-                            <FiPlus size={16} /> <span>Tambah Motor</span>
-                        </button>
-                    </div>
-                </div>
-
-                {/* Filter Tabs (Brand & Engine Type - Compact) */}
-                <div className="bg-white dark:bg-slate-900 p-2 sm:p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xs space-y-1.5">
-                    {/* Brand Tabs */}
-                    <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth">
-                        {brands.map(brand => (
+                        {/* Action Buttons */}
+                        <div className="flex items-center gap-2 shrink-0">
                             <button
-                                key={brand}
-                                onClick={() => { setActiveBrand(brand); setActiveType('semua'); }}
-                                className={`px-3 py-1 rounded-md text-xs font-bold whitespace-nowrap transition-all cursor-pointer shrink-0 ${
-                                    activeBrand === brand
+                                type="button"
+                                onClick={() => openBulkModal()}
+                                className="flex-1 sm:flex-none bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/60 dark:hover:bg-indigo-900/60 text-indigo-600 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-extrabold flex items-center justify-center gap-2 cursor-pointer transition shadow-2xs"
+                                title="Mapping sparepart ke banyak motor sekaligus"
+                            >
+                                <FiLayers size={15} />
+                                <span>Bulk Mapping</span>
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() => { resetMotorForm(); setEditMotorcycle(null); setShowAddModal(true); }}
+                                className="flex-1 sm:flex-none bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold flex items-center justify-center gap-2 cursor-pointer transition shadow-2xs"
+                            >
+                                <FiPlus size={16} />
+                                <span>Tambah Motor</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Bottom Row: Filters (Brand Pills & Engine Type Segmented Buttons) */}
+                    <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-2.5 pt-2.5 border-t border-slate-100 dark:border-slate-800">
+                        {/* Brand Filter Tabs */}
+                        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth">
+                            <button
+                                type="button"
+                                onClick={() => { setActiveBrand('semua'); setPage(1); }}
+                                className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all cursor-pointer shrink-0 ${
+                                    activeBrand === 'semua'
                                         ? 'bg-blue-600 text-white shadow-2xs'
-                                        : 'bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
+                                        : 'bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-750'
                                 }`}
                             >
-                                {brand}
+                                Semua Brand ({motorcycles.length})
                             </button>
-                        ))}
-                    </div>
+                            {brands.map(brand => {
+                                const count = motorcycles.filter(m => m.brand === brand).length;
+                                return (
+                                    <button
+                                        key={brand}
+                                        type="button"
+                                        onClick={() => { setActiveBrand(brand); setPage(1); }}
+                                        className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
+                                            activeBrand === brand
+                                                ? 'bg-blue-600 text-white shadow-2xs'
+                                                : 'bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-750'
+                                        }`}
+                                    >
+                                        <span>{brand}</span>
+                                        <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                                            activeBrand === brand ? 'bg-blue-700 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-semibold'
+                                        }`}>
+                                            {count}
+                                        </span>
+                                    </button>
+                                );
+                            })}
+                        </div>
 
-                    {/* Engine Type Filter */}
-                    <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth pt-1.5 border-t border-slate-100 dark:border-slate-800">
-                        {['semua', 'matic', 'bebek', 'sport'].map(type => (
-                            <button
-                                key={type}
-                                onClick={() => setActiveType(type)}
-                                className={`px-2.5 py-0.5 rounded-md text-[11px] font-bold whitespace-nowrap transition-all cursor-pointer shrink-0 ${
-                                    activeType === type
-                                        ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 border border-blue-300 dark:border-blue-700'
-                                        : 'bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
-                                }`}
-                            >
-                                {type === 'semua' ? 'Semua Tipe Mesin' : type.charAt(0).toUpperCase() + type.slice(1)}
-                            </button>
-                        ))}
+                        {/* Engine Type Segmented Buttons */}
+                        <div className="flex items-center gap-1 overflow-x-auto no-scrollbar scroll-smooth self-start lg:self-auto bg-slate-50 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
+                            {['semua', 'matic', 'bebek', 'sport'].map(type => (
+                                <button
+                                    key={type}
+                                    type="button"
+                                    onClick={() => { setActiveType(type); setPage(1); }}
+                                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold whitespace-nowrap transition-all cursor-pointer shrink-0 ${
+                                        activeType === type
+                                            ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-2xs font-extrabold'
+                                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                                    }`}
+                                >
+                                    {type === 'semua' ? 'Semua Tipe' : type.charAt(0).toUpperCase() + type.slice(1)}
+                                </button>
+                            ))}
+                        </div>
                     </div>
                 </div>
 
                 {/* Motorcycle Models List */}
                 {totalMotorItems > 0 ? (
-                    <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-2xs">
-                        <div className="px-3.5 sm:px-4 py-2.5 sm:py-3 bg-slate-50/90 dark:bg-slate-800/90 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                            <span className="text-xs font-black text-slate-800 dark:text-slate-200 uppercase tracking-wider">
-                                {activeBrand} {activeType !== 'semua' ? `· ${activeType.toUpperCase()}` : ''}
-                            </span>
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-2xs">
+                        <div className="px-4 py-3 bg-slate-50/90 dark:bg-slate-800/90 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <span className="text-xs font-black text-slate-800 dark:text-slate-200 uppercase tracking-wider">
+                                    {activeBrand === 'semua' ? 'Semua Brand' : activeBrand} {activeType !== 'semua' ? `· ${activeType.toUpperCase()}` : ''}
+                                </span>
+                                {searchMotor && (
+                                    <span className="text-[11px] font-medium text-slate-400">
+                                        (Pencarian: &quot;{searchMotor}&quot;)
+                                    </span>
+                                )}
+                            </div>
                             <span className="text-xs font-extrabold bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-300 px-2.5 py-0.5 rounded-md border border-blue-200 dark:border-blue-800">
                                 {totalMotorItems} model
                             </span>
@@ -1093,52 +1124,76 @@ export default function MotorcycleIndex({
 
                                 return (
                                     <div key={m.id} className="transition-colors">
-                                        {/* Main Motor Header Row */}
+                                        {/* Main Motor Header Row (Multi-column) */}
                                         <div
-                                            className={`flex items-center justify-between p-3 sm:px-4 cursor-pointer transition-colors gap-2 ${
+                                            className={`flex flex-col md:flex-row items-stretch md:items-center justify-between p-3.5 sm:px-4 cursor-pointer transition-colors gap-3 ${
                                                 isExpanded ? 'bg-blue-50/50 dark:bg-blue-950/30' : 'hover:bg-slate-50/80 dark:hover:bg-slate-800/50'
                                             }`}
                                             onClick={() => toggleExpandMotor(m.id)}
                                         >
-                                            <div className="flex items-center gap-2.5 sm:gap-3 flex-1 min-w-0">
-                                                {/* Motor Image / Placeholder */}
-                                                <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-lg shrink-0 border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 overflow-hidden flex items-center justify-center shadow-2xs">
+                                            {/* Left Column: Motor Thumbnail & Model Info */}
+                                            <div className="flex items-center gap-3 min-w-0 flex-1">
+                                                <div className="w-12 h-12 rounded-xl shrink-0 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden flex items-center justify-center p-0.5 shadow-2xs">
                                                     {m.image_url ? (
-                                                        <img src={m.image_url} alt={m.model} className="w-full h-full object-cover" />
+                                                        <img src={m.image_url} alt={m.model} className="w-full h-full object-cover rounded-lg" />
                                                     ) : (
-                                                        <MotorIconPlaceholder className="text-slate-400 dark:text-slate-500" size={22} />
+                                                        <MotorIconPlaceholder className="text-slate-400 dark:text-slate-500" size={24} />
                                                     )}
                                                 </div>
 
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-                                                        <span className="font-black text-xs sm:text-sm text-slate-900 dark:text-white leading-snug">{m.model}</span>
-                                                        <span className="text-[10px] bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-300 px-1.5 py-0.5 rounded-md font-extrabold shrink-0">{m.engine_cc}cc</span>
-                                                        <span className="text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-1.5 py-0.5 rounded-md font-bold uppercase tracking-wider shrink-0 border border-slate-200 dark:border-slate-700">{m.engine_type}</span>
+                                                <div className="min-w-0">
+                                                    <div className="flex items-center gap-2 flex-wrap">
+                                                        <span className="font-black text-sm text-slate-900 dark:text-white leading-snug">{m.model}</span>
+                                                        <span className="text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-2 py-0.5 rounded-md border border-slate-200 dark:border-slate-700">
+                                                            {m.brand}
+                                                        </span>
                                                     </div>
-                                                    <p className="text-[11px] sm:text-xs font-semibold text-slate-400 dark:text-slate-500 mt-0.5 truncate">
-                                                        {m.year_start}{m.year_end ? ` - ${m.year_end}` : ' - sekarang'} · <span className="text-blue-600 dark:text-blue-400 font-extrabold">{currentMotorParts.total_mapped ?? m.parts_count ?? 0} sparepart</span>
+                                                    <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5 font-medium">
+                                                        Tahun Rilis: <span className="text-slate-600 dark:text-slate-300 font-semibold">{m.year_start}{m.year_end ? ` - ${m.year_end}` : ' - sekarang'}</span>
                                                     </p>
                                                 </div>
                                             </div>
 
-                                            <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
+                                            {/* Center Column: Specs Badges & Mapping Status */}
+                                            <div className="flex items-center gap-2.5 sm:gap-3 shrink-0 pl-15 md:pl-0">
+                                                {/* Specs */}
+                                                <div className="flex items-center gap-1.5">
+                                                    <span className="text-xs font-extrabold bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 px-2.5 py-1 rounded-lg">
+                                                        {m.engine_cc}cc
+                                                    </span>
+                                                    <span className="text-xs font-bold uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 px-2.5 py-1 rounded-lg">
+                                                        {m.engine_type}
+                                                    </span>
+                                                </div>
+
+                                                {/* Mapping Status */}
+                                                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs font-extrabold">
+                                                    <FiCheckCircle size={13} className="text-emerald-600 dark:text-emerald-400" />
+                                                    <span>{currentMotorParts.total_mapped ?? m.parts_count ?? 0} Part</span>
+                                                </div>
+                                            </div>
+
+                                            {/* Right Column: Actions & Toggle */}
+                                            <div className="flex items-center justify-end gap-1 shrink-0 pl-15 md:pl-0 border-t md:border-t-0 pt-2 md:pt-0 border-slate-100 dark:border-slate-800">
                                                 <button
+                                                    type="button"
                                                     onClick={(e) => { e.stopPropagation(); openEditMotor(m); }}
-                                                    className="p-2 sm:p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-800 rounded-lg transition cursor-pointer"
+                                                    className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-800 rounded-lg transition cursor-pointer"
                                                     title="Edit Motor"
                                                 >
                                                     <FiEdit2 size={15} />
                                                 </button>
                                                 <button
+                                                    type="button"
                                                     onClick={(e) => { e.stopPropagation(); handleDeleteMotor(m.id, `${m.brand} ${m.model}`); }}
-                                                    className="p-2 sm:p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-slate-800 rounded-lg transition cursor-pointer"
+                                                    className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-slate-800 rounded-lg transition cursor-pointer"
                                                     title="Hapus Motor"
                                                 >
                                                     <FiTrash2 size={15} />
                                                 </button>
-                                                <div className="p-1.5 text-slate-400">
-                                                    {isExpanded ? <FiChevronUp size={18} className="text-blue-600" /> : <FiChevronDown size={18} />}
+                                                <div className="flex items-center gap-1 text-xs font-bold text-slate-500 dark:text-slate-400 ml-1 bg-slate-50 dark:bg-slate-800 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700">
+                                                    <span>{isExpanded ? 'Tutup' : 'Lihat Part'}</span>
+                                                    {isExpanded ? <FiChevronUp size={16} className="text-blue-600" /> : <FiChevronDown size={16} />}
                                                 </div>
                                             </div>
                                         </div>
