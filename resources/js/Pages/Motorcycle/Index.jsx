@@ -1290,18 +1290,18 @@ export default function MotorcycleIndex({
                                         {isExpanded && (
                                             <div className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
                                                 {/* Unified Compact Responsive Control Bar */}
-                                                <div className="px-3 sm:px-4 py-2.5 bg-slate-50/80 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-700/80 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2">
-                                                    {/* Search, Dropdowns, and Recommendation Button */}
-                                                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-1.5 sm:gap-2 flex-1 min-w-0">
+                                                <div className="px-3 sm:px-4 py-2.5 bg-slate-50/80 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-700/80 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2.5">
+                                                    {/* Left Controls: Search, Dropdowns, and Recommendation Button */}
+                                                    <div className="flex flex-wrap items-center gap-2 flex-1 min-w-0">
                                                         {/* Search inside motorcycle parts */}
-                                                        <div className="relative w-full sm:w-48 md:w-56 shrink-0">
+                                                        <div className="relative w-full sm:w-52 shrink-0">
                                                             <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" size={13} />
                                                             <input
                                                                 type="text"
                                                                 placeholder="Cari nama part, SKU, catatan..."
                                                                 value={filter.search || ''}
                                                                 onChange={(e) => handleSearchParts(m.id, e.target.value)}
-                                                                className="w-full pl-8 pr-7 py-1.5 sm:py-1 text-xs bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-md text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500 font-medium"
+                                                                className="w-full pl-8 pr-7 py-1.5 text-xs bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-md text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500 font-medium"
                                                             />
                                                             {filter.search && (
                                                                 <button
@@ -1313,53 +1313,50 @@ export default function MotorcycleIndex({
                                                             )}
                                                         </div>
 
-                                                        {/* Dropdown Filters on mobile/tablet */}
-                                                        <div className="grid grid-cols-2 sm:flex items-center gap-1.5 flex-1 min-w-0">
-                                                            {/* Group Filter */}
-                                                            <select
-                                                                value={filter.group}
-                                                                onChange={(e) => {
-                                                                    const g = e.target.value;
-                                                                    setPartsFilter(prev => ({
-                                                                        ...prev,
-                                                                        [m.id]: { ...filter, group: g, category: 'semua' }
-                                                                    }));
-                                                                    fetchParts(m.id, { group: g, category: 'semua', page: 1 });
-                                                                }}
-                                                                className="w-full sm:w-auto py-1.5 sm:py-1 pl-2.5 pr-8 text-xs bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-slate-800 dark:text-slate-200 font-bold focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
-                                                            >
-                                                                <option value="semua">Semua Grup</option>
-                                                                {Object.entries(categoryGroups).map(([gKey, gVal]) => (
-                                                                    <option key={gKey} value={gKey}>{gVal.name}</option>
-                                                                ))}
-                                                            </select>
+                                                        {/* Group Filter */}
+                                                        <select
+                                                            value={filter.group}
+                                                            onChange={(e) => {
+                                                                const g = e.target.value;
+                                                                setPartsFilter(prev => ({
+                                                                    ...prev,
+                                                                    [m.id]: { ...filter, group: g, category: 'semua' }
+                                                                }));
+                                                                fetchParts(m.id, { group: g, category: 'semua', page: 1 });
+                                                            }}
+                                                            className="py-1.5 pl-2.5 pr-8 text-xs bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-slate-800 dark:text-slate-200 font-bold focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
+                                                        >
+                                                            <option value="semua">Semua Grup</option>
+                                                            {Object.entries(categoryGroups).map(([gKey, gVal]) => (
+                                                                <option key={gKey} value={gKey}>{gVal.name}</option>
+                                                            ))}
+                                                        </select>
 
-                                                            {/* Specific Category Filter */}
-                                                            <select
-                                                                value={filter.category}
-                                                                onChange={(e) => {
-                                                                    const c = e.target.value;
-                                                                    setPartsFilter(prev => ({
-                                                                        ...prev,
-                                                                        [m.id]: { ...filter, category: c }
-                                                                    }));
-                                                                    fetchParts(m.id, { category: c, page: 1 });
-                                                                }}
-                                                                className="w-full sm:w-auto py-1.5 sm:py-1 pl-2.5 pr-8 text-xs bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-slate-800 dark:text-slate-200 font-bold focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
-                                                            >
-                                                                <option value="semua">Semua Tipe Part</option>
-                                                                {Object.entries(categoryGroups).map(([gKey, gVal]) => {
-                                                                    if (filter.group !== 'semua' && filter.group !== gKey) return null;
-                                                                    return (
-                                                                        <optgroup key={gKey} label={gVal.name}>
-                                                                            {Object.entries(gVal.items || {}).map(([catKey, catLabel]) => (
-                                                                                <option key={catKey} value={catKey}>{catLabel}</option>
-                                                                            ))}
-                                                                        </optgroup>
-                                                                    );
-                                                                })}
-                                                            </select>
-                                                        </div>
+                                                        {/* Specific Category Filter */}
+                                                        <select
+                                                            value={filter.category}
+                                                            onChange={(e) => {
+                                                                const c = e.target.value;
+                                                                setPartsFilter(prev => ({
+                                                                    ...prev,
+                                                                    [m.id]: { ...filter, category: c }
+                                                                }));
+                                                                fetchParts(m.id, { category: c, page: 1 });
+                                                            }}
+                                                            className="py-1.5 pl-2.5 pr-8 text-xs bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-slate-800 dark:text-slate-200 font-bold focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
+                                                        >
+                                                            <option value="semua">Semua Tipe Part</option>
+                                                            {Object.entries(categoryGroups).map(([gKey, gVal]) => {
+                                                                if (filter.group !== 'semua' && filter.group !== gKey) return null;
+                                                                return (
+                                                                    <optgroup key={gKey} label={gVal.name}>
+                                                                        {Object.entries(gVal.items || {}).map(([catKey, catLabel]) => (
+                                                                            <option key={catKey} value={catKey}>{catLabel}</option>
+                                                                        ))}
+                                                                    </optgroup>
+                                                                );
+                                                            })}
+                                                        </select>
 
                                                         {/* Recommendation Toggle */}
                                                         <button
@@ -1371,27 +1368,20 @@ export default function MotorcycleIndex({
                                                                 }));
                                                                 fetchParts(m.id, { is_recommended: nextRec, page: 1 });
                                                             }}
-                                                            className={`py-1.5 sm:py-1 px-2.5 rounded-md text-xs font-bold flex items-center justify-center gap-1.5 transition border shrink-0 ${
+                                                            className={`py-1.5 px-2.5 rounded-md text-xs font-bold flex items-center justify-center gap-1.5 transition border shrink-0 cursor-pointer ${
                                                                 filter.is_recommended
-                                                                    ? 'bg-amber-500 text-white border-amber-600'
-                                                                    : 'bg-white dark:bg-slate-700 border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-50'
+                                                                    ? 'bg-amber-500 text-white border-amber-600 shadow-2xs'
+                                                                    : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
                                                             }`}
                                                             title="Filter sparepart rekomendasi"
                                                         >
-                                                            <FiStar size={12} className={filter.is_recommended ? 'fill-white' : 'text-amber-500'} />
+                                                            <FiStar size={12} className={filter.is_recommended ? 'fill-white text-white' : 'text-amber-500'} />
                                                             <span>Rekomendasi</span>
                                                         </button>
                                                     </div>
 
-                                                    {/* Right: Tambah Part & Quick Bulk Buttons */}
+                                                    {/* Right: Tambah Part Button */}
                                                     <div className="flex items-center gap-2 shrink-0">
-                                                        <button
-                                                            onClick={() => openBulkModal(m.id)}
-                                                            className="text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 dark:bg-indigo-950/60 dark:hover:bg-indigo-900/80 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 px-2.5 py-1.5 sm:py-1 rounded-md font-bold flex items-center justify-center gap-1 shadow-2xs cursor-pointer transition"
-                                                            title="Bulk mapping banyak part ke motor ini"
-                                                        >
-                                                            <FiLayers size={13} /> Bulk Part
-                                                        </button>
                                                         <button
                                                             onClick={() => {
                                                                 setShowPartModal(m.id);
@@ -1399,7 +1389,7 @@ export default function MotorcycleIndex({
                                                                 setPartFormData({ product_id: '', part_category: 'oli_mesin', notes: '', is_recommended: false });
                                                                 setPartFormErrors({});
                                                             }}
-                                                            className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 sm:py-1 rounded-md font-bold flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer shrink-0 transition"
+                                                            className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-1.5 rounded-md font-bold flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer shrink-0 transition"
                                                         >
                                                             <FiLink size={13} /> Tambah Part
                                                         </button>
