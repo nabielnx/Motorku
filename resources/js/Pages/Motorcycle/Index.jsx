@@ -41,49 +41,31 @@ const BRAND_CONFIG = {
         badge: 'bg-red-600 text-white border-red-700 font-black',
         activeBtn: 'bg-red-600 text-white border-red-700 shadow-xs font-bold',
         inactiveBtn: 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:border-red-500 hover:text-red-600',
-        countActive: 'bg-red-800 text-white',
-        countInactive: 'bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-300 font-bold',
-        dot: 'bg-red-600',
     },
     Yamaha: {
         badge: 'bg-blue-600 text-white border-blue-700 font-black',
         activeBtn: 'bg-blue-600 text-white border-blue-700 shadow-xs font-bold',
         inactiveBtn: 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:border-blue-500 hover:text-blue-600',
-        countActive: 'bg-blue-800 text-white',
-        countInactive: 'bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 font-bold',
-        dot: 'bg-blue-600',
     },
     Kawasaki: {
         badge: 'bg-emerald-600 text-white border-emerald-700 font-black',
         activeBtn: 'bg-emerald-600 text-white border-emerald-700 shadow-xs font-bold',
         inactiveBtn: 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:border-emerald-500 hover:text-emerald-600',
-        countActive: 'bg-emerald-800 text-white',
-        countInactive: 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-bold',
-        dot: 'bg-emerald-600',
     },
     Suzuki: {
         badge: 'bg-sky-600 text-white border-sky-700 font-black',
         activeBtn: 'bg-sky-600 text-white border-sky-700 shadow-xs font-bold',
         inactiveBtn: 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:border-sky-500 hover:text-sky-600',
-        countActive: 'bg-sky-800 text-white',
-        countInactive: 'bg-sky-100 dark:bg-sky-950 text-sky-700 dark:text-sky-300 font-bold',
-        dot: 'bg-sky-600',
     },
     Vespa: {
         badge: 'bg-amber-600 text-white border-amber-700 font-black',
         activeBtn: 'bg-amber-600 text-white border-amber-700 shadow-xs font-bold',
         inactiveBtn: 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:border-amber-500 hover:text-amber-600',
-        countActive: 'bg-amber-800 text-white',
-        countInactive: 'bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 font-bold',
-        dot: 'bg-amber-600',
     },
     default: {
         badge: 'bg-purple-600 text-white border-purple-700 font-black',
         activeBtn: 'bg-purple-600 text-white border-purple-700 shadow-xs font-bold',
         inactiveBtn: 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:border-purple-500 hover:text-purple-600',
-        countActive: 'bg-purple-800 text-white',
-        countInactive: 'bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 font-bold',
-        dot: 'bg-purple-600',
     }
 };
 
@@ -1154,16 +1136,11 @@ export default function MotorcycleIndex({
                                         key={brand}
                                         type="button"
                                         onClick={() => { setActiveBrand(brand); setPage(1); }}
-                                        className={`px-3 py-1.5 rounded-md text-xs font-bold whitespace-nowrap transition-all cursor-pointer shrink-0 flex items-center gap-1.5 border ${
+                                        className={`px-3 py-1.5 rounded-md text-xs font-bold whitespace-nowrap transition-all cursor-pointer shrink-0 border ${
                                             isBrandActive ? bCfg.activeBtn : bCfg.inactiveBtn
                                         }`}
                                     >
-                                        <span>{brand}</span>
-                                        <span className={`text-[10px] px-1.5 py-0.2 rounded font-extrabold ${
-                                            isBrandActive ? bCfg.countActive : bCfg.countInactive
-                                        }`}>
-                                            {count}
-                                        </span>
+                                        <span>{brand} ({count})</span>
                                     </button>
                                 );
                             })}
