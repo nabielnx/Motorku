@@ -22,17 +22,17 @@ function MotorIconPlaceholder({ size = 22, className = "" }) {
     );
 }
 
-// Category group badge colors for distinct visual grouping
+// Category group badge colors for distinct visual grouping (Solid, crisp high-contrast colors)
 const GROUP_COLORS = {
-    pelumas_cairan: 'bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-800/60',
-    kaki_kaki_roda: 'bg-indigo-100 dark:bg-indigo-950/60 text-indigo-800 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800/60',
-    pengereman: 'bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300 border-rose-200 dark:border-rose-800/60',
-    transmisi_penggerak: 'bg-purple-100 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300 border-purple-200 dark:border-purple-800/60',
-    kelistrikan_pengapian: 'bg-yellow-100 dark:bg-yellow-950/60 text-yellow-800 dark:text-yellow-300 border-yellow-200 dark:border-yellow-800/60',
-    lampu_saklar: 'bg-cyan-100 dark:bg-cyan-950/60 text-cyan-800 dark:text-cyan-300 border-cyan-200 dark:border-cyan-800/60',
-    mesin_filter: 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/60',
-    bodi_aksesoris: 'bg-orange-100 dark:bg-orange-950/60 text-orange-800 dark:text-orange-300 border-orange-200 dark:border-orange-800/60',
-    lainnya: 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700',
+    pelumas_cairan: 'bg-amber-100 dark:bg-amber-900 text-amber-950 dark:text-amber-100 border-amber-300 dark:border-amber-700',
+    kaki_kaki_roda: 'bg-indigo-100 dark:bg-indigo-900 text-indigo-950 dark:text-indigo-100 border-indigo-300 dark:border-indigo-700',
+    pengereman: 'bg-rose-100 dark:bg-rose-900 text-rose-950 dark:text-rose-100 border-rose-300 dark:border-rose-700',
+    transmisi_penggerak: 'bg-purple-100 dark:bg-purple-900 text-purple-950 dark:text-purple-100 border-purple-300 dark:border-purple-700',
+    kelistrikan_pengapian: 'bg-yellow-100 dark:bg-yellow-900 text-yellow-950 dark:text-yellow-100 border-yellow-300 dark:border-yellow-700',
+    lampu_saklar: 'bg-cyan-100 dark:bg-cyan-900 text-cyan-950 dark:text-cyan-100 border-cyan-300 dark:border-cyan-700',
+    mesin_filter: 'bg-emerald-100 dark:bg-emerald-900 text-emerald-950 dark:text-emerald-100 border-emerald-300 dark:border-emerald-700',
+    bodi_aksesoris: 'bg-orange-100 dark:bg-orange-900 text-orange-950 dark:text-orange-100 border-orange-300 dark:border-orange-700',
+    lainnya: 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 border-slate-300 dark:border-slate-700',
 };
 
 // Integrated Searchable Product Dropdown Component
@@ -118,9 +118,9 @@ function SearchableProductDropdown({ products = [], value, onChange, error }) {
 
             {/* Dropdown Floating Panel */}
             {isOpen && (
-                <div className="absolute z-50 left-0 right-0 mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl overflow-hidden">
+                <div className="absolute z-50 left-0 right-0 mt-1 bg-white dark:bg-slate-850 border border-slate-300 dark:border-slate-700 rounded-lg shadow-xl overflow-hidden">
                     {/* Integrated Search & Filter Header */}
-                    <div className="p-2 border-b border-slate-100 dark:border-slate-700 bg-slate-50/90 dark:bg-slate-750/90 space-y-1.5">
+                    <div className="p-2 border-b border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 space-y-1.5">
                         <div className="relative">
                             <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" size={13} />
                             <input
@@ -129,7 +129,7 @@ function SearchableProductDropdown({ products = [], value, onChange, error }) {
                                 value={search}
                                 onChange={e => setSearch(e.target.value)}
                                 placeholder="Ketik nama produk, SKU, atau kategori..."
-                                className="w-full pl-8 pr-7 py-1.5 text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-800 dark:text-slate-200 font-semibold focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                className="w-full pl-8 pr-7 py-1.5 text-xs bg-white dark:bg-slate-850 border border-slate-300 dark:border-slate-600 rounded-md text-slate-800 dark:text-slate-200 font-semibold focus:outline-none focus:ring-1 focus:ring-indigo-500"
                             />
                             {search && (
                                 <button
@@ -174,8 +174,8 @@ function SearchableProductDropdown({ products = [], value, onChange, error }) {
                                     }}
                                     className={`flex items-center justify-between p-2 text-xs cursor-pointer transition ${
                                         isSelected
-                                            ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-900 dark:text-indigo-200 font-bold'
-                                            : 'hover:bg-slate-50 dark:hover:bg-slate-750 text-slate-800 dark:text-slate-200'
+                                            ? 'bg-slate-100 dark:bg-slate-750 text-indigo-600 dark:text-indigo-300 font-bold border-l-4 border-l-indigo-600'
+                                            : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200'
                                     }`}
                                 >
                                     <div className="flex items-center gap-2 min-w-0 flex-1 pr-2">
@@ -300,9 +300,9 @@ function SearchableMotorDropdown({ motorcycles = [], value, onChange, error }) {
 
             {/* Dropdown Floating Panel */}
             {isOpen && (
-                <div className="absolute z-50 left-0 right-0 mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl overflow-hidden">
+                <div className="absolute z-50 left-0 right-0 mt-1 bg-white dark:bg-slate-850 border border-slate-300 dark:border-slate-700 rounded-lg shadow-xl overflow-hidden">
                     {/* Integrated Search & Filter Header */}
-                    <div className="p-2 border-b border-slate-100 dark:border-slate-700 bg-slate-50/90 dark:bg-slate-750/90 space-y-1.5">
+                    <div className="p-2 border-b border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 space-y-1.5">
                         <div className="relative">
                             <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" size={13} />
                             <input
@@ -311,7 +311,7 @@ function SearchableMotorDropdown({ motorcycles = [], value, onChange, error }) {
                                 value={search}
                                 onChange={e => setSearch(e.target.value)}
                                 placeholder="Ketik model motor atau brand..."
-                                className="w-full pl-8 pr-7 py-1.5 text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-800 dark:text-slate-200 font-semibold focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                className="w-full pl-8 pr-7 py-1.5 text-xs bg-white dark:bg-slate-850 border border-slate-300 dark:border-slate-600 rounded-md text-slate-800 dark:text-slate-200 font-semibold focus:outline-none focus:ring-1 focus:ring-indigo-500"
                             />
                             {search && (
                                 <button
@@ -992,9 +992,9 @@ export default function MotorcycleIndex({
                 </div>
             )}
 
-            <div className="w-full space-y-3.5">
+            <div className="w-full space-y-3">
                 {/* UNIFIED CONTROL TOOLBAR */}
-                <div className="bg-white dark:bg-slate-900 p-3 sm:p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xs space-y-3">
+                <div className="bg-white dark:bg-slate-900 p-3 sm:p-4 rounded-lg border border-slate-200 dark:border-slate-800 shadow-xs space-y-3">
                     {/* Top Row: Search & Management Action Buttons */}
                     <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
                         {/* Search Input */}
@@ -1005,7 +1005,7 @@ export default function MotorcycleIndex({
                                 placeholder="Cari model motor, brand, cc, tipe..."
                                 value={searchMotor}
                                 onChange={e => { setSearchMotor(e.target.value); setPage(1); }}
-                                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl pl-9 pr-8 py-2 text-xs sm:text-sm text-slate-800 dark:text-slate-200 font-semibold focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all"
+                                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg pl-9 pr-8 py-2 text-xs sm:text-sm text-slate-900 dark:text-slate-100 font-semibold focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all"
                             />
                             {searchMotor && (
                                 <button onClick={() => { setSearchMotor(''); setPage(1); }} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer">
@@ -1019,17 +1019,17 @@ export default function MotorcycleIndex({
                             <button
                                 type="button"
                                 onClick={() => openBulkModal()}
-                                className="flex-1 sm:flex-none bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/60 dark:hover:bg-indigo-900/60 text-indigo-600 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-extrabold flex items-center justify-center gap-2 cursor-pointer transition shadow-2xs"
+                                className="flex-1 sm:flex-none bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold flex items-center justify-center gap-2 cursor-pointer transition shadow-xs"
                                 title="Mapping sparepart ke banyak motor sekaligus"
                             >
                                 <FiLayers size={15} />
-                                <span>Bulk Mapping</span>
+                                <span>Mapping Massal</span>
                             </button>
 
                             <button
                                 type="button"
                                 onClick={() => { resetMotorForm(); setEditMotorcycle(null); setShowAddModal(true); }}
-                                className="flex-1 sm:flex-none bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold flex items-center justify-center gap-2 cursor-pointer transition shadow-2xs"
+                                className="flex-1 sm:flex-none bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-xs sm:text-sm font-bold flex items-center justify-center gap-2 cursor-pointer transition shadow-xs"
                             >
                                 <FiPlus size={16} />
                                 <span>Tambah Motor</span>
@@ -1038,16 +1038,16 @@ export default function MotorcycleIndex({
                     </div>
 
                     {/* Bottom Row: Filters (Brand Pills & Engine Type Segmented Buttons) */}
-                    <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-2.5 pt-2.5 border-t border-slate-100 dark:border-slate-800">
+                    <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-2.5 pt-2.5 border-t border-slate-200 dark:border-slate-800">
                         {/* Brand Filter Tabs */}
                         <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth">
                             <button
                                 type="button"
                                 onClick={() => { setActiveBrand('semua'); setPage(1); }}
-                                className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all cursor-pointer shrink-0 ${
+                                className={`px-3 py-1.5 rounded-md text-xs font-bold whitespace-nowrap transition-all cursor-pointer shrink-0 ${
                                     activeBrand === 'semua'
-                                        ? 'bg-blue-600 text-white shadow-2xs'
-                                        : 'bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-750'
+                                        ? 'bg-blue-600 text-white shadow-xs'
+                                        : 'bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700'
                                 }`}
                             >
                                 Semua Brand ({motorcycles.length})
@@ -1059,15 +1059,15 @@ export default function MotorcycleIndex({
                                         key={brand}
                                         type="button"
                                         onClick={() => { setActiveBrand(brand); setPage(1); }}
-                                        className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
+                                        className={`px-3 py-1.5 rounded-md text-xs font-bold whitespace-nowrap transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
                                             activeBrand === brand
-                                                ? 'bg-blue-600 text-white shadow-2xs'
-                                                : 'bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-750'
+                                                ? 'bg-blue-600 text-white shadow-xs'
+                                                : 'bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700'
                                         }`}
                                     >
                                         <span>{brand}</span>
-                                        <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-                                            activeBrand === brand ? 'bg-blue-700 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-semibold'
+                                        <span className={`text-[10px] px-1.5 py-0.2 rounded ${
+                                            activeBrand === brand ? 'bg-blue-800 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold'
                                         }`}>
                                             {count}
                                         </span>
@@ -1077,16 +1077,16 @@ export default function MotorcycleIndex({
                         </div>
 
                         {/* Engine Type Segmented Buttons */}
-                        <div className="flex items-center gap-1 overflow-x-auto no-scrollbar scroll-smooth self-start lg:self-auto bg-slate-50 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
+                        <div className="flex items-center gap-1 overflow-x-auto no-scrollbar scroll-smooth self-start lg:self-auto bg-slate-100 dark:bg-slate-800 p-1 rounded-md border border-slate-300 dark:border-slate-700">
                             {['semua', 'matic', 'bebek', 'sport'].map(type => (
                                 <button
                                     key={type}
                                     type="button"
                                     onClick={() => { setActiveType(type); setPage(1); }}
-                                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold whitespace-nowrap transition-all cursor-pointer shrink-0 ${
+                                    className={`px-2.5 py-1 rounded text-[11px] font-bold whitespace-nowrap transition-all cursor-pointer shrink-0 ${
                                         activeType === type
-                                            ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-2xs font-extrabold'
-                                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                                            ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs font-extrabold'
+                                            : 'text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white'
                                     }`}
                                 >
                                     {type === 'semua' ? 'Semua Tipe' : type.charAt(0).toUpperCase() + type.slice(1)}
@@ -1098,24 +1098,24 @@ export default function MotorcycleIndex({
 
                 {/* Motorcycle Models List */}
                 {totalMotorItems > 0 ? (
-                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-2xs">
-                        <div className="px-4 py-3 bg-slate-50/90 dark:bg-slate-800/90 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                    <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 overflow-hidden shadow-xs">
+                        <div className="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
                             <div className="flex items-center gap-2">
                                 <span className="text-xs font-black text-slate-800 dark:text-slate-200 uppercase tracking-wider">
                                     {activeBrand === 'semua' ? 'Semua Brand' : activeBrand} {activeType !== 'semua' ? `· ${activeType.toUpperCase()}` : ''}
                                 </span>
                                 {searchMotor && (
-                                    <span className="text-[11px] font-medium text-slate-400">
+                                    <span className="text-[11px] font-medium text-slate-500">
                                         (Pencarian: &quot;{searchMotor}&quot;)
                                     </span>
                                 )}
                             </div>
-                            <span className="text-xs font-extrabold bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-300 px-2.5 py-0.5 rounded-md border border-blue-200 dark:border-blue-800">
+                            <span className="text-xs font-extrabold bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 px-2.5 py-0.5 rounded border border-slate-300 dark:border-slate-600">
                                 {totalMotorItems} model
                             </span>
                         </div>
 
-                        <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                        <div className="divide-y divide-slate-200 dark:divide-slate-800">
                             {paginatedMotorList.map(m => {
                                 const isExpanded = expandedMotor === m.id;
                                 const currentMotorParts = partsData[m.id] || { data: [], total: 0, current_page: 1, last_page: 1, total_mapped: m.parts_count || 0 };
@@ -1126,59 +1126,59 @@ export default function MotorcycleIndex({
                                     <div key={m.id} className="transition-colors">
                                         {/* Main Motor Header Row (Multi-column) */}
                                         <div
-                                            className={`flex flex-col md:flex-row items-stretch md:items-center justify-between p-3.5 sm:px-4 cursor-pointer transition-colors gap-3 ${
-                                                isExpanded ? 'bg-blue-50/50 dark:bg-blue-950/30' : 'hover:bg-slate-50/80 dark:hover:bg-slate-800/50'
+                                            className={`flex flex-col md:flex-row items-stretch md:items-center justify-between p-3 sm:px-4 cursor-pointer transition-colors gap-3 ${
+                                                isExpanded ? 'bg-slate-50 dark:bg-slate-800/60' : 'hover:bg-slate-50 dark:hover:bg-slate-800/40'
                                             }`}
                                             onClick={() => toggleExpandMotor(m.id)}
                                         >
                                             {/* Left Column: Motor Thumbnail & Model Info */}
                                             <div className="flex items-center gap-3 min-w-0 flex-1">
-                                                <div className="w-12 h-12 rounded-xl shrink-0 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden flex items-center justify-center p-0.5 shadow-2xs">
+                                                <div className="w-11 h-11 rounded-md shrink-0 border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 overflow-hidden flex items-center justify-center p-0.5 shadow-2xs">
                                                     {m.image_url ? (
-                                                        <img src={m.image_url} alt={m.model} className="w-full h-full object-cover rounded-lg" />
+                                                        <img src={m.image_url} alt={m.model} className="w-full h-full object-cover rounded" />
                                                     ) : (
-                                                        <MotorIconPlaceholder className="text-slate-400 dark:text-slate-500" size={24} />
+                                                        <MotorIconPlaceholder className="text-slate-400 dark:text-slate-500" size={22} />
                                                     )}
                                                 </div>
 
                                                 <div className="min-w-0">
                                                     <div className="flex items-center gap-2 flex-wrap">
                                                         <span className="font-black text-sm text-slate-900 dark:text-white leading-snug">{m.model}</span>
-                                                        <span className="text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-2 py-0.5 rounded-md border border-slate-200 dark:border-slate-700">
+                                                        <span className="text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-2 py-0.5 rounded border border-slate-300 dark:border-slate-700">
                                                             {m.brand}
                                                         </span>
                                                     </div>
-                                                    <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5 font-medium">
-                                                        Tahun Rilis: <span className="text-slate-600 dark:text-slate-300 font-semibold">{m.year_start}{m.year_end ? ` - ${m.year_end}` : ' - sekarang'}</span>
+                                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-medium">
+                                                        Tahun Rilis: <span className="text-slate-700 dark:text-slate-300 font-semibold">{m.year_start}{m.year_end ? ` - ${m.year_end}` : ' - sekarang'}</span>
                                                     </p>
                                                 </div>
                                             </div>
 
                                             {/* Center Column: Specs Badges & Mapping Status */}
-                                            <div className="flex items-center gap-2.5 sm:gap-3 shrink-0 pl-15 md:pl-0">
+                                            <div className="flex items-center gap-2.5 sm:gap-3 shrink-0 pl-14 md:pl-0">
                                                 {/* Specs */}
                                                 <div className="flex items-center gap-1.5">
-                                                    <span className="text-xs font-extrabold bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 px-2.5 py-1 rounded-lg">
+                                                    <span className="text-xs font-extrabold bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 px-2 py-0.5 rounded-md">
                                                         {m.engine_cc}cc
                                                     </span>
-                                                    <span className="text-xs font-bold uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 px-2.5 py-1 rounded-lg">
+                                                    <span className="text-xs font-bold uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 px-2 py-0.5 rounded-md">
                                                         {m.engine_type}
                                                     </span>
                                                 </div>
 
                                                 {/* Mapping Status */}
-                                                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs font-extrabold">
+                                                <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-xs font-extrabold">
                                                     <FiCheckCircle size={13} className="text-emerald-600 dark:text-emerald-400" />
                                                     <span>{currentMotorParts.total_mapped ?? m.parts_count ?? 0} Part</span>
                                                 </div>
                                             </div>
 
                                             {/* Right Column: Actions & Toggle */}
-                                            <div className="flex items-center justify-end gap-1 shrink-0 pl-15 md:pl-0 border-t md:border-t-0 pt-2 md:pt-0 border-slate-100 dark:border-slate-800">
+                                            <div className="flex items-center justify-end gap-1 shrink-0 pl-14 md:pl-0 border-t md:border-t-0 pt-2 md:pt-0 border-slate-200 dark:border-slate-800">
                                                 <button
                                                     type="button"
                                                     onClick={(e) => { e.stopPropagation(); openEditMotor(m); }}
-                                                    className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-800 rounded-lg transition cursor-pointer"
+                                                    className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition cursor-pointer"
                                                     title="Edit Motor"
                                                 >
                                                     <FiEdit2 size={15} />
@@ -1186,12 +1186,12 @@ export default function MotorcycleIndex({
                                                 <button
                                                     type="button"
                                                     onClick={(e) => { e.stopPropagation(); handleDeleteMotor(m.id, `${m.brand} ${m.model}`); }}
-                                                    className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-slate-800 rounded-lg transition cursor-pointer"
+                                                    className="p-1.5 text-slate-500 hover:text-red-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition cursor-pointer"
                                                     title="Hapus Motor"
                                                 >
                                                     <FiTrash2 size={15} />
                                                 </button>
-                                                <div className="flex items-center gap-1 text-xs font-bold text-slate-500 dark:text-slate-400 ml-1 bg-slate-50 dark:bg-slate-800 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700">
+                                                <div className="flex items-center gap-1 text-xs font-bold text-slate-700 dark:text-slate-300 ml-1 bg-slate-100 dark:bg-slate-800 px-2.5 py-1.5 rounded-md border border-slate-300 dark:border-slate-700">
                                                     <span>{isExpanded ? 'Tutup' : 'Lihat Part'}</span>
                                                     {isExpanded ? <FiChevronUp size={16} className="text-blue-600" /> : <FiChevronDown size={16} />}
                                                 </div>
@@ -1529,23 +1529,23 @@ export default function MotorcycleIndex({
             </div>
 
             {/* ======================================================== */}
-            {/* BULK MAPPING MODAL (High-Quality Dual-Mode Interface) */}
+            {/* BULK MAPPING MODAL (Indonesian: Mapping Massal) */}
             {/* ======================================================== */}
             {showBulkModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-3 sm:p-4" onClick={() => setShowBulkModal(false)}>
-                    <div className="bg-white dark:bg-slate-850 rounded-2xl shadow-2xl w-full max-w-2xl p-5 sm:p-6 space-y-4 max-h-[92vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3 sm:p-4" onClick={() => setShowBulkModal(false)}>
+                    <div className="bg-white dark:bg-slate-900 rounded-lg shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-2xl p-5 sm:p-6 space-y-4 max-h-[92vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
                         {/* Header */}
-                        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-700 pb-3">
+                        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
                             <div className="flex items-center gap-2.5">
-                                <div className="p-2 rounded-lg bg-indigo-100 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300">
+                                <div className="p-2 rounded-md bg-indigo-600 text-white">
                                     <FiLayers size={20} />
                                 </div>
                                 <div>
-                                    <h3 className="font-extrabold text-base sm:text-lg text-slate-900 dark:text-white">
-                                        Bulk Mapping Sparepart
+                                    <h3 className="font-black text-base sm:text-lg text-slate-900 dark:text-white">
+                                        Mapping Massal Sparepart
                                     </h3>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                                        Petakan banyak komponen ke model motor sekaligus secara efisien.
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                                        Hubungkan banyak sparepart ke model motor sekaligus secara efisien.
                                     </p>
                                 </div>
                             </div>
@@ -1555,20 +1555,20 @@ export default function MotorcycleIndex({
                         </div>
 
                         {/* Mode Selector Tabs */}
-                        <div className="grid grid-cols-2 gap-2 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+                        <div className="grid grid-cols-2 gap-2 bg-slate-100 dark:bg-slate-800 p-1 rounded-md border border-slate-200 dark:border-slate-700">
                             <button
                                 type="button"
                                 onClick={() => {
                                     setBulkMode('motor_to_parts');
                                     setBulkSearch('');
                                 }}
-                                className={`py-2 px-3 rounded-lg text-xs font-extrabold transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                                className={`py-2 px-3 rounded-md text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 ${
                                     bulkMode === 'motor_to_parts'
-                                        ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-300 shadow-xs'
-                                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                                        ? 'bg-indigo-600 text-white shadow-xs'
+                                        : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
                                 }`}
                             >
-                                <span>1 Motor → Banyak Part</span>
+                                <span>1 Motor → Banyak Sparepart</span>
                             </button>
                             <button
                                 type="button"
@@ -1576,13 +1576,13 @@ export default function MotorcycleIndex({
                                     setBulkMode('part_to_motors');
                                     setBulkSearch('');
                                 }}
-                                className={`py-2 px-3 rounded-lg text-xs font-extrabold transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                                className={`py-2 px-3 rounded-md text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 ${
                                     bulkMode === 'part_to_motors'
-                                        ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-300 shadow-xs'
-                                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                                        ? 'bg-indigo-600 text-white shadow-xs'
+                                        : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
                                 }`}
                             >
-                                <span>1 Part → Banyak Motor</span>
+                                <span>1 Sparepart → Banyak Motor</span>
                             </button>
                         </div>
 
@@ -1612,7 +1612,7 @@ export default function MotorcycleIndex({
                                                 <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
                                                     Pilih Sparepart Kompatibel *
                                                 </label>
-                                                <span className="text-[11px] font-extrabold bg-indigo-100 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300 px-2 py-0.5 rounded-md">
+                                                <span className="text-[11px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 px-2 py-0.5 rounded-md">
                                                     {bulkProductIds.length} dipilih
                                                 </span>
                                             </div>
@@ -1742,7 +1742,7 @@ export default function MotorcycleIndex({
                                                 <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
                                                     Pilih Model Motor Sasaran *
                                                 </label>
-                                                <span className="text-[11px] font-extrabold bg-indigo-100 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300 px-2 py-0.5 rounded-md">
+                                                <span className="text-[11px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 px-2 py-0.5 rounded-md">
                                                     {bulkMotorIds.length} dipilih
                                                 </span>
                                             </div>
@@ -1908,30 +1908,40 @@ export default function MotorcycleIndex({
                         </div>
 
                         {/* Footer Action */}
-                        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-100 dark:border-slate-700">
-                            <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                                Total kombinasi:{' '}
+                        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-200 dark:border-slate-800">
+                            <div className="text-xs text-slate-600 dark:text-slate-400 font-semibold">
+                                Total relasi yang dibuat:{' '}
                                 <span className="font-extrabold text-indigo-600 dark:text-indigo-400">
                                     {bulkMode === 'motor_to_parts'
-                                        ? `${bulkProductIds.length} part ke 1 motor`
-                                        : `${bulkMotorIds.length} motor ke 1 part`}
+                                        ? `${bulkProductIds.length} sparepart ke 1 motor`
+                                        : `${bulkMotorIds.length} motor ke 1 sparepart`}
                                 </span>
                             </div>
                             <div className="flex items-center gap-2 w-full sm:w-auto">
                                 <button
                                     type="button"
                                     onClick={() => setShowBulkModal(false)}
-                                    className="flex-1 sm:flex-none px-4 py-2 border border-slate-200 dark:border-slate-600 rounded-xl text-xs sm:text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer"
+                                    className="flex-1 sm:flex-none px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-bold border border-slate-300 dark:border-slate-700 transition cursor-pointer"
                                 >
                                     Batal
                                 </button>
                                 <button
                                     type="button"
-                                    onClick={handleSaveBulkMapping}
+                                    onClick={() => handleSaveBulkMapping()}
                                     disabled={bulkSaving}
-                                    className="flex-1 sm:flex-none px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs sm:text-sm font-extrabold cursor-pointer disabled:opacity-50 transition shadow-2xs"
+                                    className="flex-1 sm:flex-none px-5 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition cursor-pointer shadow-xs"
                                 >
-                                    {bulkSaving ? 'Memproses...' : 'Terapkan Bulk Mapping'}
+                                    {bulkSaving ? (
+                                        <>
+                                            <FiRefreshCw size={14} className="animate-spin" />
+                                            <span>Menyimpan...</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <FiCheck size={16} />
+                                            <span>Simpan Mapping Massal</span>
+                                        </>
+                                    )}
                                 </button>
                             </div>
                         </div>
@@ -1941,13 +1951,13 @@ export default function MotorcycleIndex({
 
             {/* ADD/EDIT MOTORCYCLE MODAL */}
             {showAddModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4" onClick={() => setShowAddModal(false)}>
-                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-700 pb-3">
-                            <h3 className="font-extrabold text-lg text-slate-900 dark:text-white">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4" onClick={() => setShowAddModal(false)}>
+                    <div className="bg-white dark:bg-slate-900 rounded-lg shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-md p-5 sm:p-6 space-y-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+                            <h3 className="font-black text-lg text-slate-900 dark:text-white">
                                 {editMotorcycle ? 'Edit Data Motor' : 'Tambah Motor Baru'}
                             </h3>
-                            <button onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-slate-600 cursor-pointer"><FiX size={20} /></button>
+                            <button onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"><FiX size={20} /></button>
                         </div>
 
                         {formErrors.general && (
@@ -1959,11 +1969,11 @@ export default function MotorcycleIndex({
                         <div className="space-y-3">
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label className="text-xs font-bold text-slate-600 dark:text-slate-300 mb-1 block">Brand *</label>
+                                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 block">Brand *</label>
                                     <select
                                         value={formData.brand}
                                         onChange={e => setFormData({ ...formData, brand: e.target.value })}
-                                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-xs sm:text-sm font-semibold"
+                                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-xs sm:text-sm font-semibold"
                                     >
                                         <option value="Honda">Honda</option>
                                         <option value="Yamaha">Yamaha</option>
@@ -1973,13 +1983,13 @@ export default function MotorcycleIndex({
                                     {formErrors.brand && <p className="text-[11px] text-red-500 font-bold mt-1">{formErrors.brand}</p>}
                                 </div>
                                 <div>
-                                    <label className="text-xs font-bold text-slate-600 dark:text-slate-300 mb-1 block">Model *</label>
+                                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 block">Model *</label>
                                     <input
                                         type="text"
                                         value={formData.model}
                                         onChange={e => setFormData({ ...formData, model: e.target.value })}
                                         placeholder="Beat, Vario 160..."
-                                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-xs sm:text-sm font-semibold"
+                                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-xs sm:text-sm font-semibold"
                                     />
                                     {formErrors.model && <p className="text-[11px] text-red-500 font-bold mt-1">{formErrors.model}</p>}
                                 </div>
@@ -1987,44 +1997,44 @@ export default function MotorcycleIndex({
 
                             <div className="grid grid-cols-3 gap-3">
                                 <div>
-                                    <label className="text-xs font-bold text-slate-600 dark:text-slate-300 mb-1 block">Tahun Mulai *</label>
+                                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 block">Tahun Mulai *</label>
                                     <input
                                         type="number"
                                         value={formData.year_start}
                                         onChange={e => setFormData({ ...formData, year_start: parseInt(e.target.value) || '' })}
-                                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-xs sm:text-sm font-semibold"
+                                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-xs sm:text-sm font-semibold"
                                     />
                                     {formErrors.year_start && <p className="text-[11px] text-red-500 font-bold mt-1">{formErrors.year_start}</p>}
                                 </div>
                                 <div>
-                                    <label className="text-xs font-bold text-slate-600 dark:text-slate-300 mb-1 block">Tahun Akhir</label>
+                                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 block">Tahun Akhir</label>
                                     <input
                                         type="number"
                                         value={formData.year_end}
                                         onChange={e => setFormData({ ...formData, year_end: e.target.value ? parseInt(e.target.value) : '' })}
                                         placeholder="Sekarang"
-                                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-xs sm:text-sm font-semibold"
+                                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-xs sm:text-sm font-semibold"
                                     />
                                     {formErrors.year_end && <p className="text-[11px] text-red-500 font-bold mt-1">{formErrors.year_end}</p>}
                                 </div>
                                 <div>
-                                    <label className="text-xs font-bold text-slate-600 dark:text-slate-300 mb-1 block">CC Mesin *</label>
+                                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 block">CC Mesin *</label>
                                     <input
                                         type="number"
                                         value={formData.engine_cc}
                                         onChange={e => setFormData({ ...formData, engine_cc: parseInt(e.target.value) || '' })}
-                                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-xs sm:text-sm font-semibold"
+                                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-xs sm:text-sm font-semibold"
                                     />
                                     {formErrors.engine_cc && <p className="text-[11px] text-red-500 font-bold mt-1">{formErrors.engine_cc}</p>}
                                 </div>
                             </div>
 
                             <div>
-                                <label className="text-xs font-bold text-slate-600 dark:text-slate-300 mb-1 block">Tipe Mesin *</label>
+                                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 block">Tipe Mesin *</label>
                                 <select
                                     value={formData.engine_type}
                                     onChange={e => setFormData({ ...formData, engine_type: e.target.value })}
-                                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-xs sm:text-sm font-semibold"
+                                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-xs sm:text-sm font-semibold"
                                 >
                                     <option value="matic">Matic</option>
                                     <option value="bebek">Bebek</option>
@@ -2034,10 +2044,10 @@ export default function MotorcycleIndex({
                             </div>
 
                             <div>
-                                <label className="text-xs font-bold text-slate-600 dark:text-slate-300 mb-1 block">Foto Motor (Upload File / URL Gambar)</label>
+                                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 block">Foto Motor (Upload File / URL Gambar)</label>
                                 <div className="flex items-center gap-3">
                                     {(formData.image_file || formData.image_url) && (
-                                        <div className="w-12 h-12 rounded-lg bg-slate-100 dark:bg-slate-700 overflow-hidden shrink-0 border border-slate-200 dark:border-slate-600 flex items-center justify-center">
+                                        <div className="w-12 h-12 rounded-lg bg-slate-100 dark:bg-slate-800 overflow-hidden shrink-0 border border-slate-300 dark:border-slate-700 flex items-center justify-center">
                                             <img
                                                 src={formData.image_file ? URL.createObjectURL(formData.image_file) : formData.image_url}
                                                 alt="Preview"
@@ -2050,14 +2060,14 @@ export default function MotorcycleIndex({
                                             type="file"
                                             accept="image/*"
                                             onChange={e => setFormData({ ...formData, image_file: e.target.files[0] })}
-                                            className="w-full text-xs text-slate-500 file:mr-2 file:py-1 file:px-2.5 file:rounded-md file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
+                                            className="w-full text-xs text-slate-600 dark:text-slate-400 file:mr-2 file:py-1 file:px-2.5 file:rounded-md file:border-0 file:text-xs file:font-bold file:bg-slate-200 dark:file:bg-slate-700 file:text-slate-800 dark:file:text-slate-200 hover:file:bg-slate-300 cursor-pointer"
                                         />
                                         <input
                                             type="text"
                                             value={formData.image_url}
                                             onChange={e => setFormData({ ...formData, image_url: e.target.value })}
                                             placeholder="Atau masukkan URL gambar (https://...)"
-                                            className="w-full px-3 py-1.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-md text-xs font-medium"
+                                            className="w-full px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs font-medium"
                                         />
                                     </div>
                                 </div>
@@ -2065,17 +2075,17 @@ export default function MotorcycleIndex({
                             </div>
                         </div>
 
-                        <div className="flex gap-3 pt-3 border-t border-slate-100 dark:border-slate-700">
+                        <div className="flex gap-3 pt-3 border-t border-slate-200 dark:border-slate-800">
                             <button
                                 onClick={() => setShowAddModal(false)}
-                                className="flex-1 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl text-xs sm:text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer"
+                                className="flex-1 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 rounded-lg text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 cursor-pointer transition"
                             >
                                 Batal
                             </button>
                             <button
                                 onClick={handleSaveMotor}
                                 disabled={saving}
-                                className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs sm:text-sm font-extrabold cursor-pointer disabled:opacity-50 transition shadow-2xs"
+                                className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs sm:text-sm font-bold cursor-pointer disabled:opacity-50 transition shadow-xs"
                             >
                                 {saving ? 'Menyimpan...' : editMotorcycle ? 'Simpan Perubahan' : 'Tambah Motor'}
                             </button>
@@ -2086,14 +2096,14 @@ export default function MotorcycleIndex({
 
             {/* ADD SINGLE PART MAPPING MODAL */}
             {showPartModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4" onClick={() => setShowPartModal(null)}>
-                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-lg p-6 space-y-4 max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-700 pb-3">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4" onClick={() => setShowPartModal(null)}>
+                    <div className="bg-white dark:bg-slate-900 rounded-lg shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-lg p-5 sm:p-6 space-y-4 max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
                             <div>
-                                <h3 className="font-extrabold text-base sm:text-lg text-slate-900 dark:text-white">Mapping Sparepart ke Motor</h3>
-                                <p className="text-xs text-slate-500 dark:text-slate-400">Pilih komponen sparepart dan tipe/kategori yang sesuai.</p>
+                                <h3 className="font-black text-base sm:text-lg text-slate-900 dark:text-white">Mapping Sparepart ke Motor</h3>
+                                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Pilih komponen sparepart dan tipe/kategori yang sesuai.</p>
                             </div>
-                            <button onClick={() => setShowPartModal(null)} className="text-slate-400 hover:text-slate-600 cursor-pointer"><FiX size={20} /></button>
+                            <button onClick={() => setShowPartModal(null)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"><FiX size={20} /></button>
                         </div>
 
                         {partFormErrors.general && (
@@ -2109,7 +2119,7 @@ export default function MotorcycleIndex({
                                 <select
                                     value={partFormData.part_category}
                                     onChange={e => setPartFormData({ ...partFormData, part_category: e.target.value })}
-                                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-xs sm:text-sm font-semibold"
+                                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-xs sm:text-sm font-semibold"
                                 >
                                     {Object.entries(categoryGroups).map(([gKey, group]) => (
                                         <optgroup key={gKey} label={group.name}>
@@ -2128,7 +2138,7 @@ export default function MotorcycleIndex({
                                     <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
                                         Cari Produk Sparepart *
                                     </label>
-                                    <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded-md border border-slate-200 dark:border-slate-600">
+                                    <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md border border-slate-300 dark:border-slate-700">
                                         {partSearch.trim()
                                             ? `${filteredProductsForModal.length} dari ${products.length} sparepart`
                                             : `Total: ${products.length} sparepart`}
@@ -2141,7 +2151,7 @@ export default function MotorcycleIndex({
                                         value={partSearch}
                                         onChange={e => setPartSearch(e.target.value)}
                                         placeholder="Cari nama, SKU, atau kategori..."
-                                        className="w-full pl-9 pr-3 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-xs sm:text-sm font-medium"
+                                        className="w-full pl-9 pr-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-xs sm:text-sm font-medium"
                                     />
                                     {partSearch && (
                                         <button onClick={() => setPartSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer">
@@ -2153,7 +2163,7 @@ export default function MotorcycleIndex({
                             </div>
 
                             {/* Product Select List */}
-                            <div className="max-h-56 overflow-y-auto border border-slate-200 dark:border-slate-700 rounded-lg divide-y divide-slate-100 dark:divide-slate-700">
+                            <div className="max-h-56 overflow-y-auto border border-slate-200 dark:border-slate-700 rounded-lg divide-y divide-slate-100 dark:divide-slate-750">
                                 {filteredProductsForModal.map(p => (
                                     <div
                                         key={p.id}
@@ -2162,15 +2172,15 @@ export default function MotorcycleIndex({
                                             setPartFormErrors(prev => ({ ...prev, product_id: null }));
                                         }}
                                         className={`flex items-center justify-between p-2.5 text-xs cursor-pointer transition ${
-                                            partFormData.product_id === p.id ? 'bg-blue-50 dark:bg-blue-900/40 border-l-4 border-l-blue-600' : 'hover:bg-slate-50 dark:hover:bg-slate-750'
+                                            partFormData.product_id === p.id ? 'bg-slate-100 dark:bg-slate-800 border-l-4 border-l-blue-600' : 'hover:bg-slate-50 dark:hover:bg-slate-800/50'
                                         }`}
                                     >
                                         <div className="flex items-center gap-3 flex-1 min-w-0 pr-2">
-                                            <div className="w-12 h-12 rounded-lg shrink-0 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden flex items-center justify-center p-0.5 shadow-2xs">
+                                            <div className="w-11 h-11 rounded-md shrink-0 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden flex items-center justify-center p-0.5 shadow-2xs">
                                                 <img
                                                     src={getProductImage(p.image_path, p.category?.name)}
                                                     alt={p.name}
-                                                    className="w-full h-full object-cover rounded-md"
+                                                    className="w-full h-full object-cover rounded"
                                                     onError={(e) => {
                                                         e.target.onerror = null;
                                                         e.target.src = getProductImage(null, p.category?.name);
@@ -2179,11 +2189,11 @@ export default function MotorcycleIndex({
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center gap-2">
-                                                    <span className="font-extrabold text-slate-900 dark:text-white truncate">{p.name}</span>
-                                                    {p.sku && <span className="text-[10px] font-mono text-slate-400 bg-slate-100 dark:bg-slate-700 px-1 py-0.5 rounded">{p.sku}</span>}
+                                                    <span className="font-black text-slate-900 dark:text-white truncate">{p.name}</span>
+                                                    {p.sku && <span className="text-[10px] font-mono text-slate-500 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-1 py-0.5 rounded">{p.sku}</span>}
                                                 </div>
                                                 <div className="flex items-center gap-2 mt-0.5 text-[11px] text-slate-500">
-                                                    <span className="font-semibold text-slate-600 dark:text-slate-300">{p.category?.name || 'Katalog'}</span>
+                                                    <span className="font-semibold text-slate-700 dark:text-slate-300">{p.category?.name || 'Katalog'}</span>
                                                     <span>·</span>
                                                     <span className={`font-semibold ${p.stock <= 0 ? 'text-red-500' : 'text-slate-600 dark:text-slate-400'}`}>Stok: {p.stock} {p.unit || 'pcs'}</span>
                                                 </div>
@@ -2212,7 +2222,7 @@ export default function MotorcycleIndex({
                                         value={partFormData.notes}
                                         onChange={e => setPartFormData({ ...partFormData, notes: e.target.value })}
                                         placeholder="Contoh: Cocok untuk varian CBS & ABS"
-                                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-xs font-medium focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-xs font-medium focus:ring-1 focus:ring-blue-500 focus:outline-none"
                                     />
                                     {partFormErrors.notes && <p className="text-[11px] text-red-500 font-bold mt-1">{partFormErrors.notes}</p>}
                                 </div>
@@ -2220,7 +2230,7 @@ export default function MotorcycleIndex({
                                     <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 block">
                                         Rekomendasi (Opsional)
                                     </label>
-                                    <label className="flex items-center gap-2 cursor-pointer bg-slate-50 dark:bg-slate-700/60 px-3 py-2 h-[38px] rounded-lg border border-slate-200 dark:border-slate-600 w-full hover:bg-slate-100 dark:hover:bg-slate-700 transition">
+                                    <label className="flex items-center gap-2 cursor-pointer bg-slate-50 dark:bg-slate-800 px-3 py-2 h-[38px] rounded-lg border border-slate-300 dark:border-slate-700 w-full hover:bg-slate-100 dark:hover:bg-slate-750 transition">
                                         <input
                                             type="checkbox"
                                             checked={partFormData.is_recommended}
@@ -2235,17 +2245,17 @@ export default function MotorcycleIndex({
                             </div>
                         </div>
 
-                        <div className="flex gap-3 pt-3 border-t border-slate-100 dark:border-slate-700">
+                        <div className="flex gap-3 pt-3 border-t border-slate-200 dark:border-slate-800">
                             <button
                                 onClick={() => setShowPartModal(null)}
-                                className="flex-1 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl text-xs sm:text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer"
+                                className="flex-1 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 rounded-lg text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 cursor-pointer transition"
                             >
                                 Batal
                             </button>
                             <button
                                 onClick={handleAttachPart}
                                 disabled={saving || !partFormData.product_id}
-                                className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs sm:text-sm font-extrabold cursor-pointer disabled:opacity-50 transition shadow-2xs"
+                                className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs sm:text-sm font-bold cursor-pointer disabled:opacity-50 transition shadow-xs"
                             >
                                 {saving ? 'Menyimpan...' : 'Tambah Mapping'}
                             </button>
@@ -2256,14 +2266,14 @@ export default function MotorcycleIndex({
 
             {/* EDIT SINGLE PART MAPPING MODAL */}
             {editPartModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4" onClick={() => setEditPartModal(null)}>
-                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-700 pb-3">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4" onClick={() => setEditPartModal(null)}>
+                    <div className="bg-white dark:bg-slate-900 rounded-lg shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-md p-5 sm:p-6 space-y-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
                             <div>
-                                <h3 className="font-extrabold text-base sm:text-lg text-slate-900 dark:text-white">Edit Mapping Sparepart</h3>
+                                <h3 className="font-black text-base sm:text-lg text-slate-900 dark:text-white">Edit Mapping Sparepart</h3>
                                 <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">{editPartModal.productName}</p>
                             </div>
-                            <button onClick={() => setEditPartModal(null)} className="text-slate-400 hover:text-slate-600 cursor-pointer"><FiX size={20} /></button>
+                            <button onClick={() => setEditPartModal(null)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"><FiX size={20} /></button>
                         </div>
 
                         {partFormErrors.general && (
@@ -2278,7 +2288,7 @@ export default function MotorcycleIndex({
                                 <select
                                     value={partFormData.part_category}
                                     onChange={e => setPartFormData({ ...partFormData, part_category: e.target.value })}
-                                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-xs sm:text-sm font-semibold"
+                                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-xs sm:text-sm font-semibold"
                                 >
                                     {Object.entries(categoryGroups).map(([gKey, group]) => (
                                         <optgroup key={gKey} label={group.name}>
@@ -2298,14 +2308,14 @@ export default function MotorcycleIndex({
                                     value={partFormData.notes}
                                     onChange={e => setPartFormData({ ...partFormData, notes: e.target.value })}
                                     placeholder="Contoh: Cocok untuk varian CBS & ABS"
-                                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-xs font-medium focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-xs font-medium focus:ring-1 focus:ring-blue-500 focus:outline-none"
                                 />
                                 {partFormErrors.notes && <p className="text-[11px] text-red-500 font-bold mt-1">{partFormErrors.notes}</p>}
                             </div>
 
                             <div>
                                 <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 block">Rekomendasi</label>
-                                <label className="flex items-center gap-2 cursor-pointer bg-slate-50 dark:bg-slate-700/60 px-3 py-2 h-[38px] rounded-lg border border-slate-200 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition">
+                                <label className="flex items-center gap-2 cursor-pointer bg-slate-50 dark:bg-slate-800 px-3 py-2 h-[38px] rounded-lg border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-750 transition">
                                     <input
                                         type="checkbox"
                                         checked={partFormData.is_recommended}
@@ -2319,17 +2329,17 @@ export default function MotorcycleIndex({
                             </div>
                         </div>
 
-                        <div className="flex gap-3 pt-3 border-t border-slate-100 dark:border-slate-700">
+                        <div className="flex gap-3 pt-3 border-t border-slate-200 dark:border-slate-800">
                             <button
                                 onClick={() => setEditPartModal(null)}
-                                className="flex-1 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl text-xs sm:text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer"
+                                className="flex-1 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 rounded-lg text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 cursor-pointer transition"
                             >
                                 Batal
                             </button>
                             <button
                                 onClick={handleUpdatePart}
                                 disabled={saving}
-                                className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs sm:text-sm font-extrabold cursor-pointer disabled:opacity-50 transition shadow-2xs"
+                                className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs sm:text-sm font-bold cursor-pointer disabled:opacity-50 transition shadow-xs"
                             >
                                 {saving ? 'Menyimpan...' : 'Simpan Perubahan'}
                             </button>
