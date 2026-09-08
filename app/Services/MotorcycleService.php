@@ -7,6 +7,7 @@ use App\Models\MotorcyclePart;
 use App\Models\Product;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -18,20 +19,37 @@ class MotorcycleService
     public function getAllMotorcycles(): Collection
     {
         return Motorcycle::withCount('parts')
+            ->with(['parts' => function ($q) {
+                $q->select('id', 'motorcycle_id', 'product_id');
+            }])
             ->orderBy('brand')
             ->orderBy('model')
             ->get();
     }
 
     /**
-     * Get available products for sparepart mapping.
+     * Get available products for sparepart mapping with precomputed default part categories.
      */
     public function getAvailableProducts(): Collection
     {
+        // Pre-query most common part_category per product from existing mappings
+        $knownCategories = MotorcyclePart::select('product_id', 'part_category', DB::raw('count(*) as cnt'))
+            ->groupBy('product_id', 'part_category')
+            ->orderByDesc('cnt')
+            ->get()
+            ->unique('product_id')
+            ->pluck('part_category', 'product_id');
+
         return Product::with('category')
+            ->withCount(['motorcycleParts as motorcycles_count'])
             ->where('is_available', true)
             ->orderBy('name')
-            ->get();
+            ->get()
+            ->map(function ($p) use ($knownCategories) {
+                $p->default_part_category = $knownCategories[$p->id] 
+                    ?? MotorcyclePart::guessCategoryForProduct($p);
+                return $p;
+            });
     }
 
     /**
@@ -217,12 +235,23 @@ class MotorcycleService
     {
         Motorcycle::findOrFail($motorcycleId);
 
-        $exists = MotorcyclePart::where('motorcycle_id', $motorcycleId)
+        $existing = MotorcyclePart::withTrashed()
+            ->where('motorcycle_id', $motorcycleId)
             ->where('product_id', $data['product_id'])
-            ->exists();
+            ->first();
 
-        if ($exists) {
-            throw new \InvalidArgumentException('Produk ini sudah di-mapping ke motor ini.');
+        if ($existing) {
+            if (!$existing->trashed()) {
+                throw new \InvalidArgumentException('Produk ini sudah di-mapping ke motor ini.');
+            }
+            // If previously soft-deleted, restore and update with new attributes
+            $existing->restore();
+            $existing->update([
+                'part_category'  => $data['part_category'],
+                'notes'          => $data['notes'] ?? null,
+                'is_recommended' => (bool) ($data['is_recommended'] ?? false),
+            ]);
+            return $existing->load('product.category');
         }
 
         $data['motorcycle_id'] = $motorcycleId;
@@ -239,13 +268,15 @@ class MotorcycleService
      * - many motorcycles -> 1 product
      * - many motorcycles -> many products
      *
-     * Automatically skips existing mappings without failing the whole batch.
+     * Automatically skips existing mappings without failing the whole batch,
+     * and automatically restores soft-deleted records if re-mapped.
      */
     public function bulkAttachParts(array $data): array
     {
         $motorcycleIds = (array) ($data['motorcycle_ids'] ?? []);
         $productIds = (array) ($data['product_ids'] ?? []);
-        $partCategory = $data['part_category'];
+        $partCategory = $data['part_category'] ?? 'auto';
+        $partCategoriesMap = (array) ($data['part_categories'] ?? []);
         $notes = $data['notes'] ?? null;
         $isRecommended = (bool) ($data['is_recommended'] ?? false);
 
@@ -253,26 +284,62 @@ class MotorcycleService
         $skipped = 0;
         $createdParts = [];
 
+        // Preload products and known categories if 'auto' resolution is required
+        $productsKeyed = [];
+        $knownCategories = [];
+        if ($partCategory === 'auto' || !empty($partCategoriesMap)) {
+            $knownCategories = MotorcyclePart::whereIn('product_id', $productIds)
+                ->select('product_id', 'part_category', DB::raw('count(*) as cnt'))
+                ->groupBy('product_id', 'part_category')
+                ->orderByDesc('cnt')
+                ->get()
+                ->unique('product_id')
+                ->pluck('part_category', 'product_id');
+
+            $productsKeyed = Product::with('category')->whereIn('id', $productIds)->get()->keyBy('id');
+        }
+
         foreach ($motorcycleIds as $motorId) {
             foreach ($productIds as $prodId) {
-                $exists = MotorcyclePart::where('motorcycle_id', $motorId)
+                $existing = MotorcyclePart::withTrashed()
+                    ->where('motorcycle_id', $motorId)
                     ->where('product_id', $prodId)
-                    ->exists();
+                    ->first();
 
-                if ($exists) {
+                if ($existing && !$existing->trashed()) {
                     $skipped++;
                     continue;
                 }
 
-                $part = MotorcyclePart::create([
-                    'motorcycle_id'  => $motorId,
-                    'product_id'     => $prodId,
-                    'part_category'  => $partCategory,
-                    'notes'          => $notes,
-                    'is_recommended' => $isRecommended,
-                ]);
+                // Determine category for this specific product
+                if (isset($partCategoriesMap[$prodId]) && !empty($partCategoriesMap[$prodId])) {
+                    $itemCategory = $partCategoriesMap[$prodId];
+                } elseif ($partCategory !== 'auto') {
+                    $itemCategory = $partCategory;
+                } else {
+                    $itemCategory = $knownCategories[$prodId] 
+                        ?? (isset($productsKeyed[$prodId]) ? MotorcyclePart::guessCategoryForProduct($productsKeyed[$prodId]) : 'lainnya');
+                }
 
-                $createdParts[] = $part;
+                if ($existing && $existing->trashed()) {
+                    $existing->restore();
+                    $existing->update([
+                        'part_category'  => $itemCategory,
+                        'notes'          => $notes,
+                        'is_recommended' => $isRecommended,
+                    ]);
+                    $createdParts[] = $existing;
+                } else {
+                    $part = MotorcyclePart::create([
+                        'motorcycle_id'  => $motorId,
+                        'product_id'     => $prodId,
+                        'part_category'  => $itemCategory,
+                        'notes'          => $notes,
+                        'is_recommended' => $isRecommended,
+                    ]);
+                    $createdParts[] = $part;
+                }
+
                 $attached++;
             }
         }

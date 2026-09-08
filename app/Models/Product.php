@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Product extends Model
 {
@@ -44,5 +45,10 @@ class Product extends Model
         return $this->belongsToMany(Motorcycle::class, 'motorcycle_parts')
             ->withPivot('part_category', 'notes', 'is_recommended')
             ->withTimestamps();
+    }
+
+    public function motorcycleParts(): HasMany
+    {
+        return $this->hasMany(MotorcyclePart::class);
     }
 }
