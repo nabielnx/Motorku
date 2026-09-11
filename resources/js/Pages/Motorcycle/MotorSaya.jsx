@@ -493,7 +493,7 @@ export default function MotorSaya({ motorcyclesByBrand = {}, settings = {}, part
                                                         className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer group"
                                                     >
                                                         {item.image && (
-                                                            <div className="w-11 h-11 rounded-md bg-slate-100 overflow-hidden shrink-0">
+                                                            <div className="w-11 h-11 rounded-md bg-slate-100 border border-slate-200 overflow-hidden shrink-0">
                                                                 <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition duration-200" />
                                                             </div>
                                                         )}

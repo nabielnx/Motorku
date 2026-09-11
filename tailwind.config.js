@@ -23,6 +23,18 @@ export default {
             fontFamily: {
                 sans: ['Figtree', ...defaultTheme.fontFamily.sans],
             },
+            borderRadius: {
+                'none': '0px',
+                'xs': '2px',
+                'sm': '2px',
+                'DEFAULT': '3px',
+                'md': '3px',
+                'lg': '4px',
+                'xl': '6px',
+                '2xl': '8px',
+                '3xl': '10px',
+                'full': '9999px',
+            },
         },
     },
 

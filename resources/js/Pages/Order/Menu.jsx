@@ -233,7 +233,7 @@ export default function CustomerMenu({
                 >
                     <div 
                         onClick={() => { setSelectedDetailProduct(item); setDetailQty(1); }}
-                        className="relative h-28 sm:h-32 w-full bg-slate-50 overflow-hidden cursor-pointer group"
+                        className="relative h-28 sm:h-32 w-full bg-slate-50 overflow-hidden cursor-pointer group border-b border-slate-100"
                     >
                         <img 
                             src={item.image} 
@@ -291,7 +291,7 @@ export default function CustomerMenu({
             >
                 <div 
                     onClick={() => { setSelectedDetailProduct(item); setDetailQty(1); }}
-                    className="relative h-28 sm:h-36 w-full bg-slate-50 overflow-hidden cursor-pointer group"
+                    className="relative h-28 sm:h-36 w-full bg-slate-50 overflow-hidden cursor-pointer group border-b border-slate-100"
                 >
                     <img 
                         src={item.image} 
@@ -597,7 +597,7 @@ export default function CustomerMenu({
                                             <button type="button" onClick={() => updateQty(item.cartItemId, 1)} className="w-5 h-5 flex items-center justify-center text-slate-600 hover:text-slate-900 hover:bg-white rounded transition cursor-pointer"><FiPlus size={11} strokeWidth={2.5} /></button>
                                         </div>
                                         <span className="font-extrabold text-red-600 w-20 text-right shrink-0">{formatRp(item.price * item.qty)}</span>
-                                        <button onClick={() => removeFromCart(item.cartItemId)} className="text-slate-400 hover:text-red-600 cursor-pointer p-1 transition"><FiTrash2 size={13} /></button>
+                                        <button onClick={() => removeFromCart(item.cartItemId)} className="text-red-500 hover:text-red-600 cursor-pointer p-1 transition"><FiTrash2 size={13} /></button>
                                     </div>
                                 ))}
                             </div>

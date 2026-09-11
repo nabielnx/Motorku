@@ -139,16 +139,9 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                 },
                 {
                     name: getTranslation(locale, 'menu_produk', 'Produk'),
-                    icon: FiCoffee,
+                    icon: FiPackage,
                     href: safeRoute('products.index', '/products'),
                     active: url.startsWith('/products') || url.startsWith('/categories'),
-                    roles: ['owner']
-                },
-                {
-                    name: getTranslation(locale, 'stok_inventaris', 'Stok Inventaris'),
-                    icon: FiPackage,
-                    href: safeRoute('inventory.index', '/inventory'),
-                    active: url.startsWith('/inventory'),
                     roles: ['owner']
                 },
                 {

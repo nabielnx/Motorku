@@ -29,7 +29,7 @@ class InventoryController extends Controller implements HasMiddleware
 
     public function indexWeb()
     {
-        return \Inertia\Inertia::render('Inventory/Index');
+        return redirect()->route('products.index');
     }
 
     public function index(Request $request): JsonResponse

@@ -10,17 +10,21 @@ import {
     FiEdit2, 
     FiTrash2, 
     FiChevronDown, 
+    FiChevronRight,
     FiX, 
     FiCheck, 
-    FiCoffee, 
-    FiTag,
+    FiPackage,
     FiSearch,
-    FiAlertTriangle,
-    FiGrid,
-    FiList
+    FiAlertTriangle
 } from 'react-icons/fi';
 
-export default function MenuManagement({ initialProducts = [], initialCategories = [], filters = {} }) {
+export default function MenuManagement({ 
+    initialProducts = [], 
+    initialCategories = [], 
+    filters = {}, 
+    lowStockCount = 0, 
+    outOfStockCount = 0 
+}) {
     const { props } = usePage();
     const locale = props.app_settings?.locale || 'id';
     const [activeTab, setActiveTab] = useState('products'); // 'products' | 'categories'
@@ -55,6 +59,7 @@ export default function MenuManagement({ initialProducts = [], initialCategories
                 category: catName,
                 price: Number(p.price),
                 stock: p.stock || 0,
+                minimum_stock: p.minimum_stock || 0,
                 status: p.is_available ? 'Active' : 'Inactive',
                 image: getProductImage(p.image_path, catName)
             };
@@ -91,6 +96,7 @@ export default function MenuManagement({ initialProducts = [], initialCategories
 
     const [searchQuery, setSearchQuery] = useState(filters.search || '');
     const [selectedCategoryFilter, setSelectedCategoryFilter] = useState(filters.category || 'All');
+    const [selectedStockFilter, setSelectedStockFilter] = useState(filters.stock_status || 'all');
     const [selectedSort, setSelectedSort] = useState('Default');
     const [viewMode, setViewMode] = useState(() => {
         try {
@@ -112,7 +118,8 @@ export default function MenuManagement({ initialProducts = [], initialCategories
         router.get('/products', {
             page: newPage,
             category: selectedCategoryFilter === 'All' ? undefined : selectedCategoryFilter,
-            search: searchQuery || undefined
+            search: searchQuery || undefined,
+            stock_status: selectedStockFilter === 'all' ? undefined : selectedStockFilter
         }, { preserveState: true, preserveScroll: true });
     };
 
@@ -121,15 +128,27 @@ export default function MenuManagement({ initialProducts = [], initialCategories
         router.get('/products', {
             page: 1,
             category: cat === 'All' ? undefined : cat,
-            search: searchQuery || undefined
+            search: searchQuery || undefined,
+            stock_status: selectedStockFilter === 'all' ? undefined : selectedStockFilter
+        }, { preserveState: true, preserveScroll: true });
+    };
+
+    const handleStockFilterChange = (status) => {
+        setSelectedStockFilter(status);
+        router.get('/products', {
+            page: 1,
+            category: selectedCategoryFilter === 'All' ? undefined : selectedCategoryFilter,
+            search: searchQuery || undefined,
+            stock_status: status === 'all' ? undefined : status
         }, { preserveState: true, preserveScroll: true });
     };
 
     // Search yang di-debounce → refetch dari server agar mencari SEMUA produk
-    // (bukan hanya halaman yang sedang tampil). Kategori diambil via ref agar
-    // selalu pakai nilai terbaru tanpa perlu memasukkannya ke dependency effect.
     const categoryFilterRef = useRef(selectedCategoryFilter);
     useEffect(() => { categoryFilterRef.current = selectedCategoryFilter; }, [selectedCategoryFilter]);
+
+    const stockFilterRef = useRef(selectedStockFilter);
+    useEffect(() => { stockFilterRef.current = selectedStockFilter; }, [selectedStockFilter]);
 
     const isFirstSearchRender = useRef(true);
     useEffect(() => {
@@ -141,15 +160,91 @@ export default function MenuManagement({ initialProducts = [], initialCategories
             router.get('/products', {
                 page: 1,
                 category: categoryFilterRef.current === 'All' ? undefined : categoryFilterRef.current,
-                search: searchQuery || undefined
+                search: searchQuery || undefined,
+                stock_status: stockFilterRef.current === 'all' ? undefined : stockFilterRef.current
             }, { preserveState: true, preserveScroll: true });
         }, 400);
         return () => clearTimeout(t);
     }, [searchQuery]);
 
+    // Stock Adjustment Modal State (Kulakan / Barang Masuk / Opname)
+    const [selectedProductForAdjust, setSelectedProductForAdjust] = useState(null);
+    const [adjustForm, setAdjustForm] = useState({ type: 'stock_in', quantity: '', note: '' });
+    const [adjustLoading, setAdjustLoading] = useState(false);
+
+    const openAdjustModal = (product) => {
+        setSelectedProductForAdjust(product);
+        setAdjustForm({ type: 'stock_in', quantity: '', note: '' });
+    };
+
+    const handleAdjustSubmit = async (e) => {
+        e.preventDefault();
+        const qty = parseInt(adjustForm.quantity, 10);
+        if (isNaN(qty) || qty < 1) {
+            toast.error('Jumlah kuantitas wajib diisi minimal 1 unit.');
+            return;
+        }
+
+        setAdjustLoading(true);
+        try {
+            await axios.post('/api/inventory', {
+                product_id: selectedProductForAdjust.id,
+                type: adjustForm.type,
+                quantity: qty,
+                note: adjustForm.note || null
+            });
+
+            // Optimistic in-place update of product stock
+            setItems(prev => prev.map(p => {
+                if (p.id !== selectedProductForAdjust.id) return p;
+                let newStock = Number(p.stock);
+                if (adjustForm.type === 'stock_in') newStock += qty;
+                else if (adjustForm.type === 'stock_out') newStock = Math.max(0, newStock - qty);
+                else newStock = qty;
+                return { ...p, stock: newStock };
+            }));
+
+            const typeLabels = {
+                stock_in: `ditambah +${qty} unit (Stok Masuk / Kulakan)`,
+                stock_out: `dikurangi -${qty} unit (Stok Keluar)`,
+                adjustment: `disesuaikan menjadi ${qty} unit (Opname Fisik)`
+            };
+            toast.success(`Stok "${selectedProductForAdjust.name}" berhasil ${typeLabels[adjustForm.type] || 'diperbarui'}!`);
+            setSelectedProductForAdjust(null);
+            router.reload({ only: ['initialProducts', 'lowStockCount', 'outOfStockCount'] });
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Gagal mencatat penyesuaian stok');
+        } finally {
+            setAdjustLoading(false);
+        }
+    };
+
     // Loading State
     const [isLoading, setIsLoading] = useState(false);
     const [deleteTarget, setDeleteTarget] = useState(null);
+
+    // Product Image Lightbox State
+    const [previewProduct, setPreviewProduct] = useState(null);
+
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.key === 'Escape' && previewProduct) {
+                setPreviewProduct(null);
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [previewProduct]);
+
+    // Accordion & Status Filters
+    const [expandedRows, setExpandedRows] = useState([]);
+    const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'active' | 'inactive'
+
+    const toggleRowExpand = (id) => {
+        setExpandedRows(prev => 
+            prev.includes(id) ? prev.filter(rowId => rowId !== id) : [...prev, id]
+        );
+    };
 
     // Product Modal State
     const [isProductModalOpen, setIsProductModalOpen] = useState(false);
@@ -160,7 +255,8 @@ export default function MenuManagement({ initialProducts = [], initialCategories
         subtitle: '',
         category_id: '',
         price: '',
-        stock: '100',
+        stock: '0',
+        minimum_stock: '3',
         status: 'Active',
         image: '',
         imageFile: null,
@@ -181,7 +277,8 @@ export default function MenuManagement({ initialProducts = [], initialCategories
             subtitle: '',
             category_id: categories[0]?.id || '',
             price: '',
-            stock: '100',
+            stock: '0',
+            minimum_stock: '3',
             status: 'Active',
             image: '',
             imageFile: null,
@@ -198,7 +295,8 @@ export default function MenuManagement({ initialProducts = [], initialCategories
             subtitle: item.subtitle,
             category_id: item.category_id,
             price: item.price,
-            stock: item.stock,
+            stock: String(item.stock ?? 0),
+            minimum_stock: String(item.minimum_stock ?? 3),
             status: item.status,
             image: item.image,
             imageFile: null,
@@ -217,7 +315,8 @@ export default function MenuManagement({ initialProducts = [], initialCategories
         fd.append('description', productFormData.subtitle || '');
         fd.append('category_id', productFormData.category_id || (categories[0]?.id));
         fd.append('price', String(parseFloat(productFormData.price) || 0));
-        fd.append('stock', String(parseInt(productFormData.stock) || 100));
+        fd.append('stock', productFormData.stock !== '' ? String(parseInt(productFormData.stock, 10)) : '0');
+        fd.append('minimum_stock', productFormData.minimum_stock !== '' ? String(parseInt(productFormData.minimum_stock, 10)) : '3');
         fd.append('is_available', productFormData.status === 'Active' ? '1' : '0');
         if (productFormData.imageFile) {
             fd.append('image', productFormData.imageFile);
@@ -236,7 +335,8 @@ export default function MenuManagement({ initialProducts = [], initialCategories
                     category_id: productFormData.category_id,
                     category: selectedCat ? selectedCat.name : item.category,
                     price: parseFloat(productFormData.price) || 0,
-                    stock: parseInt(productFormData.stock) || item.stock,
+                    stock: productFormData.stock !== '' ? parseInt(productFormData.stock, 10) : item.stock,
+                    minimum_stock: productFormData.minimum_stock !== '' ? parseInt(productFormData.minimum_stock, 10) : item.minimum_stock,
                     status: productFormData.status,
                     image: productFormData.imagePreview || item.image,
                 } : item));
@@ -340,7 +440,7 @@ export default function MenuManagement({ initialProducts = [], initialCategories
         'Oli & Pelumas': 'bg-yellow-100 text-yellow-700 border-yellow-200',
         'Filter & Konsumsi': 'bg-purple-100 text-purple-800 border-purple-200',
         'Rem & Kaki-kaki': 'bg-red-100 text-red-800 border-red-200',
-        'Aksesoris': 'bg-emerald-100 text-emerald-800 border-emerald-200',
+        'Aksesoris': 'bg-sky-100 text-sky-800 border-sky-200',
     };
     const getCategoryColor = (catName) => CATEGORY_COLORS[catName] || 'bg-slate-100 text-slate-800 border-slate-200';
 
@@ -348,12 +448,16 @@ export default function MenuManagement({ initialProducts = [], initialCategories
     const filteredItems = items.filter(item => {
         if (!item) return false;
         const matchesCategory = selectedCategoryFilter === 'All' || item.category === selectedCategoryFilter;
+        const matchesStatus = 
+            statusFilter === 'all' ? true :
+            statusFilter === 'active' ? item.status === 'Active' :
+            item.status === 'Inactive';
         const nameStr = String(item.name || '').toLowerCase();
         const subtitleStr = String(item.subtitle || '').toLowerCase();
         const skuStr = String(item.sku || '').toLowerCase();
         const query = (searchQuery || '').toLowerCase();
         const matchesSearch = nameStr.includes(query) || subtitleStr.includes(query) || skuStr.includes(query);
-        return matchesCategory && matchesSearch;
+        return matchesCategory && matchesStatus && matchesSearch;
     }).sort((a, b) => {
         if (selectedSort === 'Price: Low to High') return (a.price || 0) - (b.price || 0);
         if (selectedSort === 'Price: High to Low') return (b.price || 0) - (a.price || 0);
@@ -364,387 +468,513 @@ export default function MenuManagement({ initialProducts = [], initialCategories
     const categoryListForFilter = ['All', ...categories.map(c => c.name)];
 
     return (
-        <AuthenticatedLayout pageTitle={getTranslation(locale, 'menu_produk', 'Menu & Produk')}>
+        <AuthenticatedLayout pageTitle={getTranslation(locale, 'menu_produk', 'Menu & Produk')} noPadding={true}>
             <Head title={`${locale === 'en' ? 'Products & Stock' : 'Produk & Stok'} - Toko Sparepart`}>
                 <meta name="description" content="Kelola katalog produk sparepart, oli, aki, ban, harga, dan ketersediaan stok Toko Sparepart." />
             </Head>
 
-            <div className="p-3.5 sm:p-5 w-full space-y-4">
-                {/* Top Action Bar */}
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pb-2 border-b border-slate-200 dark:border-slate-800">
-                    <div className="flex items-center space-x-4 sm:space-x-6 overflow-x-auto no-scrollbar">
-                        <button
-                            onClick={() => setActiveTab('products')}
-                            className={`pb-2 px-1 font-bold text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 border-b-2 whitespace-nowrap transition-colors cursor-pointer shrink-0 ${
-                                activeTab === 'products'
-                                    ? 'border-blue-600 text-blue-600 dark:text-yellow-400'
-                                    : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
-                            }`}
-                        >
-                            <FiCoffee className="w-4 h-4 shrink-0" />
-                            <span>Daftar Produk ({totalProducts})</span>
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('categories')}
-                            className={`pb-2 px-1 font-bold text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 border-b-2 whitespace-nowrap transition-colors cursor-pointer shrink-0 ${
-                                activeTab === 'categories'
-                                    ? 'border-blue-600 text-blue-600 dark:text-yellow-400'
-                                    : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
-                            }`}
-                        >
-                            <FiTag className="w-4 h-4 shrink-0" />
-                            <span>Kategori Menu ({categories.length})</span>
-                        </button>
-                    </div>
+            <div className="p-3 sm:p-4 lg:p-5 flex-1 min-h-0 flex flex-col overflow-hidden">
+                {/* UNIFIED PRODUCT MANAGEMENT CONTAINER */}
+                <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs flex-1 min-h-0 flex flex-col overflow-hidden">
+                    {/* Compact Header & Filter Section */}
+                    <div className="p-3 sm:p-3.5 space-y-2.5 border-b border-slate-200 dark:border-slate-800 shrink-0 bg-white dark:bg-slate-900 z-10">
+                        {/* Top Row: Title, Badge, Tabs & Action */}
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5">
+                            {/* Left: Title + Badge + Tabs */}
+                            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                                <h1 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight shrink-0">
+                                    Daftar Produk
+                                </h1>
+                                <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 shrink-0">
+                                    {totalProducts}
+                                </span>
 
-                    <div className="flex items-center shrink-0">
-                        {activeTab === 'products' ? (
-                            <button 
-                                onClick={openAddProductModal}
-                                className="w-full sm:w-auto inline-flex items-center justify-center px-3.5 py-2 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white text-xs font-bold rounded-xl shadow-2xs transition-all gap-1.5 cursor-pointer"
-                            >
-                                <FiPlus className="w-4 h-4" />
-                                <span>Tambah Produk</span>
-                            </button>
-                        ) : (
-                            <button 
-                                onClick={openAddCategoryModal}
-                                className="w-full sm:w-auto inline-flex items-center justify-center px-3.5 py-2 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white text-xs font-bold rounded-xl shadow-2xs transition-all gap-1.5 cursor-pointer"
-                            >
-                                <FiPlus className="w-4 h-4" />
-                                <span>Tambah Kategori</span>
-                            </button>
-                        )}
-                    </div>
-                </div>
+                                <div className="h-4 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block"></div>
 
-                {/* TAB 1: PRODUCTS */}
-                {activeTab === 'products' && (
-                <>
-                    {/* Filters, Search Bar, and View Toggle */}
-                    <div className="bg-white dark:bg-slate-900 p-3 sm:p-4 rounded-xl shadow-xs border border-slate-300 dark:border-slate-800 flex flex-col lg:flex-row gap-2.5 sm:gap-3 items-stretch lg:items-center justify-between transition-colors">
-                        {/* Search Input */}
-                        <div className="relative w-full lg:w-72 shrink-0">
-                            <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 w-4 h-4" />
-                            <input
-                                type="text"
-                                placeholder="Cari produk atau SKU..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition shadow-xs"
-                            />
+                                {/* Compact Tab Switcher */}
+                                <div className="inline-flex items-center bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs">
+                                    <button
+                                        type="button"
+                                        onClick={() => setActiveTab('products')}
+                                        className={`px-3 py-1 rounded-md text-xs font-bold transition cursor-pointer ${
+                                            activeTab === 'products'
+                                                ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-2xs'
+                                                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                                        }`}
+                                    >
+                                        Semua Produk
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setActiveTab('categories')}
+                                        className={`px-3 py-1 rounded-md text-xs font-bold transition cursor-pointer ${
+                                            activeTab === 'categories'
+                                                ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-2xs'
+                                                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                                        }`}
+                                    >
+                                        Kategori ({categories.length})
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Right: Action Button */}
+                            <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+                                {activeTab === 'products' ? (
+                                    <button
+                                        type="button"
+                                        onClick={openAddProductModal}
+                                        className="px-3.5 py-1.5 bg-green-500 hover:bg-green-600 active:scale-95 text-white font-bold rounded-lg text-xs shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+                                    >
+                                        <FiPlus size={15} />
+                                        <span>Tambah Produk</span>
+                                    </button>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        onClick={openAddCategoryModal}
+                                        className="px-3.5 py-1.5 bg-green-500 hover:bg-green-600 active:scale-95 text-white font-bold rounded-lg text-xs shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+                                    >
+                                        <FiPlus size={15} />
+                                        <span>Tambah Kategori</span>
+                                    </button>
+                                )}
+                            </div>
                         </div>
 
-                        {/* Category Filter Pills */}
-                        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth w-full lg:w-auto py-1">
-                            {categoryListForFilter.map((cat) => (
+                        {/* Low Stock Alert Banner */}
+                        {lowStockCount > 0 && activeTab === 'products' && (
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 px-3.5 py-2 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 rounded-lg text-xs">
+                                <div className="flex items-center gap-2 text-amber-800 dark:text-amber-200 font-semibold">
+                                    <FiAlertTriangle className="text-amber-600 dark:text-amber-400 shrink-0" size={16} />
+                                    <span>
+                                        Perhatian: Terdapat <strong className="font-extrabold">{lowStockCount} produk</strong> dengan stok menipis / di bawah batas minimum
+                                        {outOfStockCount > 0 ? ` (${outOfStockCount} produk habis)` : ''}.
+                                    </span>
+                                </div>
                                 <button
-                                    key={cat}
-                                    onClick={() => handleCategoryFilterChange(cat)}
-                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-colors border shrink-0 cursor-pointer ${
-                                        selectedCategoryFilter === cat
-                                            ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
-                                            : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white'
-                                    }`}
+                                    type="button"
+                                    onClick={() => handleStockFilterChange(selectedStockFilter === 'low' ? 'all' : 'low')}
+                                    className="px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded text-[11px] transition shrink-0 cursor-pointer shadow-2xs"
                                 >
-                                    {cat}
+                                    {selectedStockFilter === 'low' ? 'Tampilkan Semua Stok' : 'Filter Stok Menipis'}
                                 </button>
+                            </div>
+                        )}
+
+                        {/* Filter Bar (Search + Dropdown Kategori + Dropdown Status Stok + Status Segmented Button) */}
+                        {activeTab === 'products' && (
+                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 pt-0.5">
+                                {/* Left: Search input + Category Dropdown + Stock Status Dropdown */}
+                                <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 flex-1 max-w-2xl">
+                                    {/* Search Input */}
+                                    <div className="relative flex-1 min-w-[180px]">
+                                        <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" size={14} />
+                                        <input
+                                            type="text"
+                                            placeholder="Cari nama produk atau SKU..."
+                                            value={searchQuery}
+                                            onChange={e => setSearchQuery(e.target.value)}
+                                            className="w-full pl-9 pr-7 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-xs font-semibold text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition shadow-2xs"
+                                        />
+                                        {searchQuery && (
+                                             <button onClick={() => setSearchQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer">
+                                                 <FiX size={13} />
+                                             </button>
+                                         )}
+                                     </div>
+
+                                     {/* Category Dropdown */}
+                                     <div className="relative shrink-0 w-36 sm:w-44">
+                                         <select
+                                             value={selectedCategoryFilter}
+                                             onChange={e => handleCategoryFilterChange(e.target.value)}
+                                             className="w-full appearance-none bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-xs rounded-lg pl-3 pr-8 py-1.5 font-semibold shadow-2xs focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                                         >
+                                             <option value="All">Semua Kategori</option>
+                                             {categories.map(c => (
+                                                 <option key={c.id} value={c.name}>{c.name} ({c.count})</option>
+                                             ))}
+                                         </select>
+                                         <FiChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 dark:text-slate-500" size={14} />
+                                     </div>
+
+                                     {/* Stock Status Dropdown */}
+                                     <div className="relative shrink-0 w-36 sm:w-40">
+                                         <select
+                                             value={selectedStockFilter}
+                                             onChange={e => handleStockFilterChange(e.target.value)}
+                                             className="w-full appearance-none bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-xs rounded-lg pl-3 pr-8 py-1.5 font-semibold shadow-2xs focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                                         >
+                                             <option value="all">Semua Stok</option>
+                                             <option value="low">Stok Menipis ({lowStockCount})</option>
+                                             <option value="out_of_stock">Stok Habis ({outOfStockCount})</option>
+                                             <option value="safe">Stok Aman</option>
+                                         </select>
+                                         <FiChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 dark:text-slate-500" size={14} />
+                                     </div>
+                                 </div>
+
+                                 {/* Right: Segmented Status Buttons */}
+                                 <div className="inline-flex items-center bg-white dark:bg-slate-800 p-0.5 rounded-lg border border-slate-300 dark:border-slate-700 self-start sm:self-auto shrink-0 shadow-2xs">
+                                    <button
+                                        type="button"
+                                        onClick={() => setStatusFilter('all')}
+                                        className={`px-3 py-1 text-xs font-bold rounded-md transition cursor-pointer ${
+                                            statusFilter === 'all'
+                                                ? 'bg-blue-600 text-white shadow-2xs'
+                                                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                                        }`}
+                                    >
+                                        Semua
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setStatusFilter('active')}
+                                        className={`px-3 py-1 text-xs font-bold rounded-md transition cursor-pointer ${
+                                            statusFilter === 'active'
+                                                ? 'bg-blue-600 text-white shadow-2xs'
+                                                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                                        }`}
+                                    >
+                                        Tersedia
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setStatusFilter('inactive')}
+                                        className={`px-3 py-1 text-xs font-bold rounded-md transition cursor-pointer ${
+                                            statusFilter === 'inactive'
+                                                ? 'bg-blue-600 text-white shadow-2xs'
+                                                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                                        }`}
+                                    >
+                                        Tidak Tersedia
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* TAB 1: PRODUCTS TABLE WITH ACCORDION & IMAGES */}
+                    {activeTab === 'products' && (
+                        <>
+                            <div className="flex-1 min-h-0 overflow-y-auto overflow-x-auto">
+                                {filteredItems.length === 0 ? (
+                                    <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+                                        <FiPackage className="w-12 h-12 text-slate-300 dark:text-slate-600 mb-3" />
+                                        <p className="text-base font-extrabold text-slate-700 dark:text-slate-300">Tidak ada produk ditemukan</p>
+                                        <p className="text-xs font-semibold mt-1">Coba ubah kata kunci pencarian atau filter status kamu.</p>
+                                    </div>
+                                ) : (
+                                    <table className="w-full text-left border-collapse min-w-[1040px]">
+                                        {/* Table Header */}
+                                        <thead className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-10 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                            <tr>
+                                                <th className="w-8 pl-3 pr-0 py-2.5 text-center"></th>
+                                                <th className="pl-2 pr-4 py-2.5 font-bold min-w-[260px]">
+                                                    <span className="flex items-center gap-1.5 cursor-pointer select-none" onClick={() => setSelectedSort(selectedSort === 'Name: A-Z' ? 'Default' : 'Name: A-Z')}>
+                                                        GAMBAR & NAMA PRODUK <span className="text-slate-400 text-[10px]">⇅</span>
+                                                    </span>
+                                                </th>
+                                                <th className="px-4 py-2.5 font-bold whitespace-nowrap">
+                                                    <span className="flex items-center gap-1.5">SKU <span className="text-slate-400 text-[10px]">⇅</span></span>
+                                                </th>
+                                                <th className="px-4 py-2.5 font-bold whitespace-nowrap">
+                                                    <span className="flex items-center gap-1.5">KATEGORI <span className="text-slate-400 text-[10px]">⇅</span></span>
+                                                </th>
+                                                <th className="px-4 py-2.5 font-bold whitespace-nowrap">
+                                                    <span className="flex items-center gap-1.5 cursor-pointer select-none" onClick={() => setSelectedSort(selectedSort === 'Price: Low to High' ? 'Price: High to Low' : 'Price: Low to High')}>
+                                                        HARGA JUAL <span className="text-slate-400 text-[10px]">⇅</span>
+                                                    </span>
+                                                </th>
+                                                <th className="px-4 py-2.5 font-bold whitespace-nowrap">
+                                                    <span className="flex items-center gap-1.5">STOK <span className="text-slate-400 text-[10px]">⇅</span></span>
+                                                </th>
+                                                <th className="px-4 py-2.5 font-bold whitespace-nowrap">
+                                                    <span className="flex items-center gap-1.5">STATUS <span className="text-slate-400 text-[10px]">⇅</span></span>
+                                                </th>
+                                                <th className="w-28 px-4 py-2.5 text-center font-bold whitespace-nowrap">AKSI</th>
+                                            </tr>
+                                        </thead>
+
+                                        {/* Table Body */}
+                                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
+                                            {filteredItems.map(item => {
+                                                const isExpanded = expandedRows.includes(item.id);
+
+                                                return (
+                                                    <React.Fragment key={item.id}>
+                                                        <tr 
+                                                            className={`transition-colors ${
+                                                                isExpanded ? 'bg-slate-50/90 dark:bg-slate-850' : 'hover:bg-slate-50/70 dark:hover:bg-slate-850/50'
+                                                            }`}
+                                                        >
+                                                            {/* Expand Button */}
+                                                            <td className="w-8 pl-3 pr-0 py-2.5 text-center">
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => toggleRowExpand(item.id)}
+                                                                    className="p-1 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/40 rounded-md transition cursor-pointer"
+                                                                >
+                                                                    {isExpanded ? <FiChevronDown size={16} /> : <FiChevronRight size={16} />}
+                                                                </button>
+                                                            </td>
+
+                                                            {/* Product Thumbnail & Name */}
+                                                            <td className="pl-2 pr-4 py-2.5">
+                                                                <div className="flex items-center gap-3">
+                                                                    {/* Product Image Thumbnail - Clickable for Lightbox */}
+                                                                    <div 
+                                                                        onClick={(e) => { e.stopPropagation(); setPreviewProduct(item); }}
+                                                                        className="w-12 h-12 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 overflow-hidden shrink-0 cursor-pointer hover:border-blue-500 hover:shadow-xs transition"
+                                                                        title="Klik untuk melihat foto resolusi penuh"
+                                                                    >
+                                                                        <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                                                                    </div>
+
+                                                                    {/* Name and subtitle */}
+                                                                    <div className="min-w-0">
+                                                                        <span 
+                                                                            onClick={() => toggleRowExpand(item.id)}
+                                                                            className="font-bold text-slate-900 dark:text-white text-xs sm:text-sm block truncate hover:text-blue-600 transition cursor-pointer"
+                                                                            title={item.name}
+                                                                        >
+                                                                            {item.name}
+                                                                        </span>
+                                                                        {item.subtitle && (
+                                                                            <span className="text-[11px] text-slate-400 dark:text-slate-500 block truncate max-w-xs mt-0.5">
+                                                                                {item.subtitle}
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            </td>
+
+                                                            {/* SKU */}
+                                                            <td className="px-4 py-2.5 font-mono text-[11px] text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                                                                {item.sku || '-'}
+                                                            </td>
+
+                                                            {/* Kategori */}
+                                                            <td className="px-4 py-2.5 font-medium text-slate-700 dark:text-slate-300 whitespace-nowrap">
+                                                                {item.category}
+                                                            </td>
+
+                                                            {/* Harga Jual */}
+                                                            <td className="px-4 py-2.5 font-extrabold text-blue-600 dark:text-blue-400 whitespace-nowrap">
+                                                                Rp {Number(item.price).toLocaleString('id-ID')}
+                                                            </td>
+
+                                                            {/* Stok */}
+                                                            <td className="px-4 py-2.5 whitespace-nowrap">
+                                                                <span className={`font-semibold ${
+                                                                    item.stock <= 0 
+                                                                        ? 'text-rose-600 font-bold' 
+                                                                        : item.stock <= (item.minimum_stock || 3) 
+                                                                            ? 'text-amber-500 font-bold' 
+                                                                            : 'text-slate-700 dark:text-slate-300'
+                                                                }`}>
+                                                                    {item.stock <= 0 ? 'Habis' : `${item.stock} pcs`}
+                                                                </span>
+                                                            </td>
+
+                                                            {/* Status - Plain Text without Box & Dot */}
+                                                            <td className="px-4 py-2.5 whitespace-nowrap">
+                                                                {item.status === 'Active' ? (
+                                                                    <span className="font-semibold text-slate-800 dark:text-slate-200">
+                                                                        Tersedia
+                                                                    </span>
+                                                                ) : (
+                                                                    <span className="font-medium text-slate-400 dark:text-slate-500">
+                                                                        Tidak Tersedia
+                                                                    </span>
+                                                                )}
+                                                            </td>
+
+                                                            {/* Aksi */}
+                                                            <td className="w-28 px-4 py-2.5 text-center whitespace-nowrap">
+                                                                <div className="flex items-center justify-center gap-1">
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => openAdjustModal(item)}
+                                                                        className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/50 rounded-md transition cursor-pointer"
+                                                                        title="Tambah / Atur Stok"
+                                                                    >
+                                                                        <FiPlus size={15} />
+                                                                    </button>
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => openEditProductModal(item)}
+                                                                        className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition cursor-pointer"
+                                                                        title="Edit Produk"
+                                                                    >
+                                                                        <FiEdit2 size={14} />
+                                                                    </button>
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => handleDeleteProduct(item)}
+                                                                        className="p-1 text-red-500 hover:text-red-600 transition cursor-pointer"
+                                                                        title="Hapus Produk"
+                                                                    >
+                                                                        <FiTrash2 size={14} />
+                                                                    </button>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+
+                                                        {/* Accordion Detail Sub-panel */}
+                                                        {isExpanded && (
+                                                            <tr className="bg-slate-50/80 dark:bg-slate-850/70 border-b border-slate-200 dark:border-slate-800 animate-in fade-in duration-150">
+                                                                <td colSpan={8} className="p-4 sm:p-5">
+                                                                    <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6">
+                                                                        {/* Product Image in Accordion */}
+                                                                        <div 
+                                                                            onClick={() => setPreviewProduct(item)}
+                                                                            className="w-24 h-24 rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 overflow-hidden flex items-center justify-center cursor-pointer hover:opacity-90 hover:border-blue-500 transition shrink-0 shadow-2xs"
+                                                                            title="Klik untuk melihat foto resolusi penuh"
+                                                                        >
+                                                                            <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                                                                        </div>
+
+                                                                        {/* Details Grid */}
+                                                                        <div className="flex-1 space-y-2 text-xs">
+                                                                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                                                                                <div>
+                                                                                    <span className="text-slate-400 dark:text-slate-500 font-medium block">Grup / Kategori</span>
+                                                                                    <span className="font-bold text-slate-800 dark:text-slate-200 text-sm">{item.category}</span>
+                                                                                </div>
+                                                                                <div>
+                                                                                    <span className="text-slate-400 dark:text-slate-500 font-medium block">Monitor Persediaan</span>
+                                                                                    <span className="inline-flex items-center gap-1.5 font-semibold text-blue-600 dark:text-blue-400 mt-0.5">
+                                                                                        <span className="w-1.5 h-1.5 rounded-full bg-blue-600"></span> Aktif ({item.stock} pcs tersedia)
+                                                                                    </span>
+                                                                                </div>
+                                                                                <div>
+                                                                                    <span className="text-slate-400 dark:text-slate-500 font-medium block">Batas Minimum Stok</span>
+                                                                                    <span className="font-semibold text-slate-700 dark:text-slate-300 mt-0.5 block">{item.minimum_stock || 0} pcs</span>
+                                                                                </div>
+                                                                            </div>
+
+                                                                            {item.subtitle && (
+                                                                                <div className="pt-2 border-t border-slate-200/60 dark:border-slate-700/60">
+                                                                                    <span className="text-slate-400 dark:text-slate-500 font-medium block">Deskripsi / Catatan</span>
+                                                                                    <p className="text-slate-700 dark:text-slate-300 font-medium mt-0.5 leading-relaxed">{item.subtitle}</p>
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
+
+                                                                        {/* Quick Actions in Accordion */}
+                                                                        <div className="flex sm:flex-col items-center gap-2 shrink-0 self-end sm:self-center">
+                                                                            <button
+                                                                                type="button"
+                                                                                onClick={() => openAdjustModal(item)}
+                                                                                className="px-3 py-1.5 bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400 text-xs font-bold rounded-md border border-blue-200 dark:border-blue-800 transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                                                                            >
+                                                                                <FiPlus size={13} /> Atur Stok
+                                                                            </button>
+                                                                            <button
+                                                                                type="button"
+                                                                                onClick={() => openEditProductModal(item)}
+                                                                                className="px-3 py-1.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-md border border-slate-300 dark:border-slate-700 transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                                                                            >
+                                                                                <FiEdit2 size={13} /> Edit
+                                                                            </button>
+                                                                            <button
+                                                                                type="button"
+                                                                                onClick={() => handleDeleteProduct(item)}
+                                                                                className="px-3 py-1.5 bg-white dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 text-xs font-bold rounded-md border border-slate-300 dark:border-slate-700 transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                                                                            >
+                                                                                <FiTrash2 size={13} /> Hapus
+                                                                            </button>
+                                                                        </div>
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                        )}
+                                                    </React.Fragment>
+                                                );
+                                            })}
+                                        </tbody>
+                                    </table>
+                                )}
+                            </div>
+
+                            {/* Pinned Pagination Footer */}
+                            {totalProducts > 0 && (
+                                <div className="px-4 py-2.5 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-2.5 bg-white dark:bg-slate-900 shrink-0 z-10">
+                                    <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                                        Menampilkan {((currentPage - 1) * perPage) + 1} - {Math.min(currentPage * perPage, totalProducts)} dari {totalProducts} produk
+                                    </span>
+                                    <div className="flex items-center space-x-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => changeProductPage(currentPage - 1)}
+                                            disabled={currentPage <= 1}
+                                            className="px-3.5 py-1.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-200 transition border border-slate-300 dark:border-slate-700 shadow-2xs cursor-pointer"
+                                        >
+                                            Sebelumnya
+                                        </button>
+                                        <span className="px-3 py-1 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-xs font-bold text-slate-800 dark:text-slate-200">
+                                            {currentPage} / {totalPages}
+                                        </span>
+                                        <button
+                                            type="button"
+                                            onClick={() => changeProductPage(currentPage + 1)}
+                                            disabled={currentPage >= totalPages}
+                                            className="px-3.5 py-1.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-200 transition border border-slate-300 dark:border-slate-700 shadow-2xs cursor-pointer"
+                                        >
+                                            Selanjutnya
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </>
+                    )}
+
+                    {/* TAB 2: CATEGORIES MANAGEMENT VIEW */}
+                    {activeTab === 'categories' && (
+                        <div className="flex-1 min-h-0 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
+                            {categories.map((cat) => (
+                                <div key={cat.id} className="p-4 sm:p-5 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition flex items-center justify-between gap-3">
+                                    <div className="flex items-center space-x-3.5 flex-1 min-w-0">
+                                        <div className="w-10 h-10 rounded-lg bg-blue-50 dark:bg-blue-950/70 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 flex items-center justify-center font-bold text-sm shrink-0">
+                                            {cat.name.charAt(0)}
+                                        </div>
+                                        <div className="min-w-0 flex-1">
+                                            <h4 className="font-bold text-slate-900 dark:text-white text-sm truncate">{cat.name}</h4>
+                                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">{cat.description || 'Tidak ada deskripsi'}</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center space-x-3 sm:space-x-6 shrink-0">
+                                        <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                                            {cat.count} Produk
+                                        </span>
+
+                                        <div className="flex items-center space-x-1">
+                                            <button
+                                                type="button"
+                                                onClick={() => openEditCategoryModal(cat)}
+                                                className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/50 rounded-lg transition-colors cursor-pointer"
+                                                title="Edit Kategori"
+                                            >
+                                                <FiEdit2 className="w-4 h-4" />
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleDeleteCategory(cat)}
+                                                className="p-1 text-red-500 hover:text-red-600 transition-colors cursor-pointer"
+                                                title="Hapus Kategori"
+                                            >
+                                                <FiTrash2 className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
                             ))}
                         </div>
-
-                        {/* Right: Sort Dropdown & View Mode Toggle */}
-                        <div className="flex items-center space-x-2 w-full lg:w-auto justify-between lg:justify-end shrink-0 pt-1 lg:pt-0 border-t lg:border-t-0 border-slate-100 dark:border-slate-800">
-                            <div className="flex items-center space-x-1.5">
-                                <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">Urutkan:</span>
-                                <div className="relative inline-flex items-center">
-                                    <select
-                                        value={selectedSort}
-                                        onChange={(e) => setSelectedSort(e.target.value)}
-                                        className="appearance-none bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs rounded-lg pl-3 pr-8 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-semibold shadow-xs cursor-pointer"
-                                    >
-                                        <option value="Default">Posisi Tetap (Default)</option>
-                                        <option value="Price: High to Low">Filter: Harga Tertinggi</option>
-                                        <option value="Price: Low to High">Filter: Harga Terendah</option>
-                                        <option value="Name: A-Z">Filter: Nama A-Z</option>
-                                    </select>
-                                    <FiChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 dark:text-slate-500" size={14} />
-                                </div>
-                            </div>
-
-                            {/* View Toggle (Grid / List) */}
-                            <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg border border-slate-200 dark:border-slate-700">
-                                <button
-                                    type="button"
-                                    onClick={() => handleViewModeChange('grid')}
-                                    className={`p-1.5 rounded-md transition cursor-pointer ${
-                                        viewMode === 'grid'
-                                            ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-2xs font-bold'
-                                            : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
-                                    }`}
-                                    title="Tampilan Grid Kompak"
-                                >
-                                    <FiGrid size={15} />
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => handleViewModeChange('list')}
-                                    className={`p-1.5 rounded-md transition cursor-pointer ${
-                                        viewMode === 'list'
-                                            ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-2xs font-bold'
-                                            : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
-                                    }`}
-                                    title="Tampilan List / Tabel"
-                                >
-                                    <FiList size={15} />
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Products Content: Compact Grid or List View (Natural scroll without trapped inner height) */}
-                    <div className="w-full">
-                        {filteredItems.length === 0 ? (
-                            <div className="bg-white dark:bg-slate-900 p-12 rounded-xl text-center border border-slate-200 dark:border-slate-800 shadow-xs">
-                                <FiCoffee className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
-                                <h4 className="font-semibold text-slate-700 dark:text-slate-300">Tidak ada produk ditemukan</h4>
-                                <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Coba ubah kata kunci pencarian atau filter kategori kamu.</p>
-                            </div>
-                        ) : viewMode === 'grid' ? (
-                            /* COMPACT GRID VIEW (Ramping & Space-Efficient di HP, Tablet, dan Desktop) */
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2.5 sm:gap-3.5">
-                                {filteredItems.map((item) => (
-                                    <div 
-                                        key={item.id}
-                                        className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xs hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700 transition duration-200 overflow-hidden flex flex-col group"
-                                    >
-                                        {/* Image Container - Compact Height */}
-                                        <div className="relative h-28 sm:h-32 w-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                                            <img 
-                                                src={item.image} 
-                                                alt={item.name}
-                                                className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
-                                            />
-                                            <div className="absolute top-1.5 sm:top-2 left-1.5 sm:left-2 max-w-[65%]">
-                                                <span className={`inline-block truncate max-w-full px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-extrabold border shadow-2xs ${getCategoryColor(item.category)}`}>
-                                                    {item.category}
-                                                </span>
-                                            </div>
-                                            <div className="absolute top-1.5 sm:top-2 right-1.5 sm:top-2 right-2">
-                                                <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[8px] sm:text-[9px] font-extrabold uppercase tracking-wider ${
-                                                    item.status === 'Active' 
-                                                        ? 'bg-emerald-600 text-white shadow-2xs' 
-                                                        : 'bg-slate-600 text-white shadow-2xs'
-                                                }`}>
-                                                    {item.status}
-                                                </span>
-                                            </div>
-                                        </div>
-
-                                        {/* Content Container */}
-                                        <div className="p-2.5 sm:p-3 flex-1 flex flex-col justify-between space-y-2">
-                                            <div>
-                                                <h3 className="font-bold text-slate-900 dark:text-white text-xs sm:text-sm leading-snug line-clamp-2 group-hover:text-blue-600 transition-colors" title={item.name}>
-                                                    {item.name}
-                                                </h3>
-                                                <p className="text-[10px] font-mono font-medium text-slate-400 dark:text-slate-500 mt-0.5 truncate">
-                                                    {item.sku || '-'}
-                                                </p>
-                                                {item.subtitle && (
-                                                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-1 leading-snug">
-                                                        {item.subtitle}
-                                                    </p>
-                                                )}
-                                            </div>
-
-                                            <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-1">
-                                                <div className="min-w-0 flex-1">
-                                                    <span className="font-extrabold text-blue-600 dark:text-blue-400 text-xs sm:text-sm block truncate">
-                                                        Rp {Number(item.price).toLocaleString('id-ID')}
-                                                    </span>
-                                                    <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold block mt-0.5 truncate">
-                                                        Stok: <span className={`font-bold ${item.stock <= 5 ? 'text-amber-500' : 'text-slate-700 dark:text-slate-300'}`}>{item.stock}</span>
-                                                    </span>
-                                                </div>
-
-                                                <div className="flex items-center space-x-0.5 shrink-0">
-                                                    <button
-                                                        onClick={() => openEditProductModal(item)}
-                                                        className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/50 rounded-md transition-colors"
-                                                        title="Edit Produk"
-                                                    >
-                                                        <FiEdit2 className="w-3.5 h-3.5" />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDeleteProduct(item)}
-                                                        className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded-md transition-colors"
-                                                        title="Hapus Produk"
-                                                    >
-                                                        <FiTrash2 className="w-3.5 h-3.5" />
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                            /* LIST / TABLE VIEW (Super Ramping & Cepat Scan Data) */
-                            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-2xs">
-                                <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                                    {filteredItems.map((item) => (
-                                        <div 
-                                            key={item.id}
-                                            className="px-3 sm:px-4 py-2.5 hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition flex items-center justify-between gap-2.5 sm:gap-3 text-xs"
-                                        >
-                                            {/* Left: Image & Info */}
-                                            <div className="flex items-center gap-2.5 sm:gap-3 flex-1 min-w-0">
-                                                <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-lg shrink-0 border border-slate-200/80 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 overflow-hidden shadow-2xs">
-                                                    <img 
-                                                        src={item.image} 
-                                                        alt={item.name} 
-                                                        className="w-full h-full object-cover" 
-                                                    />
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-                                                        <span className="font-extrabold text-slate-900 dark:text-white text-xs sm:text-sm leading-snug">
-                                                            {item.name}
-                                                        </span>
-                                                        <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold border shadow-2xs shrink-0 ${getCategoryColor(item.category)}`}>
-                                                            {item.category}
-                                                        </span>
-                                                        <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase tracking-wider shrink-0 shadow-2xs ${
-                                                            item.status === 'Active' 
-                                                                ? 'bg-emerald-600 text-white' 
-                                                                : 'bg-slate-600 text-white'
-                                                        }`}>
-                                                            {item.status}
-                                                        </span>
-                                                    </div>
-                                                    <div className="flex items-center gap-2 sm:gap-2.5 mt-0.5 text-[11px] flex-wrap text-slate-500 dark:text-slate-400">
-                                                        {item.sku && (
-                                                            <span className="font-mono text-[10px] text-slate-400 dark:text-slate-500">
-                                                                {item.sku}
-                                                            </span>
-                                                        )}
-                                                        <span className="font-black text-blue-600 dark:text-blue-400">
-                                                            Rp {Number(item.price).toLocaleString('id-ID')}
-                                                        </span>
-                                                        <span className={`font-semibold ${item.stock <= 0 ? 'text-red-500' : item.stock <= 5 ? 'text-amber-500' : 'text-emerald-600 dark:text-emerald-400'}`}>
-                                                            Stok: {item.stock} pcs
-                                                        </span>
-                                                        {item.subtitle && (
-                                                            <span className="text-slate-400 dark:text-slate-500 italic truncate max-w-[180px] sm:max-w-md">
-                                                                · {item.subtitle}
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {/* Right: Actions */}
-                                            <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
-                                                <button
-                                                    onClick={() => openEditProductModal(item)}
-                                                    className="p-2 sm:p-1.5 text-slate-400 hover:text-blue-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition cursor-pointer"
-                                                    title="Edit Produk"
-                                                >
-                                                    <FiEdit2 size={14} />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDeleteProduct(item)}
-                                                    className="p-2 sm:p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-slate-800 rounded-md transition cursor-pointer"
-                                                    title="Hapus Produk"
-                                                >
-                                                    <FiTrash2 size={14} />
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Product Pagination Footer */}
-                    {totalProducts > 0 && (
-                        <div className="bg-white dark:bg-slate-900 p-3 sm:p-3.5 rounded-xl border border-slate-300 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3 mt-2">
-                            <span className="text-xs text-slate-500 dark:text-slate-400 font-semibold text-center sm:text-left">
-                                Menampilkan {((currentPage - 1) * perPage) + 1} - {Math.min(currentPage * perPage, totalProducts)} dari {totalProducts} produk
-                            </span>
-                            <div className="flex items-center space-x-2">
-                                <button
-                                    onClick={() => changeProductPage(currentPage - 1)}
-                                    disabled={currentPage <= 1}
-                                    className="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 transition cursor-pointer"
-                                >
-                                    Sebelumnya
-                                </button>
-                                <span className="px-3 py-1 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-200">
-                                    {currentPage} / {totalPages}
-                                </span>
-                                <button
-                                    onClick={() => changeProductPage(currentPage + 1)}
-                                    disabled={currentPage >= totalPages}
-                                    className="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 transition cursor-pointer"
-                                >
-                                    Selanjutnya
-                                </button>
-                            </div>
-                        </div>
                     )}
-                </>)}
-
-                {/* TAB 2: CATEGORIES */}
-                {activeTab === 'categories' && (
-                    <div className="w-full">
-                        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-800 shadow-xs overflow-hidden">
-                            <div className="p-3.5 sm:p-4 bg-slate-50/80 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
-                                <h3 className="font-extrabold text-slate-900 dark:text-white text-sm">Daftar Kategori Produk</h3>
-                                <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Total {categories.length} Kategori</span>
-                            </div>
-
-                            <div className="divide-y divide-slate-200 dark:divide-slate-800">
-                                {categories.map((cat) => (
-                                    <div key={cat.id} className="p-3.5 sm:p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition flex items-center justify-between gap-3">
-                                        <div className="flex items-center space-x-3 flex-1 min-w-0">
-                                            <div className="w-9 h-9 rounded-lg bg-blue-100 dark:bg-blue-950/70 text-blue-600 dark:text-yellow-400 border border-blue-200 dark:border-blue-800 flex items-center justify-center font-black text-sm shrink-0">
-                                                {cat.name.charAt(0)}
-                                            </div>
-                                            <div className="min-w-0 flex-1">
-                                                <h4 className="font-bold text-slate-900 dark:text-white text-sm truncate">{cat.name}</h4>
-                                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">{cat.description || 'Tidak ada deskripsi'}</p>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex items-center space-x-3 sm:space-x-6 shrink-0">
-                                            <span className="px-2.5 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-md border border-slate-200 dark:border-slate-700">
-                                                {cat.count} Produk
-                                            </span>
-
-                                            <div className="flex items-center space-x-1">
-                                                <button
-                                                    onClick={() => openEditCategoryModal(cat)}
-                                                    className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/50 rounded-lg transition-colors"
-                                                    title="Edit Kategori"
-                                                >
-                                                    <FiEdit2 className="w-4 h-4" />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDeleteCategory(cat)}
-                                                    className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded-lg transition-colors"
-                                                    title="Hapus Kategori"
-                                                >
-                                                    <FiTrash2 className="w-4 h-4" />
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                )}
+                </div>
             </div>
 
             {/* PRODUCT MODAL (Add / Edit) */}
@@ -765,7 +995,7 @@ export default function MenuManagement({ initialProducts = [], initialCategories
 
                         <form onSubmit={handleSaveProduct} className="p-6 space-y-4">
                             <div>
-                                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Nama Menu</label>
+                                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Nama Produk</label>
                                 <input
                                     type="text"
                                     required
@@ -783,7 +1013,7 @@ export default function MenuManagement({ initialProducts = [], initialCategories
                                         type="text"
                                         value={productFormData.sku}
                                         onChange={(e) => setProductFormData({...productFormData, sku: e.target.value})}
-                                        placeholder="MIE001"
+                                        placeholder="PRD-001"
                                         className="w-full px-3.5 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg text-xs font-semibold text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
                                     />
                                 </div>
@@ -805,19 +1035,19 @@ export default function MenuManagement({ initialProducts = [], initialCategories
                             </div>
 
                             <div>
-                                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Deskripsi / Subtitle</label>
+                                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Deskripsi / Spesifikasi</label>
                                 <input
                                     type="text"
                                     value={productFormData.subtitle}
                                     onChange={(e) => setProductFormData({...productFormData, subtitle: e.target.value})}
-                                    placeholder="Contoh: Mie + Ayam Cincang + Pangsit"
+                                    placeholder="Contoh: Ban luar tubeless matic ring 14 berkualitas tinggi"
                                     className="w-full px-3.5 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg text-xs font-semibold text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
                                 />
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Harga (Rp)</label>
+                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Harga Jual (Rp)</label>
                                     <input
                                         type="number"
                                         required
@@ -844,6 +1074,39 @@ export default function MenuManagement({ initialProducts = [], initialCategories
                                 </div>
                             </div>
 
+                            {/* Stock & Minimum Stock Row */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                                        {editingItem ? 'Stok Saat Ini (pcs)' : 'Stok Awal (pcs)'}
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        value={productFormData.stock}
+                                        onChange={(e) => setProductFormData({...productFormData, stock: e.target.value})}
+                                        placeholder="0"
+                                        className="w-full px-3.5 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg text-xs font-semibold text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                                    />
+                                    <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">Jumlah kuantitas fisik persediaan</p>
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                                        Batas Minimum Stok (pcs)
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        value={productFormData.minimum_stock}
+                                        onChange={(e) => setProductFormData({...productFormData, minimum_stock: e.target.value})}
+                                        placeholder="3"
+                                        className="w-full px-3.5 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg text-xs font-semibold text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                                    />
+                                    <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">Peringatan saat persediaan ≤ batas ini</p>
+                                </div>
+                            </div>
+
                             <div>
                                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Gambar Produk</label>
                                 <label className="flex items-center gap-3 p-3 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-lg cursor-pointer hover:border-blue-500 transition-colors bg-slate-50/50 dark:bg-slate-800/50">
@@ -863,11 +1126,11 @@ export default function MenuManagement({ initialProducts = [], initialCategories
                                         className="hidden"
                                     />
                                     {productFormData.imagePreview ? (
-                                        <img src={productFormData.imagePreview} alt="preview" className="w-16 h-16 rounded-lg object-cover border border-slate-300 dark:border-slate-700" />
+                                        <img src={productFormData.imagePreview} alt="preview" className="w-16 h-16 rounded-lg object-cover border border-slate-300 dark:border-slate-700 shadow-2xs" />
                                     ) : productFormData.image ? (
-                                        <img src={productFormData.image} alt="current" className="w-16 h-16 rounded-lg object-cover border border-slate-300 dark:border-slate-700" />
+                                        <img src={productFormData.image} alt="current" className="w-16 h-16 rounded-lg object-cover border border-slate-300 dark:border-slate-700 shadow-2xs" />
                                     ) : (
-                                        <div className="w-16 h-16 rounded-lg bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-slate-500 dark:text-slate-400 text-xs font-bold border border-slate-300 dark:border-slate-700">Foto</div>
+                                        <div className="w-16 h-16 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500 text-xs font-bold border border-slate-300 dark:border-slate-700">Foto</div>
                                     )}
                                     <div className="text-xs text-slate-500 dark:text-slate-400">
                                         <span className="font-bold text-blue-600 dark:text-yellow-400">Klik untuk upload</span>
@@ -887,7 +1150,7 @@ export default function MenuManagement({ initialProducts = [], initialCategories
                                 <button
                                     type="submit"
                                     disabled={isLoading}
-                                    className="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg border border-blue-700 shadow-xs transition"
+                                    className="px-3.5 py-2 bg-green-500 hover:bg-green-600 text-white text-xs font-bold rounded-lg border border-green-600 shadow-xs transition cursor-pointer"
                                 >
                                     {isLoading ? 'Menyimpan...' : 'Simpan Produk'}
                                 </button>
@@ -948,7 +1211,7 @@ export default function MenuManagement({ initialProducts = [], initialCategories
                                 <button
                                     type="submit"
                                     disabled={isLoading}
-                                    className="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg border border-blue-700 shadow-xs transition"
+                                    className="px-3.5 py-2 bg-green-500 hover:bg-green-600 text-white text-xs font-bold rounded-lg border border-green-600 shadow-xs transition cursor-pointer"
                                 >
                                     {isLoading ? 'Menyimpan...' : 'Simpan Kategori'}
                                 </button>
@@ -995,6 +1258,212 @@ export default function MenuManagement({ initialProducts = [], initialCategories
                                 {isLoading ? 'Menghapus...' : 'Ya, Hapus'}
                             </button>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* PRODUCT IMAGE LIGHTBOX PREVIEW MODAL */}
+            {previewProduct && (
+                <div 
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-xs p-4 animate-in fade-in duration-200"
+                    onClick={() => setPreviewProduct(null)}
+                >
+                    <div 
+                        className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 max-w-lg w-full overflow-hidden flex flex-col animate-in zoom-in-95 duration-200"
+                        onClick={e => e.stopPropagation()}
+                    >
+                        {/* Modal Header */}
+                        <div className="p-3.5 sm:p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                            <div className="min-w-0 pr-2">
+                                <h3 className="font-bold text-slate-900 dark:text-white text-sm sm:text-base truncate">
+                                    {previewProduct.name}
+                                </h3>
+                                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium truncate mt-0.5">
+                                    {previewProduct.category} {previewProduct.sku ? `· ${previewProduct.sku}` : ''}
+                                </p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setPreviewProduct(null)}
+                                className="p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer shrink-0"
+                            >
+                                <FiX size={18} />
+                            </button>
+                        </div>
+
+                        {/* Full Size Image */}
+                        <div className="p-4 bg-slate-50 dark:bg-slate-950 flex items-center justify-center min-h-[260px] max-h-[380px] overflow-hidden">
+                            <img
+                                src={previewProduct.image}
+                                alt={previewProduct.name}
+                                className="max-h-[360px] max-w-full object-contain rounded-lg shadow-xs"
+                            />
+                        </div>
+
+                        {/* Modal Info Footer */}
+                        <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 space-y-2">
+                            <div className="flex items-center justify-between">
+                                <span className="text-base sm:text-lg font-black text-blue-600 dark:text-blue-400">
+                                    Rp {Number(previewProduct.price).toLocaleString('id-ID')}
+                                </span>
+                                <span className={`text-xs font-semibold ${
+                                    previewProduct.stock <= 0 
+                                        ? 'text-rose-600 font-bold' 
+                                        : previewProduct.stock <= 5 
+                                            ? 'text-amber-500' 
+                                            : 'text-slate-700 dark:text-slate-300'
+                                }`}>
+                                    Stok: {previewProduct.stock <= 0 ? 'Habis' : `${previewProduct.stock} pcs`}
+                                </span>
+                            </div>
+                            {previewProduct.subtitle && (
+                                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                                    {previewProduct.subtitle}
+                                </p>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* STOCK ADJUSTMENT MODAL (Kulakan / Opname / Keluar) */}
+            {selectedProductForAdjust && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/80 p-4">
+                    <div className="bg-white dark:bg-slate-900 rounded-xl shadow-xl w-full max-w-md overflow-hidden border border-slate-300 dark:border-slate-800 animate-in fade-in zoom-in duration-150 text-slate-900 dark:text-white">
+                        <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-800/80">
+                            <div>
+                                <h3 className="font-extrabold text-slate-900 dark:text-white text-sm">
+                                    Atur Persediaan Stok
+                                </h3>
+                                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium truncate max-w-xs mt-0.5">
+                                    {selectedProductForAdjust.name}
+                                </p>
+                            </div>
+                            <button 
+                                type="button"
+                                onClick={() => setSelectedProductForAdjust(null)}
+                                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer"
+                            >
+                                <FiX className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleAdjustSubmit} className="p-5 space-y-4">
+                            {/* Current Stock Banner */}
+                            <div className="flex items-center justify-between px-3 py-2 bg-slate-100 dark:bg-slate-800 rounded-lg text-xs">
+                                <span className="text-slate-600 dark:text-slate-400 font-semibold">Stok Saat Ini</span>
+                                <span className="font-extrabold text-blue-600 dark:text-blue-400 text-sm">
+                                    {selectedProductForAdjust.stock} pcs
+                                </span>
+                            </div>
+
+                            {/* Adjustment Type Selector */}
+                            <div>
+                                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                                    Jenis Perubahan
+                                </label>
+                                <div className="grid grid-cols-3 gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setAdjustForm(prev => ({ ...prev, type: 'stock_in' }))}
+                                        className={`px-2.5 py-2 rounded-lg text-xs font-bold border transition text-center cursor-pointer ${
+                                            adjustForm.type === 'stock_in'
+                                                ? 'bg-blue-50 dark:bg-blue-950/60 border-blue-500 text-blue-700 dark:text-blue-300 ring-1 ring-blue-500'
+                                                : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-750'
+                                        }`}
+                                    >
+                                        <span className="block text-sm font-black">+</span>
+                                        <span className="block text-[11px] mt-0.5">Kulakan / Masuk</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setAdjustForm(prev => ({ ...prev, type: 'stock_out' }))}
+                                        className={`px-2.5 py-2 rounded-lg text-xs font-bold border transition text-center cursor-pointer ${
+                                            adjustForm.type === 'stock_out'
+                                                ? 'bg-rose-50 dark:bg-rose-950/60 border-rose-500 text-rose-700 dark:text-rose-300 ring-1 ring-rose-500'
+                                                : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-750'
+                                        }`}
+                                    >
+                                        <span className="block text-sm font-black">-</span>
+                                        <span className="block text-[11px] mt-0.5">Keluar / Rusak</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setAdjustForm(prev => ({ ...prev, type: 'adjustment' }))}
+                                        className={`px-2.5 py-2 rounded-lg text-xs font-bold border transition text-center cursor-pointer ${
+                                            adjustForm.type === 'adjustment'
+                                                ? 'bg-amber-50 dark:bg-amber-950/60 border-amber-500 text-amber-700 dark:text-amber-300 ring-1 ring-amber-500'
+                                                : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-750'
+                                        }`}
+                                    >
+                                        <span className="block text-sm font-black">=</span>
+                                        <span className="block text-[11px] mt-0.5">Opname Fisik</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Quantity Input */}
+                            <div>
+                                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                                    {adjustForm.type === 'adjustment' ? 'Jumlah Total Fisik Sebenarnya (pcs)' : 'Jumlah Kuantitas (pcs)'}
+                                </label>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    required
+                                    value={adjustForm.quantity}
+                                    onChange={(e) => setAdjustForm(prev => ({ ...prev, quantity: e.target.value }))}
+                                    placeholder={adjustForm.type === 'stock_in' ? 'Contoh: 15 (barang masuk dari supplier)' : 'Contoh: 5'}
+                                    className="w-full px-3.5 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg text-xs font-semibold text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                                    autoFocus
+                                />
+                                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+                                    {adjustForm.type === 'stock_in' && `Stok baru akan menjadi: ${Number(selectedProductForAdjust.stock) + (parseInt(adjustForm.quantity, 10) || 0)} pcs`}
+                                    {adjustForm.type === 'stock_out' && `Stok baru akan menjadi: ${Math.max(0, Number(selectedProductForAdjust.stock) - (parseInt(adjustForm.quantity, 10) || 0))} pcs`}
+                                    {adjustForm.type === 'adjustment' && `Stok akan langsung direset menjadi: ${parseInt(adjustForm.quantity, 10) || 0} pcs`}
+                                </p>
+                            </div>
+
+                            {/* Note / Reference */}
+                            <div>
+                                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                                    Catatan / Referensi (Opsional)
+                                </label>
+                                <input
+                                    type="text"
+                                    value={adjustForm.note}
+                                    onChange={(e) => setAdjustForm(prev => ({ ...prev, note: e.target.value }))}
+                                    placeholder="Contoh: Kulakan dari Toko Jaya / Penyesuaian stok fisik mingguan"
+                                    className="w-full px-3.5 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg text-xs font-semibold text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                                />
+                            </div>
+
+                            {/* Modal Actions */}
+                            <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end space-x-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setSelectedProductForAdjust(null)}
+                                    disabled={adjustLoading}
+                                    className="px-3.5 py-2 border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-lg transition cursor-pointer"
+                                >
+                                    Batal
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={adjustLoading}
+                                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-bold rounded-lg border border-blue-700 shadow-xs transition cursor-pointer flex items-center gap-1.5"
+                                >
+                                    {adjustLoading ? (
+                                        <span>Menyimpan...</span>
+                                    ) : (
+                                        <>
+                                            <FiCheck size={14} />
+                                            <span>Simpan Stok</span>
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}

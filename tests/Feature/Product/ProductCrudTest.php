@@ -78,4 +78,52 @@ class ProductCrudTest extends TestCase
         $response->assertStatus(200);
         $this->assertSoftDeleted('products', ['id' => $product->id]);
     }
+
+    public function test_owner_can_create_product_with_custom_stock_and_minimum_stock(): void
+    {
+        $response = $this->actingAs($this->owner)->postJson('/api/products', [
+            'name'          => 'Kampas Rem Vario',
+            'sku'           => 'KMP-VARIO-01',
+            'price'         => 35000,
+            'category_id'   => $this->category->id,
+            'stock'         => 15,
+            'minimum_stock' => 5,
+        ]);
+
+        $response->assertStatus(201);
+        $this->assertDatabaseHas('products', [
+            'name'          => 'Kampas Rem Vario',
+            'stock'         => 15,
+            'minimum_stock' => 5,
+        ]);
+    }
+
+    public function test_owner_accessing_inventory_is_redirected_to_products(): void
+    {
+        $response = $this->actingAs($this->owner)->get('/inventory');
+        $response->assertRedirect(route('products.index'));
+    }
+
+    public function test_owner_can_filter_products_by_stock_status(): void
+    {
+        Product::factory()->create([
+            'category_id'   => $this->category->id,
+            'stock'         => 1,
+            'minimum_stock' => 5,
+        ]);
+        Product::factory()->create([
+            'category_id'   => $this->category->id,
+            'stock'         => 50,
+            'minimum_stock' => 5,
+        ]);
+
+        $response = $this->actingAs($this->owner)->get('/products?stock_status=low');
+        $response->assertStatus(200);
+        $response->assertInertia(fn ($page) => $page
+            ->component('Product/Index')
+            ->has('lowStockCount')
+            ->has('outOfStockCount')
+            ->where('filters.stock_status', 'low')
+        );
+    }
 }

@@ -34,6 +34,7 @@ class ProductController extends Controller implements HasMiddleware
     {
         $search = $request->string('search')->value();
         $category = $request->string('category')->value();
+        $stockStatus = $request->string('stock_status')->value();
 
         $query = Product::with('category')->latest();
 
@@ -50,7 +51,19 @@ class ProductController extends Controller implements HasMiddleware
             });
         }
 
+        if ($stockStatus && $stockStatus !== 'all') {
+            if ($stockStatus === 'low') {
+                $query->whereColumn('stock', '<=', 'minimum_stock');
+            } elseif ($stockStatus === 'out') {
+                $query->where('stock', '<=', 0);
+            } elseif ($stockStatus === 'normal') {
+                $query->whereColumn('stock', '>', 'minimum_stock');
+            }
+        }
+
         $products = $query->paginate(10)->withQueryString();
+        $lowStockCount = Product::whereColumn('stock', '<=', 'minimum_stock')->count();
+        $outOfStockCount = Product::where('stock', '<=', 0)->count();
 
         return \Inertia\Inertia::render('Product/Index', [
             'initialProducts' => $products,
@@ -58,7 +71,10 @@ class ProductController extends Controller implements HasMiddleware
             'filters' => [
                 'search' => $search ?: '',
                 'category' => $category ?: 'All',
+                'stock_status' => $stockStatus ?: 'all',
             ],
+            'lowStockCount' => $lowStockCount,
+            'outOfStockCount' => $outOfStockCount,
         ]);
     }
 

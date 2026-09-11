@@ -233,6 +233,62 @@ class MotorcycleManagementTest extends TestCase
         $this->assertEquals(4, MotorcyclePart::where('motorcycle_id', $motor->id)->count());
     }
 
+    public function test_can_bulk_attach_parts_with_auto_category(): void
+    {
+        $motor = Motorcycle::create([
+            'brand'       => 'Yamaha',
+            'model'       => 'NMAX 155',
+            'slug'        => 'yamaha-nmax-155-2024',
+            'year_start'  => 2024,
+            'engine_cc'   => 155,
+            'engine_type' => 'matic',
+        ]);
+
+        // Products with distinct names from different categories
+        $oli = Product::factory()->create(['name' => 'Oli Yamalube Matic 0.8L', 'category_id' => $this->category->id]);
+        $busi = Product::factory()->create(['name' => 'Busi NGK CPR9EA', 'category_id' => $this->category->id]);
+        $aki = Product::factory()->create(['name' => 'Aki Yuasa YTZ6V', 'category_id' => $this->category->id]);
+        $vbelt = Product::factory()->create(['name' => 'V-Belt NMAX Daytona', 'category_id' => $this->category->id]);
+
+        $response = $this->actingAs($this->user)->postJson('/motorcycles/bulk-attach', [
+            'motorcycle_ids' => [$motor->id],
+            'product_ids'    => [$oli->id, $busi->id, $aki->id, $vbelt->id],
+            'part_category'  => 'auto',
+            'notes'          => 'Smart auto-mapping test',
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'data' => [
+                    'attached' => 4,
+                    'skipped'  => 0,
+                    'total'    => 4,
+                ],
+            ]);
+
+        // Verify each product was mapped to its correct category
+        $this->assertDatabaseHas('motorcycle_parts', [
+            'motorcycle_id' => $motor->id,
+            'product_id'    => $oli->id,
+            'part_category' => 'oli_mesin',
+        ]);
+        $this->assertDatabaseHas('motorcycle_parts', [
+            'motorcycle_id' => $motor->id,
+            'product_id'    => $busi->id,
+            'part_category' => 'busi',
+        ]);
+        $this->assertDatabaseHas('motorcycle_parts', [
+            'motorcycle_id' => $motor->id,
+            'product_id'    => $aki->id,
+            'part_category' => 'aki',
+        ]);
+        $this->assertDatabaseHas('motorcycle_parts', [
+            'motorcycle_id' => $motor->id,
+            'product_id'    => $vbelt->id,
+            'part_category' => 'v_belt',
+        ]);
+    }
+
     public function test_can_bulk_attach_parts_mode_one_product_to_many_motors(): void
     {
         $m1 = Motorcycle::create(['brand' => 'Honda', 'model' => 'Beat 2020', 'slug' => 'honda-beat-2020', 'year_start' => 2020, 'engine_cc' => 110, 'engine_type' => 'matic']);
@@ -355,5 +411,78 @@ class MotorcycleManagementTest extends TestCase
         $deleteRes = $this->actingAs($this->user)->deleteJson("/motorcycles/{$motor->id}/parts/{$part->id}");
         $deleteRes->assertStatus(200);
         $this->assertSoftDeleted('motorcycle_parts', ['id' => $part->id]);
+    }
+
+    public function test_can_reattach_soft_deleted_part_without_duplicate_error(): void
+    {
+        $motor = Motorcycle::create([
+            'brand'       => 'Yamaha',
+            'model'       => 'NMAX 155',
+            'slug'        => 'yamaha-nmax-155-2021',
+            'year_start'  => 2021,
+            'engine_cc'   => 155,
+            'engine_type' => 'matic',
+        ]);
+
+        $product = Product::factory()->create([
+            'name'        => 'Yamalube Super Matic',
+            'sku'         => 'YAM-SUPER-MATIC',
+            'category_id' => $this->category->id,
+        ]);
+
+        // 1. Initial attach
+        $attachRes = $this->actingAs($this->user)->postJson("/motorcycles/{$motor->id}/parts", [
+            'product_id'     => $product->id,
+            'part_category'  => 'oli_mesin',
+            'notes'          => 'Initial note',
+            'is_recommended' => false,
+        ]);
+        $attachRes->assertStatus(201);
+        $partId = $attachRes->json('data.id');
+
+        // 2. Soft delete it
+        $this->actingAs($this->user)->deleteJson("/motorcycles/{$motor->id}/parts/{$partId}")
+            ->assertStatus(200);
+        $this->assertSoftDeleted('motorcycle_parts', ['id' => $partId]);
+
+        // 3. Re-attach via single attach endpoint -> should restore and NOT throw 1062 duplicate entry
+        $reattachRes = $this->actingAs($this->user)->postJson("/motorcycles/{$motor->id}/parts", [
+            'product_id'     => $product->id,
+            'part_category'  => 'oli_mesin',
+            'notes'          => 'Updated note after restore',
+            'is_recommended' => true,
+        ]);
+        $reattachRes->assertStatus(201);
+        $this->assertDatabaseHas('motorcycle_parts', [
+            'id'             => $partId,
+            'deleted_at'     => null,
+            'notes'          => 'Updated note after restore',
+            'is_recommended' => true,
+        ]);
+
+        // 4. Soft delete again and test bulk-attach restore
+        $this->actingAs($this->user)->deleteJson("/motorcycles/{$motor->id}/parts/{$partId}")
+            ->assertStatus(200);
+        $this->assertSoftDeleted('motorcycle_parts', ['id' => $partId]);
+
+        $bulkRes = $this->actingAs($this->user)->postJson('/motorcycles/bulk-attach', [
+            'motorcycle_ids' => [$motor->id],
+            'product_ids'    => [$product->id],
+            'part_category'  => 'oli_mesin',
+            'is_recommended' => true,
+        ]);
+        $bulkRes->assertStatus(200)
+            ->assertJson([
+                'data' => [
+                    'attached' => 1,
+                    'skipped'  => 0,
+                    'total'    => 1,
+                ],
+            ]);
+
+        $this->assertDatabaseHas('motorcycle_parts', [
+            'id'         => $partId,
+            'deleted_at' => null,
+        ]);
     }
 }

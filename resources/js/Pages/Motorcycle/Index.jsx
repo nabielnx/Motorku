@@ -539,17 +539,22 @@ export default function MotorcycleIndex({
     const [saving, setSaving] = useState(false);
     const [notification, setNotification] = useState(null);
     const [previewMotor, setPreviewMotor] = useState(null);
+    const [previewPart, setPreviewPart] = useState(null);
+    const [deleteConfirm, setDeleteConfirm] = useState(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
-    // Close preview modal on Escape
+    // Close preview / confirmation modal on Escape
     useEffect(() => {
         const handleKeyDown = (e) => {
-            if (e.key === 'Escape' && previewMotor) {
-                setPreviewMotor(null);
+            if (e.key === 'Escape') {
+                if (deleteConfirm && !isDeleting) setDeleteConfirm(null);
+                if (previewMotor) setPreviewMotor(null);
+                if (previewPart) setPreviewPart(null);
             }
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [previewMotor]);
+    }, [previewMotor, previewPart, deleteConfirm, isDeleting]);
 
     // ==========================================
     // BULK MAPPING STATE & HANDLERS
@@ -823,16 +828,15 @@ export default function MotorcycleIndex({
         }
     };
 
-    // Delete motorcycle
-    const handleDeleteMotor = async (id, modelName) => {
-        if (!confirm(`Hapus motor "${modelName}" beserta semua mapping sparepartnya?`)) return;
-        try {
-            await window.axios.delete(`/motorcycles/${id}`);
-            toast.success(`Motor "${modelName}" beserta semua mappingnya berhasil dihapus!`);
-            router.reload();
-        } catch (e) {
-            toast.error(e.response?.data?.message || 'Gagal menghapus motor.');
-        }
+    // Delete motorcycle trigger (opens custom popup)
+    const handleDeleteMotor = (id, modelName) => {
+        setDeleteConfirm({
+            type: 'motorcycle',
+            id,
+            title: 'Hapus Data Motor',
+            name: modelName,
+            message: `Apakah Anda yakin ingin menghapus motor "${modelName}" beserta semua mapping sparepartnya? Tindakan ini tidak dapat dibatalkan.`,
+        });
     };
 
     // Frontend validation for attaching single part mapping
@@ -934,16 +938,38 @@ export default function MotorcycleIndex({
         }
     };
 
-    // Detach part mapping
-    const handleDetachPart = async (motorcycleId, partId, productName) => {
-        if (!confirm(`Hapus mapping sparepart "${productName || 'ini'}" dari motor?`)) return;
+    // Detach part mapping trigger (opens custom popup)
+    const handleDetachPart = (motorcycleId, partId, productName) => {
+        setDeleteConfirm({
+            type: 'part_mapping',
+            motorcycleId,
+            partId,
+            title: 'Hapus Mapping Sparepart',
+            name: productName || 'Part',
+            message: `Hapus mapping sparepart "${productName || 'ini'}" dari motor? Kompatibilitas untuk motor ini akan dicabut.`,
+        });
+    };
+
+    // Execute deletion for custom confirmation popup
+    const executeDeleteConfirm = async () => {
+        if (!deleteConfirm) return;
+        setIsDeleting(true);
         try {
-            await window.axios.delete(`/motorcycles/${motorcycleId}/parts/${partId}`);
-            toast.success(`Mapping sparepart "${productName || 'Part'}" berhasil dihapus dari motor!`);
-            fetchParts(motorcycleId);
-            router.reload({ only: ['motorcycles', 'products'] });
+            if (deleteConfirm.type === 'part_mapping') {
+                await window.axios.delete(`/motorcycles/${deleteConfirm.motorcycleId}/parts/${deleteConfirm.partId}`);
+                toast.success(`Mapping sparepart "${deleteConfirm.name}" berhasil dihapus dari motor!`);
+                fetchParts(deleteConfirm.motorcycleId);
+                router.reload({ only: ['motorcycles', 'products'] });
+            } else if (deleteConfirm.type === 'motorcycle') {
+                await window.axios.delete(`/motorcycles/${deleteConfirm.id}`);
+                toast.success(`Motor "${deleteConfirm.name}" beserta semua mappingnya berhasil dihapus!`);
+                router.reload();
+            }
+            setDeleteConfirm(null);
         } catch (e) {
-            toast.error(e.response?.data?.message || 'Gagal menghapus mapping sparepart.');
+            toast.error(e.response?.data?.message || 'Gagal menghapus data.');
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -1150,7 +1176,7 @@ export default function MotorcycleIndex({
                                 <button
                                     type="button"
                                     onClick={() => { resetMotorForm(); setEditMotorcycle(null); setShowAddModal(true); }}
-                                    className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold rounded-lg text-xs shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+                                    className="px-3.5 py-1.5 bg-green-500 hover:bg-green-600 active:scale-95 text-white font-bold rounded-lg text-xs shadow-xs transition flex items-center gap-1.5 cursor-pointer"
                                     title="Tambah Data Motor Baru"
                                 >
                                     <FiPlus size={15} />
@@ -1312,10 +1338,10 @@ export default function MotorcycleIndex({
                                                 <div className="flex items-center justify-between md:justify-end gap-3 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-slate-100 dark:border-slate-800">
                                                     {/* Mapping Count (Clean green semantic text without heavy box) */}
                                                     <span
-                                                        className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400"
+                                                        className="inline-flex items-center gap-1.5 text-xs font-bold text-green-500 dark:text-green-400"
                                                         title={`Motor ini memiliki ${currentMotorParts.total_mapped ?? m.parts_count ?? 0} sparepart kompatibel`}
                                                     >
-                                                        <FiCheckCircle size={14} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+                                                        <FiCheckCircle size={14} className="text-green-500 dark:text-green-400 shrink-0" />
                                                         <span>{currentMotorParts.total_mapped ?? m.parts_count ?? 0} Part Kompatibel</span>
                                                     </span>
 
@@ -1333,7 +1359,7 @@ export default function MotorcycleIndex({
                                                         <button
                                                             type="button"
                                                             onClick={(e) => { e.stopPropagation(); handleDeleteMotor(m.id, `${m.brand} ${m.model}`); }}
-                                                            className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/50 rounded-md transition cursor-pointer"
+                                                            className="p-1 text-red-500 hover:text-red-600 transition cursor-pointer"
                                                             title="Hapus Data Motor"
                                                             aria-label="Hapus Data Motor"
                                                         >
@@ -1474,7 +1500,7 @@ export default function MotorcycleIndex({
                                                                 setPartFormData({ product_id: '', part_category: 'oli_mesin', notes: '', is_recommended: false });
                                                                 setPartFormErrors({});
                                                             }}
-                                                            className="text-xs bg-white hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-750 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 px-3 py-1.5 rounded-md font-semibold flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer shrink-0 transition"
+                                                            className="text-xs bg-green-500 hover:bg-green-600 active:scale-95 text-white px-3 py-1.5 rounded-md font-bold flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer shrink-0 transition"
                                                             title="Tambah sparepart baru ke motor ini"
                                                         >
                                                             <FiPlus size={14} /> <span>Tambah Part</span>
@@ -1524,12 +1550,26 @@ export default function MotorcycleIndex({
                                                                 >
                                                                     {/* Col 1 (5 cols): Thumbnail & Product Info */}
                                                                     <div className="md:col-span-5 flex items-center gap-3 min-w-0">
-                                                                        {/* Product Image Thumbnail */}
-                                                                        <div className="w-10 h-10 rounded-md shrink-0 border border-slate-200/80 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 overflow-hidden flex items-center justify-center">
+                                                                        {/* Product Image Thumbnail (Clickable Lightbox) */}
+                                                                        <div 
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                setPreviewPart({
+                                                                                    ...part.product,
+                                                                                    part_category: part.part_category,
+                                                                                    categoryLabel,
+                                                                                    is_recommended: part.is_recommended,
+                                                                                    notes: part.notes,
+                                                                                    image_url: getProductImage(part.product?.image_path, part.product?.category?.name)
+                                                                                });
+                                                                            }}
+                                                                            className="w-10 h-10 rounded-md shrink-0 border border-slate-200/80 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 overflow-hidden flex items-center justify-center cursor-pointer hover:border-blue-500 hover:shadow-xs transition group"
+                                                                            title="Klik untuk melihat foto sparepart resolusi penuh"
+                                                                        >
                                                                             <img
                                                                                 src={getProductImage(part.product?.image_path, part.product?.category?.name)}
                                                                                 alt={part.product?.name || 'Sparepart'}
-                                                                                className="w-full h-full object-cover"
+                                                                                className="w-full h-full object-cover group-hover:scale-105 transition duration-200"
                                                                                 onError={(e) => {
                                                                                     e.target.onerror = null;
                                                                                     e.target.src = getProductImage(null, part.product?.category?.name);
@@ -1538,16 +1578,9 @@ export default function MotorcycleIndex({
                                                                         </div>
 
                                                                         <div className="flex-1 min-w-0">
-                                                                            <div className="flex items-center gap-1.5">
                                                                                 <p className="font-semibold text-slate-900 dark:text-white text-xs sm:text-sm truncate">
                                                                                     {part.product?.name}
                                                                                 </p>
-                                                                                {part.is_recommended && (
-                                                                                    <span title="Rekomendasi untuk motor ini" className="shrink-0 inline-flex items-center text-amber-500">
-                                                                                        <FiStar size={13} className="fill-amber-400 text-amber-500" />
-                                                                                    </span>
-                                                                                )}
-                                                                            </div>
                                                                             <div className="flex items-center gap-2 mt-0.5 text-[11px] text-slate-500 dark:text-slate-400">
                                                                                 {part.product?.sku && (
                                                                                     <span className="font-mono text-[11px] text-slate-400 dark:text-slate-500">
@@ -1614,7 +1647,7 @@ export default function MotorcycleIndex({
                                                                         </button>
                                                                         <button
                                                                             onClick={() => handleDetachPart(m.id, part.id, part.product?.name)}
-                                                                            className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/50 rounded-md transition cursor-pointer"
+                                                                            className="p-1 text-red-500 hover:text-red-600 transition cursor-pointer"
                                                                             title="Hapus Mapping Part"
                                                                             aria-label="Hapus Mapping Part"
                                                                         >
@@ -1652,23 +1685,25 @@ export default function MotorcycleIndex({
                                                             </select>
                                                         </div>
 
-                                                        <div className="flex items-center space-x-1.5">
+                                                        <div className="flex items-center space-x-2">
                                                             <button
+                                                                type="button"
                                                                 onClick={() => fetchParts(m.id, { page: Math.max((currentMotorParts.current_page || 1) - 1, 1) })}
                                                                 disabled={(currentMotorParts.current_page || 1) <= 1}
-                                                                className="px-2.5 py-1 bg-white dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 disabled:opacity-40 rounded-md font-bold text-slate-700 dark:text-slate-200 transition border border-slate-200 dark:border-slate-600 cursor-pointer"
+                                                                className="px-3.5 py-1.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-200 transition border border-slate-300 dark:border-slate-700 shadow-2xs cursor-pointer"
                                                             >
                                                                 Sebelumnya
                                                             </button>
-                                                            <span className="px-2.5 py-1 bg-blue-50 dark:bg-blue-900/40 border border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-300 rounded-md font-extrabold text-xs">
-                                                                Hal {currentMotorParts.current_page || 1} dari {currentMotorParts.last_page || 1}
+                                                            <span className="px-3 py-1 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-xs font-bold text-slate-800 dark:text-slate-200">
+                                                                {currentMotorParts.current_page || 1} / {currentMotorParts.last_page || 1}
                                                             </span>
                                                             <button
+                                                                type="button"
                                                                 onClick={() => fetchParts(m.id, { page: Math.min((currentMotorParts.current_page || 1) + 1, currentMotorParts.last_page || 1) })}
                                                                 disabled={(currentMotorParts.current_page || 1) >= (currentMotorParts.last_page || 1)}
-                                                                className="px-2.5 py-1 bg-white dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 disabled:opacity-40 rounded-md font-bold text-slate-700 dark:text-slate-200 transition border border-slate-200 dark:border-slate-600 cursor-pointer"
+                                                                className="px-3.5 py-1.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-200 transition border border-slate-300 dark:border-slate-700 shadow-2xs cursor-pointer"
                                                             >
-                                                                Berikutnya
+                                                                Selanjutnya
                                                             </button>
                                                         </div>
                                                     </div>
@@ -2363,7 +2398,7 @@ export default function MotorcycleIndex({
                             <button
                                 onClick={handleSaveMotor}
                                 disabled={saving}
-                                className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-xs sm:text-sm font-bold cursor-pointer disabled:opacity-50 transition shadow-xs"
+                                className="flex-1 py-2.5 bg-green-500 hover:bg-green-600 text-white rounded-md text-xs sm:text-sm font-bold cursor-pointer disabled:opacity-50 transition shadow-xs"
                             >
                                 {saving ? 'Menyimpan...' : editMotorcycle ? 'Simpan Perubahan' : 'Tambah Motor'}
                             </button>
@@ -2534,7 +2569,7 @@ export default function MotorcycleIndex({
                             <button
                                 onClick={handleAttachPart}
                                 disabled={saving || !partFormData.product_id}
-                                className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md text-xs sm:text-sm font-bold cursor-pointer disabled:opacity-50 transition shadow-xs"
+                                className="flex-1 py-2.5 bg-green-500 hover:bg-green-600 text-white rounded-md text-xs sm:text-sm font-bold cursor-pointer disabled:opacity-50 transition shadow-xs"
                             >
                                 {saving ? 'Menyimpan...' : 'Tambah Mapping'}
                             </button>
@@ -2680,6 +2715,132 @@ export default function MotorcycleIndex({
                                 className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold rounded-md transition cursor-pointer"
                             >
                                 Tutup
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ======================================================== */}
+            {/* SPAREPART IMAGE PREVIEW MODAL (LIGHTBOX)                 */}
+            {/* ======================================================== */}
+            {previewPart && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-xs p-4 animate-in fade-in duration-150"
+                    onClick={() => setPreviewPart(null)}
+                >
+                    <div
+                        className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 max-w-lg w-full overflow-hidden flex flex-col"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {/* Modal Header */}
+                        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+                            <div className="min-w-0 pr-2">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-xs font-bold text-blue-600 dark:text-blue-400">
+                                        {previewPart.categoryLabel || previewPart.category?.name || 'Sparepart'}
+                                    </span>
+                                    {previewPart.sku && (
+                                        <span className="text-[11px] font-mono text-slate-400 dark:text-slate-500">
+                                            · {previewPart.sku}
+                                        </span>
+                                    )}
+                                    {previewPart.is_recommended && (
+                                        <span title="Rekomendasi untuk motor ini" className="shrink-0 inline-flex items-center text-amber-500">
+                                            <FiStar size={14} className="fill-amber-400 text-amber-500" />
+                                        </span>
+                                    )}
+                                </div>
+                                <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white leading-tight truncate mt-0.5" title={previewPart.name}>
+                                    {previewPart.name}
+                                </h3>
+                            </div>
+                            <button
+                                onClick={() => setPreviewPart(null)}
+                                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer shrink-0"
+                                title="Tutup (Esc)"
+                            >
+                                <FiX size={20} />
+                            </button>
+                        </div>
+
+                        {/* Modal Body: Large Image Display */}
+                        <div className="p-6 bg-slate-50/70 dark:bg-slate-950/50 flex items-center justify-center min-h-[260px] max-h-[60vh] overflow-hidden">
+                            <img
+                                src={previewPart.image_url}
+                                alt={previewPart.name}
+                                className="max-h-[50vh] w-auto max-w-full object-contain rounded-lg drop-shadow-md select-none"
+                            />
+                        </div>
+
+                        {/* Modal Footer */}
+                        <div className="px-5 py-3.5 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
+                            <div>
+                                <span className="text-base font-extrabold text-blue-600 dark:text-blue-400 block">
+                                    Rp {Number(previewPart.price || 0).toLocaleString('id-ID')}
+                                </span>
+                                <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                                    Persediaan: {previewPart.stock ?? 0} pcs {previewPart.notes ? `• ${previewPart.notes}` : ''}
+                                </span>
+                            </div>
+                            <button
+                                onClick={() => setPreviewPart(null)}
+                                className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold rounded-md transition cursor-pointer"
+                            >
+                                Tutup
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* CUSTOM CONFIRMATION MODAL POPUP */}
+            {deleteConfirm && (
+                <div 
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/80 p-4 animate-in fade-in duration-150 backdrop-blur-xs"
+                    onClick={() => !isDeleting && setDeleteConfirm(null)}
+                >
+                    <div 
+                        className="bg-white dark:bg-slate-900 rounded-xl max-w-sm w-full p-5 space-y-4 shadow-2xl border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white transform transition-all animate-in zoom-in-95 duration-150"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex items-center gap-3 border-b border-slate-100 dark:border-slate-800 pb-3">
+                            <FiTrash2 size={22} className="text-red-500 shrink-0" />
+                            <div className="min-w-0 flex-1">
+                                <h3 className="text-sm font-black text-slate-900 dark:text-white truncate">
+                                    {deleteConfirm.title}
+                                </h3>
+                                <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">Konfirmasi Tindakan</p>
+                            </div>
+                        </div>
+
+                        <p className="text-xs font-medium text-slate-600 dark:text-slate-300 leading-relaxed">
+                            {deleteConfirm.message}
+                        </p>
+
+                        <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                            <button
+                                type="button"
+                                onClick={() => setDeleteConfirm(null)}
+                                disabled={isDeleting}
+                                className="px-3.5 py-2 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-750 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-lg transition cursor-pointer disabled:opacity-50"
+                            >
+                                Batal
+                            </button>
+                            <button
+                                type="button"
+                                onClick={executeDeleteConfirm}
+                                disabled={isDeleting}
+                                className="px-4 py-2 bg-red-600 hover:bg-red-700 active:scale-95 text-white text-xs font-bold rounded-lg transition border border-red-700 shadow-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                            >
+                                {isDeleting ? (
+                                    <>
+                                        <FiRefreshCw size={13} className="animate-spin" />
+                                        <span>Menghapus...</span>
+                                    </>
+                                ) : (
+                                    <span>Ya, Hapus</span>
+                                )}
                             </button>
                         </div>
                     </div>
