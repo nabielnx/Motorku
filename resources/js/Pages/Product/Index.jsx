@@ -262,9 +262,13 @@ export default function MenuManagement({
 
     const handleAdjustSubmit = async (e) => {
         e.preventDefault();
-        const qty = parseInt(adjustForm.quantity, 10);
-        if (isNaN(qty) || qty < (adjustForm.type === 'adjustment' ? 0 : 1)) {
-            toast.error(adjustForm.type === 'adjustment' ? 'Stok fisik tidak boleh negatif.' : 'Jumlah kuantitas wajib diisi minimal 1 unit.');
+        const qty = Number(adjustForm.quantity);
+        if (adjustForm.quantity === '' || !Number.isInteger(qty) || qty < (adjustForm.type === 'adjustment' ? 0 : 1)) {
+            toast.error(adjustForm.type === 'adjustment' ? 'Isi stok fisik dengan angka bulat 0 atau lebih.' : 'Isi jumlah dengan angka bulat minimal 1 pcs.');
+            return;
+        }
+        if (adjustForm.type === 'stock_out' && qty > Number(selectedProductForAdjust.stock)) {
+            toast.error(`Jumlah keluar maksimal ${selectedProductForAdjust.stock} pcs.`);
             return;
         }
 
@@ -510,6 +514,11 @@ export default function MenuManagement({
 
     // The server applies filters and sorting before pagination.
     const filteredItems = items;
+    const currentStock = Number(selectedProductForAdjust?.stock ?? 0);
+    const adjustmentQuantity = Number(adjustForm.quantity);
+    const validAdjustmentQuantity = adjustForm.quantity !== '' && Number.isInteger(adjustmentQuantity) && adjustmentQuantity >= (adjustForm.type === 'adjustment' ? 0 : 1);
+    const stockOutTooLarge = adjustForm.type === 'stock_out' && validAdjustmentQuantity && adjustmentQuantity > currentStock;
+    const projectedStock = adjustForm.type === 'stock_in' ? currentStock + adjustmentQuantity : adjustForm.type === 'stock_out' ? currentStock - adjustmentQuantity : adjustmentQuantity;
 
     return (
         <AuthenticatedLayout pageTitle={getTranslation(locale, 'menu_produk', 'Menu & Produk')} noPadding={true}>
@@ -1735,11 +1744,11 @@ export default function MenuManagement({
             {/* STOCK ADJUSTMENT MODAL (Kulakan / Opname / Keluar) */}
             {selectedProductForAdjust && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/80 p-4">
-                    <div className="bg-white dark:bg-slate-900 rounded-xl shadow-xl w-full max-w-md overflow-hidden border border-slate-300 dark:border-slate-800 animate-in fade-in zoom-in duration-150 text-slate-900 dark:text-white">
-                        <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-800/80">
+                    <div className="bg-white dark:bg-slate-900 rounded-xl shadow-xl w-full max-w-md max-h-[calc(100dvh-2rem)] flex flex-col overflow-hidden border border-slate-300 dark:border-slate-800 animate-in fade-in zoom-in duration-150 text-slate-900 dark:text-white">
+                        <div className="shrink-0 px-4 py-3 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-800/80">
                             <div>
                                 <h3 className="font-extrabold text-slate-900 dark:text-white text-sm">
-                                    Atur Persediaan Stok
+                                    Atur Stok
                                 </h3>
                                 <p className="text-xs text-slate-500 dark:text-slate-400 font-medium truncate max-w-xs mt-0.5">
                                     {selectedProductForAdjust.name}
@@ -1754,10 +1763,9 @@ export default function MenuManagement({
                             </button>
                         </div>
 
-                        <form onSubmit={handleAdjustSubmit} className="p-5 space-y-4">
-                            {/* Current Stock Banner */}
-                            <div className="flex items-center justify-between px-3 py-2 bg-slate-100 dark:bg-slate-800 rounded-lg text-xs">
-                                <span className="text-slate-600 dark:text-slate-400 font-semibold">Stok Saat Ini</span>
+                        <form onSubmit={handleAdjustSubmit} className="min-h-0 flex-1 overflow-y-auto p-4 space-y-4">
+                            <div className="flex items-center justify-between text-xs">
+                                <span className="text-slate-600 dark:text-slate-400 font-semibold">Stok saat ini</span>
                                 <span className="font-extrabold text-blue-600 dark:text-blue-400 text-sm">
                                     {selectedProductForAdjust.stock} pcs
                                 </span>
@@ -1768,42 +1776,42 @@ export default function MenuManagement({
                                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                                     Jenis Perubahan
                                 </label>
-                                <div className="grid grid-cols-3 gap-2">
+                                <div className="grid grid-cols-3 gap-1 rounded-lg bg-slate-100 dark:bg-slate-800 p-1" role="group" aria-label="Jenis perubahan stok">
                                     <button
                                         type="button"
-                                        onClick={() => setAdjustForm(prev => ({ ...prev, type: 'stock_in' }))}
-                                        className={`px-2.5 py-2 rounded-lg text-xs font-bold border transition text-center cursor-pointer ${
+                                        onClick={() => setAdjustForm(prev => prev.type === 'stock_in' ? prev : { ...prev, type: 'stock_in', quantity: '' })}
+                                        aria-pressed={adjustForm.type === 'stock_in'}
+                                        className={`min-w-0 py-2 rounded-md text-xs font-bold transition text-center cursor-pointer ${
                                             adjustForm.type === 'stock_in'
-                                                ? 'bg-blue-50 dark:bg-blue-950/60 border-blue-500 text-blue-700 dark:text-blue-300 ring-1 ring-blue-500'
-                                                : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-750'
+                                                ? 'bg-white dark:bg-slate-700 text-blue-700 dark:text-blue-300 shadow-xs'
+                                                : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
                                         }`}
                                     >
-                                        <span className="block text-sm font-black">+</span>
-                                        <span className="block text-[11px] mt-0.5">Kulakan / Masuk</span>
+                                        + Masuk
                                     </button>
                                     <button
                                         type="button"
-                                        onClick={() => setAdjustForm(prev => ({ ...prev, type: 'stock_out' }))}
-                                        className={`px-2.5 py-2 rounded-lg text-xs font-bold border transition text-center cursor-pointer ${
+                                        onClick={() => setAdjustForm(prev => prev.type === 'stock_out' ? prev : { ...prev, type: 'stock_out', quantity: '' })}
+                                        aria-pressed={adjustForm.type === 'stock_out'}
+                                        className={`min-w-0 py-2 rounded-md text-xs font-bold transition text-center cursor-pointer ${
                                             adjustForm.type === 'stock_out'
-                                                ? 'bg-rose-50 dark:bg-rose-950/60 border-rose-500 text-rose-700 dark:text-rose-300 ring-1 ring-rose-500'
-                                                : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-750'
+                                                ? 'bg-white dark:bg-slate-700 text-rose-700 dark:text-rose-300 shadow-xs'
+                                                : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
                                         }`}
                                     >
-                                        <span className="block text-sm font-black">-</span>
-                                        <span className="block text-[11px] mt-0.5">Keluar / Rusak</span>
+                                        − Keluar
                                     </button>
                                     <button
                                         type="button"
-                                        onClick={() => setAdjustForm(prev => ({ ...prev, type: 'adjustment' }))}
-                                        className={`px-2.5 py-2 rounded-lg text-xs font-bold border transition text-center cursor-pointer ${
+                                        onClick={() => setAdjustForm(prev => prev.type === 'adjustment' ? prev : { ...prev, type: 'adjustment', quantity: '' })}
+                                        aria-pressed={adjustForm.type === 'adjustment'}
+                                        className={`min-w-0 py-2 rounded-md text-xs font-bold transition text-center cursor-pointer ${
                                             adjustForm.type === 'adjustment'
-                                                ? 'bg-amber-50 dark:bg-amber-950/60 border-amber-500 text-amber-700 dark:text-amber-300 ring-1 ring-amber-500'
-                                                : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-750'
+                                                ? 'bg-white dark:bg-slate-700 text-amber-700 dark:text-amber-300 shadow-xs'
+                                                : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
                                         }`}
                                     >
-                                        <span className="block text-sm font-black">=</span>
-                                        <span className="block text-[11px] mt-0.5">Opname Fisik</span>
+                                        = Opname
                                     </button>
                                 </div>
                             </div>
@@ -1811,23 +1819,25 @@ export default function MenuManagement({
                             {/* Quantity Input */}
                             <div>
                                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                                    {adjustForm.type === 'adjustment' ? 'Jumlah Total Fisik Sebenarnya (pcs)' : 'Jumlah Kuantitas (pcs)'}
+                                    {adjustForm.type === 'adjustment' ? 'Stok fisik (pcs)' : adjustForm.type === 'stock_in' ? 'Jumlah masuk (pcs)' : 'Jumlah keluar (pcs)'}
                                 </label>
                                 <input
                                     type="number"
                                     min={adjustForm.type === 'adjustment' ? '0' : '1'}
+                                    max={adjustForm.type === 'stock_out' ? currentStock : undefined}
+                                    step="1"
+                                    inputMode="numeric"
                                     required
                                     value={adjustForm.quantity}
                                     onChange={(e) => setAdjustForm(prev => ({ ...prev, quantity: e.target.value }))}
-                                    placeholder={adjustForm.type === 'stock_in' ? 'Contoh: 15 (barang masuk dari supplier)' : 'Contoh: 5'}
-                                    className="w-full px-3.5 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg text-xs font-semibold text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-                                    autoFocus
+                                    placeholder="0"
+                                    className="w-full px-3.5 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500 transition"
                                 />
-                                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
-                                    {adjustForm.type === 'stock_in' && `Stok baru akan menjadi: ${Number(selectedProductForAdjust.stock) + (parseInt(adjustForm.quantity, 10) || 0)} pcs`}
-                                    {adjustForm.type === 'stock_out' && `Stok baru akan menjadi: ${Math.max(0, Number(selectedProductForAdjust.stock) - (parseInt(adjustForm.quantity, 10) || 0))} pcs`}
-                                    {adjustForm.type === 'adjustment' && `Stok akan langsung direset menjadi: ${parseInt(adjustForm.quantity, 10) || 0} pcs`}
-                                </p>
+                                {stockOutTooLarge ? (
+                                    <p className="text-[11px] font-semibold text-rose-600 dark:text-rose-400 mt-1">Maksimal {currentStock} pcs tersedia.</p>
+                                ) : validAdjustmentQuantity && (
+                                    <p className="text-[11px] text-slate-600 dark:text-slate-300 mt-1">Stok setelah disimpan: <strong>{projectedStock} pcs</strong></p>
+                                )}
                             </div>
 
                             {/* Note / Reference */}
@@ -1839,8 +1849,9 @@ export default function MenuManagement({
                                     type="text"
                                     value={adjustForm.note}
                                     onChange={(e) => setAdjustForm(prev => ({ ...prev, note: e.target.value }))}
-                                    placeholder="Contoh: Kulakan dari Toko Jaya / Penyesuaian stok fisik mingguan"
-                                    className="w-full px-3.5 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg text-xs font-semibold text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                                    placeholder="Contoh: Kulakan dari Toko Jaya"
+                                    maxLength={255}
+                                    className="w-full px-3.5 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500 transition"
                                 />
                             </div>
 
@@ -1856,7 +1867,7 @@ export default function MenuManagement({
                                 </button>
                                 <button
                                     type="submit"
-                                    disabled={adjustLoading}
+                                    disabled={adjustLoading || stockOutTooLarge}
                                     className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-bold rounded-lg border border-blue-700 shadow-xs transition cursor-pointer flex items-center gap-1.5"
                                 >
                                     {adjustLoading ? (
