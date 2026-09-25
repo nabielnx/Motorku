@@ -43,13 +43,15 @@ class OrderController extends Controller implements HasMiddleware
     {
         $status = $request->string('status')->value();
         $search = $request->string('search')->value();
+        $date = $request->string('date')->value();
 
-        $orders = $this->orderService->getOrdersForWeb($status, $search);
+        $orders = $this->orderService->getOrdersForWeb($status, $search, $date);
 
         $today = now()->toDateString();
 
         return Inertia::render('Order/Index', [
             'initialOrders' => fn () => $orders,
+            'filters' => ['status' => $status, 'search' => $search, 'date' => $date],
             'summary' => fn () => [
                 'today_order_count' => Order::whereDate('created_at', $today)->count(),
                 'today_order_value' => $this->reportService->netRevenue(now()->startOfDay(), now()->endOfDay()),

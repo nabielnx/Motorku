@@ -44,24 +44,36 @@ class OrderService
         });
     }
 
-    public function getOrdersForWeb(?string $status = null, ?string $search = null)
+    public function getOrdersForWeb(?string $status = null, ?string $search = null, ?string $date = null)
     {
         $query = Order::with(['items', 'cashier', 'payments'])->withSum('returns', 'amount')->latest();
 
-        if ($status && $status !== 'All') {
+        if ($status === 'action') {
+            $query->whereIn('order_status', ['pending', 'preparing', 'ready']);
+        } elseif ($status && $status !== 'All') {
             $query->where('order_status', $status);
+        }
+
+        if ($date === 'today') {
+            $query->where('created_at', '>=', now()->startOfDay());
+        } elseif ($date === 'week') {
+            $query->where('created_at', '>=', now()->subDays(6)->startOfDay());
         }
 
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('order_number', 'like', "%{$search}%")
-                    ->orWhere('customer_name', 'like', "%{$search}%");
+                    ->orWhere('customer_name', 'like', "%{$search}%")
+                    ->orWhereHas('items', function ($items) use ($search) {
+                        $items->where('product_name', 'like', "%{$search}%")
+                            ->orWhere('product_sku', 'like', "%{$search}%");
+                    });
             });
         }
 
         return $query->paginate(10)
             ->withQueryString()
-            ->through(function ($order) {
+            ->through(function ($order) use ($search) {
                 return [
                     'id' => $order->order_number ?: substr($order->id, 0, 8),
                     'real_id' => $order->id,
@@ -69,6 +81,10 @@ class OrderService
                     'type' => 'Ambil di Toko',
                     'table' => '-',
                     'items' => $order->items ? $order->items->sum('quantity') : 0,
+                    'matching_item' => $search ? $order->items->first(fn ($item) =>
+                        stripos((string) $item->product_name, $search) !== false ||
+                        stripos((string) $item->product_sku, $search) !== false
+                    )?->product_name : null,
                     'total' => (float) $order->total,
                     'status' => $order->order_status,
                     'payment_status' => $order->payment_status,

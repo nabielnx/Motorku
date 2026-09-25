@@ -16,7 +16,7 @@ import {
     FiXCircle
 } from 'react-icons/fi';
 
-export default function OrderIndex({ initialOrders = {}, summary = {} }) {
+export default function OrderIndex({ initialOrders = {}, summary = {}, filters = {} }) {
     const { auth, app_settings } = usePage().props;
     const locale = app_settings?.locale || 'id';
     const userName = auth?.user?.name || 'Kasir';
@@ -33,8 +33,9 @@ export default function OrderIndex({ initialOrders = {}, summary = {} }) {
 
     const paginator = extractPaginator(initialOrders);
     const [orders, setOrders] = useState(() => paginator.data);
-    const [statusFilter, setStatusFilter] = useState('All');
-    const [searchQuery, setSearchQuery] = useState('');
+    const [statusFilter, setStatusFilter] = useState(filters.status || 'All');
+    const [dateFilter, setDateFilter] = useState(filters.date || 'all');
+    const [searchQuery, setSearchQuery] = useState(filters.search || '');
     const [paymentOrder, setPaymentOrder] = useState(null);
     const [paymentMethod, setPaymentMethod] = useState('cash');
     const [amountReceived, setAmountReceived] = useState('');
@@ -75,7 +76,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {} }) {
 
     const currentPage = paginator.current_page || 1;
     const totalPages = paginator.last_page || 1;
-    const totalItems = paginator.total || orders.length;
+    const totalItems = paginator.total ?? orders.length;
     const perPage = paginator.per_page || 10;
 
     const changePage = (newPage) => {
@@ -83,6 +84,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {} }) {
         router.get('/orders', {
             page: newPage,
             status: statusFilter !== 'All' ? statusFilter : undefined,
+            date: dateFilter !== 'all' ? dateFilter : undefined,
             search: searchQuery || undefined,
         }, { preserveState: true, preserveScroll: true });
     };
@@ -92,14 +94,27 @@ export default function OrderIndex({ initialOrders = {}, summary = {} }) {
         router.get('/orders', {
             page: 1,
             status: newStatus !== 'All' ? newStatus : undefined,
+            date: dateFilter !== 'all' ? dateFilter : undefined,
+            search: searchQuery || undefined,
+        }, { preserveState: true, preserveScroll: true });
+    };
+
+    const handleDateFilterChange = (newDate) => {
+        setDateFilter(newDate);
+        router.get('/orders', {
+            page: 1,
+            status: statusFilter !== 'All' ? statusFilter : undefined,
+            date: newDate !== 'all' ? newDate : undefined,
             search: searchQuery || undefined,
         }, { preserveState: true, preserveScroll: true });
     };
 
     // Search di-debounce → refetch dari server agar mencari SEMUA pesanan (lintas halaman).
-    // Status filter diambil via ref agar selalu pakai nilai terbaru tanpa double-refetch.
+    // Filter diambil via ref agar pencarian memakai pilihan terbaru tanpa double-refetch.
     const statusFilterRef = useRef(statusFilter);
+    const dateFilterRef = useRef(dateFilter);
     useEffect(() => { statusFilterRef.current = statusFilter; }, [statusFilter]);
+    useEffect(() => { dateFilterRef.current = dateFilter; }, [dateFilter]);
 
     const isFirstSearchRender = useRef(true);
     useEffect(() => {
@@ -111,6 +126,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {} }) {
             router.get('/orders', {
                 page: 1,
                 status: statusFilterRef.current !== 'All' ? statusFilterRef.current : undefined,
+                date: dateFilterRef.current !== 'all' ? dateFilterRef.current : undefined,
                 search: searchQuery || undefined,
             }, { preserveState: true, preserveScroll: true });
         }, 400);
@@ -220,7 +236,8 @@ export default function OrderIndex({ initialOrders = {}, summary = {} }) {
         };
     };
 
-    const statuses = ['All', 'pending', 'preparing', 'ready', 'completed', 'cancelled'];
+    const statuses = ['action', 'All', 'pending', 'preparing', 'ready', 'completed', 'cancelled'];
+    const statusLabel = (status) => status === 'action' ? 'Perlu Ditindak' : status === 'All' ? 'Semua' : (statusConfig[status]?.label || status);
 
     const PENDING_BUCKET = ['pending'];
     const PROCESSING_BUCKET = ['preparing', 'processing'];
@@ -378,12 +395,12 @@ export default function OrderIndex({ initialOrders = {}, summary = {} }) {
                     <div className="p-3 sm:p-4 border-b border-slate-200 dark:border-slate-800 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-2 sm:gap-3 sm:bg-slate-50/50 dark:sm:bg-slate-800/50">
                         <h3 className="text-sm sm:text-base font-black text-slate-900 dark:text-white shrink-0">Pesanan</h3>
                         
-                        <div className="flex items-center sm:items-stretch lg:items-center sm:flex-col lg:flex-row gap-2 w-full lg:w-auto">
+                        <div className="flex w-full flex-wrap items-center gap-2 lg:w-auto">
                             {/* Filter Tabs */}
                             <div className="hidden sm:flex min-w-0 max-w-full items-center gap-1 overflow-x-auto no-scrollbar">
                                 {statuses.map(s => {
                                     const isActive = statusFilter === s;
-                                    const label = s === 'All' ? 'Semua' : (statusConfig[s]?.label || s);
+                                    const label = statusLabel(s);
                                     return (
                                         <button
                                             key={s}
@@ -404,23 +421,34 @@ export default function OrderIndex({ initialOrders = {}, summary = {} }) {
                                 value={statusFilter}
                                 onChange={(e) => handleFilterChange(e.target.value)}
                                 aria-label="Filter status pesanan"
-                                className="sm:hidden w-28 shrink-0 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-0 focus:border-slate-400"
+                                className="sm:hidden w-36 shrink-0 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-0 focus:border-slate-400"
                             >
-                                {statuses.map(s => <option key={s} value={s}>{s === 'All' ? 'Semua' : getStatusDisplay(s, 'paid').primary.label}</option>)}
+                                {statuses.map(s => <option key={s} value={s}>{statusLabel(s)}</option>)}
                             </select>
 
                             {/* Search Input */}
-                            <div className="relative min-w-0 flex-1 sm:w-72 sm:flex-none">
+                            <div className="relative order-first w-full min-w-0 sm:order-none sm:w-64 lg:w-72">
                                 <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" size={15} />
                                 <input
                                     id="order-search-input"
                                     type="text"
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    placeholder="Cari pesanan..."
+                                    placeholder="Cari nomor, pelanggan, atau barang..."
                                     className="w-full min-w-0 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg pl-9 pr-3 py-1.5 text-xs text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500 transition-all"
                                 />
                             </div>
+
+                            <select
+                                value={dateFilter}
+                                onChange={(e) => handleDateFilterChange(e.target.value)}
+                                aria-label="Filter tanggal pesanan"
+                                className="w-32 shrink-0 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-0 focus:border-slate-400"
+                            >
+                                <option value="all">Semua tanggal</option>
+                                <option value="today">Hari ini</option>
+                                <option value="week">7 hari terakhir</option>
+                            </select>
                         </div>
                     </div>
 
@@ -443,6 +471,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {} }) {
                                         <strong className="shrink-0 text-sm text-slate-900 dark:text-white">{formatRp(order.total)}</strong>
                                     </div>
                                     <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">{order.date} · {order.time} · {order.items} item</p>
+                                    {order.matching_item && <p className="mt-0.5 truncate text-[11px] text-blue-700 dark:text-blue-300">Barang: {order.matching_item}</p>}
                                     <div className="mt-2 flex flex-wrap items-center gap-1.5" title={display.tooltip}>
                                         <span className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-bold ${display.primary.color}`}>
                                             <StatusIcon size={12} />{display.primary.label}
@@ -496,7 +525,10 @@ export default function OrderIndex({ initialOrders = {}, summary = {} }) {
                                             </td>
                                             
                                             {/* PELANGGAN */}
-                                            <td className="px-3.5 py-2.5 text-xs font-bold text-slate-800 dark:text-slate-200">{order.customer}</td>
+                                            <td className="px-3.5 py-2.5 text-xs font-bold text-slate-800 dark:text-slate-200">
+                                                {order.customer}
+                                                {order.matching_item && <span className="mt-0.5 block truncate text-[11px] font-medium text-blue-700 dark:text-blue-300">Barang: {order.matching_item}</span>}
+                                            </td>
                                             
                                             {/* JUMLAH ITEM */}
                                             <td className="px-3.5 py-2.5 text-xs font-bold text-slate-700 dark:text-slate-300">{order.items} item</td>
