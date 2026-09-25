@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, usePage } from '@inertiajs/react';
 import axios from 'axios';
@@ -7,10 +7,9 @@ import { FiArrowLeft, FiClock, FiCheckCircle, FiPrinter, FiUser, FiMapPin } from
 
 const formatRp = (val) => `Rp ${(Number(val) || 0).toLocaleString('id-ID')}`;
 
-export default function OrderShow({ orderId }) {
+export default function OrderShow({ order: initialOrder }) {
     const isOwner = usePage().props.auth?.roles?.includes('owner');
-    const [order, setOrder] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [order, setOrder] = useState(initialOrder);
     const [returningItem, setReturningItem] = useState(null);
     const [returnQty, setReturnQty] = useState(1);
     const [restock, setRestock] = useState(true);
@@ -18,40 +17,6 @@ export default function OrderShow({ orderId }) {
     const [cashRefunded, setCashRefunded] = useState(false);
     const [savingReturn, setSavingReturn] = useState(false);
     const returnRequestId = useRef(null);
-
-    useEffect(() => {
-        if (!orderId) return;
-        const fetch = async () => {
-            try {
-                const res = await axios.get(`/api/orders/${orderId}`);
-                setOrder(res.data?.data || null);
-            } catch {
-                setOrder(null);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetch();
-    }, [orderId]);
-
-    if (loading) {
-        return (
-            <AuthenticatedLayout pageTitle="Loading...">
-                <div className="max-w-4xl mx-auto py-12 text-center text-sm text-slate-400">Memuat data pesanan...</div>
-            </AuthenticatedLayout>
-        );
-    }
-
-    if (!order) {
-        return (
-            <AuthenticatedLayout pageTitle="Order Not Found">
-                <div className="max-w-4xl mx-auto py-12 text-center space-y-4">
-                    <p className="text-sm text-slate-500">Pesanan tidak ditemukan</p>
-                    <Link href="/orders" className="inline-flex items-center gap-2 text-sm font-bold text-blue-600">Kembali</Link>
-                </div>
-            </AuthenticatedLayout>
-        );
-    }
 
     const statusTimeline = [
         { label: 'Diterima', time: order.created_at, done: true },
@@ -83,7 +48,7 @@ export default function OrderShow({ orderId }) {
                 reason: returnReason,
                 cash_refunded: cashRefunded,
             });
-            setOrder(response.data.data);
+            setOrder(response.data);
             setReturningItem(null);
             returnRequestId.current = null;
             setReturnReason('');
