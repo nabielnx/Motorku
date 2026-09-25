@@ -1666,7 +1666,7 @@ export default function MotorcycleIndex({
                                                                     </div>
 
                                                                     {/* Col 5 (1 col): Actions */}
-                                                                    <div className="md:col-span-1 flex items-center justify-end gap-0.5 md:gap-1 shrink-0">
+                                                                    <div className="md:col-span-1 flex items-center justify-end gap-0.5 md:gap-1 shrink-0 -translate-y-1 md:translate-y-0">
                                                                         <button
                                                                             onClick={() => togglePartRecommendation(m.id, part)}
                                                                             className={`p-1.5 rounded-md transition cursor-pointer ${
