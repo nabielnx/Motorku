@@ -1,89 +1,90 @@
-name: Deploy Mie Amour (Staging)
+name: Deploy staging
 
 on:
   push:
-    branches:
-      - develop
+    branches: [develop]
 
-env:
-  APP_NAME: "Mie Amour"
-  DOMAIN: "preview-002.fanacode.com"
+permissions:
+  contents: read
 
-  PHP_VERSION: "8.3"
-  NODE_VERSION: "22"
-
-  DEPLOY_PATH: "/home/${{ secrets.HOSTINGER_USER_STAGING }}/domains/fanacode.com/public_html/preview-002"
+concurrency:
+  group: deploy-staging
+  cancel-in-progress: false
 
 jobs:
   deploy:
+    if: vars.STAGING_DEPLOY_ENABLED == 'true'
     runs-on: ubuntu-latest
+    env:
+      DEPLOY_PATH: ${{ vars.STAGING_DEPLOY_PATH }}
+      APP_URL: ${{ vars.STAGING_URL }}
 
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: ${{ env.PHP_VERSION }}
-          extensions: mbstring, xml, ctype, iconv, intl, pdo_mysql, bcmath
-
-      - name: Install Composer Dependencies
-        run: composer install --no-dev --optimize-autoloader --no-interaction
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-
-      - name: Install & Build Frontend Assets (Inertia/Vite)
+      - name: Check deployment configuration
+        env:
+          SSH_HOST: ${{ secrets.STAGING_SSH_HOST }}
+          SSH_USER: ${{ secrets.STAGING_SSH_USER }}
+          SSH_KEY: ${{ secrets.STAGING_SSH_KEY }}
         run: |
+          test -n "$SSH_HOST" && test -n "$SSH_USER" && test -n "$SSH_KEY"
+          case "$DEPLOY_PATH" in /*) ;; *) exit 1 ;; esac
+          case "$APP_URL" in https://*) ;; *) exit 1 ;; esac
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, xml, ctype, iconv, intl, pdo_mysql, bcmath
+          coverage: none
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Build release
+        run: |
+          composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
           npm ci
           npm run build
-
-      - name: Upload Project via SCP
-        uses: appleboy/scp-action@v0.1.7
+      - name: Check server is provisioned
+        uses: appleboy/ssh-action@v1
+        env:
+          DEPLOY_PATH: ${{ vars.STAGING_DEPLOY_PATH }}
         with:
-          host: ${{ secrets.HOSTINGER_IP_STAGING }}
-          username: ${{ secrets.HOSTINGER_USER_STAGING }}
-          key: ${{ secrets.SSH_KEY }}
-          port: ${{ secrets.HOSTINGER_PORT_STAGING }}
-          source: "., !.git, !.github, !node_modules"
-          target: ${{ env.DEPLOY_PATH }}
-          strip_components: 0
-
-      - name: Execute Deployment Commands
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host: ${{ secrets.HOSTINGER_IP_STAGING }}
-          username: ${{ secrets.HOSTINGER_USER_STAGING }}
-          key: ${{ secrets.SSH_KEY }}
-          port: ${{ secrets.HOSTINGER_PORT_STAGING }}
+          host: ${{ secrets.STAGING_SSH_HOST }}
+          username: ${{ secrets.STAGING_SSH_USER }}
+          key: ${{ secrets.STAGING_SSH_KEY }}
+          port: ${{ vars.STAGING_SSH_PORT || '22' }}
+          envs: DEPLOY_PATH
           script: |
-            echo "=============================="
-            echo "Deploying ${{ env.APP_NAME }} (Staging)"
-            echo "=============================="
-
-            cd ${{ env.DEPLOY_PATH }}
-
-            php artisan down || true
-
-            php artisan storage:link || true
-            php artisan migrate --force
+            set -e
+            test -f "$DEPLOY_PATH/.env"
+            test -d "$DEPLOY_PATH/storage"
+      - name: Upload release
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.STAGING_SSH_HOST }}
+          username: ${{ secrets.STAGING_SSH_USER }}
+          key: ${{ secrets.STAGING_SSH_KEY }}
+          port: ${{ vars.STAGING_SSH_PORT || '22' }}
+          source: app,bootstrap,config,database,public,resources,routes,artisan,composer.json,composer.lock,vendor
+          target: ${{ vars.STAGING_DEPLOY_PATH }}
+          overwrite: true
+      - name: Finish deployment
+        uses: appleboy/ssh-action@v1
+        env:
+          DEPLOY_PATH: ${{ vars.STAGING_DEPLOY_PATH }}
+        with:
+          host: ${{ secrets.STAGING_SSH_HOST }}
+          username: ${{ secrets.STAGING_SSH_USER }}
+          key: ${{ secrets.STAGING_SSH_KEY }}
+          port: ${{ vars.STAGING_SSH_PORT || '22' }}
+          envs: DEPLOY_PATH
+          script: |
+            set -e
+            cd "$DEPLOY_PATH"
             php artisan optimize:clear
+            php artisan migrate --force
+            php artisan storage:link || true
             php artisan optimize
             php artisan queue:restart || true
-
-            find storage -type d -exec chmod 775 {} \;
-            find storage -type f -exec chmod 664 {} \;
-            find bootstrap/cache -type d -exec chmod 775 {} \;
-            find bootstrap/cache -type f -exec chmod 664 {} \;
-
-            php artisan up
-            echo "Deployment Finished Successfully"
-
-      - name: Health Check
-        run: |
-          sleep 5
-          curl --fail --silent https://${{ env.DOMAIN }} > /dev/null
-          echo "Application is online."
+      - name: Health check
+        run: curl --fail --location --retry 3 --retry-delay 5 "$APP_URL"
