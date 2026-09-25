@@ -3,7 +3,6 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import MotorcycleSkeleton from '@/Components/Skeletons/MotorcycleSkeleton';
 import { Head, router } from '@inertiajs/react';
 import { getProductImage } from '@/Utils/productImage';
-import { fuzzyFilterProducts } from '@/Utils/fuzzySearch';
 import { toast } from 'sonner';
 import {
     FiPlus, FiEdit2, FiTrash2, FiLink, FiX, FiSearch,
@@ -114,367 +113,6 @@ const getEngineConfig = (type) => ENGINE_CONFIG[type?.toLowerCase()] || {
     label: type ? type.charAt(0).toUpperCase() + type.slice(1) : 'Lainnya',
 };
 
-// Integrated Searchable Product Dropdown Component
-function SearchableProductDropdown({ products = [], value, onChange, error }) {
-    const [isOpen, setIsOpen] = useState(false);
-    const [search, setSearch] = useState('');
-    const [categoryFilter, setCategoryFilter] = useState('semua');
-    const containerRef = useRef(null);
-
-    const selectedProduct = useMemo(() => {
-        return products.find(p => p.id === value) || null;
-    }, [products, value]);
-
-    const categories = useMemo(() => {
-        return ['semua', ...new Set(products.map(p => p.category?.name).filter(Boolean))];
-    }, [products]);
-
-    const filtered = useMemo(() => {
-        return fuzzyFilterProducts(products, search, {
-            filterPredicate: (p) => categoryFilter === 'semua' || p.category?.name === categoryFilter
-        });
-    }, [products, search, categoryFilter]);
-
-    useEffect(() => {
-        const handleClickOutside = (e) => {
-            if (containerRef.current && !containerRef.current.contains(e.target)) {
-                setIsOpen(false);
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
-
-    return (
-        <div className="relative" ref={containerRef}>
-            <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 block">
-                Sparepart *
-            </label>
-
-            {/* Dropdown Trigger */}
-            <div
-                onClick={() => setIsOpen(!isOpen)}
-                role="button"
-                tabIndex={0}
-                className={`w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border rounded-md text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200 cursor-pointer flex items-center justify-between gap-2 transition select-none ${
-                    isOpen ? 'border-blue-500 ring-2 ring-blue-500/20 bg-white dark:bg-slate-800' : 'border-slate-300 dark:border-slate-700 hover:border-slate-400'
-                } ${error ? 'border-red-500' : ''}`}
-            >
-                {selectedProduct ? (
-                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                        <ProductThumbnail path={selectedProduct.image_path} size="w-6 h-6" />
-                        <span className="truncate font-bold text-slate-900 dark:text-white">
-                            {selectedProduct.name}
-                        </span>
-                        <span className="hidden sm:inline text-[10px] text-slate-500 dark:text-slate-400 shrink-0 font-medium">
-                            ({selectedProduct.sku || 'No SKU'} · Rp {Number(selectedProduct.price).toLocaleString('id-ID')} · {selectedProduct.motorcycles_count || 0} motor)
-                        </span>
-                    </div>
-                ) : (
-                    <span className="text-slate-400 font-normal">Pilih sparepart...</span>
-                )}
-                <div className="flex items-center gap-1 shrink-0 text-slate-400">
-                    <FiChevronDown size={16} className={`transition-transform duration-200 ${isOpen ? 'rotate-180 text-blue-600' : ''}`} />
-                </div>
-            </div>
-
-            {/* Dropdown Floating Panel */}
-            {isOpen && (
-                <div className="relative z-10 mt-1 bg-white dark:bg-slate-850 border border-slate-300 dark:border-slate-700 rounded-md shadow-xl overflow-hidden">
-                    {/* Integrated Search & Filter Header */}
-                    <div className="p-2 border-b border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 space-y-1.5">
-                        <div className="relative">
-                            <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" size={13} />
-                            <input
-                                type="text"
-                                autoFocus
-                                value={search}
-                                onChange={e => setSearch(e.target.value)}
-                                placeholder="Ketik nama produk, SKU, atau kategori..."
-                                className="w-full pl-8 pr-7 py-1.5 text-xs bg-white dark:bg-slate-850 border border-slate-300 dark:border-slate-600 rounded-md text-slate-800 dark:text-slate-200 font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500"
-                            />
-                            {search && (
-                                <button
-                                    type="button"
-                                    onClick={() => setSearch('')}
-                                    className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5"
-                                >
-                                    <FiX size={12} />
-                                </button>
-                            )}
-                        </div>
-
-                        {/* Category filter pills */}
-                        <div className="flex items-center gap-1 overflow-x-auto no-scrollbar py-0.5">
-                            {categories.map(cat => (
-                                <button
-                                    key={cat}
-                                    type="button"
-                                    onClick={() => setCategoryFilter(cat)}
-                                    className={`px-2 py-0.5 rounded text-[10px] font-bold whitespace-nowrap transition cursor-pointer shrink-0 ${
-                                        categoryFilter === cat
-                                            ? 'bg-blue-600 text-white'
-                                            : 'bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-100'
-                                    }`}
-                                >
-                                    {cat === 'semua' ? 'Semua' : cat}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Scrollable Products List */}
-                    <div className="max-h-56 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-700/60">
-                        {filtered.map(p => {
-                            const isSelected = p.id === value;
-                            return (
-                                <div
-                                    key={p.id}
-                                    onClick={() => {
-                                        onChange(p.id);
-                                        setIsOpen(false);
-                                    }}
-                                    className={`flex items-center justify-between p-2 text-xs cursor-pointer transition ${
-                                        isSelected
-                                            ? 'bg-slate-100 dark:bg-slate-750 text-blue-600 dark:text-blue-300 font-bold border-l-4 border-l-blue-600'
-                                            : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200'
-                                    }`}
-                                >
-                                    <div className="flex items-center gap-2 min-w-0 flex-1 pr-2">
-                                        <ProductThumbnail path={p.image_path} size="w-7 h-7" />
-                                        <div className="min-w-0 flex-1">
-                                            <p className="font-extrabold truncate">{p.name}</p>
-                                            <p className="text-[10px] text-slate-400 truncate">
-                                                {p.sku ? `${p.sku} · ` : ''}{p.category?.name || 'Katalog'} · Rp {Number(p.price).toLocaleString('id-ID')}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-2 shrink-0">
-                                        <span className="text-[10px] font-semibold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-1.5 py-0.5 rounded">
-                                            {p.motorcycles_count || 0} motor
-                                        </span>
-                                        {isSelected && (
-                                            <FiCheck size={15} className="text-blue-600 dark:text-blue-400 shrink-0" />
-                                        )}
-                                    </div>
-                                </div>
-                            );
-                        })}
-                        {filtered.length === 0 && (
-                            <div className="py-6 text-center text-xs text-slate-400">
-                                Tidak ada produk sparepart yang cocok.
-                            </div>
-                        )}
-                    </div>
-                </div>
-            )}
-            {error && <p className="text-[11px] text-red-500 font-bold mt-1">{error}</p>}
-        </div>
-    );
-}
-
-// Integrated Searchable Motor Dropdown Component
-function SearchableMotorDropdown({ motorcycles = [], value, onChange, error }) {
-    const [isOpen, setIsOpen] = useState(false);
-    const [search, setSearch] = useState('');
-    const [brandFilter, setBrandFilter] = useState('semua');
-    const containerRef = useRef(null);
-
-    const selectedMotor = useMemo(() => {
-        return motorcycles.find(m => m.id === value) || null;
-    }, [motorcycles, value]);
-
-    const brands = useMemo(() => {
-        return ['semua', ...new Set(motorcycles.map(m => m.brand))];
-    }, [motorcycles]);
-
-    const filtered = useMemo(() => {
-        const prepared = motorcycles.map(m => ({
-            ...m,
-            name: `${m.brand} ${m.model} ${m.engine_type || ''}`
-        }));
-        return fuzzyFilterProducts(prepared, search, {
-            filterPredicate: (m) => brandFilter === 'semua' || m.brand === brandFilter
-        });
-    }, [motorcycles, search, brandFilter]);
-
-    useEffect(() => {
-        const handleClickOutside = (e) => {
-            if (containerRef.current && !containerRef.current.contains(e.target)) {
-                setIsOpen(false);
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
-
-    return (
-        <div className="relative" ref={containerRef}>
-            <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 block">
-                Motor *
-            </label>
-
-            {selectedMotor ? (
-                <div className="py-1.5 px-1 flex items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800">
-                    <div className="flex items-center gap-3 min-w-0 flex-1">
-                        <div className="w-8 h-8 rounded-md bg-slate-100 dark:bg-slate-800 overflow-hidden shrink-0 flex items-center justify-center">
-                            {selectedMotor.image_url ? (
-                                <img src={selectedMotor.image_url} alt={selectedMotor.model} className="w-full h-full object-cover" />
-                            ) : (
-                                <MotorIconPlaceholder size={18} className="text-slate-400" />
-                            )}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2">
-                                <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide shrink-0">
-                                    {selectedMotor.brand}
-                                </span>
-                                <span className="truncate font-black text-sm text-slate-900 dark:text-white">
-                                    {selectedMotor.model}
-                                </span>
-                            </div>
-                            <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5">
-                                {selectedMotor.engine_cc}cc · {selectedMotor.engine_type} · {selectedMotor.year_start}{selectedMotor.year_end ? `-${selectedMotor.year_end}` : '-sekarang'} · {selectedMotor.parts_count || 0} part ter-mapping
-                            </p>
-                        </div>
-                    </div>
-                    <button
-                        type="button"
-                        onClick={() => {
-                            onChange('');
-                            setSearch('');
-                            setIsOpen(true);
-                        }}
-                        className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1 shrink-0 cursor-pointer"
-                        title="Ganti model motor sasaran"
-                    >
-                        <FiSearch size={12} />
-                        <span>Ganti</span>
-                    </button>
-                </div>
-            ) : (
-                <div className="relative">
-                    <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={14} />
-                    <input
-                        type="text"
-                        value={search}
-                        onChange={e => {
-                            setSearch(e.target.value);
-                            if (!isOpen) setIsOpen(true);
-                        }}
-                        onFocus={() => setIsOpen(true)}
-                        placeholder="Cari merek atau model motor..."
-                        className={`w-full pl-9 pr-8 py-2 bg-slate-50 dark:bg-slate-800 border rounded-md text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:bg-white dark:focus:bg-slate-850 focus:ring-2 focus:ring-blue-500 focus:outline-none transition ${
-                            error ? 'border-red-500 ring-1 ring-red-500/30' : 'border-slate-300 dark:border-slate-700'
-                        }`}
-                    />
-                    {search ? (
-                        <button
-                            type="button"
-                            onClick={() => setSearch('')}
-                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-0.5 cursor-pointer"
-                        >
-                            <FiX size={13} />
-                        </button>
-                    ) : (
-                        <div
-                            onClick={() => setIsOpen(!isOpen)}
-                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 cursor-pointer hover:text-slate-600"
-                        >
-                            <FiChevronDown size={15} className={`transition-transform duration-200 ${isOpen ? 'rotate-180 text-blue-600' : ''}`} />
-                        </div>
-                    )}
-                </div>
-            )}
-
-            {/* Dropdown Floating Panel */}
-            {isOpen && !selectedMotor && (
-                <div className="relative z-10 mt-1 bg-white dark:bg-slate-850 border border-slate-300 dark:border-slate-700 rounded-md shadow-xl overflow-hidden">
-                    {/* Brand filter pills */}
-                    <div className="p-2 border-b border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 flex items-center gap-1 overflow-x-auto no-scrollbar">
-                        {brands.map(brand => {
-                            const bCfg = getBrandConfig(brand);
-                            const isBrandActive = brandFilter === brand;
-                            return (
-                                <button
-                                    key={brand}
-                                    type="button"
-                                    onClick={() => setBrandFilter(brand)}
-                                    className={`px-2 py-0.5 rounded text-[10px] font-bold whitespace-nowrap transition cursor-pointer shrink-0 ${
-                                        isBrandActive
-                                            ? (brand === 'semua' ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900' : bCfg.badge)
-                                            : 'bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-100'
-                                    }`}
-                                >
-                                    {brand === 'semua' ? 'Semua Brand' : brand}
-                                </button>
-                            );
-                        })}
-                    </div>
-
-                    {/* Scrollable Motors List */}
-                    <div className="max-h-56 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-700/60">
-                        {filtered.map(m => {
-                            const isSelected = m.id === value;
-                            const bCfg = getBrandConfig(m.brand);
-                            return (
-                                <div
-                                    key={m.id}
-                                    onClick={() => {
-                                         onChange(m.id);
-                                         setIsOpen(false);
-                                         setSearch('');
-                                    }}
-                                    className={`flex items-center justify-between p-2.5 text-xs cursor-pointer transition ${
-                                        isSelected
-                                            ? 'bg-blue-50/50 dark:bg-slate-800 text-slate-900 dark:text-white font-bold'
-                                            : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200'
-                                    }`}
-                                >
-                                    <div className="flex items-center gap-2.5 min-w-0 flex-1 pr-2">
-                                        <div className="w-8 h-8 rounded-md bg-slate-100 dark:bg-slate-800 overflow-hidden shrink-0 flex items-center justify-center">
-                                            {m.image_url ? (
-                                                <img src={m.image_url} alt={m.model} className="w-full h-full object-cover" />
-                                            ) : (
-                                                <MotorIconPlaceholder size={16} className="text-slate-400" />
-                                            )}
-                                        </div>
-                                        <div className="min-w-0 flex-1">
-                                            <div className="flex items-center gap-1.5 truncate">
-                                                <span className="text-[10px] font-bold text-slate-500 uppercase shrink-0">
-                                                    {m.brand}
-                                                </span>
-                                                <p className="font-bold truncate text-slate-900 dark:text-white">{m.model}</p>
-                                            </div>
-                                            <p className="text-[10px] text-slate-400 truncate mt-0.5">
-                                                {m.engine_cc}cc · {m.engine_type} · {m.year_start}{m.year_end ? `-${m.year_end}` : '-sekarang'}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-2 shrink-0">
-                                        <span className="text-[11px] text-slate-400 font-medium">
-                                            {m.parts_count || 0} part
-                                        </span>
-                                        {isSelected && (
-                                            <FiCheck size={15} className="text-blue-600 dark:text-blue-400 shrink-0" />
-                                        )}
-                                    </div>
-                                </div>
-                            );
-                        })}
-                        {filtered.length === 0 && (
-                            <div className="py-6 text-center text-xs text-slate-400">
-                                Tidak ada model motor yang sesuai{search ? ` dengan "${search}"` : ''}.
-                            </div>
-                        )}
-                    </div>
-                </div>
-            )}
-            {error && <p className="text-[11px] text-red-500 font-bold mt-1">{error}</p>}
-        </div>
-    );
-}
-
 export default function MotorcycleIndex({
     motorcycles = [],
     products = [],
@@ -550,15 +188,13 @@ export default function MotorcycleIndex({
     // BULK MAPPING STATE & HANDLERS
     // ==========================================
     const [showBulkModal, setShowBulkModal] = useState(false);
-    const [bulkMode, setBulkMode] = useState('motor_to_parts'); // 'motor_to_parts' | 'part_to_motors'
-    const [bulkMotorId, setBulkMotorId] = useState('');
     const [bulkMotorIds, setBulkMotorIds] = useState([]);
-    const [bulkProductId, setBulkProductId] = useState('');
     const [bulkProductIds, setBulkProductIds] = useState([]);
     const [bulkCategory, setBulkCategory] = useState('auto');
     const [bulkNotes, setBulkNotes] = useState('');
     const [bulkIsRecommended, setBulkIsRecommended] = useState(false);
-    const [bulkSearch, setBulkSearch] = useState('');
+    const [bulkMotorSearch, setBulkMotorSearch] = useState('');
+    const [bulkProductSearch, setBulkProductSearch] = useState('');
     const [bulkBrandFilter, setBulkBrandFilter] = useState('semua');
     const [bulkCategoryFilter, setBulkCategoryFilter] = useState('semua');
     const [bulkErrors, setBulkErrors] = useState({});
@@ -566,15 +202,13 @@ export default function MotorcycleIndex({
 
     // Reset Bulk Form
     const resetBulkForm = (initialMotorId = null) => {
-        setBulkMode('motor_to_parts');
-        setBulkMotorId(initialMotorId || '');
         setBulkMotorIds(initialMotorId ? [initialMotorId] : []);
-        setBulkProductId(products[0]?.id || '');
         setBulkProductIds([]);
         setBulkCategory('auto');
         setBulkNotes('');
         setBulkIsRecommended(false);
-        setBulkSearch('');
+        setBulkMotorSearch('');
+        setBulkProductSearch('');
         setBulkBrandFilter('semua');
         setBulkCategoryFilter('semua');
         setBulkErrors({});
@@ -969,8 +603,8 @@ export default function MotorcycleIndex({
     // ==========================================
     const handleSaveBulkMapping = async () => {
         const errors = {};
-        const motorIds = bulkMode === 'motor_to_parts' ? (bulkMotorId ? [bulkMotorId] : []) : bulkMotorIds;
-        const prodIds = bulkMode === 'motor_to_parts' ? bulkProductIds : (bulkProductId ? [bulkProductId] : []);
+        const motorIds = bulkMotorIds;
+        const prodIds = bulkProductIds;
 
         if (motorIds.length === 0) {
             errors.motorcycles = 'Pilih minimal 1 model motor.';
@@ -1012,7 +646,7 @@ export default function MotorcycleIndex({
             router.reload({ only: ['motorcycles', 'products'] });
         } catch (e) {
             if (e.response?.status === 422 && e.response.data?.errors) {
-                setBulkErrors(e.response.data.errors);
+                setBulkErrors({ general: Object.values(e.response.data.errors).flat()[0] });
             } else {
                 toast.error(e.response?.data?.message || 'Gagal menyimpan bulk mapping.');
             }
@@ -1032,11 +666,11 @@ export default function MotorcycleIndex({
         );
     }, [products, partSearch]);
 
-    // Filtered products for bulk mapping modal (Mode A: multi-select parts)
+    // Filtered products for bulk mapping modal
     const filteredProductsForBulk = useMemo(() => {
         return products.filter(p => {
             const matchesCategory = bulkCategoryFilter !== 'semua' ? (p.category?.name === bulkCategoryFilter) : true;
-            const q = bulkSearch.trim().toLowerCase();
+            const q = bulkProductSearch.trim().toLowerCase();
             const matchesSearch = q ? (
                 p.name.toLowerCase().includes(q) ||
                 (p.sku && p.sku.toLowerCase().includes(q)) ||
@@ -1044,41 +678,21 @@ export default function MotorcycleIndex({
             ) : true;
             return matchesCategory && matchesSearch;
         });
-    }, [products, bulkCategoryFilter, bulkSearch]);
+    }, [products, bulkCategoryFilter, bulkProductSearch]);
 
-    // Filtered motorcycles for bulk mapping modal (Mode B: multi-select motors)
+    // Filtered motorcycles for bulk mapping modal
     const filteredMotorcyclesForBulk = useMemo(() => {
         return motorcycles.filter(m => {
             const matchesBrand = bulkBrandFilter !== 'semua' ? (m.brand === bulkBrandFilter) : true;
-            const q = bulkSearch.trim().toLowerCase();
+            const q = bulkMotorSearch.trim().toLowerCase();
             const matchesSearch = q ? (
                 m.model.toLowerCase().includes(q) ||
                 m.brand.toLowerCase().includes(q) ||
-                m.engine_type.toLowerCase().includes(q)
+                (m.engine_type || '').toLowerCase().includes(q)
             ) : true;
             return matchesBrand && matchesSearch;
         });
-    }, [motorcycles, bulkBrandFilter, bulkSearch]);
-
-    // Set of product IDs already mapped to currently selected bulk motorcycle (Mode A)
-    const mappedProductIdsForBulkMotor = useMemo(() => {
-        if (!bulkMotorId) return new Set();
-        const motor = motorcycles.find(m => m.id === bulkMotorId);
-        if (!motor || !motor.parts) return new Set();
-        return new Set(motor.parts.map(p => p.product_id));
-    }, [motorcycles, bulkMotorId]);
-
-    // Set of motorcycle IDs already mapped to currently selected bulk product (Mode B)
-    const mappedMotorIdsForBulkProduct = useMemo(() => {
-        if (!bulkProductId) return new Set();
-        const set = new Set();
-        motorcycles.forEach(m => {
-            if (m.parts && m.parts.some(p => p.product_id === bulkProductId)) {
-                set.add(m.id);
-            }
-        });
-        return set;
-    }, [motorcycles, bulkProductId]);
+    }, [motorcycles, bulkBrandFilter, bulkMotorSearch]);
 
     // Distinct product categories for bulk filter
     const productCategoriesList = useMemo(() => {
@@ -1832,366 +1446,84 @@ export default function MotorcycleIndex({
                             </button>
                         </div>
 
-                        {/* Mode Selector Tabs (Clean typography underline tabs) */}
-                        <div className="grid grid-cols-2 gap-3 border-b border-slate-200 dark:border-slate-800">
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setBulkMode('motor_to_parts');
-                                    setBulkSearch('');
-                                }}
-                                className={`pb-2 text-xs sm:text-sm font-bold transition border-b-2 cursor-pointer ${
-                                    bulkMode === 'motor_to_parts'
-                                        ? 'border-blue-600 text-blue-600 dark:text-blue-400'
-                                        : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
-                                }`}
-                            >
-                                Motor → Sparepart
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setBulkMode('part_to_motors');
-                                    setBulkSearch('');
-                                }}
-                                className={`pb-2 text-xs sm:text-sm font-bold transition border-b-2 cursor-pointer ${
-                                    bulkMode === 'part_to_motors'
-                                        ? 'border-blue-600 text-blue-600 dark:text-blue-400'
-                                        : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
-                                }`}
-                            >
-                                Sparepart → Motor
-                            </button>
-                        </div>
-
-                        {/* Error Alert */}
                         {bulkErrors.general && (
                             <div className="p-3 bg-red-50 dark:bg-red-950/60 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-xs rounded-md font-semibold flex items-center gap-2">
                                 <FiAlertCircle size={15} /> {bulkErrors.general}
                             </div>
                         )}
 
-                        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,3fr)_minmax(280px,2fr)] gap-4 lg:gap-6 overflow-y-auto lg:overflow-hidden min-h-0 flex-1 pr-1">
-                            {/* MODE A: 1 Motor -> Many Parts */}
-                            {bulkMode === 'motor_to_parts' && (
-                                <div className="flex flex-col gap-3 sm:gap-4 min-h-0">
-                                    {/* Integrated Searchable Single Motor Dropdown */}
-                                    <SearchableMotorDropdown
-                                        motorcycles={motorcycles}
-                                        value={bulkMotorId}
-                                        onChange={setBulkMotorId}
-                                        error={bulkErrors.motorcycles}
-                                    />
-
-                                    {/* Multi-Select Products */}
-                                    <div className="flex flex-col flex-1 min-h-0">
-                                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-1.5">
-                                            <div className="flex items-center gap-2">
-                                                <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                                                    Sparepart *
-                                                </label>
-                                                <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">
-                                                    {bulkProductIds.length} dipilih
-                                                </span>
-                                            </div>
-                                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
-                                                {bulkMotorId && filteredProductsForBulk.some(p => mappedProductIdsForBulkMotor.has(p.id)) && (
-                                                    <>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => {
-                                                                const unmappedIds = filteredProductsForBulk
-                                                                    .filter(p => !mappedProductIdsForBulkMotor.has(p.id))
-                                                                    .map(p => p.id);
-                                                                setBulkProductIds(Array.from(new Set([...bulkProductIds, ...unmappedIds])));
-                                                            }}
-                                                            className="text-blue-600 dark:text-blue-400 font-semibold hover:underline cursor-pointer"
-                                                        >
-                                                            Belum terhubung
-                                                        </button>
-                                                    </>
-                                                )}
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        const allIds = filteredProductsForBulk.map(p => p.id);
-                                                        setBulkProductIds(Array.from(new Set([...bulkProductIds, ...allIds])));
-                                                    }}
-                                                    className="text-blue-600 dark:text-blue-400 font-semibold hover:underline cursor-pointer"
-                                                >
-                                                    Pilih semua
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setBulkProductIds([])}
-                                                    className="text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 font-medium cursor-pointer"
-                                                >
-                                                    Kosongkan
-                                                </button>
-                                            </div>
-                                        </div>
-
-                                        {/* Product Filters & Search */}
-                                        <div className="grid grid-cols-2 gap-2 mb-2">
-                                            <div className="relative">
-                                                <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" size={13} />
-                                                <input
-                                                    type="text"
-                                                    placeholder="Cari part..."
-                                                    value={bulkSearch}
-                                                    onChange={e => setBulkSearch(e.target.value)}
-                                                    className="w-full pl-8 pr-7 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                                />
-                                                {bulkSearch && (
-                                                    <button onClick={() => setBulkSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer">
-                                                        <FiX size={12} />
-                                                    </button>
-                                                )}
-                                            </div>
-                                            <select
-                                                value={bulkCategoryFilter}
-                                                onChange={e => setBulkCategoryFilter(e.target.value)}
-                                                className="w-full min-w-0 py-1.5 px-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-slate-700 dark:text-slate-200 font-medium"
-                                            >
-                                                <option value="semua">Semua kategori</option>
-                                                {productCategoriesList.map(cat => (
-                                                    <option key={cat} value={cat}>{cat}</option>
-                                                ))}
-                                            </select>
-                                        </div>
-
-                                        {/* Checkable List */}
-                                        <div className="max-h-64 lg:max-h-none lg:flex-1 lg:min-h-0 overflow-y-auto border border-slate-200 dark:border-slate-700 rounded-lg divide-y divide-slate-100 dark:divide-slate-750">
-                                            {filteredProductsForBulk.map(p => {
-                                                const isSelected = bulkProductIds.includes(p.id);
-                                                const isAlreadyMapped = Boolean(bulkMotorId && mappedProductIdsForBulkMotor.has(p.id));
-
-                                                return (
-                                                    <div
-                                                        key={p.id}
-                                                        onClick={() => {
-                                                            if (isSelected) {
-                                                                setBulkProductIds(bulkProductIds.filter(id => id !== p.id));
-                                                            } else {
-                                                                setBulkProductIds([...bulkProductIds, p.id]);
-                                                            }
-                                                        }}
-                                                        className={`flex items-center justify-between p-2.5 text-xs cursor-pointer transition ${
-                                                            isSelected
-                                                                ? 'bg-blue-50/40 dark:bg-slate-800/60'
-                                                                : isAlreadyMapped
-                                                                    ? 'bg-slate-50/70 dark:bg-slate-850/40 hover:bg-slate-100/60 opacity-60 hover:opacity-85'
-                                                                    : 'hover:bg-slate-50 dark:hover:bg-slate-800/40'
-                                                        }`}
-                                                    >
-                                                        <div className="flex items-center gap-3 flex-1 min-w-0 pr-2">
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={isSelected}
-                                                                onChange={() => {}}
-                                                                className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 cursor-pointer border-slate-300 dark:border-slate-600 pointer-events-none shrink-0"
-                                                            />
-                                                            <div className={isAlreadyMapped && !isSelected ? 'grayscale opacity-75' : ''}>
-                                                                <ProductThumbnail path={p.image_path} size="w-10 h-10" />
-                                                            </div>
-                                                            <div className="flex-1 min-w-0">
-                                                                <div className="flex items-center gap-2">
-                                                                    <p className={`font-bold truncate ${isAlreadyMapped && !isSelected ? 'text-slate-500 dark:text-slate-400' : 'text-slate-900 dark:text-white'}`}>
-                                                                        {p.name}
-                                                                    </p>
-                                                                    {isAlreadyMapped && (
-                                                                        <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 bg-slate-200/70 dark:bg-slate-700/60 px-1.5 py-0.5 rounded shrink-0">
-                                                                            Terhubung
-                                                                        </span>
-                                                                    )}
-                                                                </div>
-                                                                <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">
-                                                                    {p.sku || '-'} · {formatRp(p.price)} {p.default_part_category ? `· ${partCategories[p.default_part_category] || p.default_part_category}` : ''}
-                                                                </p>
-                                                            </div>
-                                                        </div>
-                                                        <span className="hidden sm:inline text-xs text-slate-500 dark:text-slate-400 font-medium shrink-0">
-                                                            {p.motorcycles_count || 0} motor
-                                                        </span>
-                                                    </div>
-                                                );
-                                            })}
-                                            {filteredProductsForBulk.length === 0 && (
-                                                <p className="text-xs text-slate-400 text-center py-6">
-                                                    Tidak ada sparepart yang sesuai dengan filter.
-                                                </p>
-                                            )}
-                                        </div>
-                                        {bulkErrors.products && <p className="text-[11px] text-red-500 font-bold mt-1">{bulkErrors.products}</p>}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 overflow-y-auto min-h-0 flex-1 pr-1">
+                            <section className="flex flex-col min-h-0">
+                                <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+                                    <div className="text-xs font-bold text-slate-700 dark:text-slate-300">Motor * <span className="text-blue-600 dark:text-blue-400 ml-1">{bulkMotorIds.length} dipilih</span></div>
+                                    <div className="flex items-center gap-3 text-xs">
+                                        <button type="button" onClick={() => setBulkMotorIds(prev => Array.from(new Set([...prev, ...filteredMotorcyclesForBulk.map(m => m.id)])))} className="text-blue-600 dark:text-blue-400 font-semibold hover:underline">Pilih semua</button>
+                                        <button type="button" onClick={() => setBulkMotorIds([])} className="text-slate-500 dark:text-slate-400 hover:underline">Kosongkan</button>
                                     </div>
                                 </div>
-                            )}
+                                <div className="grid grid-cols-2 gap-2 mb-2">
+                                    <input type="search" aria-label="Cari motor" placeholder="Cari motor..." value={bulkMotorSearch} onChange={e => setBulkMotorSearch(e.target.value)} className="w-full min-w-0 px-2 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500" />
+                                    <select aria-label="Filter merek motor" value={bulkBrandFilter} onChange={e => setBulkBrandFilter(e.target.value)} className="w-full min-w-0 px-2 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-slate-700 dark:text-slate-200">
+                                        <option value="semua">Semua merek</option>
+                                        {brands.map(brand => <option key={brand} value={brand}>{brand}</option>)}
+                                    </select>
+                                </div>
+                                <div className="max-h-48 lg:max-h-80 overflow-y-auto border border-slate-200 dark:border-slate-700 rounded-lg divide-y divide-slate-100 dark:divide-slate-700">
+                                    {filteredMotorcyclesForBulk.map(motor => {
+                                        const selected = bulkMotorIds.includes(motor.id);
+                                        return (
+                                            <label key={motor.id} className={'flex items-center gap-2.5 p-2 text-xs cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 ' + (selected ? 'bg-blue-50 dark:bg-slate-800/60' : '')}>
+                                                <input type="checkbox" checked={selected} onChange={() => setBulkMotorIds(prev => selected ? prev.filter(id => id !== motor.id) : [...prev, motor.id])} className="w-4 h-4 shrink-0 rounded text-blue-600 border-slate-300 dark:border-slate-600" />
+                                                <div className="w-8 h-8 rounded-md bg-slate-100 dark:bg-slate-800 overflow-hidden shrink-0 flex items-center justify-center">
+                                                    {motor.image_url ? <img src={motor.image_url} alt="" className="w-full h-full object-cover" /> : <MotorIconPlaceholder size={16} className="text-slate-400" />}
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <p className="font-bold text-slate-900 dark:text-white truncate">{motor.brand} {motor.model}</p>
+                                                    <p className="text-slate-500 dark:text-slate-400 truncate">{motor.engine_cc}cc · {motor.year_start}{motor.year_end ? '-' + motor.year_end : '-sekarang'}</p>
+                                                </div>
+                                            </label>
+                                        );
+                                    })}
+                                    {filteredMotorcyclesForBulk.length === 0 && <p className="text-xs text-slate-400 text-center py-6">Motor tidak ditemukan.</p>}
+                                </div>
+                                {bulkErrors.motorcycles && <p className="text-[11px] text-red-500 font-bold mt-1">{bulkErrors.motorcycles}</p>}
+                            </section>
 
-                            {/* MODE B: 1 Part -> Many Motors */}
-                            {bulkMode === 'part_to_motors' && (
-                                <div className="flex flex-col gap-3 sm:gap-4 min-h-0">
-                                    {/* Integrated Searchable Single Product Dropdown */}
-                                    <SearchableProductDropdown
-                                        products={products}
-                                        value={bulkProductId}
-                                        onChange={setBulkProductId}
-                                        error={bulkErrors.products}
-                                    />
-
-                                    {/* Multi-Select Motorcycles */}
-                                    <div className="flex flex-col flex-1 min-h-0">
-                                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-1.5">
-                                            <div className="flex items-center gap-2">
-                                                <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                                                    Motor *
-                                                </label>
-                                                <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">
-                                                    {bulkMotorIds.length} dipilih
-                                                </span>
-                                            </div>
-                                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
-                                                {bulkProductId && filteredMotorcyclesForBulk.some(m => mappedMotorIdsForBulkProduct.has(m.id)) && (
-                                                    <>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => {
-                                                                const unmappedIds = filteredMotorcyclesForBulk
-                                                                    .filter(m => !mappedMotorIdsForBulkProduct.has(m.id))
-                                                                    .map(m => m.id);
-                                                                setBulkMotorIds(Array.from(new Set([...bulkMotorIds, ...unmappedIds])));
-                                                            }}
-                                                            className="text-blue-600 dark:text-blue-400 font-semibold hover:underline cursor-pointer"
-                                                        >
-                                                            Belum terhubung
-                                                        </button>
-                                                    </>
-                                                )}
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        const allIds = filteredMotorcyclesForBulk.map(m => m.id);
-                                                        setBulkMotorIds(Array.from(new Set([...bulkMotorIds, ...allIds])));
-                                                    }}
-                                                    className="text-blue-600 dark:text-blue-400 font-semibold hover:underline cursor-pointer"
-                                                >
-                                                    Pilih semua
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setBulkMotorIds([])}
-                                                    className="text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 font-medium cursor-pointer"
-                                                >
-                                                    Kosongkan
-                                                </button>
-                                            </div>
-                                        </div>
-
-                                        {/* Motor Filters & Search */}
-                                        <div className="grid grid-cols-2 gap-2 mb-2">
-                                            <div className="relative">
-                                                <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" size={13} />
-                                                <input
-                                                    type="text"
-                                                    placeholder="Cari motor..."
-                                                    value={bulkSearch}
-                                                    onChange={e => setBulkSearch(e.target.value)}
-                                                    className="w-full pl-8 pr-7 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                                />
-                                                {bulkSearch && (
-                                                    <button onClick={() => setBulkSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer">
-                                                        <FiX size={12} />
-                                                    </button>
-                                                )}
-                                            </div>
-                                            <select
-                                                value={bulkBrandFilter}
-                                                onChange={e => setBulkBrandFilter(e.target.value)}
-                                                className="w-full min-w-0 py-1.5 px-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-slate-700 dark:text-slate-200 font-medium"
-                                            >
-                                                <option value="semua">Semua merek</option>
-                                                {brands.map(b => (
-                                                    <option key={b} value={b}>{b}</option>
-                                                ))}
-                                            </select>
-                                        </div>
-
-                                        {/* Checkable List */}
-                                        <div className="max-h-64 lg:max-h-none lg:flex-1 lg:min-h-0 overflow-y-auto border border-slate-200 dark:border-slate-700 rounded-lg divide-y divide-slate-100 dark:divide-slate-750">
-                                            {filteredMotorcyclesForBulk.map(m => {
-                                                const isSelected = bulkMotorIds.includes(m.id);
-                                                const isAlreadyMapped = Boolean(bulkProductId && mappedMotorIdsForBulkProduct.has(m.id));
-                                                const engCfg = getEngineConfig(m.engine_type);
-
-                                                return (
-                                                    <div
-                                                        key={m.id}
-                                                        onClick={() => {
-                                                            if (isSelected) {
-                                                                setBulkMotorIds(bulkMotorIds.filter(id => id !== m.id));
-                                                            } else {
-                                                                setBulkMotorIds([...bulkMotorIds, m.id]);
-                                                            }
-                                                        }}
-                                                        className={`flex items-center justify-between p-2.5 text-xs cursor-pointer transition ${
-                                                            isSelected
-                                                                ? 'bg-blue-50/40 dark:bg-slate-800/60'
-                                                                : isAlreadyMapped
-                                                                    ? 'bg-slate-50/70 dark:bg-slate-850/40 hover:bg-slate-100/60 opacity-60 hover:opacity-85'
-                                                                    : 'hover:bg-slate-50 dark:hover:bg-slate-800/40'
-                                                        }`}
-                                                    >
-                                                        <div className="flex items-center gap-3 flex-1 min-w-0 pr-2">
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={isSelected}
-                                                                onChange={() => {}}
-                                                                className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 cursor-pointer border-slate-300 dark:border-slate-600 pointer-events-none shrink-0"
-                                                            />
-                                                            <div className={`w-8 h-8 rounded-md bg-slate-100 dark:bg-slate-800 overflow-hidden shrink-0 flex items-center justify-center ${isAlreadyMapped && !isSelected ? 'grayscale opacity-75' : ''}`}>
-                                                                {m.image_url ? (
-                                                                    <img src={m.image_url} alt={m.model} className="w-full h-full object-cover" />
-                                                                ) : (
-                                                                    <MotorIconPlaceholder size={18} className="text-slate-400" />
-                                                                )}
-                                                            </div>
-                                                            <div className="flex-1 min-w-0">
-                                                                <div className="flex items-center gap-1.5 truncate">
-                                                                    <span className="text-[10px] font-bold text-slate-500 uppercase shrink-0">
-                                                                        {m.brand}
-                                                                    </span>
-                                                                    <p className={`font-bold truncate ${isAlreadyMapped && !isSelected ? 'text-slate-500 dark:text-slate-400' : 'text-slate-900 dark:text-white'}`}>
-                                                                        {m.model}
-                                                                    </p>
-                                                                    {isAlreadyMapped && (
-                                                                        <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 bg-slate-200/70 dark:bg-slate-700/60 px-1.5 py-0.5 rounded shrink-0">
-                                                                            Terhubung
-                                                                        </span>
-                                                                    )}
-                                                                </div>
-                                                                <p className="text-[11px] text-slate-400 truncate mt-0.5">
-                                                                    {m.engine_cc}cc · {engCfg.label} · {m.year_start}{m.year_end ? `-${m.year_end}` : '-sekarang'}
-                                                                </p>
-                                                            </div>
-                                                        </div>
-                                                        <span className="hidden sm:inline text-xs text-slate-500 dark:text-slate-400 font-medium shrink-0">
-                                                            {m.parts_count || 0} part
-                                                        </span>
-                                                    </div>
-                                                );
-                                            })}
-                                            {filteredMotorcyclesForBulk.length === 0 && (
-                                                <p className="text-xs text-slate-400 text-center py-6">
-                                                    Tidak ada model motor yang sesuai dengan filter.
-                                                </p>
-                                            )}
-                                        </div>
-                                        {bulkErrors.motorcycles && <p className="text-[11px] text-red-500 font-bold mt-1">{bulkErrors.motorcycles}</p>}
+                            <section className="flex flex-col min-h-0">
+                                <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+                                    <div className="text-xs font-bold text-slate-700 dark:text-slate-300">Sparepart * <span className="text-blue-600 dark:text-blue-400 ml-1">{bulkProductIds.length} dipilih</span></div>
+                                    <div className="flex items-center gap-3 text-xs">
+                                        <button type="button" onClick={() => setBulkProductIds(prev => Array.from(new Set([...prev, ...filteredProductsForBulk.map(p => p.id)])))} className="text-blue-600 dark:text-blue-400 font-semibold hover:underline">Pilih semua</button>
+                                        <button type="button" onClick={() => setBulkProductIds([])} className="text-slate-500 dark:text-slate-400 hover:underline">Kosongkan</button>
                                     </div>
                                 </div>
-                            )}
-
+                                <div className="grid grid-cols-2 gap-2 mb-2">
+                                    <input type="search" aria-label="Cari sparepart" placeholder="Cari part..." value={bulkProductSearch} onChange={e => setBulkProductSearch(e.target.value)} className="w-full min-w-0 px-2 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500" />
+                                    <select aria-label="Filter kategori sparepart" value={bulkCategoryFilter} onChange={e => setBulkCategoryFilter(e.target.value)} className="w-full min-w-0 px-2 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-slate-700 dark:text-slate-200">
+                                        <option value="semua">Semua kategori</option>
+                                        {productCategoriesList.map(category => <option key={category} value={category}>{category}</option>)}
+                                    </select>
+                                </div>
+                                <div className="max-h-48 lg:max-h-80 overflow-y-auto border border-slate-200 dark:border-slate-700 rounded-lg divide-y divide-slate-100 dark:divide-slate-700">
+                                    {filteredProductsForBulk.map(product => {
+                                        const selected = bulkProductIds.includes(product.id);
+                                        return (
+                                            <label key={product.id} className={'flex items-center gap-2.5 p-2 text-xs cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 ' + (selected ? 'bg-blue-50 dark:bg-slate-800/60' : '')}>
+                                                <input type="checkbox" checked={selected} onChange={() => setBulkProductIds(prev => selected ? prev.filter(id => id !== product.id) : [...prev, product.id])} className="w-4 h-4 shrink-0 rounded text-blue-600 border-slate-300 dark:border-slate-600" />
+                                                <ProductThumbnail path={product.image_path} size="w-8 h-8" />
+                                                <div className="min-w-0">
+                                                    <p className="font-bold text-slate-900 dark:text-white truncate">{product.name}</p>
+                                                    <p className="text-slate-500 dark:text-slate-400 truncate">{product.sku || '-'} · {formatRp(product.price)}</p>
+                                                </div>
+                                            </label>
+                                        );
+                                    })}
+                                    {filteredProductsForBulk.length === 0 && <p className="text-xs text-slate-400 text-center py-6">Sparepart tidak ditemukan.</p>}
+                                </div>
+                                {bulkErrors.products && <p className="text-[11px] text-red-500 font-bold mt-1">{bulkErrors.products}</p>}
+                            </section>
                             {/* Common Bulk Fields (Category, Notes, Recommendation) */}
-                            <div className="pt-3 lg:pt-0 lg:pl-6 border-t lg:border-t-0 lg:border-l border-slate-200 dark:border-slate-700 space-y-3 lg:overflow-y-auto lg:pr-2">
+                            <div className="lg:col-span-2 pt-3 border-t border-slate-200 dark:border-slate-700 space-y-3">
                                 <div>
                                     <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 block">
                                         Kategori part *
@@ -2259,9 +1591,7 @@ export default function MotorcycleIndex({
                             <div className="hidden sm:block text-sm text-slate-600 dark:text-slate-400 font-semibold">
                                 Pilihan:{' '}
                                 <span className="font-bold text-blue-600 dark:text-blue-400">
-                                    {bulkMode === 'motor_to_parts'
-                                        ? (bulkMotorId ? `${bulkProductIds.length} sparepart → 1 motor` : `${bulkProductIds.length} sparepart dipilih`)
-                                        : (bulkProductId ? `${bulkMotorIds.length} motor → 1 sparepart` : `${bulkMotorIds.length} motor dipilih`)}
+                                    {bulkMotorIds.length} motor × {bulkProductIds.length} sparepart
                                 </span>
                             </div>
                             <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
