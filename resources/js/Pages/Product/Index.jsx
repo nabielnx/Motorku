@@ -831,7 +831,7 @@ export default function MenuManagement({
                                                         </button>
                                                         <button type="button" onClick={() => toggleRowExpand(item.id)} className="min-w-0 flex-1 text-left" aria-expanded={isExpanded}>
                                                             <span className="block line-clamp-2 text-xs font-bold leading-snug text-slate-900 dark:text-white">{item.name}</span>
-                                                            <span className="mt-0.5 block truncate text-[11px] text-slate-500 dark:text-slate-400">{item.sku || 'Tanpa SKU'} · {item.category}</span>
+                                                            {item.sku && <span className="mt-0.5 block truncate text-[11px] text-slate-500 dark:text-slate-400">{item.sku}</span>}
                                                         </button>
                                                         <button type="button" onClick={() => toggleRowExpand(item.id)} className="shrink-0 p-1 text-slate-400" aria-label={`Detail ${item.name}`} aria-expanded={isExpanded}>
                                                             {isExpanded ? <FiChevronDown size={16} /> : <FiChevronRight size={16} />}
@@ -845,6 +845,7 @@ export default function MenuManagement({
                                                     </div>
                                                     {isExpanded && (
                                                         <div className="mt-2 space-y-2 pl-[3.375rem] text-[11px] text-slate-600 dark:text-slate-300">
+                                                            <p>{item.category}</p>
                                                             <div className="flex flex-wrap gap-x-3 gap-y-1">
                                                                 <span>Modal: {item.cost_price == null ? 'Belum diisi' : `Rp ${item.cost_price.toLocaleString('id-ID')}`}</span>
                                                                 <span>Min. stok: {item.minimum_stock || 0}</span>

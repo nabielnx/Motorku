@@ -21,7 +21,7 @@ class CategorySeeder extends Seeder
             ],
             'Ban & Kaki-kaki' => [
                 'Ban Luar Tubeless',
-                'Ban Luar Biasa / Tube Type',
+                'Ban Luar (Pakai Ban Dalam)',
                 'Ban Dalam',
                 'Pentil & Cairan Tubeless',
                 'Shockbreaker',
