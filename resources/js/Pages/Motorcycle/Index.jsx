@@ -148,7 +148,7 @@ function SearchableProductDropdown({ products = [], value, onChange, error }) {
     return (
         <div className="relative" ref={containerRef}>
             <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 block">
-                Pilih Produk Sparepart *
+                Sparepart *
             </label>
 
             {/* Dropdown Trigger */}
@@ -166,12 +166,12 @@ function SearchableProductDropdown({ products = [], value, onChange, error }) {
                         <span className="truncate font-bold text-slate-900 dark:text-white">
                             {selectedProduct.name}
                         </span>
-                        <span className="text-[10px] text-slate-500 dark:text-slate-400 shrink-0 font-medium">
+                        <span className="hidden sm:inline text-[10px] text-slate-500 dark:text-slate-400 shrink-0 font-medium">
                             ({selectedProduct.sku || 'No SKU'} · Rp {Number(selectedProduct.price).toLocaleString('id-ID')} · {selectedProduct.motorcycles_count || 0} motor)
                         </span>
                     </div>
                 ) : (
-                    <span className="text-slate-400 font-normal">-- Pilih / Cari Produk Sparepart --</span>
+                    <span className="text-slate-400 font-normal">Pilih sparepart...</span>
                 )}
                 <div className="flex items-center gap-1 shrink-0 text-slate-400">
                     <FiChevronDown size={16} className={`transition-transform duration-200 ${isOpen ? 'rotate-180 text-blue-600' : ''}`} />
@@ -180,7 +180,7 @@ function SearchableProductDropdown({ products = [], value, onChange, error }) {
 
             {/* Dropdown Floating Panel */}
             {isOpen && (
-                <div className="absolute z-50 left-0 right-0 mt-1 bg-white dark:bg-slate-850 border border-slate-300 dark:border-slate-700 rounded-md shadow-xl overflow-hidden">
+                <div className="relative z-10 mt-1 bg-white dark:bg-slate-850 border border-slate-300 dark:border-slate-700 rounded-md shadow-xl overflow-hidden">
                     {/* Integrated Search & Filter Header */}
                     <div className="p-2 border-b border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 space-y-1.5">
                         <div className="relative">
@@ -311,7 +311,7 @@ function SearchableMotorDropdown({ motorcycles = [], value, onChange, error }) {
     return (
         <div className="relative" ref={containerRef}>
             <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 block">
-                Pilih Model Motor Sasaran *
+                Motor *
             </label>
 
             {selectedMotor ? (
@@ -363,7 +363,7 @@ function SearchableMotorDropdown({ motorcycles = [], value, onChange, error }) {
                             if (!isOpen) setIsOpen(true);
                         }}
                         onFocus={() => setIsOpen(true)}
-                        placeholder="Ketik nama atau brand motor (misal: Beat, Vario, NMAX, Scoopy)..."
+                        placeholder="Cari merek atau model motor..."
                         className={`w-full pl-9 pr-8 py-2 bg-slate-50 dark:bg-slate-800 border rounded-md text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:bg-white dark:focus:bg-slate-850 focus:ring-2 focus:ring-blue-500 focus:outline-none transition ${
                             error ? 'border-red-500 ring-1 ring-red-500/30' : 'border-slate-300 dark:border-slate-700'
                         }`}
@@ -389,7 +389,7 @@ function SearchableMotorDropdown({ motorcycles = [], value, onChange, error }) {
 
             {/* Dropdown Floating Panel */}
             {isOpen && !selectedMotor && (
-                <div className="absolute z-50 left-0 right-0 mt-1 bg-white dark:bg-slate-850 border border-slate-300 dark:border-slate-700 rounded-md shadow-xl overflow-hidden">
+                <div className="relative z-10 mt-1 bg-white dark:bg-slate-850 border border-slate-300 dark:border-slate-700 rounded-md shadow-xl overflow-hidden">
                     {/* Brand filter pills */}
                     <div className="p-2 border-b border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 flex items-center gap-1 overflow-x-auto no-scrollbar">
                         {brands.map(brand => {
@@ -1818,17 +1818,14 @@ export default function MotorcycleIndex({
             {/* BULK COMPATIBILITY MODAL (Atur Kompatibilitas Massal) */}
             {/* ======================================================== */}
             {showBulkModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3 sm:p-4" onClick={() => setShowBulkModal(false)}>
-                    <div className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-5xl h-[94vh] max-h-[900px] p-5 sm:p-6 lg:p-8 gap-5 flex flex-col" onClick={(e) => e.stopPropagation()}>
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs sm:p-4" onClick={() => setShowBulkModal(false)}>
+                    <div className="bg-white dark:bg-slate-900 sm:rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-5xl h-dvh sm:h-[94vh] sm:max-h-[900px] p-4 sm:p-6 lg:p-8 gap-3 sm:gap-5 flex flex-col" onClick={(e) => e.stopPropagation()}>
                         {/* Header */}
                         <div className="flex items-start justify-between pb-1">
                             <div>
                                 <h3 className="font-black text-lg sm:text-xl text-slate-900 dark:text-white">
-                                    Atur Kompatibilitas Massal
+                                    Kompatibilitas Massal
                                 </h3>
-                                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                                    Hubungkan sparepart ke model motor sekaligus secara efisien.
-                                </p>
                             </div>
                             <button onClick={() => setShowBulkModal(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer p-1" title="Tutup">
                                 <FiX size={20} />
@@ -1836,20 +1833,20 @@ export default function MotorcycleIndex({
                         </div>
 
                         {/* Mode Selector Tabs (Clean typography underline tabs) */}
-                        <div className="flex items-center gap-6 border-b border-slate-200 dark:border-slate-800">
+                        <div className="grid grid-cols-2 gap-3 border-b border-slate-200 dark:border-slate-800">
                             <button
                                 type="button"
                                 onClick={() => {
                                     setBulkMode('motor_to_parts');
                                     setBulkSearch('');
                                 }}
-                                className={`pb-2.5 text-sm font-bold transition border-b-2 cursor-pointer ${
+                                className={`pb-2 text-xs sm:text-sm font-bold transition border-b-2 cursor-pointer ${
                                     bulkMode === 'motor_to_parts'
                                         ? 'border-blue-600 text-blue-600 dark:text-blue-400'
                                         : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
                                 }`}
                             >
-                                1 Motor → Banyak Sparepart
+                                Motor → Sparepart
                             </button>
                             <button
                                 type="button"
@@ -1857,13 +1854,13 @@ export default function MotorcycleIndex({
                                     setBulkMode('part_to_motors');
                                     setBulkSearch('');
                                 }}
-                                className={`pb-2.5 text-sm font-bold transition border-b-2 cursor-pointer ${
+                                className={`pb-2 text-xs sm:text-sm font-bold transition border-b-2 cursor-pointer ${
                                     bulkMode === 'part_to_motors'
                                         ? 'border-blue-600 text-blue-600 dark:text-blue-400'
                                         : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
                                 }`}
                             >
-                                1 Sparepart → Banyak Motor
+                                Sparepart → Motor
                             </button>
                         </div>
 
@@ -1874,10 +1871,10 @@ export default function MotorcycleIndex({
                             </div>
                         )}
 
-                        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,3fr)_minmax(280px,2fr)] gap-6 overflow-y-auto lg:overflow-hidden min-h-0 flex-1 pr-1">
+                        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,3fr)_minmax(280px,2fr)] gap-4 lg:gap-6 overflow-y-auto lg:overflow-hidden min-h-0 flex-1 pr-1">
                             {/* MODE A: 1 Motor -> Many Parts */}
                             {bulkMode === 'motor_to_parts' && (
-                                <div className="flex flex-col gap-4 min-h-0">
+                                <div className="flex flex-col gap-3 sm:gap-4 min-h-0">
                                     {/* Integrated Searchable Single Motor Dropdown */}
                                     <SearchableMotorDropdown
                                         motorcycles={motorcycles}
@@ -1888,16 +1885,16 @@ export default function MotorcycleIndex({
 
                                     {/* Multi-Select Products */}
                                     <div className="flex flex-col flex-1 min-h-0">
-                                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 mb-1.5">
+                                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-1.5">
                                             <div className="flex items-center gap-2">
                                                 <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                                                    Pilih Sparepart Kompatibel *
+                                                    Sparepart *
                                                 </label>
                                                 <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">
-                                                    ({bulkProductIds.length} dipilih)
+                                                    {bulkProductIds.length} dipilih
                                                 </span>
                                             </div>
-                                            <div className="flex items-center gap-2 text-xs">
+                                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
                                                 {bulkMotorId && filteredProductsForBulk.some(p => mappedProductIdsForBulkMotor.has(p.id)) && (
                                                     <>
                                                         <button
@@ -1910,9 +1907,8 @@ export default function MotorcycleIndex({
                                                             }}
                                                             className="text-blue-600 dark:text-blue-400 font-semibold hover:underline cursor-pointer"
                                                         >
-                                                            Pilih Belum Ter-mapping ({filteredProductsForBulk.filter(p => !mappedProductIdsForBulkMotor.has(p.id)).length})
+                                                            Belum terhubung
                                                         </button>
-                                                        <span className="text-slate-300 dark:text-slate-600">|</span>
                                                     </>
                                                 )}
                                                 <button
@@ -1923,26 +1919,25 @@ export default function MotorcycleIndex({
                                                     }}
                                                     className="text-blue-600 dark:text-blue-400 font-semibold hover:underline cursor-pointer"
                                                 >
-                                                    Pilih Semua ({filteredProductsForBulk.length})
+                                                    Pilih semua
                                                 </button>
-                                                <span className="text-slate-300 dark:text-slate-600">|</span>
                                                 <button
                                                     type="button"
                                                     onClick={() => setBulkProductIds([])}
                                                     className="text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 font-medium cursor-pointer"
                                                 >
-                                                    Reset Pilihan
+                                                    Kosongkan
                                                 </button>
                                             </div>
                                         </div>
 
                                         {/* Product Filters & Search */}
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
+                                        <div className="grid grid-cols-2 gap-2 mb-2">
                                             <div className="relative">
                                                 <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" size={13} />
                                                 <input
                                                     type="text"
-                                                    placeholder="Cari sparepart..."
+                                                    placeholder="Cari part..."
                                                     value={bulkSearch}
                                                     onChange={e => setBulkSearch(e.target.value)}
                                                     className="w-full pl-8 pr-7 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500"
@@ -1956,9 +1951,9 @@ export default function MotorcycleIndex({
                                             <select
                                                 value={bulkCategoryFilter}
                                                 onChange={e => setBulkCategoryFilter(e.target.value)}
-                                                className="w-full py-1.5 px-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-slate-700 dark:text-slate-200 font-medium"
+                                                className="w-full min-w-0 py-1.5 px-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-slate-700 dark:text-slate-200 font-medium"
                                             >
-                                                <option value="semua">Semua Kategori Katalog</option>
+                                                <option value="semua">Semua kategori</option>
                                                 {productCategoriesList.map(cat => (
                                                     <option key={cat} value={cat}>{cat}</option>
                                                 ))}
@@ -2006,7 +2001,7 @@ export default function MotorcycleIndex({
                                                                     </p>
                                                                     {isAlreadyMapped && (
                                                                         <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 bg-slate-200/70 dark:bg-slate-700/60 px-1.5 py-0.5 rounded shrink-0">
-                                                                            Sudah ter-mapping
+                                                                            Terhubung
                                                                         </span>
                                                                     )}
                                                                 </div>
@@ -2015,7 +2010,7 @@ export default function MotorcycleIndex({
                                                                 </p>
                                                             </div>
                                                         </div>
-                                                        <span className="text-xs text-slate-500 dark:text-slate-400 font-medium shrink-0">
+                                                        <span className="hidden sm:inline text-xs text-slate-500 dark:text-slate-400 font-medium shrink-0">
                                                             {p.motorcycles_count || 0} motor
                                                         </span>
                                                     </div>
@@ -2034,7 +2029,7 @@ export default function MotorcycleIndex({
 
                             {/* MODE B: 1 Part -> Many Motors */}
                             {bulkMode === 'part_to_motors' && (
-                                <div className="flex flex-col gap-4 min-h-0">
+                                <div className="flex flex-col gap-3 sm:gap-4 min-h-0">
                                     {/* Integrated Searchable Single Product Dropdown */}
                                     <SearchableProductDropdown
                                         products={products}
@@ -2045,16 +2040,16 @@ export default function MotorcycleIndex({
 
                                     {/* Multi-Select Motorcycles */}
                                     <div className="flex flex-col flex-1 min-h-0">
-                                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 mb-1.5">
+                                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-1.5">
                                             <div className="flex items-center gap-2">
                                                 <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                                                    Pilih Model Motor Kompatibel *
+                                                    Motor *
                                                 </label>
                                                 <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">
-                                                    ({bulkMotorIds.length} dipilih)
+                                                    {bulkMotorIds.length} dipilih
                                                 </span>
                                             </div>
-                                            <div className="flex items-center gap-2 text-xs">
+                                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
                                                 {bulkProductId && filteredMotorcyclesForBulk.some(m => mappedMotorIdsForBulkProduct.has(m.id)) && (
                                                     <>
                                                         <button
@@ -2067,9 +2062,8 @@ export default function MotorcycleIndex({
                                                             }}
                                                             className="text-blue-600 dark:text-blue-400 font-semibold hover:underline cursor-pointer"
                                                         >
-                                                            Pilih Belum Ter-mapping ({filteredMotorcyclesForBulk.filter(m => !mappedMotorIdsForBulkProduct.has(m.id)).length})
+                                                            Belum terhubung
                                                         </button>
-                                                        <span className="text-slate-300 dark:text-slate-600">|</span>
                                                     </>
                                                 )}
                                                 <button
@@ -2080,26 +2074,25 @@ export default function MotorcycleIndex({
                                                     }}
                                                     className="text-blue-600 dark:text-blue-400 font-semibold hover:underline cursor-pointer"
                                                 >
-                                                    Pilih Semua ({filteredMotorcyclesForBulk.length})
+                                                    Pilih semua
                                                 </button>
-                                                <span className="text-slate-300 dark:text-slate-600">|</span>
                                                 <button
                                                     type="button"
                                                     onClick={() => setBulkMotorIds([])}
                                                     className="text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 font-medium cursor-pointer"
                                                 >
-                                                    Reset Pilihan
+                                                    Kosongkan
                                                 </button>
                                             </div>
                                         </div>
 
                                         {/* Motor Filters & Search */}
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
+                                        <div className="grid grid-cols-2 gap-2 mb-2">
                                             <div className="relative">
                                                 <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" size={13} />
                                                 <input
                                                     type="text"
-                                                    placeholder="Cari model motor..."
+                                                    placeholder="Cari motor..."
                                                     value={bulkSearch}
                                                     onChange={e => setBulkSearch(e.target.value)}
                                                     className="w-full pl-8 pr-7 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500"
@@ -2113,9 +2106,9 @@ export default function MotorcycleIndex({
                                             <select
                                                 value={bulkBrandFilter}
                                                 onChange={e => setBulkBrandFilter(e.target.value)}
-                                                className="w-full py-1.5 px-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-slate-700 dark:text-slate-200 font-medium"
+                                                className="w-full min-w-0 py-1.5 px-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-slate-700 dark:text-slate-200 font-medium"
                                             >
-                                                <option value="semua">Semua Brand Motor</option>
+                                                <option value="semua">Semua merek</option>
                                                 {brands.map(b => (
                                                     <option key={b} value={b}>{b}</option>
                                                 ))}
@@ -2171,7 +2164,7 @@ export default function MotorcycleIndex({
                                                                     </p>
                                                                     {isAlreadyMapped && (
                                                                         <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 bg-slate-200/70 dark:bg-slate-700/60 px-1.5 py-0.5 rounded shrink-0">
-                                                                            Sudah ter-mapping
+                                                                            Terhubung
                                                                         </span>
                                                                     )}
                                                                 </div>
@@ -2180,7 +2173,7 @@ export default function MotorcycleIndex({
                                                                 </p>
                                                             </div>
                                                         </div>
-                                                        <span className="text-xs text-slate-500 dark:text-slate-400 font-medium shrink-0">
+                                                        <span className="hidden sm:inline text-xs text-slate-500 dark:text-slate-400 font-medium shrink-0">
                                                             {m.parts_count || 0} part
                                                         </span>
                                                     </div>
@@ -2198,22 +2191,17 @@ export default function MotorcycleIndex({
                             )}
 
                             {/* Common Bulk Fields (Category, Notes, Recommendation) */}
-                            <div className="pt-4 lg:pt-0 lg:pl-6 border-t lg:border-t-0 lg:border-l border-slate-200 dark:border-slate-700 space-y-5 lg:overflow-y-auto lg:pr-2">
+                            <div className="pt-3 lg:pt-0 lg:pl-6 border-t lg:border-t-0 lg:border-l border-slate-200 dark:border-slate-700 space-y-3 lg:overflow-y-auto lg:pr-2">
                                 <div>
-                                    <div className="flex items-center justify-between mb-1">
-                                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                                            Tipe / Kategori Part yang Ditetapkan *
-                                        </label>
-                                        <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">
-                                            {bulkCategory === 'auto' ? 'Otomatis' : 'Manual'}
-                                        </span>
-                                    </div>
+                                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 block">
+                                        Kategori part *
+                                    </label>
                                     <select
                                         value={bulkCategory}
                                         onChange={e => setBulkCategory(e.target.value)}
                                         className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200 focus:ring-1 focus:ring-blue-500 focus:outline-none"
                                     >
-                                        <option value="auto">Otomatis dari Nama Produk</option>
+                                        <option value="auto">Otomatis dari nama</option>
                                         {Object.entries(categoryGroups).map(([gKey, group]) => (
                                             <optgroup key={gKey} label={group.name}>
                                                 {Object.entries(group.items || {}).map(([cKey, cLabel]) => (
@@ -2222,28 +2210,28 @@ export default function MotorcycleIndex({
                                             </optgroup>
                                         ))}
                                     </select>
-                                    {bulkCategory === 'auto' ? (
-                                        <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
-                                            ✨ Kategori part akan otomatis terdeteksi dari nama produk (misal: oli, rem, busi, aki).
-                                        </p>
-                                    ) : (
+                                    {bulkCategory !== 'auto' && (
                                         <p className="text-[11px] text-amber-600 dark:text-amber-400 mt-1 font-medium">
-                                            Perhatian: Semua sparepart yang dipilih akan dimasukkan ke kategori ini.
+                                            Kategori ini berlaku untuk semua pilihan.
                                         </p>
                                     )}
                                     {bulkErrors.part_category && <p className="text-[11px] text-red-500 font-bold mt-1">{bulkErrors.part_category}</p>}
                                 </div>
 
-                                <div className="grid grid-cols-1 gap-4">
+                                <details className="group">
+                                    <summary className="cursor-pointer text-xs font-semibold text-blue-600 dark:text-blue-400 list-none flex items-center gap-1">
+                                        <FiChevronDown size={14} className="transition group-open:rotate-180" /> Catatan & rekomendasi
+                                    </summary>
+                                    <div className="grid grid-cols-1 gap-3 pt-3">
                                     <div>
                                         <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 block">
-                                            Catatan Kompatibilitas (Opsional)
+                                            Catatan
                                         </label>
                                         <input
                                             type="text"
                                             value={bulkNotes}
                                             onChange={e => setBulkNotes(e.target.value)}
-                                            placeholder="Contoh: Cocok untuk varian standar & racing"
+                                            placeholder="Contoh: Varian racing"
                                             className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs font-medium focus:ring-1 focus:ring-blue-500 focus:outline-none"
                                         />
                                     </div>
@@ -2257,17 +2245,18 @@ export default function MotorcycleIndex({
                                             />
                                             <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
                                                 <FiStar size={13} className="text-amber-500 fill-amber-400 shrink-0" />
-                                                Tandai Rekomendasi
+                                                Rekomendasikan
                                             </span>
                                         </label>
                                     </div>
-                                </div>
+                                    </div>
+                                </details>
                             </div>
                         </div>
 
                         {/* Footer Action */}
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-4 border-t border-slate-200 dark:border-slate-800">
-                            <div className="text-sm text-slate-600 dark:text-slate-400 font-semibold">
+                        <div className="flex items-center justify-between gap-2 pt-3 border-t border-slate-200 dark:border-slate-800">
+                            <div className="hidden sm:block text-sm text-slate-600 dark:text-slate-400 font-semibold">
                                 Pilihan:{' '}
                                 <span className="font-bold text-blue-600 dark:text-blue-400">
                                     {bulkMode === 'motor_to_parts'
@@ -2275,11 +2264,11 @@ export default function MotorcycleIndex({
                                         : (bulkProductId ? `${bulkMotorIds.length} motor → 1 sparepart` : `${bulkMotorIds.length} motor dipilih`)}
                                 </span>
                             </div>
-                            <div className="flex items-center gap-2 w-full sm:w-auto">
+                            <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
                                 <button
                                     type="button"
                                     onClick={() => setShowBulkModal(false)}
-                                    className="flex-1 sm:flex-none px-4 py-2 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 text-xs font-semibold transition cursor-pointer"
+                                    className="px-3 py-2 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 text-xs font-semibold transition cursor-pointer"
                                 >
                                     Batal
                                 </button>
@@ -2297,7 +2286,7 @@ export default function MotorcycleIndex({
                                     ) : (
                                         <>
                                             <FiCheck size={16} />
-                                            <span>Simpan Kompatibilitas Massal</span>
+                                            <span>Simpan</span>
                                         </>
                                     )}
                                 </button>
