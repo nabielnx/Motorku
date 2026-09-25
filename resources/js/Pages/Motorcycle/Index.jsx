@@ -1133,9 +1133,9 @@ export default function MotorcycleIndex({
                 </div>
             )}
 
-            <div className="p-2 sm:p-4 lg:p-5 flex-1 min-h-0 flex flex-col overflow-hidden">
+            <div className="p-1.5 sm:p-4 lg:p-5 flex-1 min-h-0 flex flex-col overflow-hidden">
                 {/* UNIFIED MOTORCYCLE DASHBOARD CONTAINER */}
-                <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs flex-1 min-h-0 flex flex-col overflow-hidden">
+                <div className="bg-white dark:bg-slate-900 rounded-none sm:rounded-xl border-0 sm:border border-slate-200 dark:border-slate-800 shadow-none sm:shadow-xs flex-1 min-h-0 flex flex-col overflow-hidden">
                     {/* Compact Header & Filter Section */}
                     <div className="p-2 sm:p-3.5 space-y-1.5 sm:space-y-2 border-b border-slate-200 dark:border-slate-800 shrink-0 bg-white dark:bg-slate-900 z-10">
                         {/* Top Row: Title, Badge & Actions */}
@@ -1145,7 +1145,7 @@ export default function MotorcycleIndex({
                                 <h1 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight shrink-0">
                                     Daftar Motor
                                 </h1>
-                                <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 shrink-0">
+                                <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 sm:px-2 sm:py-0.5 sm:rounded-full sm:bg-slate-100 dark:sm:bg-slate-800 sm:border border-slate-200 dark:border-slate-700 shrink-0">
                                     {totalMotorItems}
                                 </span>
                             </div>
@@ -1155,7 +1155,7 @@ export default function MotorcycleIndex({
                                 <button
                                     type="button"
                                     onClick={() => openBulkModal()}
-                                    className="px-2 sm:px-3 py-2 sm:py-1.5 bg-white hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition shadow-2xs"
+                                    className="px-1.5 sm:px-3 py-2 sm:py-1.5 bg-transparent sm:bg-white hover:bg-slate-50 dark:sm:bg-slate-800 dark:hover:bg-slate-750 text-slate-600 dark:text-slate-200 border-0 sm:border border-slate-300 dark:border-slate-700 rounded-md sm:rounded-lg text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition sm:shadow-2xs"
                                     title="Atur kompatibilitas sparepart ke banyak motor sekaligus"
                                 >
                                     <FiLayers size={14} className="text-slate-500 dark:text-slate-400" />
@@ -1184,7 +1184,7 @@ export default function MotorcycleIndex({
                                     placeholder="Cari motor..."
                                     value={searchMotor}
                                     onChange={e => { setSearchMotor(e.target.value); setPage(1); }}
-                                    className="w-full pl-9 pr-7 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-sm sm:text-xs font-semibold text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition shadow-2xs"
+                                    className="w-full pl-9 pr-7 py-1.5 bg-transparent sm:bg-white dark:sm:bg-slate-800 border-0 border-b sm:border border-slate-200 dark:border-slate-700 rounded-none sm:rounded-lg text-sm sm:text-xs font-semibold text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-blue-500 sm:focus:ring-2 sm:focus:ring-blue-500 transition sm:shadow-2xs"
                                     aria-label="Cari data motor"
                                 />
                                 {searchMotor && (
@@ -1199,9 +1199,9 @@ export default function MotorcycleIndex({
                                 onClick={() => setShowMotorFilters(value => !value)}
                                 aria-expanded={showMotorFilters}
                                 aria-controls="motor-mobile-filters"
-                                className={`lg:hidden inline-flex items-center gap-1.5 px-2.5 rounded-lg border text-xs font-semibold ${showMotorFilters || activeBrand !== 'semua' || activeType !== 'semua'
-                                    ? 'border-blue-300 bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800'
-                                    : 'border-slate-300 bg-white text-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700'}`}
+                                className={`lg:hidden inline-flex items-center gap-1.5 px-2 py-1.5 rounded-md text-xs font-semibold ${showMotorFilters || activeBrand !== 'semua' || activeType !== 'semua'
+                                    ? 'text-blue-700 dark:text-blue-300'
+                                    : 'text-slate-600 dark:text-slate-200'}`}
                             >
                                 <FiFilter size={13} /> Filter
                                 {(activeBrand !== 'semua' || activeType !== 'semua') && <span>{Number(activeBrand !== 'semua') + Number(activeType !== 'semua')}</span>}
@@ -1212,7 +1212,7 @@ export default function MotorcycleIndex({
                                     value={activeBrand}
                                     onChange={e => { setActiveBrand(e.target.value); setPage(1); }}
                                     aria-label="Filter merek motor"
-                                    className="min-w-0 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1.5 text-sm font-semibold text-slate-700 dark:text-slate-200"
+                                    className="min-w-0 w-full rounded-none border-0 border-b border-slate-200 dark:border-slate-700 bg-transparent px-1 py-1.5 text-sm font-semibold text-slate-700 dark:text-slate-200"
                                 >
                                     <option value="semua">Semua merek</option>
                                     {brands.map(brand => <option key={brand} value={brand}>{brand}</option>)}
@@ -1221,7 +1221,7 @@ export default function MotorcycleIndex({
                                     value={activeType}
                                     onChange={e => { setActiveType(e.target.value); setPage(1); }}
                                     aria-label="Filter tipe motor"
-                                    className="min-w-0 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1.5 text-sm font-semibold text-slate-700 dark:text-slate-200"
+                                    className="min-w-0 w-full rounded-none border-0 border-b border-slate-200 dark:border-slate-700 bg-transparent px-1 py-1.5 text-sm font-semibold text-slate-700 dark:text-slate-200"
                                 >
                                     <option value="semua">Semua tipe</option>
                                     {engineTypes.map(type => <option key={type} value={type}>{getEngineConfig(type).label}</option>)}
@@ -1312,7 +1312,7 @@ export default function MotorcycleIndex({
                                                 <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0 flex-1">
                                                     {/* Thumbnail: Enlarged frame closer to row boundaries with preview modal on click */}
                                                     <div
-                                                        className={`w-12 h-12 sm:w-18 sm:h-18 rounded-lg shrink-0 bg-white dark:bg-slate-800 overflow-hidden flex items-center justify-center border border-slate-200 dark:border-slate-700 shadow-2xs relative group transition ${
+                                                        className={`w-12 h-12 sm:w-18 sm:h-18 rounded-md sm:rounded-lg shrink-0 bg-white dark:bg-slate-800 overflow-hidden flex items-center justify-center border-0 sm:border border-slate-200 dark:border-slate-700 sm:shadow-2xs relative group transition ${
                                                             m.image_url ? 'cursor-pointer hover:border-blue-500 hover:ring-2 hover:ring-blue-500/20' : ''
                                                         }`}
                                                         onClick={(e) => {
@@ -1396,10 +1396,10 @@ export default function MotorcycleIndex({
                                                     <button
                                                         type="button"
                                                         onClick={(e) => { e.stopPropagation(); toggleExpandMotor(m.id); }}
-                                                        className={`inline-flex items-center gap-1.5 p-1.5 md:px-2.5 md:py-1 rounded-md text-xs font-semibold transition border cursor-pointer ${
+                                                        className={`inline-flex items-center gap-1.5 p-1.5 md:px-2.5 md:py-1 rounded-md text-xs font-semibold transition border-0 md:border cursor-pointer ${
                                                             isExpanded
-                                                                ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800'
-                                                                : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-750'
+                                                                ? 'text-blue-700 dark:text-blue-300 md:bg-blue-50 md:border-blue-200 dark:md:bg-blue-950/60 dark:md:border-blue-800'
+                                                                : 'text-slate-500 dark:text-slate-300 md:bg-white dark:md:bg-slate-800 md:border-slate-200 dark:md:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-750'
                                                         }`}
                                                         title={isExpanded ? 'Sembunyikan daftar sparepart' : 'Lihat daftar sparepart kompatibel'}
                                                     >
@@ -1412,9 +1412,9 @@ export default function MotorcycleIndex({
 
                                         {/* EXPANDED PANEL: Seamless Unified Sub-Table */}
                                         {isExpanded && (
-                                            <div className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+                                            <div className="border-t border-slate-100 sm:border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
                                                 {/* Unified Single-Row Control Bar */}
-                                                <div className="px-2 sm:px-4 py-1.5 md:py-2 bg-slate-50/80 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-700/80 flex flex-wrap md:flex-nowrap items-center gap-1.5 md:gap-2">
+                                                <div className="px-2 sm:px-4 py-1 md:py-2 bg-white md:bg-slate-50/80 dark:bg-slate-900 dark:md:bg-slate-800/60 border-b border-slate-100 md:border-slate-200 dark:border-slate-800 flex flex-wrap md:flex-nowrap items-center gap-1.5 md:gap-2">
                                                         {/* Search inside motorcycle parts */}
                                                         <div className="relative flex-1 min-w-0 md:flex-none md:w-44 lg:w-52">
                                                             <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" size={13} />
@@ -1423,7 +1423,7 @@ export default function MotorcycleIndex({
                                                                 placeholder="Cari sparepart..."
                                                                 value={filter.search || ''}
                                                                 onChange={(e) => handleSearchParts(m.id, e.target.value)}
-                                                                className="w-full pl-8 pr-7 py-1.5 text-sm md:text-xs bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-md text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500 font-medium"
+                                                                className="w-full pl-8 pr-7 py-1.5 text-sm md:text-xs bg-transparent md:bg-white dark:md:bg-slate-700 border-0 border-b md:border border-slate-200 dark:border-slate-700 rounded-none md:rounded-md text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 md:focus:ring-1 md:focus:ring-blue-500 font-medium"
                                                                 aria-label={`Cari sparepart untuk ${m.brand} ${m.model}`}
                                                             />
                                                             {filter.search && (
@@ -1442,9 +1442,9 @@ export default function MotorcycleIndex({
                                                             onClick={() => setShowPartsFilters(value => !value)}
                                                             aria-expanded={showPartsFilters}
                                                             aria-controls={`part-filters-${m.id}`}
-                                                            className={`md:hidden inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md border text-xs font-semibold ${showPartsFilters || filter.group !== 'semua' || filter.category !== 'semua' || filter.is_recommended
-                                                                ? 'border-blue-300 bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800'
-                                                                : 'border-slate-300 bg-white text-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700'}`}
+                                                            className={`md:hidden inline-flex items-center gap-1 px-1.5 py-1.5 text-xs font-semibold ${showPartsFilters || filter.group !== 'semua' || filter.category !== 'semua' || filter.is_recommended
+                                                                ? 'text-blue-700 dark:text-blue-300'
+                                                                : 'text-slate-600 dark:text-slate-200'}`}
                                                         >
                                                             <FiFilter size={13} /> Filter
                                                             {(filter.group !== 'semua' || filter.category !== 'semua' || filter.is_recommended) && (
@@ -1468,7 +1468,7 @@ export default function MotorcycleIndex({
                                                                     }));
                                                                     fetchParts(m.id, { group: g, category: 'semua', page: 1 });
                                                                 }}
-                                                                className="w-full md:w-auto py-1.5 pl-2.5 pr-7 text-sm md:text-xs bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-slate-800 dark:text-slate-200 font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
+                                                                className="w-full md:w-auto py-1.5 pl-1 md:pl-2.5 pr-7 text-sm md:text-xs bg-transparent md:bg-white dark:md:bg-slate-800 border-0 border-b md:border border-slate-200 md:border-slate-300 dark:border-slate-700 rounded-none md:rounded-md text-slate-800 dark:text-slate-200 font-semibold focus:outline-none focus:border-blue-500 md:focus:ring-1 md:focus:ring-blue-500 cursor-pointer"
                                                                 title="Filter berdasarkan Grup Part"
                                                                 aria-label="Filter grup sparepart"
                                                             >
@@ -1494,7 +1494,7 @@ export default function MotorcycleIndex({
                                                                     }));
                                                                     fetchParts(m.id, { category: c, page: 1 });
                                                                 }}
-                                                                className="w-full md:w-auto py-1.5 pl-2.5 pr-7 text-sm md:text-xs bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-slate-800 dark:text-slate-200 font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
+                                                                className="w-full md:w-auto py-1.5 pl-1 md:pl-2.5 pr-7 text-sm md:text-xs bg-transparent md:bg-white dark:md:bg-slate-800 border-0 border-b md:border border-slate-200 md:border-slate-300 dark:border-slate-700 rounded-none md:rounded-md text-slate-800 dark:text-slate-200 font-semibold focus:outline-none focus:border-blue-500 md:focus:ring-1 md:focus:ring-blue-500 cursor-pointer"
                                                                 title="Filter berdasarkan Jenis Part"
                                                                 aria-label="Filter jenis sparepart"
                                                             >
@@ -1522,10 +1522,10 @@ export default function MotorcycleIndex({
                                                                 }));
                                                                 fetchParts(m.id, { is_recommended: nextRec, page: 1 });
                                                             }}
-                                                            className={`col-span-2 w-full md:w-auto py-1.5 px-2.5 rounded-md text-xs font-semibold flex items-center justify-center gap-1.5 transition border shrink-0 cursor-pointer ${
+                                                            className={`col-span-2 w-full md:w-auto py-1.5 px-2.5 rounded-md text-xs font-semibold flex items-center justify-center gap-1.5 transition border-0 md:border shrink-0 cursor-pointer ${
                                                                 filter.is_recommended
-                                                                    ? 'bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-700 shadow-2xs'
-                                                                    : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-750'
+                                                                    ? 'text-amber-700 dark:text-amber-300 md:bg-amber-50 md:border-amber-300 dark:md:bg-amber-950/60 dark:md:border-amber-700 md:shadow-2xs'
+                                                                    : 'text-slate-600 dark:text-slate-300 md:bg-white dark:md:bg-slate-800 md:border-slate-300 dark:md:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-750'
                                                             }`}
                                                             title="Filter sparepart rekomendasi"
                                                         >
@@ -1543,7 +1543,7 @@ export default function MotorcycleIndex({
                                                                 setPartFormData({ product_id: '', part_category: 'oli_mesin', notes: '', is_recommended: false });
                                                                 setPartFormErrors({});
                                                             }}
-                                                            className="text-xs bg-green-500 hover:bg-green-600 active:scale-95 text-white px-2 py-1.5 md:px-3 rounded-md font-bold flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer transition"
+                                                            className="text-xs bg-green-500 hover:bg-green-600 active:scale-95 text-white px-2 py-1.5 md:px-3 rounded-md font-bold flex items-center justify-center gap-1.5 cursor-pointer transition"
                                                             title="Tambah sparepart baru ke motor ini"
                                                             aria-label="Tambah sparepart"
                                                         >
@@ -1604,7 +1604,7 @@ export default function MotorcycleIndex({
                                                                                     image_url: getProductImage(part.product?.image_path, part.product?.category?.name)
                                                                                 });
                                                                             }}
-                                                                            className="w-10 h-10 rounded-md shrink-0 border border-slate-200/80 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 overflow-hidden flex items-center justify-center cursor-pointer hover:border-blue-500 hover:shadow-xs transition group"
+                                                                            className="w-10 h-10 rounded-md shrink-0 border-0 md:border border-slate-200/80 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 overflow-hidden flex items-center justify-center cursor-pointer hover:border-blue-500 hover:shadow-xs transition group"
                                                                             title="Klik untuk melihat foto sparepart resolusi penuh"
                                                                         >
                                                                             <img
@@ -1704,7 +1704,7 @@ export default function MotorcycleIndex({
 
                                                 {/* Unified Bottom Pagination Bar */}
                                                 {(currentMotorParts.total || 0) > 0 && (
-                                                    <div className="px-2.5 sm:px-4 py-2 bg-slate-50/80 dark:bg-slate-850 border-t border-slate-200 dark:border-slate-700 flex flex-wrap items-center justify-between gap-2 text-xs">
+                                                    <div className="px-2.5 sm:px-4 py-1.5 sm:py-2 bg-white sm:bg-slate-50/80 dark:bg-slate-900 dark:sm:bg-slate-850 border-t border-slate-100 sm:border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2 text-xs">
                                                         <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 font-medium min-w-0">
                                                             <span className="hidden sm:inline">
                                                                 Menampilkan {currentMotorParts.from || 1} - {currentMotorParts.to || currentMotorParts.total} dari {currentMotorParts.total} sparepart
@@ -1720,7 +1720,7 @@ export default function MotorcycleIndex({
                                                                     }));
                                                                     fetchParts(m.id, { per_page: pp, page: 1 });
                                                                 }}
-                                                                className="pl-2 pr-6 py-1 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs font-bold text-slate-800 dark:text-slate-200 focus:outline-none cursor-pointer"
+                                                                className="pl-1 sm:pl-2 pr-5 sm:pr-6 py-1 bg-transparent sm:bg-white dark:sm:bg-slate-800 border-0 sm:border border-slate-300 dark:border-slate-700 rounded-none sm:rounded-md text-xs font-bold text-slate-700 dark:text-slate-200 focus:outline-none cursor-pointer"
                                                                 aria-label="Jumlah sparepart per halaman"
                                                             >
                                                                 <option value={5}>5 / hal</option>
@@ -1734,19 +1734,19 @@ export default function MotorcycleIndex({
                                                                 type="button"
                                                                 onClick={() => fetchParts(m.id, { page: Math.max((currentMotorParts.current_page || 1) - 1, 1) })}
                                                                 disabled={(currentMotorParts.current_page || 1) <= 1}
-                                                                className="p-2 sm:px-3.5 sm:py-1.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-200 transition border border-slate-300 dark:border-slate-700 shadow-2xs cursor-pointer"
+                                                                className="p-2 sm:px-3.5 sm:py-1.5 bg-transparent sm:bg-white dark:sm:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 rounded-md sm:rounded-lg text-xs font-bold text-slate-600 dark:text-slate-200 transition border-0 sm:border border-slate-300 dark:border-slate-700 sm:shadow-2xs cursor-pointer"
                                                                 aria-label="Halaman sparepart sebelumnya"
                                                             >
                                                                 <FiChevronLeft className="sm:hidden" size={15} /><span className="hidden sm:inline">Sebelumnya</span>
                                                             </button>
-                                                            <span className="px-2 sm:px-3 py-1 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-xs font-bold text-slate-800 dark:text-slate-200 whitespace-nowrap">
+                                                            <span className="px-1 sm:px-3 py-1 bg-transparent sm:bg-slate-100 dark:sm:bg-slate-800 border-0 sm:border border-slate-300 dark:border-slate-700 rounded-none sm:rounded-lg text-xs font-bold text-slate-700 dark:text-slate-200 whitespace-nowrap">
                                                                 {currentMotorParts.current_page || 1} / {currentMotorParts.last_page || 1}
                                                             </span>
                                                             <button
                                                                 type="button"
                                                                 onClick={() => fetchParts(m.id, { page: Math.min((currentMotorParts.current_page || 1) + 1, currentMotorParts.last_page || 1) })}
                                                                 disabled={(currentMotorParts.current_page || 1) >= (currentMotorParts.last_page || 1)}
-                                                                className="p-2 sm:px-3.5 sm:py-1.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-200 transition border border-slate-300 dark:border-slate-700 shadow-2xs cursor-pointer"
+                                                                className="p-2 sm:px-3.5 sm:py-1.5 bg-transparent sm:bg-white dark:sm:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 rounded-md sm:rounded-lg text-xs font-bold text-slate-600 dark:text-slate-200 transition border-0 sm:border border-slate-300 dark:border-slate-700 sm:shadow-2xs cursor-pointer"
                                                                 aria-label="Halaman sparepart berikutnya"
                                                             >
                                                                 <FiChevronRight className="sm:hidden" size={15} /><span className="hidden sm:inline">Selanjutnya</span>
@@ -1772,18 +1772,18 @@ export default function MotorcycleIndex({
                                     <button
                                         onClick={() => setPage(prev => Math.max(prev - 1, 1))}
                                         disabled={page <= 1}
-                                        className="p-2 sm:px-3.5 sm:py-1.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-200 transition border border-slate-300 dark:border-slate-700 shadow-2xs cursor-pointer"
+                                        className="p-2 sm:px-3.5 sm:py-1.5 bg-transparent sm:bg-white dark:sm:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 rounded-md sm:rounded-lg text-xs font-bold text-slate-600 dark:text-slate-200 transition border-0 sm:border border-slate-300 dark:border-slate-700 sm:shadow-2xs cursor-pointer"
                                         aria-label="Halaman motor sebelumnya"
                                     >
                                         <FiChevronLeft className="sm:hidden" size={15} /><span className="hidden sm:inline">Sebelumnya</span>
                                     </button>
-                                    <span className="px-2 sm:px-3 py-1 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-xs font-bold text-slate-800 dark:text-slate-200 whitespace-nowrap">
+                                    <span className="px-1 sm:px-3 py-1 bg-transparent sm:bg-slate-100 dark:sm:bg-slate-800 border-0 sm:border border-slate-300 dark:border-slate-700 rounded-none sm:rounded-lg text-xs font-bold text-slate-700 dark:text-slate-200 whitespace-nowrap">
                                         {page} / {totalMotorPages}
                                     </span>
                                     <button
                                         onClick={() => setPage(prev => Math.min(prev + 1, totalMotorPages))}
                                         disabled={page >= totalMotorPages}
-                                        className="p-2 sm:px-3.5 sm:py-1.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-200 transition border border-slate-300 dark:border-slate-700 shadow-2xs cursor-pointer"
+                                        className="p-2 sm:px-3.5 sm:py-1.5 bg-transparent sm:bg-white dark:sm:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 rounded-md sm:rounded-lg text-xs font-bold text-slate-600 dark:text-slate-200 transition border-0 sm:border border-slate-300 dark:border-slate-700 sm:shadow-2xs cursor-pointer"
                                         aria-label="Halaman motor berikutnya"
                                     >
                                         <FiChevronRight className="sm:hidden" size={15} /><span className="hidden sm:inline">Selanjutnya</span>
