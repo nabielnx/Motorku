@@ -40,7 +40,7 @@ Jadikan job CI `test-and-build` sebagai required status check untuk PR ke `devel
 
 ## Menyiapkan server
 
-Deploy staging dan production nonaktif secara default. Masing-masing butuh instalasi Laravel sendiri dengan domain HTTPS, `.env`, `APP_KEY`, database MySQL, dan storage terpisah. Web server menunjuk ke direktori `public`. Direktori project harus sudah ada dengan `.env` dan `storage` sebelum workflow deploy pertama dijalankan. Server perlu akses SSH, PHP 8.3, dan perintah Artisan. Gunakan DOKU sandbox di staging. Jangan commit `.env`.
+Deploy staging dan production nonaktif secara default. Masing-masing butuh instalasi Laravel sendiri dengan domain HTTPS, `.env`, `APP_KEY`, database MySQL, dan storage terpisah. Web server menunjuk ke direktori `public`. Direktori project harus sudah ada dengan `.env` dan `storage` sebelum workflow deploy pertama dijalankan. Server perlu akses SSH, PHP 8.3 dengan ekstensi GD untuk konversi gambar produk ke WebP, dan perintah Artisan. Gunakan DOKU sandbox di staging. Jangan commit `.env`.
 
 Isi repository variables di GitHub Settings → Secrets and variables → Actions:
 
