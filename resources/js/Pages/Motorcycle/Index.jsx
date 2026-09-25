@@ -1587,7 +1587,7 @@ export default function MotorcycleIndex({
                                                             return (
                                                                 <div
                                                                     key={part.id}
-                                                                    className="px-2.5 sm:px-4 py-2.5 hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition grid grid-cols-[minmax(0,1fr)_auto_auto] md:grid-cols-12 md:items-center gap-x-2 gap-y-1.5 md:gap-3 text-xs"
+                                                                    className="px-2.5 sm:px-4 pt-2.5 pb-1 md:py-2.5 hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition grid grid-cols-[minmax(0,1fr)_auto_auto] md:grid-cols-12 md:items-center gap-x-2 gap-y-1.5 md:gap-3 text-xs"
                                                                 >
                                                                     {/* Col 1 (5 cols): Thumbnail & Product Info */}
                                                                     <div className="col-span-3 md:col-span-5 flex items-center gap-2.5 md:gap-3 min-w-0">
@@ -1703,7 +1703,7 @@ export default function MotorcycleIndex({
                                                 )}
 
                                                 {/* Unified Bottom Pagination Bar */}
-                                                {(currentMotorParts.total || 0) > 0 && (
+                                                {(currentMotorParts.total || 0) > 5 && (
                                                     <div className="px-2.5 sm:px-4 py-1.5 sm:py-2 bg-white sm:bg-slate-50/80 dark:bg-slate-900 dark:sm:bg-slate-850 border-t border-slate-100 sm:border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2 text-xs">
                                                         <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 font-medium min-w-0">
                                                             <span className="hidden sm:inline">
@@ -1729,7 +1729,7 @@ export default function MotorcycleIndex({
                                                             </select>
                                                         </div>
 
-                                                        <div className="flex items-center gap-1 sm:gap-2">
+                                                        {(currentMotorParts.last_page || 1) > 1 && <div className="flex items-center gap-1 sm:gap-2">
                                                             <button
                                                                 type="button"
                                                                 onClick={() => fetchParts(m.id, { page: Math.max((currentMotorParts.current_page || 1) - 1, 1) })}
@@ -1751,7 +1751,7 @@ export default function MotorcycleIndex({
                                                             >
                                                                 <FiChevronRight className="sm:hidden" size={15} /><span className="hidden sm:inline">Selanjutnya</span>
                                                             </button>
-                                                        </div>
+                                                        </div>}
                                                     </div>
                                                 )}
                                             </div>
