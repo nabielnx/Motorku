@@ -289,6 +289,30 @@ class MotorcycleManagementTest extends TestCase
         ]);
     }
 
+    public function test_bulk_attach_connects_every_selected_motor_and_sparepart(): void
+    {
+        $m1 = Motorcycle::create(['brand' => 'Honda', 'model' => 'Beat 2020', 'slug' => 'honda-beat-2020', 'year_start' => 2020, 'engine_cc' => 110, 'engine_type' => 'matic']);
+        $m2 = Motorcycle::create(['brand' => 'Yamaha', 'model' => 'Mio 2020', 'slug' => 'yamaha-mio-2020', 'year_start' => 2020, 'engine_cc' => 110, 'engine_type' => 'matic']);
+        $p1 = Product::factory()->create(['name' => 'Oli Mesin', 'category_id' => $this->category->id]);
+        $p2 = Product::factory()->create(['name' => 'Busi', 'category_id' => $this->category->id]);
+
+        $this->actingAs($this->user)->postJson('/motorcycles/bulk-attach', [
+            'motorcycle_ids' => [$m1->id],
+            'product_ids' => [$p1->id],
+            'part_category' => 'auto',
+        ])->assertOk();
+
+        $this->actingAs($this->user)->postJson('/motorcycles/bulk-attach', [
+            'motorcycle_ids' => [$m1->id, $m2->id],
+            'product_ids' => [$p1->id, $p2->id],
+            'part_category' => 'auto',
+        ])->assertOk()->assertJsonPath('data.attached', 3)
+            ->assertJsonPath('data.skipped', 1)
+            ->assertJsonPath('data.total', 4);
+
+        $this->assertDatabaseCount('motorcycle_parts', 4);
+    }
+
     public function test_can_bulk_attach_parts_mode_one_product_to_many_motors(): void
     {
         $m1 = Motorcycle::create(['brand' => 'Honda', 'model' => 'Beat 2020', 'slug' => 'honda-beat-2020', 'year_start' => 2020, 'engine_cc' => 110, 'engine_type' => 'matic']);
