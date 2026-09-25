@@ -71,6 +71,10 @@ composer test
 npm run build
 ```
 
+## Alur GitHub
+
+Fitur dibuat dari `develop`, diuji lewat Pull Request ke `develop`, lalu dirilis lewat Pull Request `develop` ke `main`. Staging berjalan setelah CI `develop` lulus; production dijalankan manual setelah server siap. Langkah lengkap ada di [panduan alur GitHub](docs/GITHUB_WORKFLOW.md).
+
 ## Role
 
 - `owner`: akses penuh, laporan, inventory, user, settings, dan manajemen motor

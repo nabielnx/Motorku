@@ -22,6 +22,20 @@ Hanya gabungkan fitur yang siap ikut rilis ke `develop`: PR `develop` ke `main` 
 4. Saat semua perubahan di `develop` siap dirilis, buka PR `develop` ke `main`. Pastikan CI lulus, lalu gabungkan.
 5. Cadangkan database production. Jalankan workflow **Deploy production** secara manual dari branch `main` dengan versi seperti `v1.0.0`. Tag dibuat setelah health check berhasil.
 
+Contoh memulai pekerjaan baru:
+
+```bash
+git switch develop
+git pull origin develop
+git switch -c feat/nama-fitur
+# setelah perubahan selesai dan dites:
+git add .
+git commit -m "feat: jelaskan perubahan"
+git push -u origin feat/nama-fitur
+```
+
+Di GitHub, buat PR dari `feat/nama-fitur` ke `develop`. Setelah PR digabungkan, ambil ulang `develop` sebelum membuat branch fitur berikutnya.
+
 Jadikan job CI `test-and-build` sebagai required status check untuk PR ke `develop` dan `main` setelah job pertama terlihat di GitHub. Jangan aktifkan auto-merge atau auto-deploy production sebelum proses rilis terbukti berjalan.
 
 ## Menyiapkan server
