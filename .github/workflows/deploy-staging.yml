@@ -1,7 +1,9 @@
 name: Deploy staging
 
 on:
-  push:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
     branches: [develop]
 
 permissions:
@@ -13,7 +15,7 @@ concurrency:
 
 jobs:
   deploy:
-    if: vars.STAGING_DEPLOY_ENABLED == 'true'
+    if: github.event.workflow_run.event == 'push' && github.event.workflow_run.conclusion == 'success' && vars.STAGING_DEPLOY_ENABLED == 'true'
     runs-on: ubuntu-latest
     env:
       DEPLOY_PATH: ${{ vars.STAGING_DEPLOY_PATH }}
@@ -30,6 +32,8 @@ jobs:
           case "$DEPLOY_PATH" in /*) ;; *) exit 1 ;; esac
           case "$APP_URL" in https://*) ;; *) exit 1 ;; esac
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
