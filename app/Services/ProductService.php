@@ -5,7 +5,11 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\Product;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Intervention\Image\ImageManager;
+use RuntimeException;
 
 class ProductService
 {
@@ -73,7 +77,7 @@ class ProductService
     public function createProduct(array $data)
     {
         if (isset($data['image'])) {
-            $data['image_path'] = $data['image']->store('products', 'public');
+            $data['image_path'] = $this->storeProductImage($data['image']);
             unset($data['image']);
         }
 
@@ -92,7 +96,7 @@ class ProductService
 
         if (isset($data['image'])) {
             $oldImagePath = $product->image_path;
-            $data['image_path'] = $data['image']->store('products', 'public');
+            $data['image_path'] = $this->storeProductImage($data['image']);
             unset($data['image']);
         }
         if (isset($product->sync_version)) {
@@ -105,6 +109,18 @@ class ProductService
         }
 
         return $product;
+    }
+
+    private function storeProductImage(UploadedFile $file): string
+    {
+        $path = 'products/'.Str::uuid().'.webp';
+        $image = ImageManager::gd()->read($file->getRealPath())->toWebp(quality: 82, strip: true);
+
+        if (! Storage::disk('public')->put($path, (string) $image)) {
+            throw new RuntimeException('Gagal menyimpan gambar produk.');
+        }
+
+        return $path;
     }
 
     public function deleteProduct($id)
@@ -135,7 +151,7 @@ class ProductService
             // 2. Alphanumeric normalized match (e.g. 'mpx2' matches 'MPX 2', 'vbelt' matches 'V-Belt')
             if (strlen($cleanSearch) >= 2) {
                 $q->orWhereRaw("REPLACE(REPLACE(REPLACE(REPLACE(name, ' ', ''), '-', ''), '.', ''), '/', '') LIKE ?", ["%{$cleanSearch}%"])
-                  ->orWhereRaw("REPLACE(REPLACE(REPLACE(REPLACE(sku, ' ', ''), '-', ''), '.', ''), '/', '') LIKE ?", ["%{$cleanSearch}%"]);
+                    ->orWhereRaw("REPLACE(REPLACE(REPLACE(REPLACE(sku, ' ', ''), '-', ''), '.', ''), '/', '') LIKE ?", ["%{$cleanSearch}%"]);
             }
 
             // 3. Multi-token matching if query contains multiple words
@@ -145,7 +161,7 @@ class ProductService
                         $tokenClean = preg_replace('/[^a-zA-Z0-9]/', '', $token);
                         $subQ->where(function ($tQ) use ($token, $tokenClean) {
                             $tQ->where('name', 'like', "%{$token}%")
-                               ->orWhere('sku', 'like', "%{$token}%");
+                                ->orWhere('sku', 'like', "%{$token}%");
                             if (strlen($tokenClean) >= 2) {
                                 $tQ->orWhereRaw("REPLACE(REPLACE(REPLACE(REPLACE(name, ' ', ''), '-', ''), '.', ''), '/', '') LIKE ?", ["%{$tokenClean}%"]);
                             }

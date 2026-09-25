@@ -5,7 +5,10 @@ namespace Tests\Feature\Product;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\User;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class ProductCrudTest extends TestCase
@@ -13,13 +16,15 @@ class ProductCrudTest extends TestCase
     use RefreshDatabase;
 
     private User $owner;
+
     private User $cashier;
+
     private Category $category;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $this->seed(RoleSeeder::class);
 
         $this->owner = User::factory()->create();
         $this->owner->assignRole('owner');
@@ -40,9 +45,9 @@ class ProductCrudTest extends TestCase
     public function test_owner_can_create_product(): void
     {
         $response = $this->actingAs($this->owner)->postJson('/api/products', [
-            'name'        => 'Ayam Goreng',
-            'sku'         => 'AYAM-GORENG',
-            'price'       => 25000,
+            'name' => 'Ayam Goreng',
+            'sku' => 'AYAM-GORENG',
+            'price' => 25000,
             'category_id' => $this->category->id,
         ]);
 
@@ -50,10 +55,46 @@ class ProductCrudTest extends TestCase
         $this->assertDatabaseHas('products', ['name' => 'Ayam Goreng']);
     }
 
+    public function test_uploaded_jpeg_is_stored_as_webp(): void
+    {
+        Storage::fake('public');
+
+        $this->actingAs($this->owner)->post('/api/products', [
+            'name' => 'Ban IRC',
+            'sku' => 'BAN-IRC',
+            'price' => 25000,
+            'category_id' => $this->category->id,
+            'image' => UploadedFile::fake()->image('ban.jpg', 40, 30),
+        ], ['Accept' => 'application/json'])->assertCreated();
+
+        $path = Product::where('sku', 'BAN-IRC')->firstOrFail()->image_path;
+        $this->assertStringEndsWith('.webp', $path);
+        Storage::disk('public')->assertExists($path);
+        $this->assertSame('image/webp', getimagesizefromstring(Storage::disk('public')->get($path))['mime']);
+    }
+
+    public function test_replacing_product_image_stores_webp_and_removes_old_file(): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put('products/old.jpg', 'old image');
+        $product = Product::factory()->create(['image_path' => 'products/old.jpg']);
+
+        $this->actingAs($this->owner)->post("/api/products/{$product->id}", [
+            '_method' => 'PUT',
+            'image' => UploadedFile::fake()->image('replacement.png', 40, 30),
+        ], ['Accept' => 'application/json'])->assertOk();
+
+        $path = $product->fresh()->image_path;
+        $this->assertStringEndsWith('.webp', $path);
+        Storage::disk('public')->assertExists($path);
+        Storage::disk('public')->assertMissing('products/old.jpg');
+        $this->assertSame('image/webp', getimagesizefromstring(Storage::disk('public')->get($path))['mime']);
+    }
+
     public function test_cashier_cannot_create_product(): void
     {
         $response = $this->actingAs($this->cashier)->postJson('/api/products', [
-            'name'  => 'Produk Ilegal',
+            'name' => 'Produk Ilegal',
             'price' => 99999,
         ]);
         $response->assertStatus(403);
@@ -61,7 +102,7 @@ class ProductCrudTest extends TestCase
 
     public function test_owner_can_update_product(): void
     {
-        $product  = Product::factory()->create();
+        $product = Product::factory()->create();
         $response = $this->actingAs($this->owner)
             ->putJson("/api/products/{$product->id}", ['name' => 'Ayam Bakar']);
 
@@ -83,7 +124,7 @@ class ProductCrudTest extends TestCase
 
     public function test_owner_can_delete_product(): void
     {
-        $product  = Product::factory()->create();
+        $product = Product::factory()->create();
         $response = $this->actingAs($this->owner)
             ->deleteJson("/api/products/{$product->id}");
 
@@ -94,18 +135,18 @@ class ProductCrudTest extends TestCase
     public function test_owner_can_create_product_with_custom_stock_and_minimum_stock(): void
     {
         $response = $this->actingAs($this->owner)->postJson('/api/products', [
-            'name'          => 'Kampas Rem Vario',
-            'sku'           => 'KMP-VARIO-01',
-            'price'         => 35000,
-            'category_id'   => $this->category->id,
-            'stock'         => 15,
+            'name' => 'Kampas Rem Vario',
+            'sku' => 'KMP-VARIO-01',
+            'price' => 35000,
+            'category_id' => $this->category->id,
+            'stock' => 15,
             'minimum_stock' => 5,
         ]);
 
         $response->assertStatus(201);
         $this->assertDatabaseHas('products', [
-            'name'          => 'Kampas Rem Vario',
-            'stock'         => 15,
+            'name' => 'Kampas Rem Vario',
+            'stock' => 15,
             'minimum_stock' => 5,
         ]);
     }
@@ -119,13 +160,13 @@ class ProductCrudTest extends TestCase
     public function test_owner_can_filter_products_by_stock_status(): void
     {
         Product::factory()->create([
-            'category_id'   => $this->category->id,
-            'stock'         => 1,
+            'category_id' => $this->category->id,
+            'stock' => 1,
             'minimum_stock' => 5,
         ]);
         Product::factory()->create([
-            'category_id'   => $this->category->id,
-            'stock'         => 50,
+            'category_id' => $this->category->id,
+            'stock' => 50,
             'minimum_stock' => 5,
         ]);
 
