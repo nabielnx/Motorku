@@ -19,6 +19,8 @@ use Illuminate\Validation\ValidationException;
 
 class OrderService
 {
+    private const ACTIVE_STATUSES = ['pending', 'preparing', 'ready'];
+
     public function __construct(
         protected InventoryService $inventoryService,
         protected PaymentService $paymentService
@@ -49,7 +51,7 @@ class OrderService
         $query = Order::with(['items', 'cashier', 'payments'])->withSum('returns', 'amount')->latest();
 
         if ($status === 'action') {
-            $query->whereIn('order_status', ['pending', 'preparing', 'ready']);
+            $query->whereIn('order_status', self::ACTIVE_STATUSES);
         } elseif ($status && $status !== 'All') {
             $query->where('order_status', $status);
         }
@@ -78,6 +80,7 @@ class OrderService
                     'id' => $order->order_number ?: substr($order->id, 0, 8),
                     'real_id' => $order->id,
                     'customer' => $order->customer_name ?: 'Walk-in Guest',
+                    'channel' => $order->customer_access_token ? 'Online' : ($order->order_status === OrderStatus::Completed ? 'POS' : 'Kasir'),
                     'type' => 'Ambil di Toko',
                     'table' => '-',
                     'items' => $order->items ? $order->items->sum('quantity') : 0,
@@ -98,6 +101,11 @@ class OrderService
                     'date' => $order->created_at ? $order->created_at->timezone('Asia/Jakarta')->format('d M Y') : '-',
                 ];
             });
+    }
+
+    public function countActiveOrders(): int
+    {
+        return Order::whereIn('order_status', self::ACTIVE_STATUSES)->count();
     }
 
     public function getAllOrders(?int $perPage = null, ?string $status = null, ?string $search = null)

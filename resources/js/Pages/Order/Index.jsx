@@ -8,6 +8,7 @@ import {
     FiEye, 
     FiEdit2, 
     FiPrinter, 
+    FiRefreshCw,
     FiChevronLeft, 
     FiChevronRight,
     FiClock, 
@@ -83,18 +84,19 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
         if (newPage < 1 || newPage > totalPages) return;
         router.get('/orders', {
             page: newPage,
-            status: statusFilter !== 'All' ? statusFilter : undefined,
-            date: dateFilter !== 'all' ? dateFilter : undefined,
+            status: statusFilter,
+            date: statusFilter === 'All' && dateFilter !== 'all' ? dateFilter : undefined,
             search: searchQuery || undefined,
         }, { preserveState: true, preserveScroll: true });
     };
 
     const handleFilterChange = (newStatus) => {
         setStatusFilter(newStatus);
+        if (newStatus === 'action') setDateFilter('all');
         router.get('/orders', {
             page: 1,
-            status: newStatus !== 'All' ? newStatus : undefined,
-            date: dateFilter !== 'all' ? dateFilter : undefined,
+            status: newStatus,
+            date: newStatus === 'All' && dateFilter !== 'all' ? dateFilter : undefined,
             search: searchQuery || undefined,
         }, { preserveState: true, preserveScroll: true });
     };
@@ -103,7 +105,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
         setDateFilter(newDate);
         router.get('/orders', {
             page: 1,
-            status: statusFilter !== 'All' ? statusFilter : undefined,
+            status: statusFilter,
             date: newDate !== 'all' ? newDate : undefined,
             search: searchQuery || undefined,
         }, { preserveState: true, preserveScroll: true });
@@ -125,23 +127,20 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
         const t = setTimeout(() => {
             router.get('/orders', {
                 page: 1,
-                status: statusFilterRef.current !== 'All' ? statusFilterRef.current : undefined,
-                date: dateFilterRef.current !== 'all' ? dateFilterRef.current : undefined,
+                status: statusFilterRef.current,
+                date: statusFilterRef.current === 'All' && dateFilterRef.current !== 'all' ? dateFilterRef.current : undefined,
                 search: searchQuery || undefined,
             }, { preserveState: true, preserveScroll: true });
         }, 400);
         return () => clearTimeout(t);
     }, [searchQuery]);
 
-    useEffect(() => {
-        const poll = window.setInterval(() => {
-            if (document.visibilityState === 'visible') {
-                router.reload({ only: ['initialOrders', 'summary'], preserveScroll: true, preserveState: true });
-            }
-        }, 5000);
-
-        return () => window.clearInterval(poll);
-    }, []);
+    const refreshOrders = () => router.get('/orders', {
+        page: currentPage,
+        status: statusFilter,
+        date: statusFilter === 'All' && dateFilter !== 'all' ? dateFilter : undefined,
+        search: searchQuery || undefined,
+    }, { preserveState: true, preserveScroll: true });
 
     // Keyboard shortcut (Ctrl+F or Cmd+F) to focus search
     useEffect(() => {
@@ -195,15 +194,15 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
         if (orderStatus === 'pending') {
             if (isPaid) {
                 return {
-                    primary: { label: 'Menunggu', color: 'bg-slate-600 text-white', icon: FiClock },
+                    primary: { label: 'Siap diproses', color: 'bg-slate-600 text-white', icon: FiClock },
                     secondary: { label: 'LUNAS', color: 'bg-emerald-600 text-white shadow-2xs' },
                     tooltip: 'Pembayaran sudah diterima, pesanan menunggu diproses',
                 };
             }
             return {
-                primary: { label: 'Menunggu', color: 'bg-slate-600 text-white', icon: FiClock },
-                secondary: { label: 'BELUM BAYAR', color: 'bg-amber-500 text-white shadow-2xs' },
-                tooltip: 'Pesanan baru, belum dibayar',
+                primary: { label: 'Konfirmasi bayar', color: 'bg-amber-100 text-amber-900 dark:bg-amber-900/40 dark:text-amber-200', icon: FiClock },
+                secondary: null,
+                tooltip: 'Pastikan pembayaran diterima sebelum pesanan diproses',
             };
         }
 
@@ -236,8 +235,8 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
         };
     };
 
-    const statuses = ['action', 'All', 'pending', 'preparing', 'ready', 'completed', 'cancelled'];
-    const statusLabel = (status) => status === 'action' ? 'Perlu Ditindak' : status === 'All' ? 'Semua' : (statusConfig[status]?.label || status);
+    const statuses = ['action', 'All'];
+    const statusLabel = (status) => status === 'action' ? 'Perlu Ditangani' : 'Semua Transaksi';
 
     const PENDING_BUCKET = ['pending'];
     const PROCESSING_BUCKET = ['preparing', 'processing'];
@@ -275,6 +274,9 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
             if (wasProcessing && !isProcessing) {
                 next.processing_count = Math.max(0, (next.processing_count || 0) - 1);
             }
+            if (prevStatus === 'ready' && nextStatus === 'completed') {
+                next.active_count = Math.max(0, (next.active_count || 0) - 1);
+            }
             return next;
         });
 
@@ -284,6 +286,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
             await axios.patch(`/api/orders/${orderId}/status`, { status: nextStatus });
             const nextLabel = statusConfig[nextStatus]?.label || nextStatus;
             toast.success(`Status pesanan ${order.id} diubah ke ${nextLabel}`);
+            refreshOrders();
         } catch (err) {
             // 3. ROLLBACK GANDA JIKA GAGAL (Baris Tabel & Card Summary)
             setOrders(prev => (Array.isArray(prev) ? prev : []).map(o => (o.real_id || o.id) === orderId ? { ...o, status: prevStatus } : o));
@@ -348,8 +351,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
 
     const todayOrderCount = summaryData.today_order_count ?? totalItems;
     const todayOrderValue = summaryData.today_order_value ?? 0;
-    const pendingCount = summaryData.pending_count ?? 0;
-    const processingCount = summaryData.processing_count ?? 0;
+    const activeCount = summaryData.active_count ?? 0;
 
     const getNextStatusAction = (order) => {
         if (order.status === 'pending') return { nextStatus: 'preparing', label: 'Proses' };
@@ -374,18 +376,14 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                         <strong className="text-sm text-slate-900 dark:text-white">{todayOrderCount} pesanan</strong>
                         <strong className="ml-auto text-sm text-slate-900 dark:text-white">{formatRp(todayOrderValue)}</strong>
                     </div>
-                    <div className="mt-1 flex gap-4">
-                        <span>Menunggu <strong className="text-slate-900 dark:text-white">{pendingCount}</strong></span>
-                        <span>Diproses <strong className="text-slate-900 dark:text-white">{processingCount}</strong></span>
-                    </div>
+                    <div className="mt-1">Perlu ditangani <strong className="text-slate-900 dark:text-white">{activeCount}</strong></div>
                 </div>
 
                 {/* Desktop summary */}
                 <div className="hidden sm:flex flex-wrap items-center gap-x-8 gap-y-2 border-b border-slate-200 dark:border-slate-800 px-1 pb-3 text-sm text-slate-500 dark:text-slate-400">
                     <span>Hari ini <strong className="ml-1 text-slate-900 dark:text-white">{todayOrderCount} pesanan</strong></span>
                     <span>Nilai <strong className="ml-1 text-slate-900 dark:text-white">{formatRp(todayOrderValue)}</strong></span>
-                    <span>Menunggu <strong className="ml-1 text-slate-900 dark:text-white">{pendingCount}</strong></span>
-                    <span>Diproses <strong className="ml-1 text-slate-900 dark:text-white">{processingCount}</strong></span>
+                    <span>Perlu ditangani <strong className="ml-1 text-slate-900 dark:text-white">{activeCount}</strong></span>
                 </div>
 
                 {/* Main Transaction Panel */}
@@ -393,7 +391,12 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                     
                     {/* Unified Control Bar */}
                     <div className="p-3 sm:p-4 border-b border-slate-200 dark:border-slate-800 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-2 sm:gap-3 sm:bg-slate-50/50 dark:sm:bg-slate-800/50">
-                        <h3 className="text-sm sm:text-base font-black text-slate-900 dark:text-white shrink-0">Pesanan</h3>
+                        <div className="flex w-full items-center justify-between gap-2 lg:w-auto">
+                            <h3 className="text-sm sm:text-base font-black text-slate-900 dark:text-white shrink-0">Pesanan</h3>
+                            <button type="button" onClick={refreshOrders} aria-label="Muat ulang pesanan" title="Muat ulang pesanan" className="rounded-md p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white">
+                                <FiRefreshCw size={15} />
+                            </button>
+                        </div>
                         
                         <div className="flex w-full flex-wrap items-center gap-2 lg:w-auto">
                             {/* Filter Tabs */}
@@ -421,7 +424,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                                 value={statusFilter}
                                 onChange={(e) => handleFilterChange(e.target.value)}
                                 aria-label="Filter status pesanan"
-                                className="sm:hidden w-36 shrink-0 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-0 focus:border-slate-400"
+                                className="sm:hidden w-40 shrink-0 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-0 focus:border-slate-400"
                             >
                                 {statuses.map(s => <option key={s} value={s}>{statusLabel(s)}</option>)}
                             </select>
@@ -439,7 +442,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                                 />
                             </div>
 
-                            <select
+                            {statusFilter === 'All' && <select
                                 value={dateFilter}
                                 onChange={(e) => handleDateFilterChange(e.target.value)}
                                 aria-label="Filter tanggal pesanan"
@@ -448,7 +451,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                                 <option value="all">Semua tanggal</option>
                                 <option value="today">Hari ini</option>
                                 <option value="week">7 hari terakhir</option>
-                            </select>
+                            </select>}
                         </div>
                     </div>
 
@@ -470,7 +473,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                                         </div>
                                         <strong className="shrink-0 text-sm text-slate-900 dark:text-white">{formatRp(order.total)}</strong>
                                     </div>
-                                    <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">{order.date} · {order.time} · {order.items} item</p>
+                                    <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">{order.channel} · {order.date} · {order.time} · {order.items} item</p>
                                     {order.matching_item && <p className="mt-0.5 truncate text-[11px] text-blue-700 dark:text-blue-300">Barang: {order.matching_item}</p>}
                                     <div className="mt-2 flex flex-wrap items-center gap-1.5" title={display.tooltip}>
                                         <span className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-bold ${display.primary.color}`}>
@@ -482,7 +485,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                                         <Link href={`/orders/${orderId}`} className="inline-flex items-center gap-1 text-blue-700 dark:text-blue-300">Detail <FiChevronRight size={14} /></Link>
                                         <div className="ml-auto flex items-center gap-2">
                                             {order.payment_status === 'unpaid' && order.status !== 'cancelled' && (
-                                                <button type="button" onClick={() => openPayment(order)} className="rounded-md bg-emerald-600 px-2.5 py-1.5 text-white">Terima Bayar</button>
+                                                <button type="button" onClick={() => openPayment(order)} className="rounded-md bg-emerald-600 px-2.5 py-1.5 text-white">Konfirmasi Bayar</button>
                                             )}
                                             {order.payment_status === 'paid' && nextAction && (
                                                 <button type="button" onClick={() => handleUpdateStatus(order, nextAction.nextStatus)} disabled={updatingStatusId === orderId} className="rounded-md bg-blue-600 px-2.5 py-1.5 text-white disabled:opacity-50">{nextAction.label}</button>
@@ -495,7 +498,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                                 </article>
                             );
                         })}
-                        {pageOrders.length === 0 && <p className="px-3 py-10 text-center text-sm text-slate-500 dark:text-slate-400">Tidak ada pesanan yang sesuai.</p>}
+                        {pageOrders.length === 0 && <p className="px-3 py-10 text-center text-sm text-slate-500 dark:text-slate-400">{statusFilter === 'action' ? 'Belum ada pesanan yang perlu ditangani.' : 'Tidak ada transaksi yang sesuai.'}</p>}
                     </div>
 
                     {/* Desktop data table */}
@@ -521,7 +524,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                                             {/* ID and time */}
                                             <td className="px-3.5 py-2.5">
                                                 <span className="block whitespace-nowrap font-mono text-xs font-bold text-slate-700 dark:text-slate-300">{order.id}</span>
-                                                <span className="mt-0.5 block whitespace-nowrap text-[11px] text-slate-500 dark:text-slate-400">{order.date} · {order.time}</span>
+                                                <span className="mt-0.5 block whitespace-nowrap text-[11px] text-slate-500 dark:text-slate-400">{order.channel} · {order.date} · {order.time}</span>
                                             </td>
                                             
                                             {/* PELANGGAN */}
@@ -611,7 +614,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                                 {pageOrders.length === 0 && (
                                     <tr>
                                         <td colSpan={6} className="px-5 py-12 text-center text-sm text-slate-400 dark:text-slate-500 font-semibold">
-                                            Tidak ada pesanan yang sesuai dengan filter.
+                                            {statusFilter === 'action' ? 'Belum ada pesanan yang perlu ditangani.' : 'Tidak ada transaksi yang sesuai.'}
                                         </td>
                                     </tr>
                                 )}
@@ -659,7 +662,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
             {paymentOrder && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4">
                     <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-slate-900 p-6 shadow-2xl border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white">
-                        <h3 className="text-lg font-black text-slate-900 dark:text-white">Terima Pembayaran</h3>
+                        <h3 className="text-lg font-black text-slate-900 dark:text-white">Konfirmasi Pembayaran</h3>
                         <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{paymentOrder.id} · {paymentOrder.customer}</p>
                         <p className="mt-4 text-2xl font-black text-emerald-600 dark:text-emerald-400">{formatRp(paymentOrder.total)}</p>
 

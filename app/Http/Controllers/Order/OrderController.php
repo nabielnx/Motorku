@@ -41,9 +41,14 @@ class OrderController extends Controller implements HasMiddleware
 
     public function indexWeb(Request $request): InertiaResponse
     {
-        $status = $request->string('status')->value();
+        $activeCount = $this->orderService->countActiveOrders();
         $search = $request->string('search')->value();
-        $date = $request->string('date')->value();
+        $status = match ($request->string('status')->value()) {
+            'action', 'pending', 'preparing', 'processing', 'ready' => 'action',
+            'All', 'completed', 'cancelled' => 'All',
+            default => $activeCount > 0 && $search === '' ? 'action' : 'All',
+        };
+        $date = $status === 'action' ? '' : $request->string('date')->value();
 
         $orders = $this->orderService->getOrdersForWeb($status, $search, $date);
 
@@ -55,6 +60,7 @@ class OrderController extends Controller implements HasMiddleware
             'summary' => fn () => [
                 'today_order_count' => Order::whereDate('created_at', $today)->count(),
                 'today_order_value' => $this->reportService->netRevenue(now()->startOfDay(), now()->endOfDay()),
+                'active_count' => $activeCount,
                 'pending_count' => Order::where('order_status', 'pending')->count(),
                 'processing_count' => Order::whereIn('order_status', ['preparing', 'processing'])->count(),
             ],
@@ -86,6 +92,13 @@ class OrderController extends Controller implements HasMiddleware
     {
         $count = Order::where('order_status', 'pending')->count();
         return $this->successResponse('Berhasil mengambil jumlah pesanan tertunda', ['count' => $count]);
+    }
+
+    public function activeCount(): JsonResponse
+    {
+        return $this->successResponse('Berhasil mengambil jumlah pesanan aktif', [
+            'count' => $this->orderService->countActiveOrders(),
+        ]);
     }
 
     public function store(StoreOrderRequest $request): JsonResponse

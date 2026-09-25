@@ -68,14 +68,67 @@ class OrderListFilterTest extends TestCase
         Order::factory()->create(['order_status' => 'completed']);
 
         $this->actingAs($cashier)
-            ->get('/orders?status=action&date=today&search=Ban')
+            ->get('/orders?status=All&date=today&search=Ban')
             ->assertOk()
             ->assertInertia(fn ($page) => $page
                 ->component('Order/Index')
-                ->where('filters.status', 'action')
+                ->where('filters.status', 'All')
                 ->where('filters.date', 'today')
                 ->where('filters.search', 'Ban')
                 ->where('initialOrders.total', 1)
                 ->where('initialOrders.data.0.real_id', $order->id));
+    }
+
+    public function test_active_orders_are_prioritized_and_pos_sales_remain_in_history(): void
+    {
+        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $cashier = User::factory()->create();
+        $cashier->assignRole('cashier');
+        $online = Order::factory()->create([
+            'cashier_id' => null,
+            'customer_access_token' => str_repeat('a', 64),
+            'created_at' => now()->subDays(3),
+        ]);
+        $pos = Order::factory()->completed()->create();
+
+        $this->actingAs($cashier)
+            ->get('/orders')
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->where('filters.status', 'action')
+                ->where('initialOrders.total', 1)
+                ->where('initialOrders.data.0.channel', 'Online'));
+
+        $this->getJson('/api/orders/active-count')
+            ->assertOk()
+            ->assertJsonPath('data.count', 1);
+
+        $this->get('/orders?status=All')
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->where('filters.status', 'All')
+                ->where('initialOrders.total', 2));
+
+        $this->get('/orders?status=action&date=today')
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->where('filters.date', '')
+                ->where('initialOrders.total', 1));
+
+        $online->update(['order_status' => 'completed']);
+
+        $this->getJson('/api/orders/active-count')
+            ->assertOk()
+            ->assertJsonPath('data.count', 0);
+
+        $this->get('/orders')
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->where('filters.status', 'All')
+                ->where('initialOrders.total', 2));
+
+        $channels = app(OrderService::class)->getOrdersForWeb('All')->pluck('channel', 'real_id');
+        $this->assertSame('Online', $channels[$online->id]);
+        $this->assertSame('POS', $channels[$pos->id]);
     }
 }
