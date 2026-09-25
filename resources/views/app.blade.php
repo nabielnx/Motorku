@@ -6,7 +6,6 @@
 
         <title inertia>{{ config('app.name', 'Toko Sparepart') }}</title>
         <meta name="description" content="Toko Sparepart - Sistem POS Kasir & Katalog QR Modern. Pesan online, ambil di toko tanpa antri.">
-        <meta name="csrf-token" content="{{ csrf_token() }}">
 
         <!-- Fonts (Non-blocking) -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
