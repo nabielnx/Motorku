@@ -798,7 +798,7 @@ export default function MotorcycleIndex({
                                     placeholder="Cari motor..."
                                     value={searchMotor}
                                     onChange={e => { setSearchMotor(e.target.value); setPage(1); }}
-                                    className="w-full pl-9 pr-7 py-1.5 bg-transparent sm:bg-white dark:sm:bg-slate-800 border-0 border-b sm:border border-slate-200 dark:border-slate-700 rounded-none sm:rounded-lg text-sm sm:text-xs font-semibold text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-blue-500 sm:focus:ring-2 sm:focus:ring-blue-500 transition sm:shadow-2xs"
+                                    className="w-full pl-9 pr-7 py-1.5 bg-transparent sm:bg-white dark:sm:bg-slate-800 border-0 border-b sm:border border-slate-200 dark:border-slate-700 rounded-none sm:rounded-lg text-sm sm:text-xs font-semibold text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-slate-400 dark:focus:border-slate-500 focus:ring-0 transition sm:shadow-2xs"
                                     aria-label="Cari data motor"
                                 />
                                 {searchMotor && (
@@ -826,7 +826,7 @@ export default function MotorcycleIndex({
                                     value={activeBrand}
                                     onChange={e => { setActiveBrand(e.target.value); setPage(1); }}
                                     aria-label="Filter merek motor"
-                                    className="min-w-0 w-full rounded-none border-0 border-b border-slate-200 dark:border-slate-700 bg-transparent px-1 py-1.5 text-sm font-semibold text-slate-700 dark:text-slate-200"
+                                    className="min-w-0 w-full rounded-none border-0 border-b border-slate-200 dark:border-slate-700 bg-transparent px-1 py-1.5 text-sm font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500"
                                 >
                                     <option value="semua">Semua merek</option>
                                     {brands.map(brand => <option key={brand} value={brand}>{brand}</option>)}
@@ -835,7 +835,7 @@ export default function MotorcycleIndex({
                                     value={activeType}
                                     onChange={e => { setActiveType(e.target.value); setPage(1); }}
                                     aria-label="Filter tipe motor"
-                                    className="min-w-0 w-full rounded-none border-0 border-b border-slate-200 dark:border-slate-700 bg-transparent px-1 py-1.5 text-sm font-semibold text-slate-700 dark:text-slate-200"
+                                    className="min-w-0 w-full rounded-none border-0 border-b border-slate-200 dark:border-slate-700 bg-transparent px-1 py-1.5 text-sm font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500"
                                 >
                                     <option value="semua">Semua tipe</option>
                                     {engineTypes.map(type => <option key={type} value={type}>{getEngineConfig(type).label}</option>)}
@@ -1037,7 +1037,7 @@ export default function MotorcycleIndex({
                                                                 placeholder="Cari sparepart..."
                                                                 value={filter.search || ''}
                                                                 onChange={(e) => handleSearchParts(m.id, e.target.value)}
-                                                                className="w-full pl-8 pr-7 py-1.5 text-sm md:text-xs bg-transparent md:bg-white dark:md:bg-slate-700 border-0 border-b md:border border-slate-200 dark:border-slate-700 rounded-none md:rounded-md text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 md:focus:ring-1 md:focus:ring-blue-500 font-medium"
+                                                                className="w-full pl-8 pr-7 py-1.5 text-sm md:text-xs bg-transparent md:bg-white dark:md:bg-slate-700 border-0 border-b md:border border-slate-200 dark:border-slate-700 rounded-none md:rounded-md text-slate-800 dark:text-slate-200 focus:outline-none focus:border-slate-400 dark:focus:border-slate-500 focus:ring-0 font-medium"
                                                                 aria-label={`Cari sparepart untuk ${m.brand} ${m.model}`}
                                                             />
                                                             {filter.search && (
@@ -1082,7 +1082,7 @@ export default function MotorcycleIndex({
                                                                     }));
                                                                     fetchParts(m.id, { group: g, category: 'semua', page: 1 });
                                                                 }}
-                                                                className="w-full md:w-auto py-1.5 pl-1 md:pl-2.5 pr-7 text-sm md:text-xs bg-transparent md:bg-white dark:md:bg-slate-800 border-0 border-b md:border border-slate-200 md:border-slate-300 dark:border-slate-700 rounded-none md:rounded-md text-slate-800 dark:text-slate-200 font-semibold focus:outline-none focus:border-blue-500 md:focus:ring-1 md:focus:ring-blue-500 cursor-pointer"
+                                                                className="w-full md:w-auto py-1.5 pl-1 md:pl-2.5 pr-7 text-sm md:text-xs bg-transparent md:bg-white dark:md:bg-slate-800 border-0 border-b md:border border-slate-200 md:border-slate-300 dark:border-slate-700 rounded-none md:rounded-md text-slate-800 dark:text-slate-200 font-semibold focus:outline-none focus:border-slate-400 dark:focus:border-slate-500 focus:ring-0 cursor-pointer"
                                                                 title="Filter berdasarkan Grup Part"
                                                                 aria-label="Filter grup sparepart"
                                                             >
@@ -1108,7 +1108,7 @@ export default function MotorcycleIndex({
                                                                     }));
                                                                     fetchParts(m.id, { category: c, page: 1 });
                                                                 }}
-                                                                className="w-full md:w-auto py-1.5 pl-1 md:pl-2.5 pr-7 text-sm md:text-xs bg-transparent md:bg-white dark:md:bg-slate-800 border-0 border-b md:border border-slate-200 md:border-slate-300 dark:border-slate-700 rounded-none md:rounded-md text-slate-800 dark:text-slate-200 font-semibold focus:outline-none focus:border-blue-500 md:focus:ring-1 md:focus:ring-blue-500 cursor-pointer"
+                                                                className="w-full md:w-auto py-1.5 pl-1 md:pl-2.5 pr-7 text-sm md:text-xs bg-transparent md:bg-white dark:md:bg-slate-800 border-0 border-b md:border border-slate-200 md:border-slate-300 dark:border-slate-700 rounded-none md:rounded-md text-slate-800 dark:text-slate-200 font-semibold focus:outline-none focus:border-slate-400 dark:focus:border-slate-500 focus:ring-0 cursor-pointer"
                                                                 title="Filter berdasarkan Jenis Part"
                                                                 aria-label="Filter jenis sparepart"
                                                             >
@@ -1334,7 +1334,7 @@ export default function MotorcycleIndex({
                                                                     }));
                                                                     fetchParts(m.id, { per_page: pp, page: 1 });
                                                                 }}
-                                                                className="pl-1 sm:pl-2 pr-5 sm:pr-6 py-1 bg-transparent sm:bg-white dark:sm:bg-slate-800 border-0 sm:border border-slate-300 dark:border-slate-700 rounded-none sm:rounded-md text-xs font-bold text-slate-700 dark:text-slate-200 focus:outline-none cursor-pointer"
+                                                                className="pl-1 sm:pl-2 pr-5 sm:pr-6 py-1 bg-transparent sm:bg-white dark:sm:bg-slate-800 border-0 sm:border border-slate-300 dark:border-slate-700 rounded-none sm:rounded-md text-xs font-bold text-slate-700 dark:text-slate-200 focus:bg-slate-100 dark:focus:bg-slate-700 focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500 cursor-pointer"
                                                                 aria-label="Jumlah sparepart per halaman"
                                                             >
                                                                 <option value={5}>5 / hal</option>
@@ -1462,8 +1462,8 @@ export default function MotorcycleIndex({
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-2 gap-2 mb-2">
-                                    <input type="search" aria-label="Cari motor" placeholder="Cari motor..." value={bulkMotorSearch} onChange={e => setBulkMotorSearch(e.target.value)} className="w-full min-w-0 px-2 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500" />
-                                    <select aria-label="Filter merek motor" value={bulkBrandFilter} onChange={e => setBulkBrandFilter(e.target.value)} className="w-full min-w-0 px-2 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-slate-700 dark:text-slate-200">
+                                    <input type="search" aria-label="Cari motor" placeholder="Cari motor..." value={bulkMotorSearch} onChange={e => setBulkMotorSearch(e.target.value)} className="w-full min-w-0 px-2 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500" />
+                                    <select aria-label="Filter merek motor" value={bulkBrandFilter} onChange={e => setBulkBrandFilter(e.target.value)} className="w-full min-w-0 px-2 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500">
                                         <option value="semua">Semua merek</option>
                                         {brands.map(brand => <option key={brand} value={brand}>{brand}</option>)}
                                     </select>
@@ -1498,8 +1498,8 @@ export default function MotorcycleIndex({
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-2 gap-2 mb-2">
-                                    <input type="search" aria-label="Cari sparepart" placeholder="Cari part..." value={bulkProductSearch} onChange={e => setBulkProductSearch(e.target.value)} className="w-full min-w-0 px-2 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500" />
-                                    <select aria-label="Filter kategori sparepart" value={bulkCategoryFilter} onChange={e => setBulkCategoryFilter(e.target.value)} className="w-full min-w-0 px-2 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-slate-700 dark:text-slate-200">
+                                    <input type="search" aria-label="Cari sparepart" placeholder="Cari part..." value={bulkProductSearch} onChange={e => setBulkProductSearch(e.target.value)} className="w-full min-w-0 px-2 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500" />
+                                    <select aria-label="Filter kategori sparepart" value={bulkCategoryFilter} onChange={e => setBulkCategoryFilter(e.target.value)} className="w-full min-w-0 px-2 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500">
                                         <option value="semua">Semua kategori</option>
                                         {productCategoriesList.map(category => <option key={category} value={category}>{category}</option>)}
                                     </select>
@@ -1531,7 +1531,7 @@ export default function MotorcycleIndex({
                                     <select
                                         value={bulkCategory}
                                         onChange={e => setBulkCategory(e.target.value)}
-                                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500"
                                     >
                                         <option value="auto">Otomatis dari nama</option>
                                         {Object.entries(categoryGroups).map(([gKey, group]) => (
@@ -1564,7 +1564,7 @@ export default function MotorcycleIndex({
                                             value={bulkNotes}
                                             onChange={e => setBulkNotes(e.target.value)}
                                             placeholder="Contoh: Varian racing"
-                                            className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs font-medium focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                                            className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs font-medium focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500"
                                         />
                                     </div>
                                     <div className="pb-2">
@@ -1653,7 +1653,7 @@ export default function MotorcycleIndex({
                                         value={formData.brand}
                                         onChange={e => setFormData({ ...formData, brand: e.target.value })}
                                         placeholder="Ketik atau pilih brand..."
-                                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:bg-white dark:focus:bg-slate-850 focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
+                                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:bg-white dark:focus:bg-slate-850 focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500 transition"
                                     />
                                     <datalist id="motorcycle-brands-list">
                                         {brands.map(b => (
@@ -1669,7 +1669,7 @@ export default function MotorcycleIndex({
                                         value={formData.model}
                                         onChange={e => setFormData({ ...formData, model: e.target.value })}
                                         placeholder="Beat, Vario 160..."
-                                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:bg-white dark:focus:bg-slate-850 focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
+                                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:bg-white dark:focus:bg-slate-850 focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500 transition"
                                     />
                                     {formErrors.model && <p className="text-[11px] text-red-500 font-bold mt-1">{formErrors.model}</p>}
                                 </div>
@@ -1682,7 +1682,7 @@ export default function MotorcycleIndex({
                                         type="number"
                                         value={formData.year_start}
                                         onChange={e => setFormData({ ...formData, year_start: parseInt(e.target.value) || '' })}
-                                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:bg-white dark:focus:bg-slate-850 focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
+                                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:bg-white dark:focus:bg-slate-850 focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500 transition"
                                     />
                                     {formErrors.year_start && <p className="text-[11px] text-red-500 font-bold mt-1">{formErrors.year_start}</p>}
                                 </div>
@@ -1693,7 +1693,7 @@ export default function MotorcycleIndex({
                                         value={formData.year_end}
                                         onChange={e => setFormData({ ...formData, year_end: e.target.value ? parseInt(e.target.value) : '' })}
                                         placeholder="Sekarang"
-                                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:bg-white dark:focus:bg-slate-850 focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
+                                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:bg-white dark:focus:bg-slate-850 focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500 transition"
                                     />
                                     {formErrors.year_end && <p className="text-[11px] text-red-500 font-bold mt-1">{formErrors.year_end}</p>}
                                 </div>
@@ -1703,7 +1703,7 @@ export default function MotorcycleIndex({
                                         type="number"
                                         value={formData.engine_cc}
                                         onChange={e => setFormData({ ...formData, engine_cc: parseInt(e.target.value) || '' })}
-                                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:bg-white dark:focus:bg-slate-850 focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
+                                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:bg-white dark:focus:bg-slate-850 focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500 transition"
                                     />
                                     {formErrors.engine_cc && <p className="text-[11px] text-red-500 font-bold mt-1">{formErrors.engine_cc}</p>}
                                 </div>
@@ -1717,7 +1717,7 @@ export default function MotorcycleIndex({
                                     value={formData.engine_type}
                                     onChange={e => setFormData({ ...formData, engine_type: e.target.value.toLowerCase() })}
                                     placeholder="Ketik atau pilih tipe mesin (matic, bebek, sport, trail, listrik...)"
-                                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:bg-white dark:focus:bg-slate-850 focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
+                                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:bg-white dark:focus:bg-slate-850 focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500 transition"
                                 />
                                 <datalist id="motorcycle-types-list">
                                     {engineTypes.map(t => (
@@ -1780,13 +1780,10 @@ export default function MotorcycleIndex({
 
             {/* ADD SINGLE PART MAPPING MODAL */}
             {showPartModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4" onClick={() => setShowPartModal(null)}>
-                    <div className="bg-white dark:bg-slate-900 rounded-lg shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-lg p-5 sm:p-6 space-y-4 max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
-                            <div>
-                                <h3 className="font-black text-base sm:text-lg text-slate-900 dark:text-white">Mapping Sparepart ke Motor</h3>
-                                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Pilih komponen sparepart dan tipe/kategori yang sesuai.</p>
-                            </div>
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3 sm:p-4" onClick={() => setShowPartModal(null)}>
+                    <div className="bg-white dark:bg-slate-900 rounded-lg shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-lg h-[90dvh] sm:h-auto max-h-[90dvh] p-4 sm:p-6 flex flex-col gap-3" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex shrink-0 items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
+                            <h3 className="font-black text-base sm:text-lg text-slate-900 dark:text-white">Tambah Sparepart</h3>
                             <button onClick={() => setShowPartModal(null)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"><FiX size={20} /></button>
                         </div>
 
@@ -1796,14 +1793,14 @@ export default function MotorcycleIndex({
                             </div>
                         )}
 
-                        <div className="space-y-3 overflow-y-auto pr-1 flex-1">
+                        <div className="flex min-h-0 flex-1 flex-col gap-2.5 sm:flex-none">
                             {/* Kategori / Tipe Part Dropdown with Optgroups */}
                             <div>
-                                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 block">Tipe / Kategori Part *</label>
+                                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 block">Kategori *</label>
                                 <select
                                     value={partFormData.part_category}
                                     onChange={e => setPartFormData({ ...partFormData, part_category: e.target.value })}
-                                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs sm:text-sm font-semibold"
+                                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs sm:text-sm font-semibold focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500"
                                 >
                                     {Object.entries(categoryGroups).map(([gKey, group]) => (
                                         <optgroup key={gKey} label={group.name}>
@@ -1819,23 +1816,24 @@ export default function MotorcycleIndex({
                             {/* Search Product */}
                             <div>
                                 <div className="flex items-center justify-between mb-1">
-                                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                                        Cari Produk Sparepart *
+                                    <label htmlFor="part-product-search" className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                                        Pilih sparepart *
                                     </label>
-                                    <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md border border-slate-300 dark:border-slate-700">
+                                    <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
                                         {partSearch.trim()
-                                            ? `${filteredProductsForModal.length} dari ${products.length} sparepart`
-                                            : `Total: ${products.length} sparepart`}
+                                            ? `${filteredProductsForModal.length} / ${products.length} sparepart`
+                                            : `${products.length} sparepart`}
                                     </span>
                                 </div>
                                 <div className="relative">
                                     <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
                                     <input
+                                        id="part-product-search"
                                         type="text"
                                         value={partSearch}
                                         onChange={e => setPartSearch(e.target.value)}
-                                        placeholder="Cari nama, SKU, atau kategori..."
-                                        className="w-full pl-9 pr-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs sm:text-sm font-medium"
+                                        placeholder="Cari nama atau SKU..."
+                                        className="w-full pl-9 pr-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs sm:text-sm font-medium focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500"
                                     />
                                     {partSearch && (
                                         <button onClick={() => setPartSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer">
@@ -1847,7 +1845,7 @@ export default function MotorcycleIndex({
                             </div>
 
                             {/* Product Select List */}
-                            <div className="max-h-56 overflow-y-auto border border-slate-200 dark:border-slate-700 rounded-md divide-y divide-slate-100 dark:divide-slate-750">
+                            <div className="min-h-0 flex-1 overflow-y-auto border border-slate-200 dark:border-slate-700 rounded-md divide-y divide-slate-100 dark:divide-slate-750 sm:max-h-64 sm:flex-none">
                                 {filteredProductsForModal.map(p => (
                                     <div
                                         key={p.id}
@@ -1897,40 +1895,40 @@ export default function MotorcycleIndex({
                                 )}
                             </div>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                                <div>
-                                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 block">
-                                        Catatan Kompatibilitas (Opsional)
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={partFormData.notes}
-                                        onChange={e => setPartFormData({ ...partFormData, notes: e.target.value })}
-                                        placeholder="Contoh: Cocok untuk varian CBS & ABS"
-                                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs font-medium focus:ring-1 focus:ring-blue-500 focus:outline-none"
-                                    />
-                                    {partFormErrors.notes && <p className="text-[11px] text-red-500 font-bold mt-1">{partFormErrors.notes}</p>}
-                                </div>
-                                <div>
-                                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 block">
-                                        Rekomendasi (Opsional)
-                                    </label>
-                                    <label className="flex items-center gap-2 cursor-pointer bg-slate-50 dark:bg-slate-800 px-3 py-2 h-[38px] rounded-md border border-slate-300 dark:border-slate-700 w-full hover:bg-slate-100 dark:hover:bg-slate-750 transition">
+                            <details className="shrink-0 text-xs text-slate-600 dark:text-slate-300">
+                                <summary className="cursor-pointer font-semibold">Opsi tambahan</summary>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2">
+                                    <div>
+                                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 block">
+                                            Catatan
+                                        </label>
                                         <input
-                                            type="checkbox"
-                                            checked={partFormData.is_recommended}
-                                            onChange={e => setPartFormData({ ...partFormData, is_recommended: e.target.checked })}
-                                            className="rounded text-amber-500 focus:ring-amber-400 cursor-pointer"
+                                            type="text"
+                                            value={partFormData.notes}
+                                            onChange={e => setPartFormData({ ...partFormData, notes: e.target.value })}
+                                            placeholder="Contoh: Cocok untuk varian CBS & ABS"
+                                            className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs font-medium focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500"
                                         />
-                                        <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 select-none">
-                                            <FiStar size={13} className="text-amber-500 fill-amber-400 shrink-0" /> Tandai Rekomendasi
-                                        </span>
-                                    </label>
+                                        {partFormErrors.notes && <p className="text-[11px] text-red-500 font-bold mt-1">{partFormErrors.notes}</p>}
+                                    </div>
+                                    <div className="sm:self-end">
+                                        <label className="flex items-center gap-2 cursor-pointer bg-slate-50 dark:bg-slate-800 px-3 py-2 h-[38px] rounded-md border border-slate-300 dark:border-slate-700 w-full hover:bg-slate-100 dark:hover:bg-slate-750 transition">
+                                            <input
+                                                type="checkbox"
+                                                checked={partFormData.is_recommended}
+                                                onChange={e => setPartFormData({ ...partFormData, is_recommended: e.target.checked })}
+                                                className="rounded text-amber-500 focus:ring-amber-400 cursor-pointer"
+                                            />
+                                            <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 select-none">
+                                                <FiStar size={13} className="text-amber-500 fill-amber-400 shrink-0" /> Tandai Rekomendasi
+                                            </span>
+                                        </label>
+                                    </div>
                                 </div>
-                            </div>
+                            </details>
                         </div>
 
-                        <div className="flex gap-3 pt-3 border-t border-slate-200 dark:border-slate-800">
+                        <div className="flex shrink-0 gap-3 pt-2 border-t border-slate-200 dark:border-slate-800">
                             <button
                                 onClick={() => setShowPartModal(null)}
                                 className="flex-1 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 rounded-md text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 cursor-pointer transition"
@@ -1973,7 +1971,7 @@ export default function MotorcycleIndex({
                                 <select
                                     value={partFormData.part_category}
                                     onChange={e => setPartFormData({ ...partFormData, part_category: e.target.value })}
-                                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs sm:text-sm font-semibold"
+                                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs sm:text-sm font-semibold focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500"
                                 >
                                     {Object.entries(categoryGroups).map(([gKey, group]) => (
                                         <optgroup key={gKey} label={group.name}>
@@ -1993,7 +1991,7 @@ export default function MotorcycleIndex({
                                     value={partFormData.notes}
                                     onChange={e => setPartFormData({ ...partFormData, notes: e.target.value })}
                                     placeholder="Contoh: Cocok untuk varian CBS & ABS"
-                                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs font-medium focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs font-medium focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500"
                                 />
                                 {partFormErrors.notes && <p className="text-[11px] text-red-500 font-bold mt-1">{partFormErrors.notes}</p>}
                             </div>
