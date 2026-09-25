@@ -34,8 +34,9 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
 
     const paginator = extractPaginator(initialOrders);
     const [orders, setOrders] = useState(() => paginator.data);
-    const [statusFilter, setStatusFilter] = useState(filters.status || 'All');
-    const [dateFilter, setDateFilter] = useState(filters.date || 'all');
+    const ordersSourceRef = useRef(initialOrders);
+    const statusFilter = filters.status || 'All';
+    const dateFilter = filters.date || 'all';
     const [searchQuery, setSearchQuery] = useState(filters.search || '');
     const [paymentOrder, setPaymentOrder] = useState(null);
     const [paymentMethod, setPaymentMethod] = useState('cash');
@@ -72,6 +73,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
     };
 
     useEffect(() => {
+        ordersSourceRef.current = initialOrders;
         setOrders(extractPaginator(initialOrders).data);
     }, [initialOrders]);
 
@@ -91,18 +93,20 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
     };
 
     const handleFilterChange = (newStatus) => {
-        setStatusFilter(newStatus);
-        if (newStatus === 'action') setDateFilter('all');
+        if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+        statusFilterRef.current = newStatus;
+        if (newStatus === 'action') dateFilterRef.current = 'all';
         router.get('/orders', {
             page: 1,
             status: newStatus,
-            date: newStatus === 'All' && dateFilter !== 'all' ? dateFilter : undefined,
+            date: newStatus === 'All' && dateFilterRef.current !== 'all' ? dateFilterRef.current : undefined,
             search: searchQuery || undefined,
         }, { preserveState: true, preserveScroll: true });
     };
 
     const handleDateFilterChange = (newDate) => {
-        setDateFilter(newDate);
+        if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+        dateFilterRef.current = newDate;
         router.get('/orders', {
             page: 1,
             status: statusFilter,
@@ -115,6 +119,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
     // Filter diambil via ref agar pencarian memakai pilihan terbaru tanpa double-refetch.
     const statusFilterRef = useRef(statusFilter);
     const dateFilterRef = useRef(dateFilter);
+    const searchTimerRef = useRef(null);
     useEffect(() => { statusFilterRef.current = statusFilter; }, [statusFilter]);
     useEffect(() => { dateFilterRef.current = dateFilter; }, [dateFilter]);
 
@@ -132,6 +137,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                 search: searchQuery || undefined,
             }, { preserveState: true, preserveScroll: true });
         }, 400);
+        searchTimerRef.current = t;
         return () => clearTimeout(t);
     }, [searchQuery]);
 
@@ -342,7 +348,8 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
         }
     };
 
-    const safeOrdersList = Array.isArray(orders) ? orders : [];
+    const visibleOrders = ordersSourceRef.current === initialOrders ? orders : paginator.data;
+    const safeOrdersList = Array.isArray(visibleOrders) ? visibleOrders : [];
     const pageOrders = safeOrdersList;
 
     const formatRp = (val) => `Rp ${Number(val || 0).toLocaleString('id-ID')}`;
