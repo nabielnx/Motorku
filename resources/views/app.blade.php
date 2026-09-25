@@ -6,7 +6,6 @@
 
         <title inertia>{{ config('app.name', 'Motorku') }}</title>
         <meta name="description" content="Motorku - Sistem POS Kasir & Katalog QR Sparepart Modern. Pesan online, ambil di toko tanpa antri.">
-        <meta name="csrf-token" content="{{ csrf_token() }}">
 
         <!-- Fonts (Non-blocking) -->
         <link rel="preconnect" href="https://fonts.googleapis.com">

@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { router } from '@inertiajs/react';
 import './echo';
 
 window.axios = axios;
@@ -7,19 +6,6 @@ window.axios = axios;
 window.axios.defaults.withCredentials = true;
 window.axios.defaults.withXSRFToken = true;
 window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
-
-// Dynamically set latest X-CSRF-TOKEN / X-XSRF-TOKEN before every request
-window.axios.interceptors.request.use((config) => {
-    const xsrfCookie = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
-    if (xsrfCookie) {
-        config.headers['X-XSRF-TOKEN'] = decodeURIComponent(xsrfCookie[1]);
-    }
-    const metaToken = document.querySelector('meta[name="csrf-token"]')?.content;
-    if (metaToken) {
-        config.headers['X-CSRF-TOKEN'] = metaToken;
-    }
-    return config;
-});
 
 let isRefreshingCsrf = false;
 let failedQueue = [];
@@ -73,20 +59,8 @@ window.axios.interceptors.response.use(
             isRefreshingCsrf = true;
 
             try {
-                // Refresh session & CSRF cookie transparently from Sanctum/web route
+                // Refresh the CSRF cookie before retrying with Axios's XSRF header.
                 await window.axios.get('/sanctum/csrf-cookie');
-
-                const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
-                if (match) {
-                    const token = decodeURIComponent(match[1]);
-                    const meta = document.querySelector('meta[name="csrf-token"]');
-                    if (meta) meta.setAttribute('content', token);
-                    if (originalRequest.headers) {
-                        originalRequest.headers['X-XSRF-TOKEN'] = token;
-                        originalRequest.headers['X-CSRF-TOKEN'] = token;
-                    }
-                }
-
                 processQueue(null);
                 return window.axios(originalRequest);
             } catch (refreshError) {

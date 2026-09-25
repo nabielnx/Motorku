@@ -20,12 +20,7 @@ use Inertia\Inertia;
 Route::get('/', [CustomerMenuController::class, 'index'])->name('home');
 
 // Public Customer QR Flow
-// Rotasi token CSRF agar auto-refresh di frontend selalu mendapat token baru
-// yang cocok dengan sesi server (cegah 419 berulang setelah deploy/sesi berubah).
-Route::get('/sanctum/csrf-cookie', function (\Illuminate\Http\Request $request) {
-    $request->session()->regenerateToken();
-    return response()->noContent();
-});
+Route::get('/sanctum/csrf-cookie', fn() => response()->noContent());
 Route::get('/payment', fn() => Inertia::render('Payment/Index', [
     'qrisEnabled' => (bool) config('doku.enabled', false),
 ]))->name('customer.payment');
