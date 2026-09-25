@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Report;
 
 use App\Http\Controllers\Controller;
 use App\Services\ReportService;
+use App\Services\CashClosingService;
+use App\Http\Requests\Report\StoreCashClosingRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
@@ -23,7 +25,7 @@ class ReportController extends Controller implements HasMiddleware
     public static function middleware(): array
     {
         return [
-            new Middleware('permission:report.view', only: ['indexWeb', 'index', 'sales', 'export', 'daily']),
+            new Middleware('permission:report.view', only: ['indexWeb', 'index', 'sales', 'export', 'daily', 'cash']),
         ];
     }
 
@@ -76,6 +78,18 @@ class ReportController extends Controller implements HasMiddleware
             'message' => 'Laporan harian berhasil ditarik',
             'data' => $summary
         ]);
+    }
+
+    public function cash(Request $request, CashClosingService $cashClosing): JsonResponse
+    {
+        $date = $request->validate(['date' => ['required', 'date_format:Y-m-d']])['date'];
+
+        return response()->json(['data' => $cashClosing->summary($date)]);
+    }
+
+    public function closeCash(StoreCashClosingRequest $request, CashClosingService $cashClosing): JsonResponse
+    {
+        return response()->json(['data' => $cashClosing->close($request->validated())], 201);
     }
 
     private function dateRange(Request $request): array

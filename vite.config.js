@@ -5,8 +5,19 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
     server: {
         host: '0.0.0.0',
+        cors: true,
         hmr: {
-            host: 'localhost',
+            host: process.env.VITE_HOST || 'localhost',
+        },
+    },
+    build: {
+        rollupOptions: {
+            output: {
+                manualChunks: {
+                    'vendor-inertia': ['react', 'react-dom', '@inertiajs/react'],
+                    'vendor-headless': ['@headlessui/react'],
+                },
+            },
         },
     },
     plugins: [

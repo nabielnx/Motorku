@@ -1,26 +1,34 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Product;
 
 use App\Http\Controllers\Controller;
 use App\Services\ProductService;
 use App\Http\Requests\Product\StoreProductRequest;
 use App\Http\Requests\Product\UpdateProductRequest;
+use App\Http\Resources\ProductResource;
+use App\Traits\ApiResponseHelpers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\Gate;
 use App\Models\Product;
+use App\Models\Category;
+use App\Services\CacheService;
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
+use Illuminate\Http\RedirectResponse;
 
 class ProductController extends Controller implements HasMiddleware
 {
-    protected $productService;
+    use ApiResponseHelpers;
 
-    public function __construct(ProductService $productService)
-    {
-        $this->productService = $productService;
-    }
+    public function __construct(
+        protected ProductService $productService
+    ) {}
 
     public static function middleware(): array
     {
@@ -30,55 +38,41 @@ class ProductController extends Controller implements HasMiddleware
         ];
     }
 
-    public function indexWeb(\Illuminate\Http\Request $request)
+    public function indexWeb(Request $request): InertiaResponse|RedirectResponse
     {
         $search = $request->string('search')->value();
         $category = $request->string('category')->value();
         $stockStatus = $request->string('stock_status')->value();
+        $availability = $request->string('availability')->value();
+        $sort = $request->string('sort')->value();
 
-        $query = Product::with('category')->latest();
+        $products = $this->productService->getProductsForWeb($search, $category, $stockStatus, $availability, $sort);
 
-        if ($search) {
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('sku', 'like', "%{$search}%");
-            });
+        if ($products->currentPage() > $products->lastPage()) {
+            return redirect()->route('products.index', $request->except('page'));
         }
 
-        if ($category && $category !== 'All') {
-            $query->whereHas('category', function ($q) use ($category) {
-                $q->where('name', $category);
-            });
-        }
-
-        if ($stockStatus && $stockStatus !== 'all') {
-            if ($stockStatus === 'low') {
-                $query->whereColumn('stock', '<=', 'minimum_stock');
-            } elseif ($stockStatus === 'out') {
-                $query->where('stock', '<=', 0);
-            } elseif ($stockStatus === 'normal') {
-                $query->whereColumn('stock', '>', 'minimum_stock');
-            }
-        }
-
-        $products = $query->paginate(10)->withQueryString();
-        $lowStockCount = Product::whereColumn('stock', '<=', 'minimum_stock')->count();
+        $lowStockCount = Product::where('stock', '>', 0)->whereColumn('stock', '<=', 'minimum_stock')->count();
         $outOfStockCount = Product::where('stock', '<=', 0)->count();
 
-        return \Inertia\Inertia::render('Product/Index', [
+        return Inertia::render('Product/Index', [
             'initialProducts' => $products,
-            'initialCategories' => \App\Models\Category::withCount('products')->get(),
+            'initialCategories' => Category::with(['children' => function ($q) {
+                $q->withCount('products');
+            }])->whereNull('parent_id')->withCount('products')->get(),
             'filters' => [
                 'search' => $search ?: '',
                 'category' => $category ?: 'All',
                 'stock_status' => $stockStatus ?: 'all',
+                'availability' => $availability ?: 'all',
+                'sort' => $sort ?: 'latest',
             ],
             'lowStockCount' => $lowStockCount,
             'outOfStockCount' => $outOfStockCount,
         ]);
     }
 
-    public function createWeb()
+    public function createWeb(): RedirectResponse
     {
         return redirect()->route('products.index');
     }
@@ -86,17 +80,18 @@ class ProductController extends Controller implements HasMiddleware
     public function index(Request $request): JsonResponse
     {
         Gate::authorize('viewAny', Product::class);
-        
+
         $perPage = $request->integer('per_page', 10);
-        $search = $request->string('search');
-        $stockStatus = $request->string('stock_status');
+        $search = $request->string('search')->value();
+        $stockStatus = $request->string('stock_status')->value();
+
         $products = $this->productService->getAllProducts($perPage, $search ?: null, $stockStatus ?: null);
 
         $totalProducts = Product::count();
         $lowStock = Product::whereColumn('stock', '<=', 'minimum_stock')->count();
 
-        return response()->json([
-            'products' => $products,
+        return $this->successResponse('Berhasil mengambil data produk', [
+            'products' => ProductResource::collection($products)->response()->getData(true),
             'summary' => [
                 'total_products' => $totalProducts,
                 'low_stock' => $lowStock,
@@ -110,10 +105,13 @@ class ProductController extends Controller implements HasMiddleware
         
         $product = $this->productService->createProduct($request->validated());
 
-        return response()->json([
-            'message' => 'Produk berhasil ditambahkan!',
-            'data' => $product
-        ], 201);
+        CacheService::flushCatalog();
+
+        return $this->successResponse(
+            'Produk berhasil ditambahkan!',
+            new ProductResource($product),
+            201
+        );
     }
 
     public function show($id): JsonResponse
@@ -121,52 +119,48 @@ class ProductController extends Controller implements HasMiddleware
         $product = $this->productService->getProductById($id);
 
         if (!$product) {
-            return response()->json(['message' => 'Produk tidak ditemukan'], 404);
+            return $this->errorResponse('Produk tidak ditemukan', 404);
         }
 
         Gate::authorize('view', $product);
 
-        return response()->json($product);
+        return $this->successResponse('Detail produk', new ProductResource($product));
     }
 
     public function update(UpdateProductRequest $request, $id): JsonResponse
     {
-        // 1. Ambil data dulu
         $product = $this->productService->getProductById($id);
 
         if (!$product) {
-            return response()->json(['message' => 'Produk tidak ditemukan'], 404);
+            return $this->errorResponse('Produk tidak ditemukan', 404);
         }
 
-        // 2. Cek Policy
         Gate::authorize('update', $product);
 
-        // 3. Eksekusi
         $updatedProduct = $this->productService->updateProduct($id, $request->validated());
 
-        return response()->json([
-            'message' => 'Produk berhasil diperbarui!',
-            'data' => $updatedProduct
-        ]);
+        CacheService::flushCatalog();
+
+        return $this->successResponse(
+            'Produk berhasil diperbarui!',
+            new ProductResource($updatedProduct)
+        );
     }
 
     public function destroy($id): JsonResponse
     {
-        // 1. Ambil data dulu
         $product = $this->productService->getProductById($id);
 
         if (!$product) {
-            return response()->json(['message' => 'Produk tidak ditemukan'], 404);
+            return $this->errorResponse('Produk tidak ditemukan', 404);
         }
 
-        // 2. Cek Policy
         Gate::authorize('delete', $product);
 
-        // 3. Eksekusi
         $this->productService->deleteProduct($id);
 
-        return response()->json([
-            'message' => 'Produk berhasil dihapus!'
-        ]);
+        CacheService::flushCatalog();
+
+        return $this->successResponse('Produk berhasil dihapus!');
     }
 }

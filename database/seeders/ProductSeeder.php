@@ -5,20 +5,11 @@ namespace Database\Seeders;
 use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 
 class ProductSeeder extends Seeder
 {
     public function run(): void
     {
-        // Bersihkan data lama jika ada
-        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
-        DB::table('inventory_logs')->truncate();
-        DB::table('order_items')->truncate();
-        DB::table('motorcycle_parts')->truncate();
-        DB::table('products')->truncate();
-        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
-
         $products = [
             // =========================================================================
             // ================= 1. PELUMAS & CAIRAN ===================================
@@ -51,7 +42,6 @@ class ProductSeeder extends Seeder
             ['FLT-010', 'Coolant Radiator AHM Honda 500ml', 42000, 'Filter & Konsumsi', 'Air radiator coolant original Honda AHM 500ml untuk Vario 125/150/160, PCX 150/160, ADV 150/160, CBR150R, CB150R, Sonic'],
             ['FLT-011', 'Coolant Radiator Yamalube Yamacoolant 900ml', 48000, 'Filter & Konsumsi', 'Air radiator coolant original Yamaha Yamalube Yamacoolant 900ml untuk NMAX 155, Aerox 155, Lexi, Vixion, R15, MX King'],
             ['FLT-012', 'Coolant Radiator Astra Aspira 1 Liter', 35000, 'Filter & Konsumsi', 'Air radiator coolant Astra Otoparts Aspira formula anti karat & anti overheat isi 1 Liter untuk semua motor radiator'],
-
 
             // =========================================================================
             // ================= 2. KAKI-KAKI & RODA (BAN: HANYA IRC & FEDERAL AHM) ====
@@ -146,7 +136,6 @@ class ProductSeeder extends Seeder
             ['KK-SEL-002', 'Seal Shock Depan + Tutup Debu YGP Yamaha (Matic & Bebek)', 35000, 'Rem & Kaki-kaki', 'Seal oli shockbreaker + dust seal debu original Yamaha YGP (3AY-F3145-00) sepasang untuk Mio, Fino, Jupiter Z1, Vega'],
             ['KK-SEL-003', 'Seal Shock Depan Astra Aspira Honda & Yamaha (Set)', 22000, 'Rem & Kaki-kaki', 'Seal shockbreaker depan karet NBR Astra Otoparts Aspira tahan oli & gesekan'],
 
-
             // =========================================================================
             // ================= 3. PENGEREMAN =========================================
             // =========================================================================
@@ -197,7 +186,6 @@ class ProductSeeder extends Seeder
             ['REM-036', 'Kabel Rem Belakang YGP Yamaha Mio Sporty / Smile Original', 38000, 'Aksesoris', 'Kabel rem belakang tromol original Yamaha YGP (5TL-F6351-00) untuk Mio Karbu / Sporty / Smile'],
             ['REM-037', 'Kabel Rem Belakang Astra Aspira Beat / Scoopy', 26000, 'Aksesoris', 'Kabel rem belakang kawat baja lapis teflon Astra Otoparts Aspira Beat & Scoopy'],
             ['REM-038', 'Kabel Rem Belakang Astra Aspira Mio / Fino', 25000, 'Aksesoris', 'Kabel rem belakang kawat baja lapis teflon Astra Otoparts Aspira Mio & Fino'],
-
 
             // =========================================================================
             // ================= 4. PENGGERAK & TRANSMISI (CVT & RANTAI) ===============
@@ -270,7 +258,6 @@ class ProductSeeder extends Seeder
             ['CVT-051', 'Kabel Kopling Astra Aspira CB150R / CBR150R', 30000, 'Aksesoris', 'Kabel tali kopling Astra Otoparts Aspira tarikan enteng dan awet untuk Honda CB150R'],
             ['CVT-052', 'Kabel Kopling Astra Aspira Vixion / R15', 28000, 'Aksesoris', 'Kabel tali kopling Astra Otoparts Aspira tarikan enteng dan awet untuk Yamaha Vixion'],
 
-
             // =========================================================================
             // ================= 5. KELISTRIKAN & PENGAPIAN ============================
             // =========================================================================
@@ -334,7 +321,6 @@ class ProductSeeder extends Seeder
             ['ELC-045', 'Bendik Relay Starter YGP Yamaha Jupiter Z1 / Vega Original', 48000, 'Aki & Kelistrikan', 'Relay starter magnetic switch original Yamaha YGP (4ST-H1940-00) untuk Jupiter Z1 & Vega'],
             ['ELC-046', 'Bendik Relay Starter Astra Aspira Universal Honda & Yamaha', 35000, 'Aki & Kelistrikan', 'Relay starter Astra Otoparts Aspira penghantar arus kuat kontak tahan panas untuk semua motor'],
 
-
             // =========================================================================
             // ================= 6. LAMPU & SAKLAR =====================================
             // =========================================================================
@@ -360,7 +346,6 @@ class ProductSeeder extends Seeder
             ['LMP-011', 'Klakson 12V High Tone AHM Honda Beat / Vario / Supra Original', 58000, 'Aksesoris', 'Klakson trompet basah/kering 12V original Honda AHM (38110-K81-N01) untuk Beat, Vario, Supra X 125, CB150R'],
             ['LMP-012', 'Klakson 12V YGP Yamaha Mio / Jupiter / NMAX Original', 55000, 'Aksesoris', 'Klakson standar 12V original Yamaha YGP (1WD-H3371-00) untuk Mio, Jupiter Z1, NMAX, Vixion'],
             ['LMP-013', 'Klakson 12V Astra Aspira Universal Suara Nyaring', 38000, 'Aksesoris', 'Klakson piringan 12V Astra Otoparts Aspira suara nyaring tahan air untuk semua motor'],
-
 
             // =========================================================================
             // ================= 7. MESIN & FILTER =====================================
@@ -444,7 +429,6 @@ class ProductSeeder extends Seeder
             ['MSN-045', 'Gasket Paking Top Set Astra Aspira Supra X 125', 30000, 'Penggerak & CVT', 'Paking top set blok mesin Astra Otoparts Aspira untuk Supra X 125'],
             ['MSN-046', 'Gasket Paking Top Set Astra Aspira Mio M3 / Jupiter Z', 28000, 'Penggerak & CVT', 'Paking top set blok mesin Astra Otoparts Aspira untuk Mio M3 & Jupiter Z'],
 
-
             // =========================================================================
             // ================= 8. BODI & AKSESORIS ===================================
             // =========================================================================
@@ -487,7 +471,6 @@ class ProductSeeder extends Seeder
             ['AKS-028', 'Kabel Gas Throttle Cable Astra Aspira Supra X 125', 20000, 'Aksesoris', 'Kabel gas kawat baja lapis teflon Astra Otoparts Aspira tarikan enteng untuk Supra X 125'],
             ['AKS-029', 'Kabel Gas Throttle Cable Astra Aspira Mio M3 / Jupiter Z', 20000, 'Aksesoris', 'Kabel gas kawat baja lapis teflon Astra Otoparts Aspira tarikan enteng untuk Mio M3 & Jupiter Z'],
 
-
             // =========================================================================
             // ================= 9. LAIN-LAIN ==========================================
             // =========================================================================
@@ -510,6 +493,7 @@ class ProductSeeder extends Seeder
 
         foreach ($products as $product) {
             $category = Category::where('name', $product[3])->first();
+            $existing = Product::where('sku', $product[0])->first();
 
             Product::updateOrCreate(
                 ['sku' => $product[0]],
@@ -518,10 +502,9 @@ class ProductSeeder extends Seeder
                     'name' => $product[1],
                     'price' => $product[2],
                     'description' => $product[4],
-                    'stock' => rand(30, 95),
+                    'stock' => $existing ? $existing->stock : 50,
                     'minimum_stock' => 10,
                     'unit' => 'pcs',
-                    'image_path' => null,
                     'is_available' => true,
                 ]
             );

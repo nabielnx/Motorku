@@ -345,34 +345,36 @@ class MotorcycleManagementTest extends TestCase
         $resPage1 = $this->actingAs($this->user)->getJson("/motorcycles/{$motor->id}/parts?per_page=3&page=1");
         $resPage1->assertStatus(200)
             ->assertJson([
-                'current_page' => 1,
-                'last_page'    => 2,
-                'per_page'     => 3,
-                'total'        => 6,
-                'total_mapped' => 6,
+                'data' => [
+                    'current_page' => 1,
+                    'last_page'    => 2,
+                    'per_page'     => 3,
+                    'total'        => 6,
+                    'total_mapped' => 6,
+                ]
             ]);
-        $this->assertCount(3, $resPage1->json('data'));
+        $this->assertCount(3, $resPage1->json('data.data'));
 
         // 2. Test search filter
         $resSearch = $this->actingAs($this->user)->getJson("/motorcycles/{$motor->id}/parts?search=NGK");
         $resSearch->assertStatus(200)
-            ->assertJson(['total' => 1]);
-        $this->assertEquals('Busi NGK CPR9EA-9', $resSearch->json('data.0.product.name'));
+            ->assertJson(['data' => ['total' => 1]]);
+        $this->assertEquals('Busi NGK CPR9EA-9', $resSearch->json('data.data.0.product.name'));
 
         // 3. Test category filter
         $resCat = $this->actingAs($this->user)->getJson("/motorcycles/{$motor->id}/parts?part_category=oli_mesin");
         $resCat->assertStatus(200)
-            ->assertJson(['total' => 1]);
+            ->assertJson(['data' => ['total' => 1]]);
 
         // 4. Test group filter (pengereman)
         $resGroup = $this->actingAs($this->user)->getJson("/motorcycles/{$motor->id}/parts?group=pengereman");
         $resGroup->assertStatus(200)
-            ->assertJson(['total' => 2]);
+            ->assertJson(['data' => ['total' => 2]]);
 
         // 5. Test recommendation filter
         $resRec = $this->actingAs($this->user)->getJson("/motorcycles/{$motor->id}/parts?is_recommended=1");
         $resRec->assertStatus(200)
-            ->assertJson(['total' => 3]);
+            ->assertJson(['data' => ['total' => 3]]);
     }
 
     public function test_can_update_and_detach_motorcycle_part(): void

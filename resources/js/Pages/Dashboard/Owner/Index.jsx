@@ -1,25 +1,41 @@
 import React, { useState, useEffect } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import DateRangePicker from '@/Components/DateRangePicker';
+import DashboardSkeleton from '@/Components/Skeletons/DashboardSkeleton';
 import { Head, Link, router } from '@inertiajs/react';
 import axios from 'axios';
 import { 
     FiTrendingUp, 
     FiShoppingBag, 
     FiDollarSign, 
-    FiUsers,
     FiPackage, 
-    FiAlertTriangle, 
     FiClock, 
     FiCheckCircle, 
     FiArrowRight,
     FiChevronLeft,
-    FiChevronRight,
-    FiLayers,
-    FiCheck
+    FiChevronRight
 } from 'react-icons/fi';
 
 export default function Dashboard({ stats = {}, filters = {} }) {
+
+    const [isNavigating, setIsNavigating] = useState(false);
+
+    useEffect(() => {
+        const removeStart = router.on('start', (event) => {
+            const rawUrl = event?.detail?.visit?.url;
+            let targetPath = '';
+            if (typeof rawUrl === 'string') {
+                targetPath = new URL(rawUrl, window.location.origin).pathname;
+            } else if (rawUrl?.pathname) {
+                targetPath = rawUrl.pathname;
+            }
+            if (targetPath === '/dashboard') {
+                setIsNavigating(true);
+            }
+        });
+        const removeFinish = router.on('finish', () => setIsNavigating(false));
+        return () => { removeStart(); removeFinish(); };
+    }, []);
 
     const currentPeriod = filters.period || '7_days';
     const [startDate, setStartDate] = useState(filters.start_date || '');
@@ -52,15 +68,15 @@ export default function Dashboard({ stats = {}, filters = {} }) {
 
     const revenueToday = stats.revenue_today ?? 0;
     const ordersToday = stats.orders_today ?? 0;
-    const totalCustomers = stats.total_customers ?? ordersToday ?? 0;
     const pendingOrders = stats.pending_orders ?? 0;
-    const totalProducts = stats.total_products ?? 0;
 
     const topSellingMenu = stats.top_selling || [];
     const lowStockAlerts = stats.low_stock || [];
 
     // Real sales data from backend
     const salesData = stats.sales_data || [];
+    const salesActivity = salesData.filter((day) => day.value !== 0 || day.count > 0);
+    const showSalesChart = salesActivity.length > 0 && salesData.every((day) => day.value >= 0);
     const maxSalesValue = Math.max(...salesData.map(d => d.value), 0);
 
     // Y-Axis scale ticks
@@ -126,17 +142,17 @@ export default function Dashboard({ stats = {}, filters = {} }) {
 
     return (
         <AuthenticatedLayout pageTitle="Dashboard">
-            <Head title="Dashboard Overview - Toko Sparepart">
-                <meta name="description" content="Ringkasan performa penjualan, total pendapatan, statistik pesanan, dan produk terlaris toko Toko Sparepart." />
+            <Head title="Dashboard Overview">
+                <meta name="description" content="Ringkasan performa penjualan, total pendapatan, statistik pesanan, dan produk terlaris toko Motorku." />
             </Head>
 
-            <div className="w-full space-y-5">
+            {isNavigating ? <DashboardSkeleton /> : <div className="w-full grid grid-cols-12 gap-5 items-start">
                 
                 {/* Header Filter Periode */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white dark:bg-slate-900 p-4 sm:px-5 rounded-xl border border-slate-300 dark:border-slate-800 shadow-xs transition-colors">
+                <div className="col-span-12 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white dark:bg-slate-900 p-4 sm:px-5 rounded-xl border border-slate-300 dark:border-slate-800 shadow-xs transition-colors">
                     <div>
-                        <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-white">Ringkasan Statistik</h2>
-                        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Pilih periode untuk memfilter data dashboard</p>
+                        <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-white">Ringkasan Toko</h2>
+                        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Periode berlaku untuk penjualan; antrean dan stok adalah kondisi saat ini.</p>
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
                         {/* Preset Select Dropdown */}
@@ -163,114 +179,81 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                     </div>
                 </div>
 
-                {/* ROW 1: 5 KEY METRIC CARDS (INCLUDES TOTAL CUSTOMER) */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-                    
-                    {/* Card 1: Revenue Today */}
-                    <div className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-300 dark:border-slate-800 shadow-xs flex flex-col justify-between transition-colors">
-                        <div className="flex items-start justify-between">
+                {/* Kondisi saat ini dan penjualan pada periode terpilih */}
+                <div className="col-span-12 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+                    <Link href={route('orders.index')} className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-300 dark:border-slate-800 hover:border-amber-400 transition-colors">
+                        <div className="flex items-start justify-between gap-2">
                             <div>
-                                <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Pendapatan {periodLabel}</p>
+                                <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Antrean saat ini</p>
+                                <h3 className="text-2xl font-black text-slate-900 dark:text-white mt-1">{pendingOrders} <span className="text-sm font-bold text-slate-500 dark:text-slate-400">pesanan</span></h3>
+                            </div>
+                            <FiClock className="text-blue-600 shrink-0" size={20} />
+                        </div>
+                        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-3">Pending, disiapkan, atau siap diambil <FiArrowRight className="inline" /></p>
+                    </Link>
+
+                    <div className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-300 dark:border-slate-800">
+                        <div className="flex items-start justify-between gap-2">
+                            <div>
+                                <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Penjualan bersih</p>
                                 <h3 className="text-2xl font-black text-slate-900 dark:text-white mt-1">{formatRp(revenueToday)}</h3>
                             </div>
-                            <div className="p-2.5 rounded-xl bg-blue-600 text-white shadow-xs shrink-0">
-                                <FiDollarSign size={20} strokeWidth={2.5} />
-                            </div>
+                            <FiDollarSign className="text-blue-600 shrink-0" size={20} />
                         </div>
-                        <div className="mt-3 pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-semibold text-slate-500 dark:text-slate-400">
-                            <span>Total Omzet Penjualan</span>
-                            <span className="font-bold text-slate-800 dark:text-slate-200">{periodLabel}</span>
-                        </div>
+                        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-3">Dibayar {periodLabel.toLowerCase()}, setelah retur</p>
                     </div>
 
-                    {/* Card 2: Total Orders Today */}
-                    <div className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-300 dark:border-slate-800 shadow-xs flex flex-col justify-between transition-colors">
-                        <div className="flex items-start justify-between">
+                    <div className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-300 dark:border-slate-800">
+                        <div className="flex items-start justify-between gap-2">
                             <div>
-                                <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Pesanan {periodLabel}</p>
-                                <h3 className="text-2xl font-black text-slate-900 dark:text-white mt-1">{ordersToday} <span className="text-sm font-bold text-slate-500 dark:text-slate-400">Transaksi</span></h3>
+                                <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Transaksi lunas</p>
+                                <h3 className="text-2xl font-black text-slate-900 dark:text-white mt-1">{ordersToday} <span className="text-sm font-bold text-slate-500 dark:text-slate-400">transaksi</span></h3>
                             </div>
-                            <div className="p-2.5 rounded-xl bg-blue-600 text-white shadow-xs shrink-0">
-                                <FiShoppingBag size={20} strokeWidth={2.5} />
-                            </div>
+                            <FiShoppingBag className="text-blue-600 shrink-0" size={20} />
                         </div>
+                        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-3">Dibayar {periodLabel.toLowerCase()}</p>
                     </div>
 
-                    {/* Card 3: Total Pelanggan (Total Customer) */}
-                    <div className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-300 dark:border-slate-800 shadow-xs flex flex-col justify-between transition-colors">
-                        <div className="flex items-start justify-between">
+                    <Link href={route('products.index')} className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-300 dark:border-slate-800 hover:border-amber-400 transition-colors">
+                        <div className="flex items-start justify-between gap-2">
                             <div>
-                                <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Pelanggan</p>
-                                <h3 className="text-2xl font-black text-slate-900 dark:text-white mt-1">{totalCustomers} <span className="text-sm font-bold text-slate-500 dark:text-slate-400">Orang</span></h3>
+                                <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Stok perlu dicek</p>
+                                <h3 className="text-2xl font-black text-slate-900 dark:text-white mt-1">{lowStockAlerts.length} <span className="text-sm font-bold text-slate-500 dark:text-slate-400">produk</span></h3>
                             </div>
-                            <div className="p-2.5 rounded-xl bg-purple-600 text-white shadow-xs shrink-0">
-                                <FiUsers size={20} strokeWidth={2.5} />
-                            </div>
+                            <FiPackage className={lowStockAlerts.length > 0 ? 'text-accentYellow shrink-0' : 'text-slate-400 shrink-0'} size={20} />
                         </div>
-                        <div className="mt-3 pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-semibold text-slate-500 dark:text-slate-400">
-                            <span>Pelanggan {periodLabel}</span>
-                            <span className="font-bold text-purple-600 dark:text-purple-400">Aktif</span>
-                        </div>
-                    </div>
-
-                    {/* Card 4: Pending Orders */}
-                    <div className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-300 dark:border-slate-800 shadow-xs flex flex-col justify-between transition-colors">
-                        <div className="flex items-start justify-between">
-                            <div>
-                                <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Pesanan Diproses</p>
-                                <h3 className="text-2xl font-black text-slate-900 dark:text-white mt-1">{pendingOrders} <span className="text-sm font-bold text-slate-500 dark:text-slate-400">Antrean</span></h3>
-                            </div>
-                            <div className="p-2.5 rounded-xl bg-yellow-400 text-white shadow-xs shrink-0">
-                                <FiClock size={20} strokeWidth={2.5} />
-                            </div>
-                        </div>
-                        <div className="mt-3 pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-semibold text-slate-500 dark:text-slate-400">
-                            <span>Status Pesanan Aktif</span>
-                            <span className={pendingOrders > 0 ? 'text-yellow-500 dark:text-yellow-400 font-bold' : 'text-slate-400 font-medium'}>
-                                {pendingOrders > 0 ? 'Pesanan Berlangsung' : 'Lancar'}
-                            </span>
-                        </div>
-                    </div>
-
-                    {/* Card 5: Total Produk */}
-                    <div className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-300 dark:border-slate-800 shadow-xs flex flex-col justify-between transition-colors">
-                        <div className="flex items-start justify-between">
-                            <div>
-                                <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Katalog Produk</p>
-                                <h3 className="text-2xl font-black text-slate-900 dark:text-white mt-1">{totalProducts} <span className="text-sm font-bold text-slate-500 dark:text-slate-400">Produk</span></h3>
-                            </div>
-                            <div className="p-2.5 rounded-xl bg-emerald-600 text-white shadow-xs shrink-0">
-                                <FiPackage size={20} strokeWidth={2.5} />
-                            </div>
-                        </div>
-                        <div className="mt-3 pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-semibold text-slate-500 dark:text-slate-400">
-                            <span>Status Stok Minimum</span>
-                            <span className={lowStockAlerts.length > 0 ? 'text-rose-600 dark:text-rose-400 font-bold' : 'text-emerald-600 dark:text-emerald-400 font-bold'}>
-                                {lowStockAlerts.length > 0 ? `${lowStockAlerts.length} Produk Menipis` : 'Semua Stok Aman'}
-                            </span>
-                        </div>
-                    </div>
+                        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-3">Berdasarkan batas minimum tiap produk <FiArrowRight className="inline" /></p>
+                    </Link>
                 </div>
 
-                {/* ROW 2: FINANCIAL CHART & SIDEBAR METRICS (FULL WIDTH & BALANCED GRID) */}
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
+                {/* Ringkasan penjualan dan produk */}
+                <div className="contents">
                     
                     {/* Left: Financial Sales Bar Chart with Y-Axis Ticks & Gridlines */}
-                    <div className="lg:col-span-7 bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-xl border border-slate-300 dark:border-slate-800 shadow-xs flex flex-col justify-between h-[360px] transition-colors">
+                    <div className="col-span-12 xl:col-span-8 order-3 h-[280px] bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-xl border border-slate-300 dark:border-slate-800 shadow-xs flex flex-col justify-between transition-colors">
                         <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-2">
                             <div>
-                                <h3 className="font-extrabold text-slate-900 dark:text-white text-base">Grafik Penjualan</h3>
-                                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-0.5">Tren statistik omzet {periodLabel.toLowerCase()}</p>
+                                <h3 className="font-extrabold text-slate-900 dark:text-white text-base">Penjualan {periodLabel}</h3>
+                                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-0.5">Berdasarkan waktu pembayaran</p>
                             </div>
-                            <div className="text-right">
+                            {showSalesChart && <div className="text-right">
                                 <span className="text-xs font-bold text-slate-400 block uppercase tracking-wider">Puncak Penjualan</span>
                                 <span className="text-sm font-black text-blue-600 dark:text-yellow-400">
-                                    {maxSalesValue > 0 ? formatRp(maxSalesValue) : 'Belum ada penjualan'}
+                                    {formatRp(maxSalesValue)}
                                 </span>
-                            </div>
+                            </div>}
                         </div>
 
-                        {/* Financial Bar Graph with Synchronized Horizontal Gridlines & Y-Axis Scale */}
+                        {!showSalesChart ? (
+                            <div className="py-5 text-sm text-slate-600 dark:text-slate-300 space-y-2">
+                                {salesActivity.length === 0
+                                    ? `Belum ada pembayaran atau retur ${periodLabel.toLowerCase()}.`
+                                    : salesActivity.map((day, index) => (
+                                        <p key={index}>{day.day}: {formatRp(day.value)} bersih, {day.count} transaksi lunas.</p>
+                                    ))}
+                            </div>
+                        ) : (
+                        /* Tetap tampil meski hanya satu hari memiliki penjualan */
                         <div className="relative flex-1 flex flex-col justify-between pt-6">
 
                             {/* Chart Main Plot Area (Y-Axis Labels + Gridlines & Bars) */}
@@ -304,7 +287,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                                             return (
                                                 <div key={idx} className="flex-1 flex flex-col justify-end h-full group relative">
                                                     <div 
-                                                        className={`w-full rounded-t-md transition-all duration-200 relative ${data.value > 0 ? 'bg-blue-600 dark:bg-blue-500 group-hover:bg-blue-700 shadow-xs' : 'bg-slate-200/60 dark:bg-slate-800'}`}
+                                                        className={`w-full max-w-[72px] mx-auto rounded-t-md transition-all duration-200 relative ${data.value > 0 ? (data.is_today ? 'bg-accentYellow group-hover:bg-yellow-400 shadow-xs' : 'bg-blue-600 dark:bg-blue-500 group-hover:bg-blue-700 shadow-xs') : 'bg-slate-200/60 dark:bg-slate-800'}`}
                                                         style={{ height: `${heightPct}%` }}
                                                     >
                                                         {/* Hover Tooltip */}
@@ -328,7 +311,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                             <div className="pl-14 w-full flex items-center justify-between gap-1 sm:gap-2 pt-3 shrink-0">
                                 {salesData.map((data, idx) => (
                                     <div key={idx} className="flex-1 text-center min-w-0">
-                                        <span className="text-[10px] sm:text-[11px] font-bold text-slate-600 dark:text-slate-400 block truncate" title={data.day}>
+                                        <span className={`text-[10px] sm:text-[11px] font-bold block truncate ${data.is_today ? 'text-amber-700 dark:text-accentYellow' : 'text-slate-600 dark:text-slate-400'}`} title={data.day}>
                                             {data.day}
                                         </span>
                                     </div>
@@ -336,36 +319,35 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                             </div>
 
                         </div>
+                        )}
                     </div>
 
-                    {/* Right: Unified Best Selling & Low Stock Panel (Fixed 360px height matching left chart with dual scrollable sections) */}
-                    <div className="lg:col-span-5 bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-xl border border-slate-300 dark:border-slate-800 shadow-xs flex flex-col justify-between h-[360px] overflow-hidden transition-colors">
+                    {/* Produk terlaris dan stok yang perlu dicek */}
+                    <div className="contents">
                         
                         {/* Section A: Produk Terlaris */}
-                        <div className="flex-1 min-h-0 flex flex-col mb-2.5 overflow-hidden">
+                        <div className="col-span-12 xl:col-span-4 order-4 h-[280px] min-h-0 flex flex-col bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-xl border border-slate-300 dark:border-slate-800 shadow-xs">
                             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2 mb-1.5 shrink-0">
-                                <h3 className="font-extrabold text-slate-900 dark:text-white text-xs uppercase tracking-wider flex items-center gap-2">
-                                    <FiTrendingUp className="text-blue-600 dark:text-yellow-400" size={16} strokeWidth={2.5} /> 
+                                <h3 className="font-bold text-slate-900 dark:text-white text-sm flex items-center gap-2">
+                                    <FiTrendingUp className="text-blue-600 dark:text-yellow-400" size={16} />
                                     <span>Produk Terlaris {periodLabel}</span>
                                 </h3>
                                 {topSellingMenu.length > 0 && (
-                                    <span className="text-[10px] font-bold text-slate-400">{topSellingMenu.length} Item</span>
+                                    <span className="text-xs text-slate-500 dark:text-slate-400">{topSellingMenu.length} produk</span>
                                 )}
                             </div>
                             
-                            <div className="flex-1 min-h-0 space-y-1 overflow-y-auto pr-1">
+                            <div className="min-h-0 flex-1 overflow-y-auto pr-1 space-y-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600" role="region" aria-label={`Produk terlaris ${periodLabel}`} tabIndex={0}>
                                 {topSellingMenu.length > 0 ? (
                                     topSellingMenu.map((item, idx) => (
-                                        <div key={idx} className="flex items-center justify-between py-1.5 px-2 rounded-md hover:bg-slate-50 dark:hover:bg-slate-800/60 transition border-b border-slate-100 dark:border-slate-800/80 last:border-none">
+                                        <div key={idx} className="flex items-center justify-between gap-3 py-2 border-b border-slate-100 dark:border-slate-800 last:border-none">
                                             <div className="flex items-center space-x-2.5 min-w-0">
-                                                <span className={`w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-black shrink-0 ${
-                                                    idx === 0 ? 'bg-amber-400 text-amber-950' : idx === 1 ? 'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-300' : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
-                                                }`}>
-                                                    {item.rank || idx + 1}
+                                                <span className={`w-5 text-xs tabular-nums shrink-0 ${idx === 0 ? 'font-bold text-amber-700 dark:text-accentYellow' : 'text-slate-400 dark:text-slate-500'}`}>
+                                                    {String(item.rank || idx + 1).padStart(2, '0')}
                                                 </span>
-                                                <span className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">{item.name}</span>
+                                                <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 truncate">{item.name}</span>
                                             </div>
-                                            <span className="text-xs font-mono font-bold text-blue-600 dark:text-yellow-400 shrink-0 ml-2">{item.count} terjual</span>
+                                            <span className="text-xs font-medium text-slate-600 dark:text-slate-400 shrink-0">{item.count} terjual</span>
                                         </div>
                                     ))
                                 ) : (
@@ -375,47 +357,48 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                         </div>
 
                         {/* Section B: Peringatan Stok Minimum */}
-                        <div className="flex-1 min-h-0 flex flex-col pt-2.5 border-t border-slate-200 dark:border-slate-800 overflow-hidden">
-                            <div className="flex items-center justify-between mb-2 shrink-0">
-                                <h3 className="font-extrabold text-slate-900 dark:text-white text-xs uppercase tracking-wider flex items-center gap-2">
-                                    <span>Peringatan Stok Minimum</span>
-                                </h3>
-                                {lowStockAlerts.length > 0 && (
-                                    <span className="text-[10px] font-bold text-rose-500">{lowStockAlerts.length} Peringatan</span>
-                                )}
+                        <div className="col-span-12 xl:col-span-4 order-1 xl:order-2 bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-xl border border-slate-300 dark:border-slate-800 shadow-xs">
+                            <div className="flex items-center justify-between gap-3 pb-2 border-b border-slate-100 dark:border-slate-800">
+                                <h3 className="font-bold text-slate-900 dark:text-white text-sm">Stok perlu dicek</h3>
+                                <span className="text-xs text-slate-500 dark:text-slate-400">{lowStockAlerts.length} produk</span>
                             </div>
                             
-                            <div className="flex-1 min-h-0 space-y-1.5 overflow-y-auto pr-1">
+                            <div className="space-y-1.5">
                                 {lowStockAlerts.length > 0 ? (
-                                    lowStockAlerts.map((stock, idx) => (
-                                        <div key={idx} className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 text-xs">
+                                    lowStockAlerts.slice(0, 3).map((stock, idx) => (
+                                        <div key={idx} className="flex items-center justify-between gap-3 py-2 border-b border-slate-100 dark:border-slate-800 last:border-none text-xs">
                                             <div className="min-w-0">
-                                                <span className="font-bold text-slate-900 dark:text-slate-100 block truncate">{stock.name}</span>
-                                                <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400">{stock.left}</span>
+                                                <span className="font-semibold text-slate-900 dark:text-slate-100 block truncate">{stock.name}</span>
+                                                <span className="text-xs text-slate-500 dark:text-slate-400">{stock.left}</span>
                                             </div>
-                                            <span className="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase bg-rose-600 text-white shrink-0 shadow-2xs">
-                                                {stock.status}
+                                            <span className={`font-semibold shrink-0 ${stock.status === 'Critical' ? 'text-rose-700 dark:text-rose-400' : 'text-accentYellow'}`}>
+                                                {stock.status === 'Critical' ? 'Habis' : 'Menipis'}
                                             </span>
                                         </div>
                                     ))
                                 ) : (
-                                    <div className="p-3 rounded-xl bg-emerald-600 text-white text-xs font-bold flex items-center gap-2.5 shadow-2xs">
-                                        <FiCheckCircle size={16} strokeWidth={2.5} className="text-white shrink-0" />
-                                        <span>Semua stok produk dalam kondisi aman</span>
+                                    <div className="text-xs text-slate-600 dark:text-slate-300 flex items-center gap-2">
+                                        <FiCheckCircle size={16} className="text-emerald-600 shrink-0" />
+                                        <span>Belum ada produk di bawah batas minimum.</span>
                                     </div>
                                 )}
                             </div>
+                            {lowStockAlerts.length > 3 && (
+                                <Link href={route('products.index')} className="inline-block mt-2 text-xs font-bold text-blue-600 dark:text-yellow-400">
+                                    Lihat semua {lowStockAlerts.length} produk <FiArrowRight className="inline" />
+                                </Link>
+                            )}
                         </div>
 
                     </div>
                 </div>
 
-                {/* ROW 3: RECENT TRANSACTIONS TABLE (CLEAN FORMATTED & SCROLLABLE WITH PAGINATION) */}
-                <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-800 shadow-xs overflow-hidden transition-colors">
+                {/* Pesanan terbaru tampil sebelum grafik */}
+                <div className="col-span-12 xl:col-span-8 order-2 xl:order-1 bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-800 shadow-xs overflow-hidden transition-colors">
                     <div className="p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/80 dark:bg-slate-800/50">
                         <div>
                             <h3 className="font-extrabold text-slate-900 dark:text-white text-sm sm:text-base">Transaksi Terakhir</h3>
-                            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-0.5">Daftar pesanan terbaru yang masuk dari Kasir / QR Order</p>
+                            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-0.5">Pesanan dibuat {periodLabel.toLowerCase()}, termasuk yang belum dibayar</p>
                         </div>
                         <Link href={route('orders.index')} className="text-xs font-bold text-blue-600 dark:text-yellow-400 hover:text-blue-700 flex items-center gap-1.5">
                             <span>Kelola Semua Pesanan</span>
@@ -424,13 +407,13 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                     </div>
 
                     {/* Table Container with Internal Scroll */}
-                    <div className="max-h-[320px] overflow-y-auto">
-                        <table className="w-full text-left text-xs">
+                    <div className="max-h-[320px] overflow-auto">
+                        <table className="w-full min-w-[650px] text-left text-xs">
                             <thead className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-[10px] uppercase border-b border-slate-200 dark:border-slate-800 sticky top-0 z-10">
                                 <tr>
                                     <th className="px-4 py-3">No. Invoice</th>
                                     <th className="px-4 py-3">Pelanggan</th>
-                                    <th className="px-4 py-3">Tipe Pesanan</th>
+                                    <th className="px-4 py-3">Dibuat</th>
                                     <th className="px-4 py-3">Total Tagihan</th>
                                     <th className="px-4 py-3">Status Pembayaran</th>
                                 </tr>
@@ -446,18 +429,20 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                                                     {ord.customer_name || 'Pelanggan Umum'}
                                                 </td>
                                                 <td className="px-4 py-3">
-                                                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
-                                                        Ambil di Toko
-                                                    </span>
+                                                    {ord.created_at ? new Date(ord.created_at).toLocaleString('id-ID', {
+                                                        day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta'
+                                                    }) : '-'}
                                                 </td>
                                                 <td className="px-4 py-3 font-black text-slate-900 dark:text-white">{formatRp(Number(ord.total || 0))}</td>
                                                 <td className="px-4 py-3">
-                                                    <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold shadow-2xs ${
-                                                        ord.payment_status === 'paid' 
-                                                            ? 'bg-emerald-600 text-white' 
-                                                            : 'bg-amber-500 text-white'
+                                                    <span className={`text-xs font-semibold ${
+                                                        ord.payment_status === 'paid'
+                                                            ? 'text-emerald-700 dark:text-emerald-400'
+                                                            : ord.payment_status === 'refunded'
+                                                                ? 'text-slate-600 dark:text-slate-400'
+                                                                : 'text-amber-700 dark:text-amber-400'
                                                     }`}>
-                                                        {ord.payment_status === 'paid' ? 'LUNAS' : 'PENDING'}
+                                                        {ord.payment_status === 'paid' ? 'Lunas' : ord.payment_status === 'refunded' ? 'Dikembalikan' : 'Belum lunas'}
                                                     </span>
                                                 </td>
                                             </tr>
@@ -466,7 +451,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                                 ) : (
                                     <tr>
                                         <td colSpan={5} className="p-8 text-center text-slate-400 font-semibold">
-                                            Belum ada transaksi hari ini. Buka <Link href={route('pos.index')} className="text-blue-600 dark:text-yellow-400 underline font-bold">POS Kasir</Link> untuk mencoba!
+                                            Belum ada pesanan {periodLabel.toLowerCase()}.
                                         </td>
                                     </tr>
                                 )}
@@ -475,7 +460,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                     </div>
 
                     {/* Table Pagination Footer */}
-                    {totalOrdersCount > 0 && (
+                    {totalPages > 1 && (
                         <div className="p-3 bg-slate-50 dark:bg-slate-800/60 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs font-semibold text-slate-600 dark:text-slate-400">
                             <span>
                                 Menampilkan {((currentPage - 1) * perPage) + 1} - {Math.min(currentPage * perPage, totalOrdersCount)} dari {totalOrdersCount} transaksi
@@ -508,7 +493,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                     )}
                 </div>
 
-            </div>
+            </div>}
         </AuthenticatedLayout>
     );
 }

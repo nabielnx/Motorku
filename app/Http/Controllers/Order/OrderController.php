@@ -1,25 +1,36 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Order;
 
 use App\Http\Controllers\Controller;
 use App\Services\OrderService;
+use App\Services\OrderReturnService;
+use App\Services\ReportService;
 use App\Http\Requests\Order\StoreOrderRequest;
+use App\Http\Requests\Order\StorePosSaleRequest;
+use App\Http\Requests\Order\StoreOrderReturnRequest;
 use App\Http\Requests\Order\UpdateOrderRequest;
+use App\Http\Resources\OrderResource;
+use App\Traits\ApiResponseHelpers;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\Gate;
 use App\Models\Order;
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 
 class OrderController extends Controller implements HasMiddleware
 {
-    protected $orderService;
+    use ApiResponseHelpers;
 
-    public function __construct(OrderService $orderService)
-    {
-        $this->orderService = $orderService;
-    }
+    public function __construct(
+        protected OrderService $orderService,
+        protected ReportService $reportService
+    ) {}
 
     public static function middleware(): array
     {
@@ -28,70 +39,34 @@ class OrderController extends Controller implements HasMiddleware
         ];
     }
 
-    public function indexWeb(\Illuminate\Http\Request $request)
+    public function indexWeb(Request $request): InertiaResponse
     {
         $status = $request->string('status')->value();
         $search = $request->string('search')->value();
 
-        $query = Order::with(['items', 'cashier', 'payments'])->latest();
-
-        if ($status && $status !== 'All') {
-            $query->where('order_status', $status);
-        }
-
-        if ($search) {
-            $query->where(function ($q) use ($search) {
-                $q->where('order_number', 'like', "%{$search}%")
-                  ->orWhere('customer_name', 'like', "%{$search}%");
-            });
-        }
-
-        $orders = $query->paginate(10)
-            ->withQueryString()
-            ->through(function ($order) {
-                return [
-                    'id' => $order->order_number ?: substr($order->id, 0, 8),
-                    'real_id' => $order->id,
-                    'customer' => $order->customer_name ?: 'Walk-in Guest',
-                    'type' => 'Ambil di Toko',
-                    'table' => '-',
-                    'items' => $order->items ? $order->items->sum('quantity') : 0,
-                    'total' => (float) $order->total,
-                    'status' => $order->order_status,
-                    'payment_status' => $order->payment_status,
-                    'paid_at' => $order->payments
-                        ->where('status', 'paid')
-                        ->sortByDesc('paid_at')
-                        ->first()?->paid_at?->toIso8601String(),
-                    'created_at' => $order->created_at?->toIso8601String(),
-                    'time' => $order->created_at ? $order->created_at->timezone('Asia/Jakarta')->format('H:i') : '-',
-                    'date' => $order->created_at ? $order->created_at->timezone('Asia/Jakarta')->format('d M Y') : '-',
-                ];
-            });
+        $orders = $this->orderService->getOrdersForWeb($status, $search);
 
         $today = now()->toDateString();
 
-        return \Inertia\Inertia::render('Order/Index', [
+        return Inertia::render('Order/Index', [
             'initialOrders' => fn () => $orders,
             'summary' => fn () => [
                 'today_order_count' => Order::whereDate('created_at', $today)->count(),
-                'today_order_value' => (float) Order::whereDate('created_at', $today)
-                    ->where('payment_status', 'paid')
-                    ->sum('total'),
+                'today_order_value' => $this->reportService->netRevenue(now()->startOfDay(), now()->endOfDay()),
                 'pending_count' => Order::where('order_status', 'pending')->count(),
                 'processing_count' => Order::whereIn('order_status', ['preparing', 'processing'])->count(),
             ],
         ]);
     }
 
-    public function showWeb(string $orderId)
+    public function showWeb(string $orderId): InertiaResponse
     {
-        return \Inertia\Inertia::render('Order/Show', [
+        return Inertia::render('Order/Show', [
             'orderId' => $orderId,
         ]);
     }
 
-    public function index(\Illuminate\Http\Request $request): JsonResponse
+    public function index(Request $request): JsonResponse
     {
         Gate::authorize('viewAny', Order::class);
 
@@ -100,13 +75,15 @@ class OrderController extends Controller implements HasMiddleware
         $search = $request->query('search');
 
         $orders = $this->orderService->getAllOrders($perPage, $status, $search);
-        return response()->json($orders);
+
+        // Return pagination as resource collection
+        return OrderResource::collection($orders)->response();
     }
 
     public function pendingCount(): JsonResponse
     {
         $count = Order::where('order_status', 'pending')->count();
-        return response()->json(['count' => $count]);
+        return $this->successResponse('Berhasil mengambil jumlah pesanan tertunda', ['count' => $count]);
     }
 
     public function store(StoreOrderRequest $request): JsonResponse
@@ -115,10 +92,30 @@ class OrderController extends Controller implements HasMiddleware
 
         $order = $this->orderService->createOrder($request->validated());
 
-        return response()->json([
-            'message' => 'Pesanan berhasil dibuat!',
-            'data' => $order
+        return $this->successResponse(
+            'Pesanan berhasil dibuat!',
+            new OrderResource($order),
+            201
+        );
+    }
+
+    public function storePosSale(StorePosSaleRequest $request): JsonResponse
+    {
+        Gate::authorize('create', Order::class);
+
+        $sale = $this->orderService->createPosSale($request->validated());
+
+        return $this->successResponse('Transaksi berhasil!', [
+            'order' => new OrderResource($sale['order']),
+            'payment' => $sale['payment'],
         ], 201);
+    }
+
+    public function storeReturn(StoreOrderReturnRequest $request, string $id, OrderReturnService $returns): JsonResponse
+    {
+        $order = $returns->returnItem($id, $request->validated());
+
+        return $this->successResponse('Retur berhasil dicatat.', new OrderResource($order), 201);
     }
 
     public function show($id): JsonResponse
@@ -126,33 +123,30 @@ class OrderController extends Controller implements HasMiddleware
         $order = $this->orderService->getOrderById($id);
 
         if (!$order) {
-            return response()->json(['message' => 'Pesanan tidak ditemukan'], 404);
+            return $this->errorResponse('Pesanan tidak ditemukan', 404);
         }
 
         Gate::authorize('view', $order);
 
-        return response()->json($order);
+        return $this->successResponse('Detail pesanan', new OrderResource($order));
     }
 
     public function update(UpdateOrderRequest $request, $id): JsonResponse
     {
-        // 1. Ambil data pesanan dulu untuk dicek Policy-nya
         $order = $this->orderService->getOrderById($id);
 
         if (!$order) {
-            return response()->json(['message' => 'Pesanan tidak ditemukan'], 404);
+            return $this->errorResponse('Pesanan tidak ditemukan', 404);
         }
 
-        // 2. Cek Policy
         Gate::authorize('update', $order);
 
-        // 3. Eksekusi update via service seperti aslinya
         $updatedOrder = $this->orderService->updateOrderStatus($id, $request->validated());
 
-        return response()->json([
-            'message' => 'Status pesanan berhasil diperbarui!',
-            'data' => $updatedOrder
-        ]);
+        return $this->successResponse(
+            'Status pesanan berhasil diperbarui!',
+            new OrderResource($updatedOrder)
+        );
     }
 
     public function updateStatus(UpdateOrderRequest $request, $id): JsonResponse
@@ -165,15 +159,13 @@ class OrderController extends Controller implements HasMiddleware
         $order = $this->orderService->getOrderById($id);
 
         if (!$order) {
-            return response()->json(['message' => 'Pesanan tidak ditemukan'], 404);
+            return $this->errorResponse('Pesanan tidak ditemukan', 404);
         }
 
         Gate::authorize('delete', $order);
 
         $this->orderService->deleteOrder($id);
 
-        return response()->json([
-            'message' => 'Pesanan berhasil dihapus!'
-        ]);
+        return $this->successResponse('Pesanan berhasil dihapus!');
     }
 }

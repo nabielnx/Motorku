@@ -6,15 +6,11 @@ use App\Models\Motorcycle;
 use App\Models\MotorcyclePart;
 use App\Models\Product;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 
 class MotorcyclePartSeeder extends Seeder
 {
     public function run(): void
     {
-        // Clear existing mappings
-        DB::table('motorcycle_parts')->truncate();
-
         $motorcycles = Motorcycle::all();
         $products = Product::all()->keyBy('sku');
 
@@ -40,22 +36,22 @@ class MotorcyclePartSeeder extends Seeder
             $isNmax = str_contains($model, 'nmax');
             $isAerox = str_contains($model, 'aerox');
             $isPcx160 = str_contains($model, 'pcx 160');
-            $isPcx150 = str_contains($model, 'pcx 150') || (str_contains($model, 'pcx') && !$isPcx160);
+            $isPcx150 = str_contains($model, 'pcx 150') || (str_contains($model, 'pcx') && ! $isPcx160);
             $isAdv160 = str_contains($model, 'adv 160');
-            $isAdv150 = str_contains($model, 'adv 150') || (str_contains($model, 'adv') && !$isAdv160);
+            $isAdv150 = str_contains($model, 'adv 150') || (str_contains($model, 'adv') && ! $isAdv160);
             $isAdv = str_contains($model, 'adv');
             $isVario160 = str_contains($model, 'vario 160');
             $isVarioMid = str_contains($model, 'vario 125') || str_contains($model, 'vario 150');
             $isVario110 = str_contains($model, 'vario 110');
             $isBeat = str_contains($model, 'beat');
-            $isScoopyR12 = str_contains($model, 'scoopy') && !str_contains($model, 'karbu') && !str_contains($model, 'fi (lama)');
+            $isScoopyR12 = str_contains($model, 'scoopy') && ! str_contains($model, 'karbu') && ! str_contains($model, 'fi (lama)');
             $isScoopyR14 = str_contains($model, 'scoopy') && (str_contains($model, 'karbu') || str_contains($model, 'fi (lama)'));
             $isGenio = str_contains($model, 'genio');
             $isFazzio = str_contains($model, 'fazzio') || str_contains($model, 'filano') || str_contains($model, 'freego');
             $isMio = str_contains($model, 'mio') || str_contains($model, 'fino') || str_contains($model, 'soul') || str_contains($model, 'gear');
-            
+
             $isRetroR12 = $isScoopyR12 || $isFazzio;
-            $isMaticR14Std = $isMatic && !$isNmax && !$isAerox && !$isPcx160 && !$isPcx150 && !$isAdv && !$isVario160 && !$isVarioMid && !$isRetroR12;
+            $isMaticR14Std = $isMatic && ! $isNmax && ! $isAerox && ! $isPcx160 && ! $isPcx150 && ! $isAdv && ! $isVario160 && ! $isVarioMid && ! $isRetroR12;
 
             $isSupra = str_contains($model, 'supra');
             $isRevo = str_contains($model, 'revo') || str_contains($model, 'blade');
@@ -72,13 +68,17 @@ class MotorcyclePartSeeder extends Seeder
             // Helper closure to map product to this motorcycle
             $map = function (string $sku, string $category, string $notes, bool $isRecommended = false) use ($motor, $products) {
                 if (isset($products[$sku])) {
-                    MotorcyclePart::create([
-                        'motorcycle_id' => $motor->id,
-                        'product_id' => $products[$sku]->id,
-                        'part_category' => $category,
-                        'notes' => $notes,
-                        'is_recommended' => $isRecommended,
-                    ]);
+                    MotorcyclePart::updateOrCreate(
+                        [
+                            'motorcycle_id' => $motor->id,
+                            'product_id' => $products[$sku]->id,
+                        ],
+                        [
+                            'part_category' => $category,
+                            'notes' => $notes,
+                            'is_recommended' => $isRecommended,
+                        ]
+                    );
                 }
             };
 
@@ -428,7 +428,7 @@ class MotorcyclePartSeeder extends Seeder
                         $map('REM-033', 'kabel_rem', 'Kabel rem belakang tromol original Honda AHM Beat/Scoopy', true);
                     }
                     $map('REM-037', 'kabel_rem', 'Kabel rem belakang Astra Aspira Beat/Scoopy');
-                } elseif ($isYamaha && !$isNmax) {
+                } elseif ($isYamaha && ! $isNmax) {
                     if (str_contains($model, 'karbu') || str_contains($model, 'smile')) {
                         $map('REM-036', 'kabel_rem', 'Kabel rem belakang original Yamaha YGP Mio Karbu', true);
                     } else {
@@ -777,7 +777,7 @@ class MotorcyclePartSeeder extends Seeder
             }
 
             // --- Injektor (HANYA MOTOR INJEKSI) ---
-            if (!str_contains($model, 'karbu') && !str_contains($model, 'fit') && !str_contains($model, 'grand') && !str_contains($model, 'sporty') && !str_contains($model, 'smile')) {
+            if (! str_contains($model, 'karbu') && ! str_contains($model, 'fit') && ! str_contains($model, 'grand') && ! str_contains($model, 'sporty') && ! str_contains($model, 'smile')) {
                 if ($isHonda && $isMatic) {
                     $map('MSN-007', 'injektor', 'Fuel injector bensin original Honda AHM Beat ESP/Scoopy', true);
                     $map('MSN-011', 'injektor', 'Injector cleaner Astra Aspira 60ml');

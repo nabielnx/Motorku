@@ -26,13 +26,17 @@ Route::get('/sanctum/csrf-cookie', function (\Illuminate\Http\Request $request) 
     $request->session()->regenerateToken();
     return response()->noContent();
 });
-Route::get('/payment', fn() => Inertia::render('Payment/Index'))->name('customer.payment');
-Route::get('/payment/qris', fn() => Inertia::render('Payment/Qris'))->name('customer.payment.qris');
+Route::get('/payment', fn() => Inertia::render('Payment/Index', [
+    'qrisEnabled' => (bool) config('doku.enabled', false),
+]))->name('customer.payment');
+Route::get('/payment/qris', fn() => config('doku.enabled', false)
+    ? Inertia::render('Payment/Qris')
+    : redirect()->route('customer.order.status'))->name('customer.payment.qris');
 Route::get('/order/waiting', fn() => Inertia::render('Order/Waiting'))->name('customer.order.waiting');
 Route::get('/order/status', fn() => Inertia::render('Order/Status'))->name('customer.order.status');
 
 // Public "Motor Saya" — motorcycle part finder
-Route::get('/motor-saya', [MotorSayaController::class, 'index'])->name('motor-saya');
+Route::get('/motor-saya/{slug?}', [MotorSayaController::class, 'index'])->name('motor-saya');
 Route::get('/api/motor-saya/{motorcycleId}/parts', [MotorSayaController::class, 'compatibleParts'])->name('motor-saya.parts');
 
 // Protected Web App

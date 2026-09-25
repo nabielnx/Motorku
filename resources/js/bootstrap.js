@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { router } from '@inertiajs/react';
+import './echo';
 
 window.axios = axios;
 
@@ -35,7 +36,24 @@ const processQueue = (error, token = null) => {
 };
 
 window.axios.interceptors.response.use(
-    response => response,
+    response => {
+        // Automatically unwrap standardized API responses
+        if (response.data && typeof response.data === 'object' && 'success' in response.data) {
+            const originalData = response.data;
+            if ('data' in originalData) {
+                // Replace response.data with the inner data payload
+                response.data = originalData.data;
+
+                // If the inner data is an object (or array), attach the message back
+                // so that frontend code expecting `res.data.message` still works
+                if (response.data !== null && typeof response.data === 'object') {
+                    response.data.message = originalData.message;
+                    response.data.success = originalData.success;
+                }
+            }
+        }
+        return response;
+    },
     async error => {
         const originalRequest = error.config;
 

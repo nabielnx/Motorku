@@ -82,7 +82,7 @@ class PaginationTest extends TestCase
     public function products_web_index_returns_paginated_inertia_prop(): void
     {
         $category = \App\Models\Category::factory()->create();
-        Product::factory()->count(14)->create(['category_id' => $category->id]);
+        Product::factory()->count(18)->create(['category_id' => $category->id]);
 
         $response = $this->actingAs($this->owner)
             ->get('/products?page=2');
@@ -91,9 +91,11 @@ class PaginationTest extends TestCase
         $initialProducts = $response->viewData('page')['props']['initialProducts'];
 
         $this->assertEquals(2, $initialProducts['current_page']);
-        $this->assertEquals(10, $initialProducts['per_page']);
-        $this->assertEquals(14, $initialProducts['total']);
-        $this->assertCount(4, $initialProducts['data']);
+        $this->assertEquals(16, $initialProducts['per_page']);
+        $this->assertEquals(18, $initialProducts['total']);
+        $this->assertCount(2, $initialProducts['data']);
+
+        $this->get('/products?page=10')->assertRedirect(route('products.index'));
     }
 
     #[Test]

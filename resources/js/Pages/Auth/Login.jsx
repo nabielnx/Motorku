@@ -34,8 +34,8 @@ export default function Login({ status, canResetPassword }) {
 
     return (
         <GuestLayout>
-            <Head title="Masuk - Toko Sparepart">
-                <meta name="description" content="Halaman login akun pegawai dan pemilik toko Toko Sparepart." />
+            <Head title="Masuk">
+                <meta name="description" content="Halaman login akun pegawai dan pemilik toko Motorku." />
             </Head>
 
             {/* ALERT SESSION EXPIRED BANNER */}
@@ -132,22 +132,10 @@ export default function Login({ status, canResetPassword }) {
                         disabled={processing}
                         className={`w-full flex justify-center items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-blue-600/30 transition-all active:scale-95 ${processing && 'opacity-50 cursor-not-allowed'}`}
                     >
-                        <FiLogOut className="rotate-180" size={18} /> Masuk ke Dashboard Toko Sparepart
+                        <FiLogOut className="rotate-180" size={18} /> Masuk ke Dashboard Motorku
                     </button>
                 </div>
 
-                {/* Link ke Halaman Register */}
-                <div className="text-center mt-6 pt-4 border-t border-gray-100">
-                    <p className="text-sm text-slate-500 font-medium">
-                        Belum punya akun?{' '}
-                        <Link
-                            href={route('register')}
-                            className="font-bold text-blue-600 hover:text-blue-700 transition-colors"
-                        >
-                            Daftar Akun Baru
-                        </Link>
-                    </p>
-                </div>
             </form>
         </GuestLayout>
     );

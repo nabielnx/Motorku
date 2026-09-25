@@ -83,15 +83,16 @@ class ReportTest extends TestCase
         $productToday = \App\Models\Product::factory()->create(['name' => 'Today Noodle']);
 
         // Order 1: Yesterday order (should be ignored)
-        $oldOrder = Order::factory()->create(['created_at' => now()->subDays(2), 'order_status' => 'completed']);
+        $oldOrder = Order::factory()->create(['created_at' => now()->subDays(2), 'order_status' => 'completed', 'payment_status' => 'paid']);
         \App\Models\OrderItem::factory()->create(['order_id' => $oldOrder->id, 'product_id' => $productYesterday->id, 'quantity' => 99]);
 
         // Order 2: Today cancelled order (should be ignored)
-        $cancelledOrder = Order::factory()->create(['created_at' => now(), 'order_status' => 'cancelled']);
+        $cancelledOrder = Order::factory()->create(['created_at' => now(), 'order_status' => 'cancelled', 'payment_status' => 'unpaid']);
         \App\Models\OrderItem::factory()->create(['order_id' => $cancelledOrder->id, 'product_id' => $productCancelled->id, 'quantity' => 50]);
 
         // Order 3: Today valid order (should be counted)
-        $todayOrder = Order::factory()->create(['created_at' => now(), 'order_status' => 'pending']);
+        $todayOrder = Order::factory()->create(['created_at' => now(), 'order_status' => 'pending', 'payment_status' => 'paid']);
+        Payment::factory()->create(['order_id' => $todayOrder->id, 'paid_at' => now()]);
         \App\Models\OrderItem::factory()->create(['order_id' => $todayOrder->id, 'product_id' => $productToday->id, 'quantity' => 5]);
 
         $stats = app(\App\Services\DashboardService::class)->getDashboardStats('today');

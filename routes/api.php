@@ -15,25 +15,22 @@ Route::post('/customer/order', [CustomerMenuController::class, 'storeOrder'])
 Route::get('/customer/order/{orderId}/status', [CustomerMenuController::class, 'orderStatus'])
     ->middleware('throttle:240,1')
     ->name('api.customer.order.status');
-Route::post('/customer/order/{orderId}/confirm-payment', [CustomerMenuController::class, 'confirmPayment'])
-    ->middleware('throttle:15,1')
-    ->name('api.customer.order.confirm-payment');
 Route::post('/customer/order/{orderId}/cancel', [CustomerMenuController::class, 'cancelOrder'])
     ->middleware('throttle:60,1')
     ->name('api.customer.order.cancel');
 
-// ─── Doku QRIS (public, no auth, no CSRF) ───
-Route::post('/customer/payment/qris', [DokuPaymentController::class, 'createQrisPayment'])
-    ->middleware('throttle:15,1')
-    ->name('api.customer.payment.qris');
-Route::post('/customer/payment/qris/check-status', [DokuPaymentController::class, 'checkPaymentStatus'])
-    ->middleware('throttle:180,1')
-    ->name('api.customer.payment.qris.check-status');
-
-// ─── Doku Webhook (public, no auth, no CSRF) ───
-Route::post('/webhook/doku', [DokuPaymentController::class, 'handleWebhook'])
-    ->middleware('throttle:120,1')
-    ->name('api.webhook.doku');
+// ─── DOKU Gateway (Parked; disabled by default via feature flag) ───
+if (config('doku.enabled', false)) {
+    Route::post('/customer/payment/qris', [DokuPaymentController::class, 'createQrisPayment'])
+        ->middleware('throttle:15,1')
+        ->name('api.customer.payment.qris');
+    Route::post('/customer/payment/qris/check-status', [DokuPaymentController::class, 'checkPaymentStatus'])
+        ->middleware('throttle:180,1')
+        ->name('api.customer.payment.qris.check-status');
+    Route::post('/webhook/doku', [DokuPaymentController::class, 'handleWebhook'])
+        ->middleware('throttle:120,1')
+        ->name('api.webhook.doku');
+}
 
 $base = ['web', 'auth'];
 

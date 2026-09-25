@@ -19,10 +19,14 @@ class Product extends Model
         'sku',
         'name',
         'description',
+        'brand',
+        'barcode',
         'price',
+        'cost_price',
         'stock',
         'minimum_stock',
         'unit',
+        'rack_location',
         'image_path',
         'is_available',
         'sync_version'
@@ -30,6 +34,7 @@ class Product extends Model
 
     protected $casts = [
         'price'        => 'decimal:2',
+        'cost_price'   => 'decimal:2',
         'stock'        => 'integer',
         'minimum_stock'=> 'integer',
         'is_available' => 'boolean',
@@ -50,5 +55,24 @@ class Product extends Model
     public function motorcycleParts(): HasMany
     {
         return $this->hasMany(MotorcyclePart::class);
+    }
+
+    public function getMarginAttribute()
+    {
+        if (is_null($this->cost_price)) {
+            return 0;
+        }
+        return max(0, $this->price - $this->cost_price);
+    }
+
+    public function getStockStatusLabelAttribute()
+    {
+        if ($this->stock <= 0) {
+            return 'Habis';
+        }
+        if ($this->stock <= $this->minimum_stock) {
+            return 'Perlu Kulak';
+        }
+        return 'Tersedia';
     }
 }

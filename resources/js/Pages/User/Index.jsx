@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import UserTableSkeleton from '@/Components/Skeletons/UserTableSkeleton';
 import { Head, usePage, router } from '@inertiajs/react';
 import axios from 'axios';
 import { toast } from 'sonner';
@@ -19,6 +20,24 @@ const extractPaginator = (data) => {
 };
 
 export default function UserIndex({ initialUsers = {} }) {
+    const [isNavigating, setIsNavigating] = useState(false);
+
+    useEffect(() => {
+        const removeStart = router.on('start', (event) => {
+            const rawUrl = event?.detail?.visit?.url;
+            let targetPath = '';
+            if (typeof rawUrl === 'string') {
+                targetPath = new URL(rawUrl, window.location.origin).pathname;
+            } else if (rawUrl?.pathname) {
+                targetPath = rawUrl.pathname;
+            }
+            if (targetPath && targetPath.startsWith('/users')) {
+                setIsNavigating(true);
+            }
+        });
+        const removeFinish = router.on('finish', () => setIsNavigating(false));
+        return () => { removeStart(); removeFinish(); };
+    }, []);
     const { props } = usePage();
     const locale = props.app_settings?.locale || 'id';
     const { auth } = usePage().props;
@@ -198,8 +217,8 @@ export default function UserIndex({ initialUsers = {} }) {
 
     return (
         <AuthenticatedLayout pageTitle={locale === 'en' ? 'Staff Management' : 'Kelola Staff & Pegawai'}>
-            <Head title={`${locale === 'en' ? 'Staff Management' : 'Kelola Staf'} - Toko Sparepart`}>
-                <meta name="description" content="Kelola akun pengguna, peran hak akses (Owner / Kasir), dan status staf pegawai Toko Sparepart." />
+            <Head title={`${locale === 'en' ? 'Staff Management' : 'Kelola Staf'}`}>
+                <meta name="description" content="Kelola akun pengguna, peran hak akses (Owner / Kasir), dan status staf pegawai Motorku." />
             </Head>
             <div className="max-w-7xl mx-auto space-y-6">
                 <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200/80 dark:border-slate-800 p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 transition-colors">
@@ -218,6 +237,9 @@ export default function UserIndex({ initialUsers = {} }) {
                     </div>
                 </div>
 
+                {isNavigating ? (
+                    <UserTableSkeleton />
+                ) : (
                 <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200/80 dark:border-slate-800 overflow-hidden transition-colors">
                     <div className="p-4 bg-slate-50/60 dark:bg-slate-800/60 border-b border-slate-100 dark:border-slate-800 flex items-center gap-2">
                         <span className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase">Filter Role:</span>
@@ -338,6 +360,7 @@ export default function UserIndex({ initialUsers = {} }) {
                         </div>
                     )}
                 </div>
+                )}
             </div>
 
             {modal === 'form' && (

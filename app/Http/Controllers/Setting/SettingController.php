@@ -3,14 +3,23 @@
 namespace App\Http\Controllers\Setting;
 
 use App\Http\Controllers\Controller;
-use App\Services\SettingService;
 use App\Http\Requests\Setting\UpdateSettingRequest;
+use App\Models\InventoryLog;
+use App\Models\Order;
+use App\Models\OrderItem;
+use App\Models\Payment;
 use App\Models\Setting;
+use App\Services\CacheService;
+use App\Services\SettingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Inertia\Inertia;
 
 class SettingController extends Controller implements HasMiddleware
 {
@@ -30,12 +39,12 @@ class SettingController extends Controller implements HasMiddleware
 
     public function indexWeb()
     {
-        return \Inertia\Inertia::render('Setting/Index');
+        return Inertia::render('Setting/Index');
     }
 
     public function index(): JsonResponse
     {
-        $settings = Setting::all()->map(fn($s) => [
+        $settings = Setting::all()->map(fn ($s) => [
             'id' => $s->id,
             'group' => $s->group,
             'key' => $s->key,
@@ -52,7 +61,7 @@ class SettingController extends Controller implements HasMiddleware
     {
         $setting = $this->settingService->getSettingById($id);
 
-        if (!$setting) {
+        if (! $setting) {
             return response()->json(['message' => 'Pengaturan tidak ditemukan'], 404);
         }
 
@@ -65,7 +74,7 @@ class SettingController extends Controller implements HasMiddleware
 
         return response()->json([
             'message' => 'Pengaturan berhasil diperbarui!',
-            'data' => $setting
+            'data' => $setting,
         ]);
     }
 
@@ -73,34 +82,34 @@ class SettingController extends Controller implements HasMiddleware
     {
         // Per-field validation rules keyed by "group.key"
         $fieldRules = [
-            'restaurant.name'          => ['required', 'string', 'max:100'],
-            'restaurant.phone'         => ['required', 'string', 'regex:/^[0-9+\-\s()]{8,20}$/'],
-            'restaurant.email'         => ['required', 'email', 'max:100'],
-            'restaurant.address'       => ['required', 'string', 'max:500'],
-            'tax.enabled'              => ['required', 'in:true,false'],
-            'tax.percentage'           => ['numeric', 'min:0', 'max:100'],
-            'payment.cash_enabled'     => ['required', 'in:true,false'],
-            'payment.qris_enabled'     => ['required', 'in:true,false'],
-            'payment.card_enabled'     => ['required', 'in:true,false'],
-            'printer.paper_size'       => ['required', 'integer', 'in:58,80'],
+            'store.name' => ['required', 'string', 'max:100'],
+            'store.phone' => ['required', 'string', 'regex:/^[0-9+\-\s()]{8,20}$/'],
+            'store.email' => ['required', 'email', 'max:100'],
+            'store.address' => ['required', 'string', 'max:500'],
+            'tax.enabled' => ['required', 'in:true,false'],
+            'tax.percentage' => ['numeric', 'min:0', 'max:100'],
+            'payment.cash_enabled' => ['required', 'in:true,false'],
+            'payment.qris_enabled' => ['required', 'in:true,false'],
+            'payment.card_enabled' => ['required', 'in:true,false'],
+            'printer.paper_size' => ['required', 'integer', 'in:58,80'],
             'printer.auto_print_receipt' => ['required', 'in:true,false'],
-            'qr_order.enabled'         => ['required', 'in:true,false'],
+            'qr_order.enabled' => ['required', 'in:true,false'],
             'qr_order.session_timeout' => ['integer', 'min:1', 'max:1440'],
-            'catalog.show_total_sold'  => ['required', 'in:true,false'],
-            'promo_banner.enabled'     => ['required', 'in:true,false'],
-            'store.open_time'          => ['required', 'date_format:H:i'],
-            'store.close_time'         => ['required', 'date_format:H:i'],
-            'system.timezone'          => ['required', 'in:Asia/Jakarta,Asia/Makassar,Asia/Jayapura'],
-            'system.locale'            => ['required', 'in:id,en'],
+            'catalog.show_total_sold' => ['required', 'in:true,false'],
+            'promo_banner.enabled' => ['required', 'in:true,false'],
+            'store.open_time' => ['required', 'date_format:H:i'],
+            'store.close_time' => ['required', 'date_format:H:i'],
+            'system.timezone' => ['required', 'in:Asia/Jakarta,Asia/Makassar,Asia/Jayapura'],
+            'system.locale' => ['required', 'in:id,en'],
         ];
 
         $fieldMessages = [
-            'restaurant.phone' => 'Nomor telepon hanya boleh berisi angka, +, -, spasi, dan tanda kurung (8-20 karakter).',
-            'restaurant.email' => 'Format email tidak valid.',
-            'restaurant.name'  => 'Nama toko wajib diisi (maks 100 karakter).',
-            'restaurant.address' => 'Alamat toko wajib diisi (maks 500 karakter).',
-            'tax.percentage'   => 'Persentase pajak harus angka antara 0-100.',
-            'store.open_time'  => 'Format jam buka harus HH:MM.',
+            'store.phone' => 'Nomor telepon hanya boleh berisi angka, +, -, spasi, dan tanda kurung (8-20 karakter).',
+            'store.email' => 'Format email tidak valid.',
+            'store.name' => 'Nama toko wajib diisi (maks 100 karakter).',
+            'store.address' => 'Alamat toko wajib diisi (maks 500 karakter).',
+            'tax.percentage' => 'Persentase pajak harus angka antara 0-100.',
+            'store.open_time' => 'Format jam buka harus HH:MM.',
             'store.close_time' => 'Format jam tutup harus HH:MM.',
         ];
 
@@ -112,11 +121,12 @@ class SettingController extends Controller implements HasMiddleware
         ]);
 
         foreach ($data['settings'] as $item) {
-            $key = $item['group'] . '.' . $item['key'];
+            $key = $item['group'].'.'.$item['key'];
             if (isset($fieldRules[$key])) {
                 $v = validator(['value' => $item['value']], ['value' => $fieldRules[$key]]);
                 if ($v->fails()) {
                     $msg = $fieldMessages[$key] ?? $v->errors()->first('value');
+
                     return response()->json(['message' => $msg], 422);
                 }
             }
@@ -130,6 +140,8 @@ class SettingController extends Controller implements HasMiddleware
             );
         }
 
+        CacheService::flushSettings();
+
         return response()->json(['message' => 'Pengaturan berhasil disimpan!']);
     }
 
@@ -139,7 +151,7 @@ class SettingController extends Controller implements HasMiddleware
             'logo' => ['required', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
         ]);
 
-        $old = Setting::where('group', 'restaurant')->where('key', 'logo')->value('value');
+        $old = Setting::where('group', 'store')->where('key', 'logo')->value('value');
         if ($old) {
             Storage::disk('public')->delete($old);
         }
@@ -147,9 +159,11 @@ class SettingController extends Controller implements HasMiddleware
         $path = $request->file('logo')->store('logo', 'public');
 
         Setting::updateOrCreate(
-            ['group' => 'restaurant', 'key' => 'logo'],
+            ['group' => 'store', 'key' => 'logo'],
             ['value' => $path, 'type' => 'string']
         );
+
+        CacheService::flushSettings();
 
         return response()->json([
             'message' => 'Logo berhasil diupload!',
@@ -159,7 +173,7 @@ class SettingController extends Controller implements HasMiddleware
 
     public function getLogo(): JsonResponse
     {
-        $path = Setting::where('group', 'restaurant')->where('key', 'logo')->value('value');
+        $path = Setting::where('group', 'store')->where('key', 'logo')->value('value');
 
         return response()->json([
             'url' => $path ? Storage::url($path) : null,
@@ -168,13 +182,15 @@ class SettingController extends Controller implements HasMiddleware
 
     public function deleteLogo(): JsonResponse
     {
-        $setting = Setting::where('group', 'restaurant')->where('key', 'logo')->first();
+        $setting = Setting::where('group', 'store')->where('key', 'logo')->first();
         if ($setting) {
             if ($setting->value) {
                 Storage::disk('public')->delete($setting->value);
             }
             $setting->delete();
         }
+
+        CacheService::flushSettings();
 
         return response()->json([
             'message' => 'Logo berhasil dihapus!',
@@ -188,13 +204,13 @@ class SettingController extends Controller implements HasMiddleware
     {
         $request->validate([
             'banner' => ['required', 'image', 'mimes:jpeg,png,jpg,webp', 'max:3072'],
-            'slot'   => ['required', 'integer', 'min:1', 'max:3'],
+            'slot' => ['required', 'integer', 'min:1', 'max:3'],
         ]);
 
         $slot = (int) $request->input('slot');
-        $key  = 'promo_banner_' . $slot;
+        $key = 'promo_banner_'.$slot;
 
-        $old = Setting::where('group', 'restaurant')->where('key', $key)->value('value');
+        $old = Setting::where('group', 'store')->where('key', $key)->value('value');
         if ($old) {
             Storage::disk('public')->delete($old);
         }
@@ -202,14 +218,16 @@ class SettingController extends Controller implements HasMiddleware
         $path = $request->file('banner')->store('promo_banners', 'public');
 
         Setting::updateOrCreate(
-            ['group' => 'restaurant', 'key' => $key],
+            ['group' => 'store', 'key' => $key],
             ['value' => $path, 'type' => 'string']
         );
 
+        CacheService::flushSettings();
+
         return response()->json([
             'message' => "Banner slot {$slot} berhasil diupload!",
-            'url'     => Storage::url($path),
-            'slot'    => $slot,
+            'url' => Storage::url($path),
+            'slot' => $slot,
         ]);
     }
 
@@ -222,8 +240,8 @@ class SettingController extends Controller implements HasMiddleware
             return response()->json(['message' => 'Slot tidak valid (1-3).'], 422);
         }
 
-        $key     = 'promo_banner_' . $slot;
-        $setting = Setting::where('group', 'restaurant')->where('key', $key)->first();
+        $key = 'promo_banner_'.$slot;
+        $setting = Setting::where('group', 'store')->where('key', $key)->first();
 
         if ($setting) {
             if ($setting->value) {
@@ -231,6 +249,8 @@ class SettingController extends Controller implements HasMiddleware
             }
             $setting->delete();
         }
+
+        CacheService::flushSettings();
 
         return response()->json(['message' => "Banner slot {$slot} berhasil dihapus!"]);
     }
@@ -242,8 +262,8 @@ class SettingController extends Controller implements HasMiddleware
     {
         $banners = [];
         foreach (range(1, 3) as $slot) {
-            $path = Setting::where('group', 'restaurant')
-                ->where('key', 'promo_banner_' . $slot)
+            $path = Setting::where('group', 'store')
+                ->where('key', 'promo_banner_'.$slot)
                 ->value('value');
             $banners[$slot] = $path ? Storage::url($path) : null;
         }
@@ -257,31 +277,48 @@ class SettingController extends Controller implements HasMiddleware
      */
     public function resetTransactions(Request $request): JsonResponse
     {
+        if (! $request->user() || ! $request->user()->hasRole('owner')) {
+            abort(403, 'Hanya owner yang berhak mereset data transaksi.');
+        }
+
+        if (app()->isProduction()) {
+            return response()->json([
+                'message' => 'Fitur reset transaksi dinonaktifkan pada lingkungan production demi keamanan data.',
+            ], 403);
+        }
+
         $request->validate([
             'password' => ['required', 'string'],
         ], [
             'password.required' => 'Kata sandi konfirmasi wajib diisi untuk keamanan.',
         ]);
 
-        if (!\Illuminate\Support\Facades\Hash::check($request->password, $request->user()->password)) {
+        if (! Hash::check($request->password, $request->user()->password)) {
             return response()->json([
                 'message' => 'Kata sandi konfirmasi salah. Gagal melakukan reset transaksi.',
             ], 422);
         }
 
-        \Illuminate\Support\Facades\DB::transaction(function () {
+        DB::transaction(function () {
             // Delete order items
-            \App\Models\OrderItem::query()->delete();
+            OrderItem::query()->delete();
 
             // Delete payments
-            \App\Models\Payment::query()->delete();
+            Payment::query()->delete();
 
             // Delete orders (force delete including soft deleted if any)
-            \App\Models\Order::withTrashed()->forceDelete();
+            Order::withTrashed()->forceDelete();
 
             // Delete inventory logs
-            \App\Models\InventoryLog::query()->delete();
+            InventoryLog::query()->delete();
         });
+
+        CacheService::flushAll();
+
+        Log::warning('Data transaksi direset oleh owner.', [
+            'user_id' => $request->user()->id,
+            'ip' => $request->ip(),
+        ]);
 
         return response()->json([
             'message' => 'Semua data transaksi berhasil direset! Toko siap digunakan dari awal.',

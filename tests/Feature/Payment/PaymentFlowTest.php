@@ -7,6 +7,7 @@ use App\Models\Payment;
 use App\Models\User;
 use App\Services\DashboardService;
 use App\Services\ReportService;
+use Illuminate\Support\Str;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -130,6 +131,32 @@ class PaymentFlowTest extends TestCase
             'order_id' => $order->id,
             'payment_method' => 'cash',
             'status' => 'paid',
+        ]);
+    }
+
+    #[Test]
+    public function paid_customer_order_is_ready_for_staff_to_prepare(): void
+    {
+        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $cashier = User::factory()->create();
+        $cashier->assignRole('cashier');
+        $order = Order::factory()->create([
+            'total' => 20000,
+            'customer_access_token' => Str::random(64),
+            'payment_status' => 'unpaid',
+            'order_status' => 'pending',
+        ]);
+
+        $this->actingAs($cashier)->postJson('/api/payments', [
+            'order_id' => $order->id,
+            'payment_method' => 'cash',
+            'amount_received' => 20000,
+        ])->assertCreated();
+
+        $this->assertDatabaseHas('orders', [
+            'id' => $order->id,
+            'payment_status' => 'paid',
+            'order_status' => 'preparing',
         ]);
     }
 }

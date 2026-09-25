@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import useForceLightTheme from '@/Utils/useForceLightTheme';
+import OrderStatusSkeleton from '@/Components/Skeletons/OrderStatusSkeleton';
 import axios from 'axios';
 import {
     FiCheck,
     FiClock,
-    FiCoffee,
+    FiTool,
     FiPackage,
     FiCheckCircle,
     FiXCircle,
@@ -15,38 +16,414 @@ import {
     FiArrowRight,
     FiFileText,
     FiAlertCircle,
-    FiAlertTriangle
+    FiAlertTriangle,
+    FiCopy,
+    FiChevronDown,
+    FiChevronUp,
+    FiRefreshCw,
+    FiShoppingCart,
 } from 'react-icons/fi';
+import clsx from 'clsx';
 
-const HISTORY_KEY = 'mie_amour_orders_history';
-const ORDER_KEY = 'mie_amour_current_order';
-const PAYMENT_KEY = 'mie_amour_order_for_payment';
+const HISTORY_KEY = 'motorku_orders_history';
+const ORDER_KEY = 'motorku_current_order';
+const PAYMENT_KEY = 'motorku_order_for_payment';
 const POLL_INTERVAL = 5000;
 
-const STATUS_STEPS = [
-    { key: 'pending', label: 'Diterima', icon: FiClock, color: 'yellow' },
-    { key: 'preparing', label: 'Diproses', icon: FiCoffee, color: 'blue' },
-    { key: 'ready', label: 'Siap Diambil', icon: FiPackage, color: 'emerald' },
-    { key: 'completed', label: 'Selesai', icon: FiCheckCircle, color: 'green' },
-];
-
-const STATUS_INDEX = {
-    pending: 0,
-    preparing: 1,
-    ready: 2,
-    completed: 3,
-    cancelled: -1,
+// ─── Status config ───
+const STATUS_CONFIG = {
+    pending: {
+        label: 'Menunggu Konfirmasi',
+        shortLabel: 'Pending',
+        icon: FiClock,
+        bg: 'bg-amber-50',
+        border: 'border-amber-200',
+        badge: 'bg-amber-100 text-amber-700 border-amber-300',
+        dot: 'bg-amber-400',
+        text: 'text-amber-700',
+        desc: 'Menunggu konfirmasi pembayaran di kasir',
+        animate: true,
+    },
+    preparing: {
+        label: 'Sedang Diproses',
+        shortLabel: 'Diproses',
+        icon: FiTool,
+        bg: 'bg-blue-50',
+        border: 'border-blue-200',
+        badge: 'bg-blue-100 text-blue-700 border-blue-300',
+        dot: 'bg-blue-500',
+        text: 'text-blue-700',
+        desc: 'Toko sedang menyiapkan pesanan Anda',
+        animate: true,
+    },
+    ready: {
+        label: 'Siap Diambil',
+        shortLabel: 'Siap',
+        icon: FiPackage,
+        bg: 'bg-emerald-50',
+        border: 'border-emerald-200',
+        badge: 'bg-emerald-100 text-emerald-700 border-emerald-300',
+        dot: 'bg-emerald-500',
+        text: 'text-emerald-700',
+        desc: 'Pesanan siap! Silakan ambil di kasir',
+        animate: false,
+    },
+    completed: {
+        label: 'Selesai',
+        shortLabel: 'Selesai',
+        icon: FiCheckCircle,
+        bg: 'bg-slate-50',
+        border: 'border-slate-200',
+        badge: 'bg-slate-100 text-slate-500 border-slate-300',
+        dot: 'bg-slate-400',
+        text: 'text-slate-500',
+        desc: 'Pesanan telah selesai',
+        animate: false,
+    },
+    cancelled: {
+        label: 'Dibatalkan',
+        shortLabel: 'Batal',
+        icon: FiXCircle,
+        bg: 'bg-red-50',
+        border: 'border-red-200',
+        badge: 'bg-red-100 text-red-600 border-red-300',
+        dot: 'bg-red-400',
+        text: 'text-red-600',
+        desc: 'Pesanan telah dibatalkan',
+        animate: false,
+    },
 };
 
+// ─── Copy to clipboard helper ───
+function copyToClipboard(text) {
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(text);
+    } else {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+    }
+}
+
+// ─── Format date helper ───
+function formatDate(dateStr) {
+    if (!dateStr) return null;
+    try {
+        const d = new Date(dateStr);
+        return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+    } catch {
+        return dateStr;
+    }
+}
+
+function formatTime(dateStr) {
+    if (!dateStr) return null;
+    try {
+        const d = new Date(dateStr);
+        return d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+    } catch {
+        return null;
+    }
+}
+
+// ═══════════════════════════════════════════
+// Order Card Component
+// ═══════════════════════════════════════════
+function OrderCard({ order, onCancel, isCancelling, formatRp }) {
+    const [expanded, setExpanded] = useState(false);
+    const [copied, setCopied] = useState(false);
+
+    const status = order.order_status || 'pending';
+    const cfg = STATUS_CONFIG[status] || STATUS_CONFIG.pending;
+    const StatusIcon = cfg.icon;
+    const isPaid = order.payment_status === 'paid';
+    const isCancelled = status === 'cancelled';
+    const isCompleted = status === 'completed';
+    const canCancel = status === 'pending' && !isPaid;
+
+    // Items display
+    const items = order.items || [];
+    const MAX_VISIBLE = 2;
+    const hasMore = items.length > MAX_VISIBLE;
+    const visibleItems = expanded ? items : items.slice(0, MAX_VISIBLE);
+    const hiddenCount = items.length - MAX_VISIBLE;
+
+    const handleCopy = () => {
+        if (order.order_number) {
+            copyToClipboard(order.order_number);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        }
+    };
+
+    // Override pending label if paid
+    const statusLabel = (status === 'pending' && isPaid) ? 'Diterima' : cfg.shortLabel;
+
+    return (
+        <div className={clsx(
+            'rounded-2xl border overflow-hidden transition-all',
+            cfg.border,
+            (status === 'ready') && 'ring-2 ring-emerald-300 shadow-md shadow-emerald-100',
+        )}>
+            {/* ── Card Header: Status + Date ── */}
+            <div className={clsx('px-4 py-3 flex items-center justify-between', cfg.bg)}>
+                <div className="flex items-center gap-2.5">
+                    <div className={clsx(
+                        'w-2 h-2 rounded-full shrink-0',
+                        cfg.dot,
+                        cfg.animate && 'animate-pulse',
+                    )} />
+                    <div className="flex items-center gap-2">
+                        <span className={clsx(
+                            'text-xs font-bold px-2 py-0.5 rounded-md border',
+                            cfg.badge,
+                        )}>
+                            {statusLabel}
+                        </span>
+                        {status === 'ready' && (
+                            <span className="text-[10px] font-bold text-emerald-600 animate-bounce">
+                                Ambil sekarang!
+                            </span>
+                        )}
+                    </div>
+                </div>
+                <div className="text-right">
+                    {order.ordered_at || order.created_at ? (
+                        <div className="flex flex-col items-end">
+                            <span className="text-[11px] text-slate-500 font-medium">
+                                {formatDate(order.ordered_at || order.created_at)}
+                            </span>
+                            <span className="text-[10px] text-slate-400">
+                                {formatTime(order.ordered_at || order.created_at)}
+                            </span>
+                        </div>
+                    ) : (
+                        <span className="text-[10px] text-slate-400">Baru saja</span>
+                    )}
+                </div>
+            </div>
+
+            {/* ── Order Number + Copy ── */}
+            <div className="px-4 py-2.5 border-b border-slate-100 flex items-center justify-between bg-white">
+                <div className="flex items-center gap-2 min-w-0">
+                    <FiFileText size={13} className="text-slate-400 shrink-0" />
+                    <span className="text-[11px] text-slate-500">No. Pesanan</span>
+                    <span className="text-[11px] font-bold text-slate-800 font-mono truncate">
+                        {order.order_number || '-'}
+                    </span>
+                </div>
+                <button
+                    type="button"
+                    onClick={handleCopy}
+                    className={clsx(
+                        'flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded-lg transition-all cursor-pointer shrink-0',
+                        copied
+                            ? 'bg-emerald-50 text-emerald-600 border border-emerald-200'
+                            : 'text-blue-600 hover:bg-blue-50 border border-transparent'
+                    )}
+                >
+                    {copied ? (
+                        <>
+                            <FiCheck size={11} />
+                            <span>Tersalin</span>
+                        </>
+                    ) : (
+                        <>
+                            <FiCopy size={11} />
+                            <span>Salin</span>
+                        </>
+                    )}
+                </button>
+            </div>
+
+            {/* ── Customer Info Row ── */}
+            <div className="px-4 py-2.5 border-b border-slate-100 bg-white flex items-center gap-4 flex-wrap text-[11px] text-slate-500">
+                <div className="flex items-center gap-1.5">
+                    <FiMapPin size={12} className="text-slate-400" />
+                    <span className="font-semibold text-blue-600">Ambil di Toko</span>
+                </div>
+                {order.customer_name && (
+                    <div className="flex items-center gap-1.5">
+                        <FiUser size={12} className="text-slate-400" />
+                        <span className="font-semibold text-slate-700">{order.customer_name}</span>
+                    </div>
+                )}
+            </div>
+
+            {/* ── Items List ── */}
+            {items.length > 0 && (
+                <div className="bg-white">
+                    <div className="divide-y divide-slate-50">
+                        {visibleItems.map((item, idx) => (
+                            <div key={item.id || idx} className="px-4 py-2.5 flex items-center justify-between gap-3">
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-xs font-semibold text-slate-800 leading-snug truncate">
+                                        {item.product_name}
+                                    </p>
+                                    {item.notes && (
+                                        <p className="text-[10px] text-blue-500 mt-0.5 truncate italic">
+                                            {item.notes}
+                                        </p>
+                                    )}
+                                </div>
+                                <div className="flex items-center gap-3 shrink-0">
+                                    <span className="text-[11px] text-slate-400 font-medium">
+                                        x{item.quantity}
+                                    </span>
+                                    <span className="text-xs font-bold text-slate-700 tabular-nums min-w-[70px] text-right">
+                                        {formatRp(item.subtotal)}
+                                    </span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Expand / Collapse */}
+                    {hasMore && (
+                        <button
+                            type="button"
+                            onClick={() => setExpanded(!expanded)}
+                            className="w-full px-4 py-2 flex items-center justify-center gap-1.5 text-[11px] font-semibold text-blue-600 hover:bg-blue-50/50 transition-colors cursor-pointer border-t border-slate-100"
+                        >
+                            {expanded ? (
+                                <>
+                                    <FiChevronUp size={13} />
+                                    <span>Sembunyikan</span>
+                                </>
+                            ) : (
+                                <>
+                                    <FiChevronDown size={13} />
+                                    <span>+{hiddenCount} produk lainnya</span>
+                                </>
+                            )}
+                        </button>
+                    )}
+                </div>
+            )}
+
+            {/* ── Totals ── */}
+            <div className="px-4 py-3 bg-slate-50/80 border-t border-slate-100 space-y-1">
+                {Number(order.subtotal) > 0 && Number(order.tax_amount) > 0 && (
+                    <div className="flex justify-between text-[11px] text-slate-400">
+                        <span>Subtotal</span>
+                        <span className="tabular-nums">{formatRp(order.subtotal)}</span>
+                    </div>
+                )}
+                {Number(order.tax_amount) > 0 && (
+                    <div className="flex justify-between text-[11px] text-slate-400">
+                        <span>Pajak</span>
+                        <span className="tabular-nums">{formatRp(order.tax_amount)}</span>
+                    </div>
+                )}
+                {Number(order.discount_amount) > 0 && (
+                    <div className="flex justify-between text-[11px] text-emerald-600">
+                        <span>Diskon</span>
+                        <span className="tabular-nums">-{formatRp(order.discount_amount)}</span>
+                    </div>
+                )}
+                <div className="flex justify-between items-baseline pt-1">
+                    <span className="text-xs font-bold text-slate-600">Total Pembayaran</span>
+                    <span className="text-base font-black text-slate-900 tabular-nums">
+                        {formatRp(order.total)}
+                    </span>
+                </div>
+            </div>
+
+            {/* ── Status Message Banner ── */}
+            {status === 'ready' && (
+                <div className="px-4 py-3 bg-emerald-50 border-t border-emerald-200 flex items-center gap-2.5">
+                    <FiPackage size={16} className="text-emerald-600 shrink-0" />
+                    <div>
+                        <p className="text-xs font-bold text-emerald-800">Pesanan Siap Diambil!</p>
+                        <p className="text-[10px] text-emerald-600">Silakan datang ke kasir untuk mengambil pesanan.</p>
+                    </div>
+                </div>
+            )}
+
+            {status === 'completed' && (
+                <div className="px-4 py-3 bg-slate-50 border-t border-slate-200 flex items-center gap-2.5">
+                    <FiCheckCircle size={16} className="text-green-500 shrink-0" />
+                    <div>
+                        <p className="text-xs font-bold text-slate-700">Pesanan Selesai</p>
+                        <p className="text-[10px] text-slate-500">Terima kasih telah belanja di Motorku!</p>
+                    </div>
+                </div>
+            )}
+
+            {isCancelled && (
+                <div className="px-4 py-3 bg-red-50 border-t border-red-200 flex items-center gap-2.5">
+                    <FiXCircle size={16} className="text-red-500 shrink-0" />
+                    <div>
+                        <p className="text-xs font-bold text-red-700">Pesanan Dibatalkan</p>
+                        <p className="text-[10px] text-red-500">Pesanan ini telah dibatalkan.</p>
+                    </div>
+                </div>
+            )}
+
+            {(status === 'pending' && !isPaid) && (
+                <div className="px-4 py-3 bg-amber-50 border-t border-amber-200 flex items-center gap-2.5">
+                    <FiClock size={16} className="text-amber-500 shrink-0" />
+                    <div>
+                        <p className="text-xs font-bold text-amber-800">Menunggu Konfirmasi Kasir</p>
+                        <p className="text-[10px] text-amber-600">Tunjukkan nomor pesanan ke kasir untuk pembayaran.</p>
+                    </div>
+                </div>
+            )}
+
+            {(status === 'pending' && isPaid) && (
+                <div className="px-4 py-3 bg-blue-50 border-t border-blue-200 flex items-center gap-2.5">
+                    <FiCheck size={16} className="text-blue-600 shrink-0" />
+                    <div>
+                        <p className="text-xs font-bold text-blue-800">Pembayaran Diterima</p>
+                        <p className="text-[10px] text-blue-600">Pesanan akan segera diproses oleh toko.</p>
+                    </div>
+                </div>
+            )}
+
+            {status === 'preparing' && (
+                <div className="px-4 py-3 bg-blue-50 border-t border-blue-200 flex items-center gap-2.5">
+                    <div className="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin shrink-0" />
+                    <div>
+                        <p className="text-xs font-bold text-blue-800">Sedang Disiapkan</p>
+                        <p className="text-[10px] text-blue-600">Toko sedang menyiapkan pesanan Anda.</p>
+                    </div>
+                </div>
+            )}
+
+            {/* ── Action Buttons ── */}
+            {canCancel && (
+                <div className="px-4 py-3 bg-white border-t border-slate-100">
+                    <button
+                        onClick={() => onCancel(order)}
+                        disabled={isCancelling}
+                        className="w-full py-2.5 bg-white hover:bg-red-50 text-red-500 border border-red-200 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 active:scale-[0.98]"
+                    >
+                        <FiXCircle size={14} />
+                        <span>Batalkan Pesanan</span>
+                    </button>
+                </div>
+            )}
+        </div>
+    );
+}
+
+// ═══════════════════════════════════════════
+// Main Page Component
+// ═══════════════════════════════════════════
 export default function OrderStatus() {
     useForceLightTheme();
     const [ordersList, setOrdersList] = useState([]);
-    const [selectedIndex, setSelectedIndex] = useState(0);
-    const [sessionError, setSessionError] = useState(null);
+    const [isLoaded, setIsLoaded] = useState(false);
     const [isCancelling, setIsCancelling] = useState(false);
     const [cancelError, setCancelError] = useState(null);
     const [showCancelModal, setShowCancelModal] = useState(false);
     const [targetOrderToCancel, setTargetOrderToCancel] = useState(null);
+    const [isPolling, setIsPolling] = useState(false);
 
     const openCancelModal = (targetOrder) => {
         setCancelError(null);
@@ -82,7 +459,7 @@ export default function OrderStatus() {
         }
     };
 
-    // Initial load: parse orders history array
+    // Initial load
     useEffect(() => {
         let list = [];
         try {
@@ -103,21 +480,17 @@ export default function OrderStatus() {
             } catch {}
         }
 
-        if (list.length === 0) {
-            router.visit('/');
-            return;
-        }
-
         setOrdersList(list);
-        setSelectedIndex(list.length - 1); // Default select newest order
+        setIsLoaded(true);
     }, []);
 
-    // Periodic polling for all orders in list
+    // Polling
     useEffect(() => {
         if (ordersList.length === 0) return;
         let pollInterval = null;
 
         const pollAllOrders = async () => {
+            setIsPolling(true);
             let updatedList = [...ordersList];
             let hasChanges = false;
 
@@ -136,7 +509,6 @@ export default function OrderStatus() {
                         ...ord,
                         order_status: latest.order_status,
                         payment_status: latest.payment_status,
-                        order_type: latest.order_type || ord.order_type,
                         total: latest.total,
                         subtotal: latest.subtotal,
                         tax_amount: latest.tax_amount,
@@ -163,8 +535,7 @@ export default function OrderStatus() {
                     localStorage.removeItem(HISTORY_KEY);
                     localStorage.removeItem(PAYMENT_KEY);
                     localStorage.removeItem(ORDER_KEY);
-                    // 'mie_amour_order_for_payment' juga dipakai di Qris.jsx
-                    localStorage.removeItem('mie_amour_order_for_payment');
+                    localStorage.removeItem('motorku_order_for_payment');
                 } catch {}
                 router.visit('/');
                 return;
@@ -172,13 +543,12 @@ export default function OrderStatus() {
 
             if (hasChanges) {
                 setOrdersList(updatedList);
-                if (selectedIndex >= updatedList.length) {
-                    setSelectedIndex(Math.max(0, updatedList.length - 1));
-                }
                 try {
                     localStorage.setItem(HISTORY_KEY, JSON.stringify(updatedList));
                 } catch {}
             }
+
+            setTimeout(() => setIsPolling(false), 600);
         };
 
         pollAllOrders();
@@ -191,355 +561,150 @@ export default function OrderStatus() {
 
     const formatRp = (val) => `Rp ${Number(val || 0).toLocaleString('id-ID')}`;
 
-    if (sessionError) {
+    // ── Sort: active orders first (pending/preparing/ready), then completed, then cancelled ──
+    const sortedOrders = [...ordersList].sort((a, b) => {
+        const priority = { ready: 0, preparing: 1, pending: 2, completed: 3, cancelled: 4 };
+        const pa = priority[a.order_status] ?? 2;
+        const pb = priority[b.order_status] ?? 2;
+        if (pa !== pb) return pa - pb;
+        // Within same status, newest first
+        const ta = new Date(a.ordered_at || a.created_at || 0).getTime();
+        const tb = new Date(b.ordered_at || b.created_at || 0).getTime();
+        return tb - ta;
+    });
+
+    const activeCount = ordersList.filter(o => !['completed', 'cancelled'].includes(o.order_status)).length;
+
+    if (!isLoaded) {
+        return <OrderStatusSkeleton />;
+    }
+
+    // ── Empty state ──
+    if (ordersList.length === 0) {
         return (
-            <div className="h-full w-full bg-slate-100 font-sans text-slate-800 flex justify-center items-center p-4 min-h-screen">
-                <Head title="Sesi Berakhir - Toko Sparepart">
-                    <meta name="description" content="Sesi pesanan telah berakhir. Silakan melakukan pemesanan baru." />
+            <div className="h-full w-full bg-white font-sans text-slate-800 flex justify-center min-h-screen">
+                <Head title="Pesanan Saya">
+                    <meta name="description" content="Belum ada pesanan. Mulai belanja di Motorku." />
                 </Head>
-                <div className="w-full max-w-md bg-white rounded-3xl p-6 shadow-xl text-center space-y-4">
-                    <div className="w-16 h-16 bg-yellow-100 text-yellow-500 rounded-full flex items-center justify-center mx-auto">
-                        <FiXCircle size={32} />
+                <div className="w-full max-w-md bg-white flex flex-col">
+                    {/* Header */}
+                    <header className="sticky top-0 z-30 bg-white border-b border-slate-200/80 shadow-xs">
+                        <div className="px-4 py-3.5 flex items-center justify-between">
+                            <h1 className="text-base font-black text-slate-900">Pesanan Saya</h1>
+                            <Link
+                                href="/"
+                                className="text-[11px] bg-[#0f172a] hover:bg-slate-800 text-white px-3.5 py-2 rounded-xl font-bold transition-all flex items-center gap-1.5 shadow-xs active:scale-[0.97]"
+                            >
+                                <FiShoppingBag size={13} />
+                                <span>Belanja</span>
+                            </Link>
+                        </div>
+                    </header>
+                    {/* Empty Content */}
+                    <div className="flex-1 flex flex-col items-center justify-center px-8 py-20">
+                        <FiShoppingCart size={40} strokeWidth={1.4} className="text-slate-300" />
+                        <h2 className="mt-5 text-base font-bold text-slate-900">Belum ada pesanan</h2>
+                        <p className="mt-1.5 text-xs text-slate-500 text-center leading-relaxed">
+                            Pesanan Anda akan muncul di sini setelah checkout.
+                        </p>
+                        <Link
+                            href="/"
+                            className="mt-6 min-h-10 rounded-xl bg-[#0f172a] hover:bg-slate-800 px-6 py-2.5 text-xs font-bold text-white transition-colors flex items-center gap-2"
+                        >
+                            <FiShoppingBag size={14} />
+                            Mulai belanja
+                        </Link>
                     </div>
-                    <h2 className="text-lg font-black text-slate-900">Sesi Berakhir</h2>
-                    <p className="text-xs text-slate-500 font-medium leading-relaxed">{sessionError}</p>
-                    <Link
-                        href="/"
-                        className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md transition-colors block"
-                    >
-                        Kembali ke Beranda / Scan QR
-                    </Link>
                 </div>
             </div>
         );
     }
 
-    if (ordersList.length === 0) {
-        return (
-            <div className="min-h-screen bg-slate-100 flex items-center justify-center">
-                <div className="text-slate-400 text-xs">Memuat status pesanan...</div>
-            </div>
-        );
-    }
-
-    const orderInfo = ordersList[selectedIndex] || ordersList[0];
-    const currentStatus = orderInfo?.order_status || 'pending';
-    const stepIndex = STATUS_INDEX[currentStatus] ?? 0;
-    const isCancelled = currentStatus === 'cancelled';
-
     return (
         <div className="h-full w-full bg-slate-100 font-sans text-slate-800 flex justify-center overflow-y-auto">
-            <Head title="Status Pesanan - Toko Sparepart">
+            <Head title="Pesanan Saya">
                 <meta name="description" content="Lacak status pesanan Anda secara real-time hingga siap diambil di toko." />
             </Head>
 
             <div className="w-full max-w-md bg-white min-h-full shadow-2xl flex flex-col">
 
-                {/* HEADER */}
-                <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-100 p-4 flex items-center justify-between shadow-xs">
-                    <div>
-                        <h1 className="font-black text-slate-900 text-sm">Status Pesanan</h1>
-                        {ordersList.length > 1 && (
-                            <p className="text-[10px] text-slate-500 font-medium">{ordersList.length} pesanan dibuat</p>
-                        )}
+                {/* ═══ STICKY HEADER ═══ */}
+                <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-xs">
+                    <div className="px-4 py-3.5 flex items-center justify-between">
+                        <div className="flex items-center gap-2.5">
+                            <h1 className="text-base font-black text-slate-900">Pesanan Saya</h1>
+                            {activeCount > 0 && (
+                                <span className="text-[10px] font-extrabold bg-blue-600 text-white px-2 py-0.5 rounded-full min-w-[20px] text-center">
+                                    {activeCount}
+                                </span>
+                            )}
+                            {isPolling && (
+                                <FiRefreshCw size={12} className="text-slate-300 animate-spin" />
+                            )}
+                        </div>
+                        <Link
+                            href="/"
+                            className="text-[11px] bg-[#0f172a] hover:bg-slate-800 text-white px-3.5 py-2 rounded-xl font-bold transition-all flex items-center gap-1.5 shadow-xs active:scale-[0.97]"
+                        >
+                            <FiShoppingBag size={13} />
+                            <span>Belanja Lagi</span>
+                        </Link>
                     </div>
-                    <Link href="/" className="text-xs bg-blue-50 text-blue-600 hover:bg-blue-100 px-3 py-1.5 rounded-lg border border-blue-200 font-bold transition-all flex items-center gap-1">
-                        <span>Pesan Tambahan</span>
-                        <FiArrowRight size={13} />
-                    </Link>
                 </header>
 
-                {/* CONTENT */}
+                {/* ═══ ORDER CARDS LIST ═══ */}
                 <div className="flex-1 p-4 space-y-4">
 
-                    {/* MULTI-ORDER TABS SELECTOR */}
-                    {ordersList.length > 1 && (
-                        <div className="bg-slate-50 border border-slate-200/90 rounded-2xl p-3 space-y-2">
-                            <div className="flex items-center justify-between">
-                                <h3 className="text-xs font-bold text-slate-800">Daftar Pesanan Sesi Ini</h3>
-                                <span className="text-[10px] bg-blue-100 text-blue-700 font-extrabold px-2 py-0.5 rounded-full">
-                                    {ordersList.length} Pesanan
-                                </span>
-                            </div>
-                            <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 snap-x">
-                                {ordersList.map((ord, idx) => {
-                                    const isSelected = idx === selectedIndex;
-                                    const st = ord.order_status || 'pending';
-                                    const isPaid = ord.payment_status === 'paid';
-
-                                    let badgeLabel = 'Pending';
-                                    let badgeStyle = 'bg-yellow-100 text-yellow-600 border-yellow-200 animate-pulse';
-
-                                    if (st === 'completed') {
-                                        badgeLabel = 'Selesai';
-                                        badgeStyle = 'bg-green-100 text-green-700 border-green-200';
-                                    } else if (st === 'ready') {
-                                        badgeLabel = 'Siap';
-                                        badgeStyle = 'bg-emerald-100 text-emerald-700 border-emerald-200';
-                                    } else if (st === 'preparing') {
-                                        badgeLabel = 'Diproses';
-                                        badgeStyle = 'bg-blue-100 text-blue-700 border-blue-200';
-                                    } else if (st === 'cancelled') {
-                                        badgeLabel = 'Batal';
-                                        badgeStyle = 'bg-red-100 text-red-700 border-red-200';
-                                    } else if (isPaid) {
-                                        badgeLabel = 'Diterima';
-                                        badgeStyle = 'bg-blue-100 text-blue-700 border-blue-200';
-                                    }
-
-                                    const firstItem = ord.items && ord.items.length > 0 ? ord.items[0].product_name : null;
-                                    const moreItemsCount = ord.items && ord.items.length > 1 ? ord.items.length - 1 : 0;
-                                    const itemsSummary = firstItem 
-                                        ? (moreItemsCount > 0 ? `${firstItem} (+${moreItemsCount})` : firstItem)
-                                        : null;
-
-                                    return (
-                                        <button
-                                            key={ord.order_id || idx}
-                                            onClick={() => setSelectedIndex(idx)}
-                                            className={`flex-1 min-w-[155px] max-w-[180px] p-2.5 rounded-xl border text-left transition-all cursor-pointer snap-start flex flex-col justify-between ${
-                                                isSelected
-                                                    ? 'bg-white border-blue-500 shadow-xs ring-1 ring-blue-500'
-                                                    : 'bg-white/60 border-slate-200 hover:bg-white'
-                                            }`}
-                                        >
-                                            <div>
-                                                <div className="flex items-center justify-between text-[10px] font-extrabold mb-1">
-                                                    <span className="text-slate-500">Pesanan #{idx + 1}</span>
-                                                    <span className={`px-1.5 py-0.5 rounded border text-[9px] ${badgeStyle}`}>
-                                                        {badgeLabel}
-                                                    </span>
-                                                </div>
-                                                
-                                                {ord.customer_name && (
-                                                    <p className="text-xs font-black text-slate-900 truncate leading-tight">
-                                                        {ord.customer_name}
-                                                    </p>
-                                                )}
-
-                                                <p className="font-mono text-[10px] font-bold text-slate-500 truncate">{ord.order_number}</p>
-                                                
-                                                {itemsSummary && (
-                                                    <p className="text-[10px] font-semibold text-slate-600 truncate mt-0.5">
-                                                        {itemsSummary}
-                                                    </p>
-                                                )}
-                                            </div>
-
-                                            <p className="text-xs font-black text-blue-600 mt-1 pt-1 border-t border-slate-100">{formatRp(ord.total)}</p>
-                                        </button>
-                                    );
-                                })}
-                            </div>
+                    {/* Active orders section */}
+                    {sortedOrders.filter(o => !['completed', 'cancelled'].includes(o.order_status)).length > 0 && (
+                        <div className="space-y-3">
+                            <h2 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-0.5">
+                                Pesanan Aktif
+                            </h2>
+                            {sortedOrders
+                                .filter(o => !['completed', 'cancelled'].includes(o.order_status))
+                                .map((order) => (
+                                    <OrderCard
+                                        key={order.order_id}
+                                        order={order}
+                                        onCancel={openCancelModal}
+                                        isCancelling={isCancelling}
+                                        formatRp={formatRp}
+                                    />
+                                ))
+                            }
                         </div>
                     )}
 
-                    {/* CANCELLED BANNER */}
-                    {isCancelled && (
-                        <div className="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-center gap-3">
-                            <FiXCircle size={20} className="text-red-500 shrink-0" />
-                            <div>
-                                <p className="text-xs font-bold text-red-800">Pesanan Dibatalkan</p>
-                                <p className="text-[10px] text-red-600">Pesanan ini telah dibatalkan.</p>
-                            </div>
+                    {/* Completed / Cancelled orders section */}
+                    {sortedOrders.filter(o => ['completed', 'cancelled'].includes(o.order_status)).length > 0 && (
+                        <div className="space-y-3">
+                            <h2 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-0.5">
+                                Riwayat
+                            </h2>
+                            {sortedOrders
+                                .filter(o => ['completed', 'cancelled'].includes(o.order_status))
+                                .map((order) => (
+                                    <OrderCard
+                                        key={order.order_id}
+                                        order={order}
+                                        onCancel={openCancelModal}
+                                        isCancelling={isCancelling}
+                                        formatRp={formatRp}
+                                    />
+                                ))
+                            }
                         </div>
                     )}
 
-                    {/* PROGRESS STEPS */}
-                    {!isCancelled && (
-                        <div className="bg-slate-50 rounded-2xl p-5">
-                            <div className="space-y-0">
-                                {STATUS_STEPS.map((step, idx) => {
-                                    const Icon = step.icon;
-                                    const isActive = idx === stepIndex;
-                                    const isDone = idx < stepIndex;
-                                    const isCurrentOrderPaid = orderInfo?.payment_status === 'paid';
-                                    const stepTitle = step.key === 'pending'
-                                        ? (isCurrentOrderPaid ? 'Diterima' : 'Pending')
-                                        : step.label;
-
-                                    return (
-                                        <div key={step.key} className="flex items-start gap-3">
-                                            {/* LINE */}
-                                            <div className="flex flex-col items-center">
-                                                <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
-                                                    isDone ? 'bg-emerald-500 text-white' :
-                                                    isActive ? 'bg-emerald-500 text-white animate-pulse' :
-                                                    'bg-slate-200 text-slate-400'
-                                                }`}>
-                                                    {isDone ? <FiCheck size={14} /> : <Icon size={14} />}
-                                                </div>
-                                                {idx < STATUS_STEPS.length - 1 && (
-                                                    <div className={`w-0.5 h-8 ${isDone ? 'bg-emerald-400' : 'bg-slate-200'}`}></div>
-                                                )}
-                                            </div>
-                                            {/* LABEL */}
-                                            <div className="pt-1.5">
-                                                <p className={`text-xs font-bold ${
-                                                    isActive ? 'text-slate-900' :
-                                                    isDone ? 'text-emerald-600' :
-                                                    'text-slate-400'
-                                                }`}>{stepTitle}</p>
-                                                {isActive && (
-                                                    <p className="text-[10px] text-slate-400 mt-0.5">
-                                                        {step.key === 'pending' && (
-                                                            isCurrentOrderPaid 
-                                                                ? 'Pesanan telah dikonfirmasi & diterima oleh kasir.' 
-                                                                : 'Menunggu konfirmasi pembayaran di kasir...'
-                                                        )}
-                                                        {step.key === 'preparing' && 'Toko sedang menyiapkan...'}
-                                                        {step.key === 'ready' && 'Pesanan siap diambil!'}
-                                                        {step.key === 'completed' && 'Pesanan selesai. Terima kasih!'}
-                                                    </p>
-                                                )}
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* ORDER DETAILS */}
-                    <div className="bg-slate-50 rounded-2xl p-4 space-y-3">
-                        <div className="flex items-center justify-between">
-                            <h3 className="text-xs font-bold text-slate-800">Detail Pesanan #{selectedIndex + 1}</h3>
-                            <span className="text-[10px] text-slate-400 font-mono">{orderInfo.order_number}</span>
-                        </div>
-                        <div className="space-y-2">
-                            <div className="flex items-center justify-between text-xs">
-                                <div className="flex items-center gap-2 text-slate-400">
-                                    <FiShoppingBag size={14} />
-                                    <span>No. Order</span>
-                                </div>
-                                <span className="font-mono font-bold text-slate-800">{orderInfo.order_number}</span>
-                            </div>
-                            <div className="flex items-center justify-between text-xs">
-                                <div className="flex items-center gap-2 text-slate-400">
-                                    <FiMapPin size={14} />
-                                    <span>Tipe Pesanan</span>
-                                </div>
-                                <span className="font-bold text-blue-600">Ambil di Toko</span>
-                            </div>
-                            {orderInfo.customer_name && (
-                                <div className="flex items-center justify-between text-xs">
-                                    <div className="flex items-center gap-2 text-slate-400">
-                                        <FiUser size={14} />
-                                        <span>Pemesan</span>
-                                    </div>
-                                    <span className="font-bold text-slate-800">{orderInfo.customer_name}</span>
-                                </div>
-                            )}
-                            <div className="border-t border-slate-200 pt-2 flex items-center justify-between">
-                                <span className="text-xs font-bold text-slate-500">Total Pesanan Ini</span>
-                                <span className="font-black text-base text-blue-600">{formatRp(orderInfo.total)}</span>
-                            </div>
-
-                            {/* CANCEL ORDER BUTTON (for unpaid pending orders only) */}
-                            {orderInfo.order_status === 'pending' && orderInfo.payment_status !== 'paid' && (
-                                <div className="pt-2 border-t border-slate-200">
-                                    <button
-                                        onClick={() => openCancelModal(orderInfo)}
-                                        disabled={isCancelling}
-                                        className="w-full py-2.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200/80 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 active:scale-98"
-                                    >
-                                        <FiXCircle size={14} />
-                                        <span>Batalkan Pesanan Ini</span>
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* INVOICE / RINCIAN PESANAN */}
-                    {orderInfo.items && orderInfo.items.length > 0 && (
-                        <div className="w-full bg-slate-50 border border-slate-200/80 rounded-2xl p-4 space-y-3">
-                            <div className="flex items-center justify-between border-b border-slate-200 pb-2">
-                                <h3 className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                                    <FiFileText size={14} className="text-blue-500" />
-                                    Rincian Menu #{selectedIndex + 1}
-                                </h3>
-                                <span className="text-[10px] text-slate-400 font-medium">{orderInfo.ordered_at || 'Baru Saja'}</span>
-                            </div>
-                            <div className="space-y-2.5">
-                                {orderInfo.items.map((item, idx) => (
-                                    <div key={item.id || idx} className="flex justify-between items-start text-xs">
-                                        <div className="flex-1 min-w-0 pr-2">
-                                            <div className="flex items-center gap-1.5">
-                                                <span className="font-bold text-slate-800">{item.product_name}</span>
-                                                <span className="text-[10px] font-bold text-blue-600 bg-blue-100 px-1.5 py-0.5 rounded">x{item.quantity}</span>
-                                            </div>
-                                            {item.notes && <p className="text-[10px] text-blue-600 mt-0.5 italic">Catatan: {item.notes}</p>}
-                                        </div>
-                                        <span className="font-bold text-slate-700 shrink-0">{formatRp(item.subtotal)}</span>
-                                    </div>
-                                ))}
-                            </div>
-                            <div className="border-t border-dashed border-slate-300 pt-2.5 space-y-1 text-xs">
-                                {Number(orderInfo.subtotal) > 0 && (
-                                    <div className="flex justify-between text-slate-500">
-                                        <span>Subtotal</span>
-                                        <span>{formatRp(orderInfo.subtotal)}</span>
-                                    </div>
-                                )}
-                                {Number(orderInfo.tax_amount) > 0 && (
-                                    <div className="flex justify-between text-slate-500">
-                                        <span>Pajak</span>
-                                        <span>{formatRp(orderInfo.tax_amount)}</span>
-                                    </div>
-                                )}
-                                {Number(orderInfo.discount_amount) > 0 && (
-                                    <div className="flex justify-between text-emerald-600">
-                                        <span>Diskon</span>
-                                        <span>-{formatRp(orderInfo.discount_amount)}</span>
-                                    </div>
-                                )}
-                                <div className="flex justify-between font-black text-sm text-slate-900 pt-2 border-t border-slate-200">
-                                    <span>Total Pembayaran</span>
-                                    <span className="text-blue-600">{formatRp(orderInfo.total)}</span>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* READY MESSAGE */}
-                    {currentStatus === 'ready' && (
-                        <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 flex items-center gap-3">
-                            <FiPackage size={20} className="text-emerald-500 shrink-0" />
-                            <div>
-                                <p className="text-xs font-bold text-emerald-800">Pesanan Siap!</p>
-                                <p className="text-[10px] text-emerald-600">Silakan ambil pesanan Anda di kasir.</p>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* COMPLETED MESSAGE */}
-                    {currentStatus === 'completed' && (
-                        <div className="bg-green-50 border border-green-200 rounded-2xl p-4 flex items-center gap-3">
-                            <FiCheckCircle size={20} className="text-green-500 shrink-0" />
-                            <div>
-                                <p className="text-xs font-bold text-green-800">Pesanan Selesai!</p>
-                                <p className="text-[10px] text-green-600">Terima kasih telah memesan di Toko Sparepart</p>
-                            </div>
-                        </div>
-                    )}
-                </div>
-
-                {/* FOOTER */}
-                <div className="p-4 border-t border-slate-100 bg-white">
-                    <Link
-                        href="/"
-                        className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs shadow-md transition-all flex items-center justify-center gap-2 active:scale-98"
-                    >
-                        <span>Tambah Pesanan Lagi</span>
-                        <FiArrowRight size={14} />
-                    </Link>
+                    {/* Bottom padding */}
+                    <div className="pb-4" />
                 </div>
             </div>
 
-            {/* CUSTOM CANCEL CONFIRMATION MODAL */}
+            {/* ═══ CANCEL CONFIRMATION MODAL ═══ */}
             {showCancelModal && targetOrderToCancel && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fade-in">
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
                     <div className="bg-white rounded-3xl p-6 max-w-xs w-full shadow-2xl space-y-4 text-center border border-slate-100 transform transition-all">
                         <div className="w-14 h-14 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
                             <FiAlertTriangle size={28} />
@@ -547,7 +712,7 @@ export default function OrderStatus() {
                         <div className="space-y-1">
                             <h3 className="text-base font-black text-slate-900">Batalkan Pesanan?</h3>
                             <p className="text-xs text-slate-500 leading-relaxed">
-                                Apakah Anda yakin ingin membatalkan <span className="font-bold text-slate-800">Pesanan #{targetOrderToCancel.order_number}</span>? Tindakan ini tidak dapat dibatalkan.
+                                Apakah Anda yakin ingin membatalkan <span className="font-bold text-slate-800">Pesanan {targetOrderToCancel.order_number}</span>? Tindakan ini tidak dapat dibatalkan.
                             </p>
                         </div>
 
@@ -573,7 +738,7 @@ export default function OrderStatus() {
                             <button
                                 onClick={handleConfirmCancelOrder}
                                 disabled={isCancelling}
-                                className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-xs shadow-md transition-colors flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 active:scale-98"
+                                className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-xs shadow-md transition-colors flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 active:scale-[0.98]"
                             >
                                 {isCancelling ? (
                                     <span>Membatalkan...</span>

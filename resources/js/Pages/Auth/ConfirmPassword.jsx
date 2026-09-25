@@ -20,7 +20,7 @@ export default function ConfirmPassword() {
 
     return (
         <GuestLayout>
-            <Head title="Konfirmasi Kata Sandi - Toko Sparepart">
+            <Head title="Konfirmasi Kata Sandi">
                 <meta name="description" content="Konfirmasi kata sandi sebelum melanjutkan ke area aman." />
             </Head>
 

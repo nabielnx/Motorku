@@ -2,8 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Models\Category;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\Payment;
 use App\Models\Product;
 use App\Models\User;
 use App\Services\DashboardService;
@@ -57,7 +59,9 @@ class DashboardAuditVerificationTest extends TestCase
         $todayOrder = Order::factory()->create([
             'created_at' => now(),
             'order_status' => 'pending',
+            'payment_status' => 'paid',
         ]);
+        Payment::factory()->create(['order_id' => $todayOrder->id, 'paid_at' => now()]);
         OrderItem::factory()->create([
             'order_id' => $todayOrder->id,
             'product_id' => $todayProductA->id,
@@ -94,6 +98,81 @@ class DashboardAuditVerificationTest extends TestCase
 
         // Total active pending/preparing/ready orders should be 3
         $this->assertEquals(3, $stats['pending_orders']);
+    }
+
+    public function test_sales_cards_and_top_products_use_payment_date(): void
+    {
+        $paidToday = Order::factory()->create([
+            'created_at' => now()->subDays(10),
+            'order_status' => 'completed',
+            'payment_status' => 'paid',
+            'total' => 80000,
+        ]);
+        Payment::factory()->create(['order_id' => $paidToday->id, 'paid_at' => now()]);
+        $product = Product::factory()->create(['name' => 'Oli Dibayar Hari Ini']);
+        OrderItem::factory()->create(['order_id' => $paidToday->id, 'product_id' => $product->id, 'quantity' => 2]);
+
+        $paidEarlier = Order::factory()->create([
+            'created_at' => now(),
+            'order_status' => 'completed',
+            'payment_status' => 'paid',
+        ]);
+        Payment::factory()->create(['order_id' => $paidEarlier->id, 'paid_at' => now()->subDays(10)]);
+        OrderItem::factory()->create(['order_id' => $paidEarlier->id, 'quantity' => 10]);
+
+        $stats = app(DashboardService::class)->getDashboardStats('today');
+
+        $this->assertSame(80000.0, $stats['revenue_today']);
+        $this->assertSame(1, $stats['orders_today']);
+        $this->assertCount(1, $stats['top_selling']);
+        $this->assertSame('Oli Dibayar Hari Ini', $stats['top_selling'][0]['name']);
+    }
+
+    public function test_stock_alert_uses_each_products_minimum_stock(): void
+    {
+        Product::factory()->create(['name' => 'Perlu Kulak', 'stock' => 5, 'minimum_stock' => 8]);
+        Product::factory()->create(['name' => 'Masih Aman', 'stock' => 5, 'minimum_stock' => 2]);
+
+        $alerts = app(DashboardService::class)->getDashboardStats()['low_stock'];
+
+        $this->assertCount(1, $alerts);
+        $this->assertSame('Perlu Kulak', $alerts[0]['name']);
+    }
+
+    public function test_dashboard_returns_only_ten_best_selling_products(): void
+    {
+        $order = Order::factory()->create(['order_status' => 'completed', 'payment_status' => 'paid']);
+        Payment::factory()->create(['order_id' => $order->id, 'paid_at' => now()]);
+        $category = Category::factory()->create();
+
+        for ($rank = 1; $rank <= 11; $rank++) {
+            $product = Product::factory()->create(['category_id' => $category->id, 'name' => "Produk $rank"]);
+            OrderItem::factory()->create([
+                'order_id' => $order->id,
+                'product_id' => $product->id,
+                'quantity' => 12 - $rank,
+            ]);
+        }
+
+        $topSelling = app(DashboardService::class)->getDashboardStats()['top_selling'];
+
+        $this->assertCount(10, $topSelling);
+        $this->assertSame('Produk 1', $topSelling[0]['name']);
+        $this->assertSame('Produk 10', $topSelling[9]['name']);
+    }
+
+    public function test_daily_chart_marks_only_the_current_day(): void
+    {
+        $service = app(DashboardService::class);
+        $weekly = $service->getDashboardStats('7_days')['sales_data'];
+        $past = $service->getDashboardStats(
+            'custom',
+            now()->subDays(10)->toDateString(),
+            now()->subDays(8)->toDateString()
+        )['sales_data'];
+
+        $this->assertCount(1, collect($weekly)->where('is_today', true));
+        $this->assertCount(0, collect($past)->where('is_today', true));
     }
 
     public function test_dashboard_owner_page_renders_updated_labels(): void

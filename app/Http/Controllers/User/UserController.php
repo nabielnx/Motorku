@@ -1,25 +1,32 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use App\Services\UserService;
 use App\Http\Requests\User\StoreUserRequest;
 use App\Http\Requests\User\UpdateUserRequest;
+use App\Http\Resources\UserResource;
+use App\Traits\ApiResponseHelpers;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\Gate;
 use App\Models\User;
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
+use Illuminate\Validation\ValidationException;
 
 class UserController extends Controller implements HasMiddleware
 {
-    protected $userService;
+    use ApiResponseHelpers;
 
-    public function __construct(UserService $userService)
-    {
-        $this->userService = $userService;
-    }
+    public function __construct(
+        protected UserService $userService
+    ) {}
 
     public static function middleware(): array
     {
@@ -28,7 +35,7 @@ class UserController extends Controller implements HasMiddleware
         ];
     }
 
-    public function indexWeb(\Illuminate\Http\Request $request)
+    public function indexWeb(Request $request): InertiaResponse
     {
         $search = $request->string('search')->value();
         $role = $request->string('role')->value();
@@ -47,18 +54,19 @@ class UserController extends Controller implements HasMiddleware
 
         $users = $query->paginate(10)->withQueryString();
 
-        return \Inertia\Inertia::render('User/Index', [
+        return Inertia::render('User/Index', [
             'initialUsers' => $users,
         ]);
     }
 
-    public function index(\Illuminate\Http\Request $request): JsonResponse
+    public function index(Request $request): JsonResponse
     {
         Gate::authorize('viewAny', User::class);
 
         $perPage = $request->integer('per_page', 15);
         $users = $this->userService->getAllEmployees($perPage);
-        return response()->json($users);
+
+        return UserResource::collection($users)->response();
     }
 
     public function store(StoreUserRequest $request): JsonResponse
@@ -67,10 +75,11 @@ class UserController extends Controller implements HasMiddleware
 
         $user = $this->userService->createEmployee($request->validated());
 
-        return response()->json([
-            'message' => 'Akun pegawai berhasil didaftarkan!',
-            'data' => $user->load('roles')
-        ], 201);
+        return $this->successResponse(
+            'Akun pegawai berhasil didaftarkan!',
+            new UserResource($user->load('roles')),
+            201
+        );
     }
 
     public function show($id): JsonResponse
@@ -78,12 +87,12 @@ class UserController extends Controller implements HasMiddleware
         $user = $this->userService->getEmployeeById($id);
 
         if (!$user) {
-            return response()->json(['message' => 'User tidak ditemukan'], 404);
+            return $this->errorResponse('User tidak ditemukan', 404);
         }
 
         Gate::authorize('view', $user);
 
-        return response()->json($user);
+        return $this->successResponse('Detail user', new UserResource($user));
     }
 
     public function update(UpdateUserRequest $request, $id): JsonResponse
@@ -91,7 +100,7 @@ class UserController extends Controller implements HasMiddleware
         $user = $this->userService->getEmployeeById($id);
 
         if (!$user) {
-            return response()->json(['message' => 'User tidak ditemukan'], 404);
+            return $this->errorResponse('User tidak ditemukan', 404);
         }
 
         Gate::authorize('update', $user);
@@ -102,7 +111,7 @@ class UserController extends Controller implements HasMiddleware
         if ($authId === $user->id && $request->has('role')) {
             $currentRole = $user->roles->first()?->name;
             if ($request->input('role') !== $currentRole) {
-                throw \Illuminate\Validation\ValidationException::withMessages([
+                throw ValidationException::withMessages([
                     'role' => 'Anda tidak dapat mengubah role akun Anda sendiri.',
                 ]);
             }
@@ -110,7 +119,7 @@ class UserController extends Controller implements HasMiddleware
 
         // GUARD 2: Prevent deactivating self
         if ($authId === $user->id && $request->has('is_active') && ! $request->boolean('is_active')) {
-            throw \Illuminate\Validation\ValidationException::withMessages([
+            throw ValidationException::withMessages([
                 'is_active' => 'Anda tidak dapat menonaktifkan akun Anda sendiri.',
             ]);
         }
@@ -127,7 +136,7 @@ class UserController extends Controller implements HasMiddleware
                 ->count();
 
             if ($otherActiveOwners === 0) {
-                throw \Illuminate\Validation\ValidationException::withMessages([
+                throw ValidationException::withMessages([
                     'role' => 'Tidak dapat mengubah role. Sistem harus memiliki minimal 1 owner aktif.',
                 ]);
             }
@@ -135,10 +144,10 @@ class UserController extends Controller implements HasMiddleware
 
         $updated = $this->userService->updateEmployee($id, $request->validated());
 
-        return response()->json([
-            'message' => 'Akun pegawai berhasil diperbarui!',
-            'data' => $updated
-        ]);
+        return $this->successResponse(
+            'Akun pegawai berhasil diperbarui!',
+            new UserResource($updated->load('roles'))
+        );
     }
 
     public function destroy($id): JsonResponse
@@ -146,14 +155,14 @@ class UserController extends Controller implements HasMiddleware
         $user = $this->userService->getEmployeeById($id);
 
         if (!$user) {
-            return response()->json(['message' => 'User tidak ditemukan'], 404);
+            return $this->errorResponse('User tidak ditemukan', 404);
         }
 
         Gate::authorize('delete', $user);
 
         // GUARD 1: Prevent deleting self
         if (auth()->id() === $user->id) {
-            throw \Illuminate\Validation\ValidationException::withMessages([
+            throw ValidationException::withMessages([
                 'user' => 'Anda tidak dapat menghapus akun Anda sendiri.',
             ]);
         }
@@ -166,7 +175,7 @@ class UserController extends Controller implements HasMiddleware
                 ->count();
 
             if ($otherActiveOwners === 0) {
-                throw \Illuminate\Validation\ValidationException::withMessages([
+                throw ValidationException::withMessages([
                     'user' => 'Tidak dapat menghapus owner terakhir yang aktif.',
                 ]);
             }
@@ -174,8 +183,6 @@ class UserController extends Controller implements HasMiddleware
 
         $this->userService->deleteEmployee($id);
 
-        return response()->json([
-            'message' => 'Akun pegawai berhasil dihapus!'
-        ]);
+        return $this->successResponse('Akun pegawai berhasil dihapus!');
     }
 }

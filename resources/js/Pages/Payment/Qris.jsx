@@ -4,7 +4,7 @@ import axios from 'axios';
 import useForceLightTheme from '@/Utils/useForceLightTheme';
 import { FiAlertCircle, FiRefreshCw, FiExternalLink } from 'react-icons/fi';
 
-const PAYMENT_KEY = 'mie_amour_order_for_payment';
+const PAYMENT_KEY = 'motorku_order_for_payment';
 
 export default function QrisPayment() {
     useForceLightTheme();
@@ -59,13 +59,13 @@ export default function QrisPayment() {
                 if (status === 404 || status === 422 || errMsg.toLowerCase().includes('invalid')) {
                     try {
                         localStorage.removeItem(PAYMENT_KEY);
-                        localStorage.removeItem('mie_amour_current_order');
-                        const historyRaw = localStorage.getItem('mie_amour_orders_history');
+                        localStorage.removeItem('motorku_current_order');
+                        const historyRaw = localStorage.getItem('motorku_orders_history');
                         if (historyRaw) {
                             const list = JSON.parse(historyRaw);
                             if (Array.isArray(list)) {
                                 const filtered = list.filter(o => o.order_id !== info.order_id);
-                                localStorage.setItem('mie_amour_orders_history', JSON.stringify(filtered));
+                                localStorage.setItem('motorku_orders_history', JSON.stringify(filtered));
                             }
                         }
                     } catch {}
@@ -110,8 +110,8 @@ export default function QrisPayment() {
 
     return (
         <div className="h-full w-full bg-slate-100 font-sans text-slate-800 flex justify-center overflow-y-auto">
-            <Head title="Pembayaran QRIS - Toko Sparepart">
-                <meta name="description" content="Proses pembayaran QRIS online aman dan instan untuk pesanan toko Toko Sparepart." />
+            <Head title="Pembayaran QRIS">
+                <meta name="description" content="Proses pembayaran QRIS online aman dan instan untuk pesanan Motorku." />
             </Head>
 
             <div className="w-full max-w-md bg-white min-h-full shadow-2xl flex flex-col items-center justify-center p-6">

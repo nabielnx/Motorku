@@ -24,7 +24,7 @@ class StorePaymentRequest extends FormRequest
     {
         return [
             'order_id' => ['required', 'uuid', 'exists:orders,id'],
-            'payment_method' => ['required', 'string', 'in:cash,debit,credit,qris'],
+            'payment_method' => ['required', 'string', 'in:cash'],
             'amount_received' => ['required', 'numeric', 'gt:0'],
             'notes' => 'nullable|string|max:500',
         ];

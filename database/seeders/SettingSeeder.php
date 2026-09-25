@@ -16,33 +16,40 @@ class SettingSeeder extends Seeder
 
             /*
             |--------------------------------------------------------------------------
-            | Restaurant
+            | Store
             |--------------------------------------------------------------------------
             */
 
             [
-                'group' => 'restaurant',
+                'group' => 'store',
                 'key' => 'name',
-                'value' => 'Toko Sparepart',
+                'value' => 'Motorku',
                 'type' => 'string',
             ],
 
             [
-                'group' => 'restaurant',
+                'group' => 'store',
+                'key' => 'logo',
+                'value' => 'logo/KhjIclRcD4NNnH44nvMkhrGhEuhPyTpREqSfOTSQ.png',
+                'type' => 'string',
+            ],
+
+            [
+                'group' => 'store',
                 'key' => 'phone',
                 'value' => '081234567890',
                 'type' => 'string',
             ],
 
             [
-                'group' => 'restaurant',
+                'group' => 'store',
                 'key' => 'email',
                 'value' => 'info@tokosparepart.com',
                 'type' => 'string',
             ],
 
             [
-                'group' => 'restaurant',
+                'group' => 'store',
                 'key' => 'address',
                 'value' => 'Jl. Contoh No. 1',
                 'type' => 'string',
@@ -84,7 +91,7 @@ class SettingSeeder extends Seeder
             [
                 'group' => 'payment',
                 'key' => 'qris_enabled',
-                'value' => 'true',
+                'value' => 'false',
                 'type' => 'boolean',
             ],
 

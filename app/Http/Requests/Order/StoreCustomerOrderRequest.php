@@ -27,7 +27,6 @@ class StoreCustomerOrderRequest extends FormRequest
     {
         return [
             'customer_name' => ['required', 'string', 'min:2', 'max:255'],
-            'order_type' => ['required', 'in:take_away,takeaway'],
             'notes' => ['nullable', 'string', 'max:500'],
 
             'items' => ['required', 'array', 'min:1', 'max:20'],

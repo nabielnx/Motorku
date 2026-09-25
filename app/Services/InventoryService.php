@@ -22,44 +22,6 @@ class InventoryService
         return InventoryLog::with('product')->find($id);
     }
 
-    public function updateLog($id, array $data)
-    {
-        return DB::transaction(function () use ($id, $data) {
-            $log = InventoryLog::findOrFail($id);
-
-            // Revert the old log's effect
-            $product = Product::whereKey($log->product_id)->lockForUpdate()->firstOrFail();
-
-            $logType = $log->type instanceof InventoryLogType ? $log->type : InventoryLogType::from($log->type);
-
-            if ($logType === InventoryLogType::StockIn) {
-                $this->decrementStock($product, $log->quantity);
-            } elseif ($logType === InventoryLogType::StockOut) {
-                $product->increment('stock', $log->quantity);
-            } elseif ($logType === InventoryLogType::Adjustment) {
-                $this->applyAdjustment($product, -$log->quantity);
-            }
-
-            // Apply the new effect
-            $newProduct = $log->product_id == ($data['product_id'] ?? $log->product_id) 
-                ? $product 
-                : Product::whereKey($data['product_id'])->lockForUpdate()->firstOrFail();
-
-            $newQuantity = (float) ($data['quantity'] ?? $log->quantity);
-            $newTypeRaw = $data['type'] ?? $logType->value;
-            $newType = $newTypeRaw instanceof InventoryLogType ? $newTypeRaw : InventoryLogType::from($newTypeRaw);
-
-            match ($newType) {
-                InventoryLogType::StockOut   => $this->decrementStock($newProduct, $newQuantity),
-                InventoryLogType::StockIn    => $newProduct->increment('stock', $newQuantity),
-                InventoryLogType::Adjustment => $this->applyAdjustment($newProduct, $newQuantity),
-            };
-
-            $log->update($data);
-            return $log;
-        });
-    }
-
     public function deleteLog($id)
     {
         throw new \BadMethodCallException('Log inventori tidak dapat dihapus. Buat entri koreksi baru untuk memperbaiki stok.');
@@ -77,6 +39,7 @@ class InventoryService
         return DB::transaction(function () use ($data, $userId, $note) {
             $product = Product::whereKey($data['product_id'])->lockForUpdate()->firstOrFail();
             $quantity = (float) $data['quantity'];
+            $previousStock = $product->stock;
 
             $type = $data['type'] instanceof InventoryLogType
                 ? $data['type']
@@ -85,7 +48,8 @@ class InventoryService
             match ($type) {
                 InventoryLogType::StockOut   => $this->decrementStock($product, $quantity),
                 InventoryLogType::StockIn    => $product->increment('stock', $quantity),
-                InventoryLogType::Adjustment => $this->applyAdjustment($product, $quantity),
+                InventoryLogType::StockReturn => $product->increment('stock', $quantity),
+                InventoryLogType::Adjustment => $product->update(['stock' => $quantity]),
             };
 
             return InventoryLog::create([
@@ -94,6 +58,10 @@ class InventoryService
                 'type'       => $type,
                 'quantity'   => $quantity,
                 'note'       => $note ?? $data['note'] ?? 'Penyesuaian stok manual',
+                'previous_stock' => $previousStock,
+                'new_stock'      => $product->fresh()->stock,
+                'reference_type' => $data['reference_type'] ?? null,
+                'reference_id'   => $data['reference_id'] ?? null,
             ]);
         });
     }
@@ -108,17 +76,4 @@ class InventoryService
         $product->decrement('stock', $quantity);
     }
 
-    private function applyAdjustment(Product $product, float $quantity): void
-    {
-        if ($quantity > 0) {
-            $product->increment('stock', $quantity);
-        } else if ($quantity < 0) {
-            $qty = abs($quantity);
-            if ((float) $product->stock < $qty) {
-                $product->update(['stock' => 0]);
-            } else {
-                $product->decrement('stock', $qty);
-            }
-        }
-    }
 }

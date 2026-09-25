@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Motorcycle;
 
 use App\Http\Controllers\Controller;
@@ -9,7 +11,10 @@ use App\Http\Requests\Motorcycle\GetMotorcyclePartsRequest;
 use App\Http\Requests\Motorcycle\StoreMotorcycleRequest;
 use App\Http\Requests\Motorcycle\UpdateMotorcyclePartRequest;
 use App\Http\Requests\Motorcycle\UpdateMotorcycleRequest;
+use App\Http\Resources\MotorcycleResource;
+use App\Services\CacheService;
 use App\Services\MotorcycleService;
+use App\Traits\ApiResponseHelpers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
@@ -18,12 +23,11 @@ use Inertia\Response;
 
 class MotorcycleController extends Controller implements HasMiddleware
 {
-    protected MotorcycleService $motorcycleService;
+    use ApiResponseHelpers;
 
-    public function __construct(MotorcycleService $motorcycleService)
-    {
-        $this->motorcycleService = $motorcycleService;
-    }
+    public function __construct(
+        protected MotorcycleService $motorcycleService
+    ) {}
 
     public static function middleware(): array
     {
@@ -63,10 +67,13 @@ class MotorcycleController extends Controller implements HasMiddleware
 
         $motorcycle = $this->motorcycleService->createMotorcycle($data);
 
-        return response()->json([
-            'message' => 'Motor berhasil ditambahkan.',
-            'data'    => $motorcycle,
-        ], 201);
+        CacheService::flushMotorcycles();
+
+        return $this->successResponse(
+            'Motor berhasil ditambahkan.',
+            new MotorcycleResource($motorcycle),
+            201
+        );
     }
 
     /**
@@ -82,10 +89,12 @@ class MotorcycleController extends Controller implements HasMiddleware
 
         $motorcycle = $this->motorcycleService->updateMotorcycle($id, $data);
 
-        return response()->json([
-            'message' => 'Motor berhasil diperbarui.',
-            'data'    => $motorcycle,
-        ]);
+        CacheService::flushMotorcycles();
+
+        return $this->successResponse(
+            'Motor berhasil diperbarui.',
+            new MotorcycleResource($motorcycle)
+        );
     }
 
     /**
@@ -95,7 +104,9 @@ class MotorcycleController extends Controller implements HasMiddleware
     {
         $this->motorcycleService->deleteMotorcycle($id);
 
-        return response()->json(['message' => 'Motor berhasil dihapus.']);
+        CacheService::flushMotorcycles();
+
+        return $this->successResponse('Motor berhasil dihapus.');
     }
 
     /**
@@ -105,7 +116,7 @@ class MotorcycleController extends Controller implements HasMiddleware
     {
         $result = $this->motorcycleService->getMotorcycleParts($id, $request->validated());
 
-        return response()->json($result);
+        return $this->successResponse('Data sparepart motor berhasil dimuat', $result);
     }
 
     /**
@@ -116,15 +127,16 @@ class MotorcycleController extends Controller implements HasMiddleware
         try {
             $part = $this->motorcycleService->attachPart($id, $request->validated());
 
-            return response()->json([
-                'message' => 'Part berhasil di-mapping.',
-                'data'    => $part,
-            ], 201);
+            CacheService::flushMotorcycles();
+            CacheService::flushCatalog();
+
+            return $this->successResponse(
+                'Part berhasil di-mapping.',
+                $part,
+                201
+            );
         } catch (\InvalidArgumentException $e) {
-            return response()->json([
-                'message' => $e->getMessage(),
-                'errors'  => ['product_id' => [$e->getMessage()]],
-            ], 422);
+            return $this->errorResponse($e->getMessage(), 422, ['product_id' => [$e->getMessage()]]);
         }
     }
 
@@ -135,15 +147,15 @@ class MotorcycleController extends Controller implements HasMiddleware
     {
         $result = $this->motorcycleService->bulkAttachParts($request->validated());
 
+        CacheService::flushMotorcycles();
+        CacheService::flushCatalog();
+
         $msg = "Bulk mapping selesai. {$result['attached']} sparepart berhasil di-mapping.";
         if ($result['skipped'] > 0) {
             $msg .= " ({$result['skipped']} dilewati karena sudah ada).";
         }
 
-        return response()->json([
-            'message' => $msg,
-            'data'    => $result,
-        ], 200);
+        return $this->successResponse($msg, $result);
     }
 
     /**
@@ -153,10 +165,10 @@ class MotorcycleController extends Controller implements HasMiddleware
     {
         $part = $this->motorcycleService->updatePart($motorcycleId, $partId, $request->validated());
 
-        return response()->json([
-            'message' => 'Mapping part berhasil diperbarui.',
-            'data'    => $part,
-        ]);
+        CacheService::flushMotorcycles();
+        CacheService::flushCatalog();
+
+        return $this->successResponse('Mapping part berhasil diperbarui.', $part);
     }
 
     /**
@@ -166,6 +178,9 @@ class MotorcycleController extends Controller implements HasMiddleware
     {
         $this->motorcycleService->detachPart($motorcycleId, $partId);
 
-        return response()->json(['message' => 'Part berhasil dihapus dari motor.']);
+        CacheService::flushMotorcycles();
+        CacheService::flushCatalog();
+
+        return $this->successResponse('Part berhasil dihapus dari motor.');
     }
 }

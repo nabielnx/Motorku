@@ -28,7 +28,6 @@ class OrderFactory extends Factory
             'total'                 => $total,
             'notes'                 => null,
             'order_status'          => 'pending',
-            'order_type'            => 'take_away',
             'payment_status'        => 'unpaid',
             'ordered_at'            => now(),
         ];
@@ -50,10 +49,4 @@ class OrderFactory extends Factory
         ]);
     }
 
-    public function takeAway(): static
-    {
-        return $this->state([
-            'order_type' => 'take_away',
-        ]);
-    }
 }

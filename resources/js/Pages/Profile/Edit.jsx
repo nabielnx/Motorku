@@ -10,7 +10,7 @@ export default function Edit({ mustVerifyEmail, status }) {
 
     return (
         <AuthenticatedLayout pageTitle={locale === 'en' ? 'My Profile' : 'Pengaturan Profil'}>
-            <Head title={`${locale === 'en' ? 'My Profile' : 'Pengaturan Profil'} - Toko Sparepart`}>
+            <Head title={`${locale === 'en' ? 'My Profile' : 'Pengaturan Profil'}`}>
                 <meta name="description" content="Kelola informasi profil pribadi, foto avatar, dan keamanan kata sandi pengguna." />
             </Head>
 

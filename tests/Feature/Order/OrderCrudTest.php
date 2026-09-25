@@ -38,7 +38,6 @@ class OrderCrudTest extends TestCase
         $product = Product::factory()->create();
         $response = $this->actingAs($this->cashier)->postJson('/api/orders', [
             'customer_name' => 'Pelanggan Test',
-            'order_type' => 'take_away',
             'items'      => [['product_id' => $product->id, 'quantity' => 1]],
         ]);
 
@@ -52,7 +51,6 @@ class OrderCrudTest extends TestCase
 
         $order = $this->actingAs($this->cashier)->postJson('/api/orders', [
             'customer_name' => 'Pelanggan Test',
-            'order_type' => 'take_away',
             'items' => [['product_id' => $product->id, 'quantity' => 2]],
         ])->assertCreated()->json('data');
 
@@ -74,6 +72,17 @@ class OrderCrudTest extends TestCase
             ->assertForbidden();
     }
 
+    public function test_paid_order_cannot_be_deleted(): void
+    {
+        $order = Order::factory()->create(['order_status' => 'completed', 'payment_status' => 'paid']);
+
+        $this->actingAs($this->owner)
+            ->deleteJson("/api/orders/{$order->id}")
+            ->assertForbidden();
+
+        $this->assertDatabaseHas('orders', ['id' => $order->id, 'deleted_at' => null]);
+    }
+
     public function test_cannot_cancel_order_not_in_pending_status(): void
     {
         $order = Order::factory()->create(['order_status' => 'preparing', 'payment_status' => 'paid']);
@@ -88,7 +97,6 @@ class OrderCrudTest extends TestCase
         $product = Product::factory()->create();
 
         $this->actingAs($this->cashier)->postJson('/api/orders', [
-            'order_type' => 'take_away',
             'items' => [['product_id' => $product->id, 'quantity' => 1]],
         ])->assertUnprocessable()
             ->assertJsonValidationErrors('customer_name');

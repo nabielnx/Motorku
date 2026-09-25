@@ -4,11 +4,18 @@ namespace App\Services;
 
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\OrderReturn;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class ReportService
 {
+    public function netRevenue(Carbon $start, Carbon $end): float
+    {
+        return (float) Order::paidWithinRange($start, $end)->sum('total')
+            - (float) OrderReturn::whereBetween('created_at', [$start, $end])->sum('amount');
+    }
+
     public function getDailySummary($date = null): array
     {
         $targetDate = $date ? Carbon::parse($date) : Carbon::today();
@@ -17,7 +24,7 @@ class ReportService
 
         return [
             'date' => $targetDate->format('Y-m-d'),
-            'total_revenue' => (float) $orders->sum('total'),
+            'total_revenue' => $this->netRevenue($targetDate->copy()->startOfDay(), $targetDate->copy()->endOfDay()),
             'total_tax' => (float) $orders->sum('tax_amount'),
             'total_orders' => $orders->count(),
         ];
@@ -32,7 +39,8 @@ class ReportService
 
         // Revenue from orders within the selected date range
         $orders = Order::paidWithinRange($start, $end);
-        $totalRevenue = (float) $orders->sum('total');
+        $totalRevenue = $this->netRevenue($start, $end);
+        $totalRefunds = (float) OrderReturn::whereBetween('created_at', [$start, $end])->sum('amount');
         $totalSubtotal = (float) $orders->sum('subtotal');
         $totalTax = (float) $orders->sum('tax_amount');
         $totalOrders = (int) $orders->count();
@@ -69,6 +77,7 @@ class ReportService
 
         return [
             'total_revenue' => $totalRevenue,
+            'total_refunds' => $totalRefunds,
             'total_subtotal' => $totalSubtotal,
             'total_tax' => $totalTax,
             'total_orders' => $totalOrders,
@@ -84,7 +93,7 @@ class ReportService
 
     public function getSummaryByDateRange(Carbon $startDate, Carbon $endDate): array
     {
-        $revenue = Order::paidWithinRange($startDate, $endDate)->sum('total');
+        $revenue = $this->netRevenue($startDate, $endDate);
 
         $orders = Order::paidWithinRange($startDate, $endDate)->count();
 

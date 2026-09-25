@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import MotorcycleSkeleton from '@/Components/Skeletons/MotorcycleSkeleton';
 import { Head, router } from '@inertiajs/react';
 import { getProductImage } from '@/Utils/productImage';
+import { fuzzyFilterProducts } from '@/Utils/fuzzySearch';
 import { toast } from 'sonner';
 import {
     FiPlus, FiEdit2, FiTrash2, FiLink, FiX, FiSearch,
@@ -19,6 +21,22 @@ function MotorIconPlaceholder({ size = 22, className = "" }) {
             <path d="M5.5 17.5h9.5" />
             <path d="m15 11-3-5.5H8.5L5 11.5V17" />
         </svg>
+    );
+}
+
+function ProductThumbnail({ path, size = 'w-8 h-8' }) {
+    const [failed, setFailed] = useState(false);
+
+    useEffect(() => setFailed(false), [path]);
+
+    return (
+        <div className={`${size} rounded-md border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 overflow-hidden shrink-0 flex items-center justify-center`}>
+            {path && !failed ? (
+                <img src={getProductImage(path)} alt="" className="w-full h-full object-cover" onError={() => setFailed(true)} />
+            ) : (
+                <FiBox size={16} className="text-slate-400 dark:text-slate-500" aria-hidden="true" />
+            )}
+        </div>
     );
 }
 
@@ -112,15 +130,8 @@ function SearchableProductDropdown({ products = [], value, onChange, error }) {
     }, [products]);
 
     const filtered = useMemo(() => {
-        const q = search.trim().toLowerCase();
-        return products.filter(p => {
-            const matchesCat = categoryFilter !== 'semua' ? p.category?.name === categoryFilter : true;
-            const matchesSearch = q ? (
-                p.name.toLowerCase().includes(q) ||
-                (p.sku && p.sku.toLowerCase().includes(q)) ||
-                (p.category?.name && p.category.name.toLowerCase().includes(q))
-            ) : true;
-            return matchesCat && matchesSearch;
+        return fuzzyFilterProducts(products, search, {
+            filterPredicate: (p) => categoryFilter === 'semua' || p.category?.name === categoryFilter
         });
     }, [products, search, categoryFilter]);
 
@@ -151,17 +162,7 @@ function SearchableProductDropdown({ products = [], value, onChange, error }) {
             >
                 {selectedProduct ? (
                     <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                        <div className="w-6 h-6 rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden shrink-0 flex items-center justify-center">
-                            <img
-                                src={getProductImage(selectedProduct.image_path, selectedProduct.category?.name)}
-                                alt={selectedProduct.name}
-                                className="w-full h-full object-cover"
-                                onError={(e) => {
-                                    e.target.onerror = null;
-                                    e.target.src = getProductImage(null, selectedProduct.category?.name);
-                                }}
-                            />
-                        </div>
+                        <ProductThumbnail path={selectedProduct.image_path} size="w-6 h-6" />
                         <span className="truncate font-bold text-slate-900 dark:text-white">
                             {selectedProduct.name}
                         </span>
@@ -240,17 +241,7 @@ function SearchableProductDropdown({ products = [], value, onChange, error }) {
                                     }`}
                                 >
                                     <div className="flex items-center gap-2 min-w-0 flex-1 pr-2">
-                                        <div className="w-7 h-7 rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden shrink-0 flex items-center justify-center">
-                                            <img
-                                                src={getProductImage(p.image_path, p.category?.name)}
-                                                alt={p.name}
-                                                className="w-full h-full object-cover"
-                                                onError={(e) => {
-                                                    e.target.onerror = null;
-                                                    e.target.src = getProductImage(null, p.category?.name);
-                                                }}
-                                            />
-                                        </div>
+                                        <ProductThumbnail path={p.image_path} size="w-7 h-7" />
                                         <div className="min-w-0 flex-1">
                                             <p className="font-extrabold truncate">{p.name}</p>
                                             <p className="text-[10px] text-slate-400 truncate">
@@ -298,15 +289,12 @@ function SearchableMotorDropdown({ motorcycles = [], value, onChange, error }) {
     }, [motorcycles]);
 
     const filtered = useMemo(() => {
-        const q = search.trim().toLowerCase();
-        return motorcycles.filter(m => {
-            const matchesBrand = brandFilter !== 'semua' ? m.brand === brandFilter : true;
-            const matchesSearch = q ? (
-                m.model.toLowerCase().includes(q) ||
-                m.brand.toLowerCase().includes(q) ||
-                m.engine_type.toLowerCase().includes(q)
-            ) : true;
-            return matchesBrand && matchesSearch;
+        const prepared = motorcycles.map(m => ({
+            ...m,
+            name: `${m.brand} ${m.model} ${m.engine_type || ''}`
+        }));
+        return fuzzyFilterProducts(prepared, search, {
+            filterPredicate: (m) => brandFilter === 'semua' || m.brand === brandFilter
         });
     }, [motorcycles, search, brandFilter]);
 
@@ -1129,7 +1117,7 @@ export default function MotorcycleIndex({
 
     return (
         <AuthenticatedLayout pageTitle="Data Motor" noPadding={true}>
-            <Head title="Data Motor & Compatible Spareparts - Toko Sparepart" />
+            <Head title="Data Motor & Compatible Spareparts" />
 
             {/* Floating Global Notification Alert */}
             {notification && (
@@ -1519,10 +1507,7 @@ export default function MotorcycleIndex({
 
                                                 {/* SPAREPARTS LIST - Clean Structured Table Rows */}
                                                 {isLoading ? (
-                                                    <div className="text-center py-8 text-slate-400 dark:text-slate-500 flex items-center justify-center gap-2">
-                                                        <FiRefreshCw className="animate-spin text-blue-600" size={16} />
-                                                        <span className="text-xs font-semibold">Memuat daftar sparepart...</span>
-                                                    </div>
+                                                    <MotorcycleSkeleton rows={4} />
                                                 ) : (currentMotorParts.data || []).length === 0 ? (
                                                     <div className="py-8 px-4 text-center text-slate-400">
                                                         <p className="text-xs font-bold text-slate-600 dark:text-slate-300">
@@ -1759,14 +1744,14 @@ export default function MotorcycleIndex({
             {/* ======================================================== */}
             {showBulkModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3 sm:p-4" onClick={() => setShowBulkModal(false)}>
-                    <div className="bg-white dark:bg-slate-900 rounded-lg shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-2xl p-5 sm:p-6 space-y-4 max-h-[92vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+                    <div className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-5xl h-[94vh] max-h-[900px] p-5 sm:p-6 lg:p-8 gap-5 flex flex-col" onClick={(e) => e.stopPropagation()}>
                         {/* Header */}
                         <div className="flex items-start justify-between pb-1">
                             <div>
-                                <h3 className="font-black text-base sm:text-lg text-slate-900 dark:text-white">
+                                <h3 className="font-black text-lg sm:text-xl text-slate-900 dark:text-white">
                                     Atur Kompatibilitas Massal
                                 </h3>
-                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
                                     Hubungkan sparepart ke model motor sekaligus secara efisien.
                                 </p>
                             </div>
@@ -1783,7 +1768,7 @@ export default function MotorcycleIndex({
                                     setBulkMode('motor_to_parts');
                                     setBulkSearch('');
                                 }}
-                                className={`pb-2.5 text-xs font-bold transition border-b-2 cursor-pointer ${
+                                className={`pb-2.5 text-sm font-bold transition border-b-2 cursor-pointer ${
                                     bulkMode === 'motor_to_parts'
                                         ? 'border-blue-600 text-blue-600 dark:text-blue-400'
                                         : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
@@ -1797,7 +1782,7 @@ export default function MotorcycleIndex({
                                     setBulkMode('part_to_motors');
                                     setBulkSearch('');
                                 }}
-                                className={`pb-2.5 text-xs font-bold transition border-b-2 cursor-pointer ${
+                                className={`pb-2.5 text-sm font-bold transition border-b-2 cursor-pointer ${
                                     bulkMode === 'part_to_motors'
                                         ? 'border-blue-600 text-blue-600 dark:text-blue-400'
                                         : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
@@ -1814,10 +1799,10 @@ export default function MotorcycleIndex({
                             </div>
                         )}
 
-                        <div className="space-y-3.5 overflow-y-auto pr-1 flex-1">
+                        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,3fr)_minmax(280px,2fr)] gap-6 overflow-y-auto lg:overflow-hidden min-h-0 flex-1 pr-1">
                             {/* MODE A: 1 Motor -> Many Parts */}
                             {bulkMode === 'motor_to_parts' && (
-                                <>
+                                <div className="flex flex-col gap-4 min-h-0">
                                     {/* Integrated Searchable Single Motor Dropdown */}
                                     <SearchableMotorDropdown
                                         motorcycles={motorcycles}
@@ -1827,7 +1812,7 @@ export default function MotorcycleIndex({
                                     />
 
                                     {/* Multi-Select Products */}
-                                    <div>
+                                    <div className="flex flex-col flex-1 min-h-0">
                                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 mb-1.5">
                                             <div className="flex items-center gap-2">
                                                 <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
@@ -1906,7 +1891,7 @@ export default function MotorcycleIndex({
                                         </div>
 
                                         {/* Checkable List */}
-                                        <div className="max-h-48 overflow-y-auto border border-slate-200 dark:border-slate-700 rounded-md divide-y divide-slate-100 dark:divide-slate-750">
+                                        <div className="max-h-64 lg:max-h-none lg:flex-1 lg:min-h-0 overflow-y-auto border border-slate-200 dark:border-slate-700 rounded-lg divide-y divide-slate-100 dark:divide-slate-750">
                                             {filteredProductsForBulk.map(p => {
                                                 const isSelected = bulkProductIds.includes(p.id);
                                                 const isAlreadyMapped = Boolean(bulkMotorId && mappedProductIdsForBulkMotor.has(p.id));
@@ -1936,16 +1921,8 @@ export default function MotorcycleIndex({
                                                                 onChange={() => {}}
                                                                 className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 cursor-pointer border-slate-300 dark:border-slate-600 pointer-events-none shrink-0"
                                                             />
-                                                            <div className={`w-8 h-8 rounded-md bg-slate-100 dark:bg-slate-800 overflow-hidden shrink-0 flex items-center justify-center ${isAlreadyMapped && !isSelected ? 'grayscale opacity-75' : ''}`}>
-                                                                <img
-                                                                    src={getProductImage(p.image_path, p.category?.name)}
-                                                                    alt={p.name}
-                                                                    className="w-full h-full object-cover"
-                                                                    onError={(e) => {
-                                                                        e.target.onerror = null;
-                                                                        e.target.src = getProductImage(null, p.category?.name);
-                                                                    }}
-                                                                />
+                                                            <div className={isAlreadyMapped && !isSelected ? 'grayscale opacity-75' : ''}>
+                                                                <ProductThumbnail path={p.image_path} size="w-10 h-10" />
                                                             </div>
                                                             <div className="flex-1 min-w-0">
                                                                 <div className="flex items-center gap-2">
@@ -1958,7 +1935,7 @@ export default function MotorcycleIndex({
                                                                         </span>
                                                                     )}
                                                                 </div>
-                                                                <p className="text-[11px] text-slate-400 truncate mt-0.5">
+                                                                <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">
                                                                     {p.sku || '-'} · {formatRp(p.price)} {p.default_part_category ? `· ${partCategories[p.default_part_category] || p.default_part_category}` : ''}
                                                                 </p>
                                                             </div>
@@ -1977,12 +1954,12 @@ export default function MotorcycleIndex({
                                         </div>
                                         {bulkErrors.products && <p className="text-[11px] text-red-500 font-bold mt-1">{bulkErrors.products}</p>}
                                     </div>
-                                </>
+                                </div>
                             )}
 
                             {/* MODE B: 1 Part -> Many Motors */}
                             {bulkMode === 'part_to_motors' && (
-                                <>
+                                <div className="flex flex-col gap-4 min-h-0">
                                     {/* Integrated Searchable Single Product Dropdown */}
                                     <SearchableProductDropdown
                                         products={products}
@@ -1992,7 +1969,7 @@ export default function MotorcycleIndex({
                                     />
 
                                     {/* Multi-Select Motorcycles */}
-                                    <div>
+                                    <div className="flex flex-col flex-1 min-h-0">
                                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 mb-1.5">
                                             <div className="flex items-center gap-2">
                                                 <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
@@ -2071,7 +2048,7 @@ export default function MotorcycleIndex({
                                         </div>
 
                                         {/* Checkable List */}
-                                        <div className="max-h-48 overflow-y-auto border border-slate-200 dark:border-slate-700 rounded-md divide-y divide-slate-100 dark:divide-slate-750">
+                                        <div className="max-h-64 lg:max-h-none lg:flex-1 lg:min-h-0 overflow-y-auto border border-slate-200 dark:border-slate-700 rounded-lg divide-y divide-slate-100 dark:divide-slate-750">
                                             {filteredMotorcyclesForBulk.map(m => {
                                                 const isSelected = bulkMotorIds.includes(m.id);
                                                 const isAlreadyMapped = Boolean(bulkProductId && mappedMotorIdsForBulkProduct.has(m.id));
@@ -2142,11 +2119,11 @@ export default function MotorcycleIndex({
                                         </div>
                                         {bulkErrors.motorcycles && <p className="text-[11px] text-red-500 font-bold mt-1">{bulkErrors.motorcycles}</p>}
                                     </div>
-                                </>
+                                </div>
                             )}
 
                             {/* Common Bulk Fields (Category, Notes, Recommendation) */}
-                            <div className="pt-2 border-t border-slate-100 dark:border-slate-700 space-y-3">
+                            <div className="pt-4 lg:pt-0 lg:pl-6 border-t lg:border-t-0 lg:border-l border-slate-200 dark:border-slate-700 space-y-5 lg:overflow-y-auto lg:pr-2">
                                 <div>
                                     <div className="flex items-center justify-between mb-1">
                                         <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
@@ -2161,7 +2138,7 @@ export default function MotorcycleIndex({
                                         onChange={e => setBulkCategory(e.target.value)}
                                         className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200 focus:ring-1 focus:ring-blue-500 focus:outline-none"
                                     >
-                                        <option value="auto">✨ Otomatis Sesuai Kategori Masing-masing Part (Rekomendasi)</option>
+                                        <option value="auto">Otomatis dari Nama Produk</option>
                                         {Object.entries(categoryGroups).map(([gKey, group]) => (
                                             <optgroup key={gKey} label={group.name}>
                                                 {Object.entries(group.items || {}).map(([cKey, cLabel]) => (
@@ -2182,7 +2159,7 @@ export default function MotorcycleIndex({
                                     {bulkErrors.part_category && <p className="text-[11px] text-red-500 font-bold mt-1">{bulkErrors.part_category}</p>}
                                 </div>
 
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
+                                <div className="grid grid-cols-1 gap-4">
                                     <div>
                                         <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 block">
                                             Catatan Kompatibilitas (Opsional)
@@ -2214,13 +2191,13 @@ export default function MotorcycleIndex({
                         </div>
 
                         {/* Footer Action */}
-                        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-200 dark:border-slate-800">
-                            <div className="text-xs text-slate-600 dark:text-slate-400 font-semibold">
-                                Total relasi yang dibuat:{' '}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-4 border-t border-slate-200 dark:border-slate-800">
+                            <div className="text-sm text-slate-600 dark:text-slate-400 font-semibold">
+                                Pilihan:{' '}
                                 <span className="font-bold text-blue-600 dark:text-blue-400">
                                     {bulkMode === 'motor_to_parts'
-                                        ? (bulkMotorId ? `${bulkProductIds.length} sparepart ke 1 motor` : `${bulkProductIds.length} sparepart (pilih motor sasaran)`)
-                                        : (bulkProductId ? `${bulkMotorIds.length} motor ke 1 sparepart` : `${bulkMotorIds.length} motor (pilih sparepart)`)}
+                                        ? (bulkMotorId ? `${bulkProductIds.length} sparepart → 1 motor` : `${bulkProductIds.length} sparepart dipilih`)
+                                        : (bulkProductId ? `${bulkMotorIds.length} motor → 1 sparepart` : `${bulkMotorIds.length} motor dipilih`)}
                                 </span>
                             </div>
                             <div className="flex items-center gap-2 w-full sm:w-auto">
@@ -2235,7 +2212,7 @@ export default function MotorcycleIndex({
                                     type="button"
                                     onClick={() => handleSaveBulkMapping()}
                                     disabled={bulkSaving}
-                                    className="flex-1 sm:flex-none px-5 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-md text-xs font-semibold flex items-center justify-center gap-2 transition cursor-pointer shadow-xs"
+                                    className="flex-1 sm:flex-none px-5 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-md text-sm font-semibold flex items-center justify-center gap-2 transition cursor-pointer shadow-xs"
                                 >
                                     {bulkSaving ? (
                                         <>

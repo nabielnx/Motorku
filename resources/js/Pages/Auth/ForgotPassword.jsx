@@ -16,8 +16,8 @@ export default function ForgotPassword({ status }) {
 
     return (
         <GuestLayout>
-            <Head title="Lupa Kata Sandi - Toko Sparepart">
-                <meta name="description" content="Layanan pemulihan dan reset kata sandi akun Toko Sparepart." />
+            <Head title="Lupa Kata Sandi">
+                <meta name="description" content="Layanan pemulihan dan reset kata sandi akun Motorku." />
             </Head>
 
             <div className="mb-6 text-sm text-gray-500 leading-relaxed text-center">

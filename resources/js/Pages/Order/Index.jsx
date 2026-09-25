@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import OrderTableSkeleton from '@/Components/Skeletons/OrderTableSkeleton';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import { toast } from 'sonner';
@@ -17,6 +18,24 @@ import {
 } from 'react-icons/fi';
 
 export default function OrderIndex({ initialOrders = {}, summary = {} }) {
+    const [isNavigating, setIsNavigating] = useState(false);
+
+    useEffect(() => {
+        const removeStart = router.on('start', (event) => {
+            const rawUrl = event?.detail?.visit?.url;
+            let targetPath = '';
+            if (typeof rawUrl === 'string') {
+                targetPath = new URL(rawUrl, window.location.origin).pathname;
+            } else if (rawUrl?.pathname) {
+                targetPath = rawUrl.pathname;
+            }
+            if (targetPath && targetPath.startsWith('/orders')) {
+                setIsNavigating(true);
+            }
+        });
+        const removeFinish = router.on('finish', () => setIsNavigating(false));
+        return () => { removeStart(); removeFinish(); };
+    }, []);
     const { auth, app_settings } = usePage().props;
     const locale = app_settings?.locale || 'id';
     const userName = auth?.user?.name || 'Kasir';
@@ -149,13 +168,21 @@ export default function OrderIndex({ initialOrders = {}, summary = {} }) {
         cancelled:  { label: 'Dibatalkan',   icon: FiXCircle,      color: 'bg-rose-600 text-white' },
     };
 
-    const getStatusDisplay = (orderStatus, paymentStatus) => {
+    const getStatusDisplay = (orderStatus, paymentStatus, returnedAmount = 0) => {
         const isPaid = paymentStatus === 'paid';
+
+        if (paymentStatus === 'refunded') {
+            return {
+                primary: { label: 'Retur Penuh', color: 'bg-amber-600 text-white', icon: FiCheckCircle },
+                secondary: null,
+                tooltip: 'Semua barang pada pesanan ini telah diretur',
+            };
+        }
 
         if (orderStatus === 'completed') {
             return {
                 primary: { label: 'Selesai', color: 'bg-blue-600 text-white', icon: FiCheckCircle },
-                secondary: null,
+                secondary: returnedAmount > 0 ? { label: 'RETUR SEBAGIAN', color: 'bg-amber-600 text-white' } : null,
                 tooltip: 'Pesanan telah selesai disajikan dan dibayar',
             };
         }
@@ -296,6 +323,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {} }) {
             const payment = response.data?.data;
             setOrders(prev => (Array.isArray(prev) ? prev : []).map(order => order.id === paymentOrder.id ? {
                 ...order,
+                status: payment?.order?.order_status || order.status,
                 payment_status: 'paid',
                 paid_at: payment?.paid_at || new Date().toISOString(),
             } : order));
@@ -336,10 +364,13 @@ export default function OrderIndex({ initialOrders = {}, summary = {} }) {
 
     return (
         <AuthenticatedLayout pageTitle={locale === 'en' ? 'Orders List' : 'Daftar Pesanan'}>
-            <Head title={`${locale === 'en' ? 'Orders List' : 'Daftar Pesanan'} - Toko Sparepart`}>
-                <meta name="description" content="Kelola dan pantau seluruh daftar pesanan pelanggan Toko Sparepart secara real-time." />
+            <Head title={`${locale === 'en' ? 'Orders List' : 'Daftar Pesanan'}`}>
+                <meta name="description" content="Kelola dan pantau seluruh daftar pesanan pelanggan Motorku secara real-time." />
             </Head>
 
+            {isNavigating ? (
+                <OrderTableSkeleton />
+            ) : (
             <div className="w-full space-y-4 p-3.5 sm:p-5">
 
                 {/* 4 Clean Metric Cards */}
@@ -454,7 +485,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {} }) {
                                              {/* STATUS PESANAN */}
                                              <td className="px-3.5 py-2.5">
                                                  {(() => {
-                                                     const display = getStatusDisplay(order.status, order.payment_status);
+                                                     const display = getStatusDisplay(order.status, order.payment_status, Number(order.returned_amount || 0));
                                                      const PrimaryIcon = display.primary.icon;
                                                      return (
                                                          <div className="flex items-center gap-1.5" title={display.tooltip}>
@@ -479,7 +510,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {} }) {
                                             <td className="px-3.5 py-2.5 text-right">
                                                 <div className="flex items-center justify-end gap-1.5">
                                                     {/* Highlighted Konfirmasi Pembayaran Button for Unpaid Orders */}
-                                                    {order.payment_status !== 'paid' && order.status !== 'cancelled' && (
+                                                    {order.payment_status === 'unpaid' && order.status !== 'cancelled' && (
                                                         <button
                                                             onClick={() => openPayment(order)}
                                                             className="px-2.5 py-1 text-[11px] font-extrabold text-white bg-emerald-600 hover:bg-emerald-700 active:scale-95 shadow-2xs rounded-lg border border-emerald-500 transition-all animate-pulse cursor-pointer shrink-0"
@@ -567,6 +598,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {} }) {
                     </div>
                 </div>
             </div>
+            )}
 
             {/* Payment Confirmation Modal */}
             {paymentOrder && (
@@ -577,19 +609,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {} }) {
                         <p className="mt-4 text-2xl font-black text-emerald-600 dark:text-emerald-400">{formatRp(paymentOrder.total)}</p>
 
                         <div className="mt-5 space-y-4">
-                            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
-                                Metode pembayaran
-                                <select
-                                    value={paymentMethod}
-                                    onChange={(event) => setPaymentMethod(event.target.value)}
-                                    className="mt-1.5 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200 p-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500"
-                                >
-                                    <option value="cash">Tunai</option>
-                                    <option value="debit">Debit</option>
-                                    <option value="credit">Kredit</option>
-                                    <option value="qris">QRIS</option>
-                                </select>
-                            </label>
+                            <p className="text-xs font-bold text-slate-700 dark:text-slate-300">Metode pembayaran: Tunai</p>
 
                             <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
                                 Nominal diterima
@@ -634,10 +654,10 @@ export default function OrderIndex({ initialOrders = {}, summary = {} }) {
             {printOrderData && (
                 <div id="thermal-printable-receipt" className="hidden">
                     <div className="text-center pb-2 border-b border-dashed border-black mb-2">
-                        <h2 className="font-bold text-sm uppercase tracking-wider">{app_settings?.restaurant_name || 'TOKO SPAREPART'}</h2>
-                        <p className="text-[10px]">Toko Sparepart</p>
-                        {app_settings?.restaurant_address && <p className="text-[9px]">{app_settings.restaurant_address}</p>}
-                        {app_settings?.restaurant_phone && <p className="text-[9px]">Telp: {app_settings.restaurant_phone}</p>}
+                        <h2 className="font-bold text-sm uppercase tracking-wider">{app_settings?.store_name || 'MOTORKU'}</h2>
+                        <p className="text-[10px]">{app_settings?.store_name || 'Motorku'}</p>
+                        {app_settings?.store_address && <p className="text-[9px]">{app_settings.store_address}</p>}
+                        {app_settings?.store_phone && <p className="text-[9px]">Telp: {app_settings.store_phone}</p>}
                     </div>
 
                     <div className="py-1 border-b border-dashed border-black text-[10px] space-y-0.5 mb-2">
@@ -727,7 +747,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {} }) {
                     {/* FOOTER */}
                     <div className="pt-2 text-center text-[9px] space-y-0.5">
                         <p className="font-bold">*** TERIMA KASIH ***</p>
-                        <p>Selamat Menikmati Hidangan Kami</p>
+                        <p>Terima kasih sudah berbelanja di Motorku</p>
                         <p>Simpan Struk Ini Sebagai Bukti Pembayaran</p>
                     </div>
                 </div>
