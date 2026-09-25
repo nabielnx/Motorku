@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [develop, main]
+
+permissions:
+  contents: read
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: sparepart_testing
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    env:
+      DB_HOST: 127.0.0.1
+      DB_USERNAME: root
+      DB_PASSWORD: root
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, xml, ctype, iconv, intl, pdo_mysql, bcmath
+          coverage: none
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install dependencies
+        run: |
+          composer install --no-interaction --prefer-dist
+          npm ci
+      - name: Prepare test environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+      - name: Run tests
+        run: |
+          if ! composer test 2>&1 | tee test-output.log; then
+            {
+              echo '### PHPUnit failure'
+              echo '```text'
+              tail -n 100 test-output.log
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+            details=$(tail -n 60 test-output.log | awk '{ gsub(/%/, "%25"); gsub(/\r/, "%0D"); printf "%s%%0A", $0 }')
+            echo "::error title=PHPUnit failures::$details"
+            exit 1
+          fi
+      - name: Build frontend
+        run: npm run build

@@ -4,6 +4,7 @@ namespace App\Http\Requests\Category;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreCategoryRequest extends FormRequest
 {
@@ -27,9 +28,11 @@ class StoreCategoryRequest extends FormRequest
                 'required',
                 'string',
                 'max:255',
-                \Illuminate\Validation\Rule::unique('categories', 'name')->whereNull('deleted_at'),
+                Rule::unique('categories', 'name'),
             ],
             'description' => ['nullable', 'string'],
+            'sub_categories' => ['nullable', 'array'],
+            'sub_categories.*.name' => ['required', 'string', 'max:255'],
         ];
     }
 }

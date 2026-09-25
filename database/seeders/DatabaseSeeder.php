@@ -15,9 +15,12 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             UserSeeder::class,
             CategorySeeder::class,
-            ProductSeeder::class,
+            // ProductSeeder::class, // Diganti dengan seeder per-part
+            OilProductSeeder::class,
+            TireProductSeeder::class,
             MotorcycleSeeder::class,
             MotorcyclePartSeeder::class,
+            TireMotorcycleMappingSeeder::class,
             SettingSeeder::class,
             // DemoOrderSeeder::class, // Disabled for clean testing environment
         ]);

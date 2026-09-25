@@ -13,8 +13,8 @@ export default function VerifyEmail({ status }) {
 
     return (
         <GuestLayout>
-            <Head title="Verifikasi Email - Toko Sparepart">
-                <meta name="description" content="Verifikasi alamat email akun Toko Sparepart Anda." />
+            <Head title="Verifikasi Email">
+                <meta name="description" content="Verifikasi alamat email akun Motorku Anda." />
             </Head>
 
             <div className="mb-4 text-sm text-gray-600">

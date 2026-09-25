@@ -4,10 +4,11 @@ namespace App\Services;
 
 use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
-use App\Models\Payment;
+use App\Events\OrderStatusUpdated;
 use App\Models\Order;
+use App\Models\Payment;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
 class PaymentService
@@ -16,6 +17,12 @@ class PaymentService
     {
         return DB::transaction(function () use ($data) {
             $order = Order::whereKey($data['order_id'])->lockForUpdate()->firstOrFail();
+
+            if (($data['payment_method'] ?? null) !== 'cash') {
+                throw ValidationException::withMessages([
+                    'payment_method' => 'Hanya metode pembayaran tunai (cash) yang diperbolehkan.',
+                ]);
+            }
 
             if ($order->order_status === OrderStatus::Cancelled) {
                 throw ValidationException::withMessages(['order_id' => 'Pesanan yang dibatalkan tidak bisa dibayar.']);
@@ -36,10 +43,10 @@ class PaymentService
 
             $payment = Payment::create([
                 'order_id' => $data['order_id'],
-                'payment_method' => $data['payment_method'],
+                'payment_method' => 'cash',
                 'amount' => $amountDue,
-                'amount_received' => $data['payment_method'] === 'cash' ? $amountReceived : null,
-                'change_amount' => $data['payment_method'] === 'cash' ? max(0, $amountReceived - $amountDue) : 0,
+                'amount_received' => $amountReceived,
+                'change_amount' => max(0, $amountReceived - $amountDue),
                 'invoice_number' => $this->nextInvoiceNumber(),
                 'notes' => $data['notes'] ?? null,
                 'status' => 'paid',
@@ -56,17 +63,28 @@ class PaymentService
     public function nextInvoiceNumber(): string
     {
         $dateKey = now()->format('Ymd');
-        if (DB::connection()->getDriverName() === 'pgsql') {
-            DB::select('SELECT pg_advisory_xact_lock(?)', [crc32('spare-part-invoice-' . $dateKey)]);
+        $driver = DB::connection()->getDriverName();
+        $lockKey = 'spare-part-invoice-'.$dateKey;
+
+        if ($driver === 'pgsql') {
+            DB::select('SELECT pg_advisory_xact_lock(?)', [crc32($lockKey)]);
+        } elseif ($driver === 'mysql') {
+            DB::select('SELECT GET_LOCK(?, 10)', [$lockKey]);
         }
 
-        $sequence = Payment::whereDate('created_at', now()->toDateString())->count() + 1;
+        try {
+            $sequence = Payment::whereDate('created_at', now()->toDateString())->count() + 1;
 
-        do {
-            $invoice = 'INV-' . $dateKey . '-' . str_pad((string) $sequence++, 4, '0', STR_PAD_LEFT);
-        } while (Payment::where('invoice_number', $invoice)->exists());
+            do {
+                $invoice = 'INV-'.$dateKey.'-'.str_pad((string) $sequence++, 4, '0', STR_PAD_LEFT);
+            } while (Payment::where('invoice_number', $invoice)->exists());
 
-        return $invoice;
+            return $invoice;
+        } finally {
+            if ($driver === 'mysql') {
+                DB::select('SELECT RELEASE_LOCK(?)', [$lockKey]);
+            }
+        }
     }
 
     public function getAllPayments(?int $perPage = null)
@@ -89,11 +107,11 @@ class PaymentService
 
             $allowed = match ($payment->status) {
                 'pending' => ['paid', 'failed', 'expired', 'cancelled'],
-                'paid' => ['refunded'],
+                'paid' => [],
                 default => [],
             };
 
-            if (!in_array($status, $allowed, true)) {
+            if (! in_array($status, $allowed, true)) {
                 throw ValidationException::withMessages([
                     'status' => "Status pembayaran tidak bisa diubah dari {$payment->status} menjadi {$status}.",
                 ]);
@@ -139,7 +157,16 @@ class PaymentService
     {
         $order->update([
             'payment_status' => PaymentStatus::Paid,
+            'order_status' => $order->customer_access_token && $order->order_status === OrderStatus::Pending
+                ? OrderStatus::Preparing
+                : $order->order_status,
             'sync_version' => $order->sync_version + 1,
         ]);
+
+        try {
+            OrderStatusUpdated::dispatch($order->fresh(['items', 'cashier']));
+        } catch (\Throwable $e) {
+            Log::warning('OrderStatusUpdated broadcast gagal (Reverb offline/unreachable): '.$e->getMessage());
+        }
     }
 }

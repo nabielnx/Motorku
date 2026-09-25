@@ -16,15 +16,18 @@ class BulkAttachMotorcyclePartsRequest extends FormRequest
     public function rules(): array
     {
         $validCategories = array_keys(MotorcyclePart::categoryLabels());
+        $validCategories[] = 'auto';
 
         return [
-            'motorcycle_ids'   => ['required', 'array', 'min:1'],
-            'motorcycle_ids.*' => ['required', 'uuid', 'exists:motorcycles,id'],
-            'product_ids'      => ['required', 'array', 'min:1'],
-            'product_ids.*'    => ['required', 'uuid', 'exists:products,id'],
-            'part_category'    => ['required', 'string', Rule::in($validCategories)],
-            'notes'            => ['nullable', 'string', 'max:255'],
-            'is_recommended'   => ['nullable', 'boolean'],
+            'motorcycle_ids'    => ['required', 'array', 'min:1'],
+            'motorcycle_ids.*'  => ['required', 'uuid', 'exists:motorcycles,id'],
+            'product_ids'       => ['required', 'array', 'min:1'],
+            'product_ids.*'     => ['required', 'uuid', 'exists:products,id'],
+            'part_category'     => ['required', 'string', Rule::in($validCategories)],
+            'part_categories'   => ['nullable', 'array'],
+            'part_categories.*' => ['nullable', 'string', Rule::in(array_keys(MotorcyclePart::categoryLabels()))],
+            'notes'             => ['nullable', 'string', 'max:255'],
+            'is_recommended'    => ['nullable', 'boolean'],
         ];
     }
 

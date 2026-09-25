@@ -37,8 +37,8 @@ class UpdateOrderRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'status' => ['nullable', 'in:pending,preparing,processing,ready,completed,cancelled'],
-            'order_status' => ['nullable', 'in:pending,preparing,processing,ready,completed,cancelled'],
+            'status' => ['nullable', 'in:pending,preparing,ready,completed,cancelled'],
+            'order_status' => ['nullable', 'in:pending,preparing,ready,completed,cancelled'],
         ];
     }
 }

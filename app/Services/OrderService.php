@@ -1,23 +1,88 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services;
 
 use App\Enums\InventoryLogType;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
+use App\Events\OrderStatusUpdated;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\Setting;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class OrderService
 {
     public function __construct(
-        protected InventoryService $inventoryService
+        protected InventoryService $inventoryService,
+        protected PaymentService $paymentService
     ) {}
+
+    public function createPosSale(array $data): array
+    {
+        return DB::transaction(function () use ($data) {
+            $order = $this->createOrder($data);
+            $order->update([
+                'order_status' => OrderStatus::Completed,
+                'expires_at' => null,
+                'sync_version' => $order->sync_version + 1,
+            ]);
+            $payment = $this->paymentService->processPayment([
+                'order_id' => $order->id,
+                'payment_method' => 'cash',
+                'amount_received' => $data['amount_received'],
+                'notes' => 'Penjualan langsung POS',
+            ]);
+
+            return ['order' => $order->fresh(['items', 'cashier', 'payments']), 'payment' => $payment];
+        });
+    }
+
+    public function getOrdersForWeb(?string $status = null, ?string $search = null)
+    {
+        $query = Order::with(['items', 'cashier', 'payments'])->withSum('returns', 'amount')->latest();
+
+        if ($status && $status !== 'All') {
+            $query->where('order_status', $status);
+        }
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('order_number', 'like', "%{$search}%")
+                    ->orWhere('customer_name', 'like', "%{$search}%");
+            });
+        }
+
+        return $query->paginate(10)
+            ->withQueryString()
+            ->through(function ($order) {
+                return [
+                    'id' => $order->order_number ?: substr($order->id, 0, 8),
+                    'real_id' => $order->id,
+                    'customer' => $order->customer_name ?: 'Walk-in Guest',
+                    'type' => 'Ambil di Toko',
+                    'table' => '-',
+                    'items' => $order->items ? $order->items->sum('quantity') : 0,
+                    'total' => (float) $order->total,
+                    'status' => $order->order_status,
+                    'payment_status' => $order->payment_status,
+                    'returned_amount' => (float) ($order->returns_sum_amount ?? 0),
+                    'paid_at' => $order->payments
+                        ->where('status', 'paid')
+                        ->sortByDesc('paid_at')
+                        ->first()?->paid_at?->toIso8601String(),
+                    'created_at' => $order->created_at?->toIso8601String(),
+                    'time' => $order->created_at ? $order->created_at->timezone('Asia/Jakarta')->format('H:i') : '-',
+                    'date' => $order->created_at ? $order->created_at->timezone('Asia/Jakarta')->format('d M Y') : '-',
+                ];
+            });
+    }
 
     public function getAllOrders(?int $perPage = null, ?string $status = null, ?string $search = null)
     {
@@ -30,7 +95,7 @@ class OrderService
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('order_number', 'like', "%{$search}%")
-                  ->orWhere('customer_name', 'like', "%{$search}%");
+                    ->orWhere('customer_name', 'like', "%{$search}%");
             });
         }
 
@@ -45,8 +110,8 @@ class OrderService
             ]);
         }
 
-        return DB::transaction(function () use ($data, $forcePublic) {
-            $isPublicOrder = $forcePublic || !auth()->check();
+        $result = DB::transaction(function () use ($data, $forcePublic) {
+            $isPublicOrder = $forcePublic || ! auth()->check();
             $subtotal = 0.0;
             $orderItemsData = [];
             $stockDeductions = [];
@@ -55,7 +120,7 @@ class OrderService
                 $product = Product::whereKey($item['product_id'])->lockForUpdate()->firstOrFail();
                 $quantity = (int) $item['quantity'];
 
-                if (!$product->is_available) {
+                if (! $product->is_available) {
                     throw ValidationException::withMessages([
                         'items' => "Produk {$product->name} sedang tidak tersedia.",
                     ]);
@@ -74,7 +139,7 @@ class OrderService
 
                 $stockDeductions[] = [
                     'product_id' => $product->id,
-                    'quantity'   => $quantity,
+                    'quantity' => $quantity,
                 ];
 
                 $orderItemsData[] = [
@@ -104,7 +169,6 @@ class OrderService
                 'cashier_id' => $isPublicOrder ? null : auth()->id(),
                 'customer_name' => $data['customer_name'] ?? null,
                 'customer_access_token' => $isPublicOrder ? Str::random(64) : null,
-                'order_type' => 'take_away', // Toko sparepart: semua order = ambil di toko
                 'notes' => $data['notes'] ?? null,
                 'subtotal' => $subtotal,
                 'tax_amount' => $taxAmount,
@@ -127,21 +191,27 @@ class OrderService
                 $this->inventoryService->adjustStock(
                     [
                         'product_id' => $deduction['product_id'],
-                        'type'       => InventoryLogType::StockOut,
-                        'quantity'   => $deduction['quantity'],
+                        'type' => InventoryLogType::StockOut,
+                        'quantity' => $deduction['quantity'],
+                        'reference_type' => \App\Models\Order::class,
+                        'reference_id' => $order->id,
                     ],
                     $userId,
-                    'Terjual via order ' . $order->order_number
+                    'Terjual via order '.$order->order_number
                 );
             }
 
             return $order->load(['items', 'cashier']);
         });
+
+        CacheService::flushCatalog();
+
+        return $result;
     }
 
     public function getOrderById($id, bool $forUpdate = false)
     {
-        $query = Order::with(['items', 'cashier', 'payments']);
+        $query = Order::with(['items', 'cashier', 'payments', 'returns.item']);
 
         if ($forUpdate) {
             $query->lockForUpdate();
@@ -156,20 +226,29 @@ class OrderService
 
     public function deleteOrder($id): void
     {
-        $order = $this->getOrderById($id);
-        if ($order) {
-            if (!in_array($order->order_status, [OrderStatus::Cancelled, OrderStatus::Completed])) {
+        DB::transaction(function () use ($id) {
+            $order = $this->getOrderById($id, true);
+            if (! $order) {
+                return;
+            }
+
+            if ($order->payment_status !== PaymentStatus::Unpaid
+                || ! in_array($order->order_status, [OrderStatus::Pending, OrderStatus::Cancelled], true)) {
+                throw ValidationException::withMessages(['order' => 'Transaksi yang sudah dibayar tidak dapat dihapus.']);
+            }
+
+            if ($order->order_status === OrderStatus::Pending) {
                 $this->restoreReservedStock($order);
             }
             $order->delete();
-        }
+        });
     }
 
     public function updateOrderStatus($id, array $data)
     {
         return DB::transaction(function () use ($id, $data) {
             $order = $this->getOrderById($id, true);
-            if (!$order) {
+            if (! $order) {
                 abort(404);
             }
 
@@ -179,8 +258,14 @@ class OrderService
                 : null;
 
             if ($nextStatus === OrderStatus::Cancelled) {
-                if (!auth()->user() || !auth()->user()->hasRole('owner')) {
+                if (! auth()->user() || ! auth()->user()->hasRole('owner')) {
                     abort(403, 'Hanya owner yang dapat membatalkan pesanan.');
+                }
+
+                if ($order->payment_status === PaymentStatus::Paid) {
+                    throw ValidationException::withMessages([
+                        'order_status' => 'Pesanan yang sudah dibayar tidak dapat dibatalkan.',
+                    ]);
                 }
 
                 if ($order->order_status !== OrderStatus::Pending) {
@@ -200,7 +285,7 @@ class OrderService
                 ? $order->order_status
                 : OrderStatus::from($order->order_status);
 
-            if ($nextStatus && !$currentStatus->canTransitionTo($nextStatus)) {
+            if ($nextStatus && ! $currentStatus->canTransitionTo($nextStatus)) {
                 throw ValidationException::withMessages([
                     'order_status' => "Transisi {$currentStatus->value} ke {$nextStatus->value} tidak valid.",
                 ]);
@@ -220,27 +305,43 @@ class OrderService
                 'sync_version' => $order->sync_version + 1,
             ]));
 
-            return $order->fresh(['items', 'cashier']);
+            $updatedOrder = $order->fresh(['items', 'cashier']);
+
+            try {
+                OrderStatusUpdated::dispatch($updatedOrder);
+            } catch (\Throwable $e) {
+                Log::warning('OrderStatusUpdated broadcast gagal (Reverb offline/unreachable): '.$e->getMessage());
+            }
+
+            return $updatedOrder;
         });
     }
 
     private function nextOrderNumber(): string
     {
         $dateKey = now()->format('Ymd');
-        // Serialize the daily counter on PostgreSQL. Unlike FOR UPDATE on a
-        // COUNT aggregate, an advisory transaction lock also works when the
-        // first order of the day is being created concurrently.
-        if (DB::connection()->getDriverName() === 'pgsql') {
-            DB::select('SELECT pg_advisory_xact_lock(?)', [crc32('spare-part-order-' . $dateKey)]);
+        $driver = DB::connection()->getDriverName();
+        $lockKey = 'spare-part-order-'.$dateKey;
+
+        if ($driver === 'pgsql') {
+            DB::select('SELECT pg_advisory_xact_lock(?)', [crc32($lockKey)]);
+        } elseif ($driver === 'mysql') {
+            DB::select('SELECT GET_LOCK(?, 10)', [$lockKey]);
         }
 
-        $sequence = Order::whereDate('created_at', now()->toDateString())->count() + 1;
+        try {
+            $sequence = Order::whereDate('created_at', now()->toDateString())->count() + 1;
 
-        do {
-            $orderNumber = 'ORD-' . $dateKey . '-' . str_pad((string) $sequence++, 4, '0', STR_PAD_LEFT);
-        } while (Order::where('order_number', $orderNumber)->exists());
+            do {
+                $orderNumber = 'ORD-'.$dateKey.'-'.str_pad((string) $sequence++, 4, '0', STR_PAD_LEFT);
+            } while (Order::where('order_number', $orderNumber)->exists());
 
-        return $orderNumber;
+            return $orderNumber;
+        } finally {
+            if ($driver === 'mysql') {
+                DB::select('SELECT RELEASE_LOCK(?)', [$lockKey]);
+            }
+        }
     }
 
     /**
@@ -254,11 +355,13 @@ class OrderService
             $this->inventoryService->adjustStock(
                 [
                     'product_id' => $item->product_id,
-                    'type'       => InventoryLogType::StockIn,
-                    'quantity'   => $item->quantity,
+                    'type' => InventoryLogType::StockReturn,
+                    'quantity' => $item->quantity,
+                    'reference_type' => \App\Models\Order::class,
+                    'reference_id' => $order->id,
                 ],
                 auth()->id(),
-                'Stok dikembalikan — order ' . $order->order_number . ' dibatalkan'
+                'Stok dikembalikan — order '.$order->order_number.' dibatalkan'
             );
         }
     }

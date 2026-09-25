@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Inventory;
 use App\Http\Controllers\Controller;
 use App\Services\InventoryService;
 use App\Http\Requests\Inventory\StoreInventoryRequest;
-use App\Http\Requests\Inventory\UpdateInventoryRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
@@ -23,13 +22,13 @@ class InventoryController extends Controller implements HasMiddleware
     public static function middleware(): array
     {
         return [
-            new Middleware('role:owner', only: ['index', 'indexWeb', 'show', 'store', 'update', 'destroy']),
+            new Middleware('role:owner', only: ['index', 'indexWeb', 'show', 'store', 'destroy']),
         ];
     }
 
     public function indexWeb()
     {
-        return \Inertia\Inertia::render('Inventory/Index');
+        return redirect()->route('products.index');
     }
 
     public function index(Request $request): JsonResponse
@@ -58,22 +57,6 @@ class InventoryController extends Controller implements HasMiddleware
         }
 
         return response()->json($log);
-    }
-
-    public function update(UpdateInventoryRequest $request, $id): JsonResponse
-    {
-        $log = $this->inventoryService->getLogById($id);
-
-        if (!$log) {
-            return response()->json(['message' => 'Data tidak ditemukan'], 404);
-        }
-
-        $updated = $this->inventoryService->updateLog($id, $request->validated());
-
-        return response()->json([
-            'message' => 'Data berhasil diperbarui!',
-            'data' => $updated
-        ]);
     }
 
     public function destroy($id): JsonResponse

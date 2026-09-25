@@ -3,7 +3,9 @@
 namespace App\Http\Middleware;
 
 use App\Models\Setting;
+use App\Services\CacheService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -19,11 +21,13 @@ class HandleInertiaRequests extends Middleware
     {
         $user = $request->user();
 
-        // 1 query untuk semua settings yang dibutuhkan (ganti 8 query terpisah)
-        $s = Setting::whereIn('group', ['store', 'system', 'restaurant', 'printer', 'catalog'])
-            ->get()
-            ->mapWithKeys(fn($row) => ["{$row->group}.{$row->key}" => $row->value])
-            ->toArray();
+        // 1 query untuk semua settings — cached for 60 min, flushed on save
+        $s = Cache::remember(CacheService::SETTINGS_SHARED, CacheService::TTL_SETTINGS, function () {
+            return Setting::whereIn('group', ['store', 'system', 'printer', 'catalog'])
+                ->get()
+                ->mapWithKeys(fn($row) => ["{$row->group}.{$row->key}" => $row->value])
+                ->toArray();
+        });
 
         $timezone = $s['system.timezone'] ?? 'Asia/Jakarta';
 
@@ -51,14 +55,14 @@ class HandleInertiaRequests extends Middleware
                 'warning' => fn() => $request->session()->get('warning'),
             ],
 
-            'logo_url' => $s['restaurant.logo'] ?? null,
+            'logo_url' => !empty($s['store.logo']) ? (str_starts_with($s['store.logo'], 'http') ? $s['store.logo'] : '/storage/' . ltrim($s['store.logo'], '/')) : null,
 
             'app_settings' => [
                 'timezone'           => $timezone,
                 'locale'             => $s['system.locale']           ?? 'id',
-                'restaurant_name'    => $s['restaurant.name']         ?? 'Toko Sparepart',
-                'restaurant_address' => $s['restaurant.address']      ?? null,
-                'restaurant_phone'   => $s['restaurant.phone']        ?? null,
+                'store_name'         => $s['store.name']                ?? 'Motorku',
+                'store_address'      => $s['store.address']             ?? null,
+                'store_phone'        => $s['store.phone']               ?? null,
                 'auto_print_receipt' => ($s['printer.auto_print_receipt'] ?? 'true') !== 'false',
                 'show_total_sold'    => ($s['catalog.show_total_sold']    ?? 'true') !== 'false',
             ],

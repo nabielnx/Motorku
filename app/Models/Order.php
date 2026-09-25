@@ -27,7 +27,6 @@ class Order extends Model
         'total',
         'notes',
         'order_status',
-        'order_type',
         'payment_status',
         'sync_version',
         'ordered_at',
@@ -63,6 +62,11 @@ class Order extends Model
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class);
+    }
+
+    public function returns(): HasMany
+    {
+        return $this->hasMany(OrderReturn::class);
     }
 
     /**

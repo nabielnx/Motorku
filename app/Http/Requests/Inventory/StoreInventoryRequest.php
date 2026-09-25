@@ -18,8 +18,14 @@ class StoreInventoryRequest extends FormRequest
         return [
             'product_id' => ['required', 'uuid', 'exists:products,id'],
             'user_id' => ['sometimes', 'nullable', 'uuid', 'exists:users,id'],
-            'type' => ['required', Rule::enum(InventoryLogType::class)],
-            'quantity' => ['required', 'numeric', 'gt:0'],
+            'type' => ['required', Rule::in([
+                InventoryLogType::StockIn->value,
+                InventoryLogType::StockOut->value,
+                InventoryLogType::Adjustment->value,
+            ])],
+            'quantity' => $this->input('type') === InventoryLogType::Adjustment->value
+                ? ['required', 'integer', 'min:0']
+                : ['required', 'integer', 'gt:0'],
             'note' => ['nullable', 'string', 'max:255'],
         ];
     }

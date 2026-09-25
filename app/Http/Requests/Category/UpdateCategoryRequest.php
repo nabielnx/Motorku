@@ -4,6 +4,7 @@ namespace App\Http\Requests\Category;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateCategoryRequest extends FormRequest
 {
@@ -23,14 +24,18 @@ class UpdateCategoryRequest extends FormRequest
     public function rules(): array
     {
         $id = $this->route('id');
+
         return [
             'name' => [
                 'required',
                 'string',
                 'max:255',
-                \Illuminate\Validation\Rule::unique('categories', 'name')->ignore($id)->whereNull('deleted_at'),
+                Rule::unique('categories', 'name')->ignore($id),
             ],
             'description' => ['nullable', 'string'],
+            'sub_categories' => ['nullable', 'array'],
+            'sub_categories.*.id' => ['nullable', 'string'],
+            'sub_categories.*.name' => ['required', 'string', 'max:255'],
         ];
     }
 }

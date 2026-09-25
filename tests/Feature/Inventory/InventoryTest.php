@@ -104,4 +104,58 @@ class InventoryTest extends TestCase
         $response->assertStatus(422)
             ->assertJsonValidationErrors('quantity');
     }
+
+    public function test_opname_sets_actual_stock_and_records_before_after(): void
+    {
+        $product = Product::factory()->create(['stock' => 10]);
+
+        $this->actingAs($this->owner)->postJson('/api/inventory', [
+            'product_id' => $product->id,
+            'type' => 'adjustment',
+            'quantity' => 7,
+        ])->assertCreated();
+
+        $this->assertEquals(7, $product->fresh()->stock);
+        $this->assertDatabaseHas('inventory_logs', [
+            'product_id' => $product->id,
+            'type' => 'adjustment',
+            'previous_stock' => 10,
+            'new_stock' => 7,
+        ]);
+
+        $this->actingAs($this->owner)->postJson('/api/inventory', [
+            'product_id' => $product->id,
+            'type' => 'adjustment',
+            'quantity' => 0,
+        ])->assertCreated();
+
+        $this->assertEquals(0, $product->fresh()->stock);
+    }
+
+    public function test_inventory_log_cannot_be_edited(): void
+    {
+        $product = Product::factory()->create(['stock' => 10]);
+        $logId = $this->actingAs($this->owner)->postJson('/api/inventory', [
+            'product_id' => $product->id,
+            'type' => 'stock_in',
+            'quantity' => 2,
+        ])->assertCreated()->json('data.id');
+
+        $this->actingAs($this->owner)->putJson("/api/inventory/{$logId}", ['quantity' => 50])
+            ->assertMethodNotAllowed();
+        $this->assertEquals(12, $product->fresh()->stock);
+    }
+
+    public function test_stock_return_log_can_only_be_created_by_order_flow(): void
+    {
+        $product = Product::factory()->create(['stock' => 10]);
+
+        $this->actingAs($this->owner)->postJson('/api/inventory', [
+            'product_id' => $product->id,
+            'type' => 'stock_return',
+            'quantity' => 2,
+        ])->assertUnprocessable()->assertJsonValidationErrors('type');
+
+        $this->assertEquals(10, $product->fresh()->stock);
+    }
 }

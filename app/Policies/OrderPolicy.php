@@ -2,6 +2,8 @@
 
 namespace App\Policies;
 
+use App\Enums\OrderStatus;
+use App\Enums\PaymentStatus;
 use App\Models\Order;
 use App\Models\User;
 
@@ -24,7 +26,8 @@ class OrderPolicy
 
     public function update(User $user, Order $order): bool
     {
-        if (in_array($order->order_status, ['completed', 'cancelled'])) {
+        $status = $order->order_status;
+        if ($status === OrderStatus::Completed || $status === OrderStatus::Cancelled || in_array($status, ['completed', 'cancelled'])) {
             return false;
         }
 
@@ -33,6 +36,8 @@ class OrderPolicy
 
     public function delete(User $user, Order $order): bool
     {
-        return $user->hasRole('owner');
+        return $user->hasRole('owner')
+            && $order->payment_status === PaymentStatus::Unpaid
+            && in_array($order->order_status, [OrderStatus::Pending, OrderStatus::Cancelled], true);
     }
 }

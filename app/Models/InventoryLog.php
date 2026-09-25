@@ -18,6 +18,10 @@ class InventoryLog extends Model
         'type',
         'quantity',
         'note',
+        'previous_stock',
+        'new_stock',
+        'reference_type',
+        'reference_id',
         'sync_version'
     ];
 

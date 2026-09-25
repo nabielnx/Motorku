@@ -22,13 +22,13 @@ export default function ResetPassword({ token, email }) {
 
     return (
         <GuestLayout>
-            <Head title="Reset Kata Sandi - Toko Sparepart">
-                <meta name="description" content="Buat kata sandi baru untuk akun Toko Sparepart Anda." />
+            <Head title="Reset Kata Sandi">
+                <meta name="description" content="Buat kata sandi baru untuk akun Motorku Anda." />
             </Head>
 
-            <div className="mb-8 text-center">
-                <h2 className="text-2xl font-black text-gray-800 mb-2 tracking-tight">Buat Password Baru</h2>
-                <p className="text-sm text-gray-500">Silakan buat password baru yang kuat untuk akun Toko Sparepart System Anda.</p>
+            <div className="mb-6">
+                <h1 className="text-xl font-bold text-gray-900">Reset Kata Sandi</h1>
+                <p className="text-sm text-gray-500">Silakan buat password baru yang kuat untuk akun Motorku System Anda.</p>
             </div>
 
             <form onSubmit={submit} className="space-y-5">

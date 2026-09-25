@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import Modal from '@/Components/Modal';
+import SettingSkeleton from '@/Components/Skeletons/SettingSkeleton';
 import { Head, usePage } from '@inertiajs/react';
 import { getTranslation } from '@/i18n/translations';
 import axios from 'axios';
@@ -8,10 +9,10 @@ import { toast } from 'sonner';
 import { FiSave, FiCheck, FiHome, FiPercent, FiCreditCard, FiPrinter, FiSmartphone, FiClock, FiSettings, FiUpload, FiClipboard, FiTrash2, FiAlertTriangle, FiLock } from 'react-icons/fi';
 
 const fieldMap = {
-  restaurant_name:             { group: 'restaurant',     key: 'name' },
-  restaurant_phone:            { group: 'restaurant',     key: 'phone' },
-  restaurant_email:            { group: 'restaurant',     key: 'email' },
-  restaurant_address:          { group: 'restaurant',     key: 'address' },
+  store_name:                  { group: 'store',          key: 'name' },
+  store_phone:                 { group: 'store',          key: 'phone' },
+  store_email:                 { group: 'store',          key: 'email' },
+  store_address:               { group: 'store',          key: 'address' },
 
   tax_enabled:                 { group: 'tax',             key: 'enabled' },
   tax_percentage:              { group: 'tax',             key: 'percentage' },
@@ -31,8 +32,8 @@ const fieldMap = {
 };
 
 const defaults = {
-  restaurant_name: 'Toko Sparepart', restaurant_phone: '081234567890',
-  restaurant_email: 'info@tokosparepart.com', restaurant_address: 'Jl. Contoh No. 1',
+  store_name: 'Motorku', store_phone: '081234567890',
+  store_email: 'info@tokosparepart.com', store_address: 'Jl. Contoh No. 1',
   tax_enabled: 'true', tax_percentage: '10',
   payment_cash_enabled: 'true', payment_qris_enabled: 'true', payment_card_enabled: 'false',
   printer_paper_size: '80', printer_auto_print_receipt: 'true',
@@ -43,19 +44,19 @@ const defaults = {
 
 // Frontend validation rules per field
 const fieldValidators = {
-  restaurant_phone: {
+  store_phone: {
     validate: (v) => /^[0-9+\-\s()]{8,20}$/.test(v),
     message: 'Nomor telepon hanya boleh angka, +, -, spasi (8-20 karakter)',
   },
-  restaurant_email: {
+  store_email: {
     validate: (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v),
     message: 'Format email tidak valid',
   },
-  restaurant_name: {
+  store_name: {
     validate: (v) => v.trim().length >= 1 && v.length <= 100,
     message: 'Nama toko wajib diisi (maks 100 karakter)',
   },
-  restaurant_address: {
+  store_address: {
     validate: (v) => v.trim().length >= 1 && v.length <= 500,
     message: 'Alamat wajib diisi (maks 500 karakter)',
   },
@@ -83,6 +84,7 @@ export default function SettingIndex() {
   const [form, setForm] = useState(defaults);
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [fieldErrors, setFieldErrors] = useState({});
   const [logoFile, setLogoFile] = useState(null);
   const [logoPreview, setLogoPreview] = useState(null);
@@ -191,7 +193,10 @@ export default function SettingIndex() {
           }
         } catch { /* silent */ }
       } catch { /* silent */ }
-      finally { setLoading(false); }
+      finally {
+        setLoading(false);
+        setInitialLoading(false);
+      }
     })();
   }, []);
 
@@ -303,20 +308,15 @@ export default function SettingIndex() {
 
   const sections = [
     { title: 'Informasi Toko', icon: FiHome, fields: [
-      { field: 'restaurant_name', label: 'Nama Toko', type: 'text', maxLength: 100, placeholder: 'Nama toko Anda' },
-      { field: 'restaurant_phone', label: 'Telepon', type: 'tel', maxLength: 20, placeholder: '081234567890', inputMode: 'tel' },
-      { field: 'restaurant_email', label: 'Email', type: 'email', maxLength: 100, placeholder: 'email@contoh.com' },
-      { field: 'restaurant_address', label: 'Alamat', type: 'text', span: true, maxLength: 500, placeholder: 'Jl. Contoh No. 1' },
+      { field: 'store_name', label: 'Nama Toko', type: 'text', maxLength: 100, placeholder: 'Nama toko Anda' },
+      { field: 'store_phone', label: 'Telepon', type: 'tel', maxLength: 20, placeholder: '081234567890', inputMode: 'tel' },
+      { field: 'store_email', label: 'Email', type: 'email', maxLength: 100, placeholder: 'email@contoh.com' },
+      { field: 'store_address', label: 'Alamat', type: 'text', span: true, maxLength: 500, placeholder: 'Jl. Contoh No. 1' },
     ]},
 
     { title: 'Pajak', icon: FiPercent, fields: [
       { field: 'tax_enabled', label: 'Aktifkan Pajak', type: 'toggle' },
       { field: 'tax_percentage', label: 'Persentase Pajak (%)', type: 'number', min: 0, max: 100, step: 0.1 },
-    ]},
-    { title: 'Pembayaran', icon: FiCreditCard, fields: [
-      { field: 'payment_cash_enabled', label: 'Tunai', type: 'toggle' },
-      { field: 'payment_qris_enabled', label: 'QRIS (via Doku)', type: 'toggle' },
-      { field: 'payment_card_enabled', label: 'Kartu (Debit/Kredit)', type: 'toggle' },
     ]},
     { title: 'Printer', icon: FiPrinter, fields: [
       { field: 'printer_paper_size', label: 'Ukuran Kertas', type: 'select', options: [
@@ -348,9 +348,12 @@ export default function SettingIndex() {
 
   return (
     <AuthenticatedLayout pageTitle={locale === 'en' ? 'Settings' : 'Pengaturan'}>
-      <Head title={`${locale === 'en' ? 'Settings' : 'Pengaturan'} - Toko Sparepart`}>
+      <Head title={`${locale === 'en' ? 'Settings' : 'Pengaturan'}`}>
         <meta name="description" content="Pengaturan sistem toko, logo, printer struk, pajak, zona waktu, dan bahasa." />
       </Head>
+      {initialLoading ? (
+        <SettingSkeleton />
+      ) : (
       <div className="max-w-4xl mx-auto space-y-6 pb-8">
         {saved && (
           <div className="bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 p-4 rounded-2xl flex items-center gap-2 font-bold text-sm">
@@ -664,6 +667,7 @@ export default function SettingIndex() {
         </Modal>
 
       </div>
+      )}
     </AuthenticatedLayout>
   );
 }

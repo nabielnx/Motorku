@@ -233,6 +233,62 @@ class MotorcycleManagementTest extends TestCase
         $this->assertEquals(4, MotorcyclePart::where('motorcycle_id', $motor->id)->count());
     }
 
+    public function test_can_bulk_attach_parts_with_auto_category(): void
+    {
+        $motor = Motorcycle::create([
+            'brand'       => 'Yamaha',
+            'model'       => 'NMAX 155',
+            'slug'        => 'yamaha-nmax-155-2024',
+            'year_start'  => 2024,
+            'engine_cc'   => 155,
+            'engine_type' => 'matic',
+        ]);
+
+        // Products with distinct names from different categories
+        $oli = Product::factory()->create(['name' => 'Oli Yamalube Matic 0.8L', 'category_id' => $this->category->id]);
+        $busi = Product::factory()->create(['name' => 'Busi NGK CPR9EA', 'category_id' => $this->category->id]);
+        $aki = Product::factory()->create(['name' => 'Aki Yuasa YTZ6V', 'category_id' => $this->category->id]);
+        $vbelt = Product::factory()->create(['name' => 'V-Belt NMAX Daytona', 'category_id' => $this->category->id]);
+
+        $response = $this->actingAs($this->user)->postJson('/motorcycles/bulk-attach', [
+            'motorcycle_ids' => [$motor->id],
+            'product_ids'    => [$oli->id, $busi->id, $aki->id, $vbelt->id],
+            'part_category'  => 'auto',
+            'notes'          => 'Smart auto-mapping test',
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'data' => [
+                    'attached' => 4,
+                    'skipped'  => 0,
+                    'total'    => 4,
+                ],
+            ]);
+
+        // Verify each product was mapped to its correct category
+        $this->assertDatabaseHas('motorcycle_parts', [
+            'motorcycle_id' => $motor->id,
+            'product_id'    => $oli->id,
+            'part_category' => 'oli_mesin',
+        ]);
+        $this->assertDatabaseHas('motorcycle_parts', [
+            'motorcycle_id' => $motor->id,
+            'product_id'    => $busi->id,
+            'part_category' => 'busi',
+        ]);
+        $this->assertDatabaseHas('motorcycle_parts', [
+            'motorcycle_id' => $motor->id,
+            'product_id'    => $aki->id,
+            'part_category' => 'aki',
+        ]);
+        $this->assertDatabaseHas('motorcycle_parts', [
+            'motorcycle_id' => $motor->id,
+            'product_id'    => $vbelt->id,
+            'part_category' => 'v_belt',
+        ]);
+    }
+
     public function test_can_bulk_attach_parts_mode_one_product_to_many_motors(): void
     {
         $m1 = Motorcycle::create(['brand' => 'Honda', 'model' => 'Beat 2020', 'slug' => 'honda-beat-2020', 'year_start' => 2020, 'engine_cc' => 110, 'engine_type' => 'matic']);
@@ -289,34 +345,36 @@ class MotorcycleManagementTest extends TestCase
         $resPage1 = $this->actingAs($this->user)->getJson("/motorcycles/{$motor->id}/parts?per_page=3&page=1");
         $resPage1->assertStatus(200)
             ->assertJson([
-                'current_page' => 1,
-                'last_page'    => 2,
-                'per_page'     => 3,
-                'total'        => 6,
-                'total_mapped' => 6,
+                'data' => [
+                    'current_page' => 1,
+                    'last_page'    => 2,
+                    'per_page'     => 3,
+                    'total'        => 6,
+                    'total_mapped' => 6,
+                ]
             ]);
-        $this->assertCount(3, $resPage1->json('data'));
+        $this->assertCount(3, $resPage1->json('data.data'));
 
         // 2. Test search filter
         $resSearch = $this->actingAs($this->user)->getJson("/motorcycles/{$motor->id}/parts?search=NGK");
         $resSearch->assertStatus(200)
-            ->assertJson(['total' => 1]);
-        $this->assertEquals('Busi NGK CPR9EA-9', $resSearch->json('data.0.product.name'));
+            ->assertJson(['data' => ['total' => 1]]);
+        $this->assertEquals('Busi NGK CPR9EA-9', $resSearch->json('data.data.0.product.name'));
 
         // 3. Test category filter
         $resCat = $this->actingAs($this->user)->getJson("/motorcycles/{$motor->id}/parts?part_category=oli_mesin");
         $resCat->assertStatus(200)
-            ->assertJson(['total' => 1]);
+            ->assertJson(['data' => ['total' => 1]]);
 
         // 4. Test group filter (pengereman)
         $resGroup = $this->actingAs($this->user)->getJson("/motorcycles/{$motor->id}/parts?group=pengereman");
         $resGroup->assertStatus(200)
-            ->assertJson(['total' => 2]);
+            ->assertJson(['data' => ['total' => 2]]);
 
         // 5. Test recommendation filter
         $resRec = $this->actingAs($this->user)->getJson("/motorcycles/{$motor->id}/parts?is_recommended=1");
         $resRec->assertStatus(200)
-            ->assertJson(['total' => 3]);
+            ->assertJson(['data' => ['total' => 3]]);
     }
 
     public function test_can_update_and_detach_motorcycle_part(): void
@@ -355,5 +413,78 @@ class MotorcycleManagementTest extends TestCase
         $deleteRes = $this->actingAs($this->user)->deleteJson("/motorcycles/{$motor->id}/parts/{$part->id}");
         $deleteRes->assertStatus(200);
         $this->assertSoftDeleted('motorcycle_parts', ['id' => $part->id]);
+    }
+
+    public function test_can_reattach_soft_deleted_part_without_duplicate_error(): void
+    {
+        $motor = Motorcycle::create([
+            'brand'       => 'Yamaha',
+            'model'       => 'NMAX 155',
+            'slug'        => 'yamaha-nmax-155-2021',
+            'year_start'  => 2021,
+            'engine_cc'   => 155,
+            'engine_type' => 'matic',
+        ]);
+
+        $product = Product::factory()->create([
+            'name'        => 'Yamalube Super Matic',
+            'sku'         => 'YAM-SUPER-MATIC',
+            'category_id' => $this->category->id,
+        ]);
+
+        // 1. Initial attach
+        $attachRes = $this->actingAs($this->user)->postJson("/motorcycles/{$motor->id}/parts", [
+            'product_id'     => $product->id,
+            'part_category'  => 'oli_mesin',
+            'notes'          => 'Initial note',
+            'is_recommended' => false,
+        ]);
+        $attachRes->assertStatus(201);
+        $partId = $attachRes->json('data.id');
+
+        // 2. Soft delete it
+        $this->actingAs($this->user)->deleteJson("/motorcycles/{$motor->id}/parts/{$partId}")
+            ->assertStatus(200);
+        $this->assertSoftDeleted('motorcycle_parts', ['id' => $partId]);
+
+        // 3. Re-attach via single attach endpoint -> should restore and NOT throw 1062 duplicate entry
+        $reattachRes = $this->actingAs($this->user)->postJson("/motorcycles/{$motor->id}/parts", [
+            'product_id'     => $product->id,
+            'part_category'  => 'oli_mesin',
+            'notes'          => 'Updated note after restore',
+            'is_recommended' => true,
+        ]);
+        $reattachRes->assertStatus(201);
+        $this->assertDatabaseHas('motorcycle_parts', [
+            'id'             => $partId,
+            'deleted_at'     => null,
+            'notes'          => 'Updated note after restore',
+            'is_recommended' => true,
+        ]);
+
+        // 4. Soft delete again and test bulk-attach restore
+        $this->actingAs($this->user)->deleteJson("/motorcycles/{$motor->id}/parts/{$partId}")
+            ->assertStatus(200);
+        $this->assertSoftDeleted('motorcycle_parts', ['id' => $partId]);
+
+        $bulkRes = $this->actingAs($this->user)->postJson('/motorcycles/bulk-attach', [
+            'motorcycle_ids' => [$motor->id],
+            'product_ids'    => [$product->id],
+            'part_category'  => 'oli_mesin',
+            'is_recommended' => true,
+        ]);
+        $bulkRes->assertStatus(200)
+            ->assertJson([
+                'data' => [
+                    'attached' => 1,
+                    'skipped'  => 0,
+                    'total'    => 1,
+                ],
+            ]);
+
+        $this->assertDatabaseHas('motorcycle_parts', [
+            'id'         => $partId,
+            'deleted_at' => null,
+        ]);
     }
 }

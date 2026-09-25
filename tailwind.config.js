@@ -13,15 +13,31 @@ export default {
 
     theme: {
         extend: {
+            spacing: {
+                '18': '4.5rem',
+            },
             colors: {
-                primary: '#9ECAE1',     // Biru #9ECAE1
-                primaryDark: '#1E3A8A', // Biru Tua Navy
-                accentYellow: '#F59E0B',// Kuning
-                accentRed: '#EF4444',   // Merah
-                brandGray: '#64748B',   // Abu-abu
+                primary: '#4066AD',       // Biru Laut
+                primaryDark: '#003882',   // Biru Gelap
+                accentYellow: '#FFDD00',  // Kuning Cerah
+                accentRed: '#EF4444',     // Merah
+                brandGray: '#64748B',     // Abu-abu
             },
             fontFamily: {
-                sans: ['Figtree', ...defaultTheme.fontFamily.sans],
+                sans: ['"Plus Jakarta Sans"', ...defaultTheme.fontFamily.sans],
+                heading: ['"Outfit"', ...defaultTheme.fontFamily.sans],
+            },
+            borderRadius: {
+                'none': '0px',
+                'xs': '2px',
+                'sm': '2px',
+                'DEFAULT': '3px',
+                'md': '3px',
+                'lg': '4px',
+                'xl': '6px',
+                '2xl': '8px',
+                '3xl': '10px',
+                'full': '9999px',
             },
         },
     },

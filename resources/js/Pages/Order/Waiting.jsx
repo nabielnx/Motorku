@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import { toast } from 'sonner';
 import useForceLightTheme from '@/Utils/useForceLightTheme';
+import WaitingSkeleton from '@/Components/Skeletons/WaitingSkeleton';
 import axios from 'axios';
 import {
     FiCheck,
@@ -17,8 +18,8 @@ import {
     FiAlertTriangle
 } from 'react-icons/fi';
 
-const PAYMENT_KEY = 'mie_amour_order_for_payment';
-const CURRENT_ORDER_KEY = 'mie_amour_current_order';
+const PAYMENT_KEY = 'motorku_order_for_payment';
+const CURRENT_ORDER_KEY = 'motorku_current_order';
 const POLL_INTERVAL = 6000;
 
 export default function WaitingConfirmation() {
@@ -26,7 +27,6 @@ export default function WaitingConfirmation() {
     const [orderInfo, setOrderInfo] = useState(null);
     const [orderStatus, setOrderStatus] = useState('pending');
     const [paymentStatus, setPaymentStatus] = useState('pending');
-    const [confirming, setConfirming] = useState(false);
     const [cancelling, setCancelling] = useState(false);
     const [showCancelModal, setShowCancelModal] = useState(false);
     const [cancelError, setCancelError] = useState(null);
@@ -52,7 +52,7 @@ export default function WaitingConfirmation() {
             setShowCancelModal(false);
 
             try {
-                const historyKey = 'mie_amour_orders_history';
+                const historyKey = 'motorku_orders_history';
                 const rawHistory = localStorage.getItem(historyKey);
                 let history = rawHistory ? JSON.parse(rawHistory) : [];
                 if (Array.isArray(history)) {
@@ -102,7 +102,7 @@ export default function WaitingConfirmation() {
                 setOrderInfo(info);
                 localStorage.setItem(CURRENT_ORDER_KEY, JSON.stringify(info));
                 try {
-                    const historyKey = 'mie_amour_orders_history';
+                    const historyKey = 'motorku_orders_history';
                     const rawHistory = localStorage.getItem(historyKey);
                     let history = rawHistory ? JSON.parse(rawHistory) : [];
                     if (Array.isArray(history)) {
@@ -129,81 +129,25 @@ export default function WaitingConfirmation() {
             }
         };
 
-        const isQris = orderInfo?.payment_method !== 'kasir';
+        // Polling status pesanan secara berkala dengan perlindungan customer_token
+        pollOrder();
+        const interval = setInterval(() => { pollOrder(); }, POLL_INTERVAL);
 
-        const pollDoku = async () => {
-            if (!isQris || paymentStatus === 'paid') return; // Tidak perlu poll QRIS jika sudah lunas / bayar kasir
-            try {
-                const res = await axios.post('/api/customer/payment/qris/check-status', {
-                    order_id: orderInfo.order_id, customer_token: orderInfo.customer_token,
-                });
-                if (res.data?.status === 'paid' || res.data?.status === 'success') {
-                    setPaymentStatus('paid');
-                }
-            } catch {}
+        return () => {
+            clearInterval(interval);
         };
-
-        const interval = setInterval(() => { pollOrder(); pollDoku(); }, POLL_INTERVAL);
-        pollOrder(); pollDoku();
-
-        return () => clearInterval(interval);
     }, [orderInfo?.order_id, orderInfo?.customer_token, paymentStatus]);
-
-    useEffect(() => {
-        if (paymentStatus !== 'paid') return;
-        // Cleanup: remove pending payment data so recovery banner won't show
-        localStorage.removeItem(PAYMENT_KEY);
-        const t = setTimeout(() => router.visit('/order/status'), 500);
-        return () => clearTimeout(t);
-    }, [paymentStatus]);
-
-    const confirmPayment = async () => {
-        setConfirming(true);
-        try {
-            const dokuRes = await axios.post('/api/customer/payment/qris/check-status', {
-                order_id: orderInfo.order_id,
-                customer_token: orderInfo.customer_token,
-            });
-            if (dokuRes.data?.status === 'paid' || dokuRes.data?.status === 'success') {
-                setPaymentStatus('paid');
-                setConfirming(false);
-                return;
-            }
-        } catch {
-            // fall through to manual confirm
-        }
-        try {
-            await axios.post(`/api/customer/order/${orderInfo.order_id}/confirm-payment`, {
-                customer_token: orderInfo.customer_token,
-            });
-            const res = await axios.get(`/api/customer/order/${orderInfo.order_id}/status`, {
-                params: { customer_token: orderInfo.customer_token, t: Date.now() }
-            });
-            if (res.data?.data) {
-                setPaymentStatus(res.data.data.payment_status || 'paid');
-                setOrderStatus(res.data.data.order_status || 'pending');
-            }
-        } catch (err) {
-            toast.error(err.response?.data?.message || 'Gagal memproses konfirmasi.');
-        } finally {
-            setConfirming(false);
-        }
-    };
 
     const formatRp = (val) => `Rp ${Number(val).toLocaleString('id-ID')}`;
 
     if (!orderInfo) {
-        return (
-            <div className="min-h-screen bg-slate-100 flex items-center justify-center">
-                <div className="text-slate-400 text-xs">Memuat data...</div>
-            </div>
-        );
+        return <WaitingSkeleton />;
     }
 
     return (
         <div className="h-full w-full bg-slate-100 font-sans text-slate-800 flex justify-center overflow-y-auto">
-            <Head title="Pesanan Diterima - Toko Sparepart">
-                <meta name="description" content="Status penerimaan pesanan toko Toko Sparepart. Lacak pembayaran dan konfirmasi kasir." />
+            <Head title="Pesanan Diterima">
+                <meta name="description" content="Status penerimaan pesanan Motorku. Lacak pembayaran dan konfirmasi kasir." />
             </Head>
 
             <div className="w-full max-w-md bg-white min-h-full shadow-2xl flex flex-col items-center p-6 space-y-6">
@@ -308,14 +252,6 @@ export default function WaitingConfirmation() {
                             <p className="text-[10px] text-emerald-600">Rp {Number(orderInfo.total).toLocaleString('id-ID')}</p>
                         </div>
                     </div>
-                ) : paymentStatus === 'unpaid' ? (
-                    <div className="w-full bg-red-50 border border-red-200 rounded-2xl p-4 flex items-center gap-3">
-                        <FiAlertCircle size={16} className="text-red-500 shrink-0" />
-                        <div className="flex-1">
-                            <p className="text-xs font-bold text-red-800">Pembayaran Belum Dikonfirmasi</p>
-                            <p className="text-[10px] text-red-600">Klik tombol di bawah jika sudah membayar</p>
-                        </div>
-                    </div>
                 ) : null}
 
                 {/* PAYMENT & ORDER STATUS BANNER */}
@@ -325,9 +261,7 @@ export default function WaitingConfirmation() {
                         <div>
                             <p className="text-xs font-bold text-yellow-800">Menunggu Konfirmasi Kasir</p>
                             <p className="text-[11px] text-yellow-600 leading-tight">
-                                {orderInfo?.payment_method === 'qris'
-                                    ? 'Silakan selesaikan pembayaran QRIS. Kasir akan mengonfirmasi pesanan Anda.'
-                                    : 'Tunjukkan nomor pesanan di atas ke kasir untuk pembayaran.'}
+                                Tunjukkan nomor pesanan di atas ke kasir toko untuk pembayaran tunai.
                             </p>
                         </div>
                     </div>

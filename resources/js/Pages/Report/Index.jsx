@@ -1,18 +1,68 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import ReportSkeleton from '@/Components/Skeletons/ReportSkeleton';
 import { Head, usePage, router } from '@inertiajs/react';
+import axios from 'axios';
+import { toast } from 'sonner';
 import {
     FiCalendar, FiDollarSign, FiShoppingBag, FiTrendingUp,
     FiPrinter, FiChevronDown
 } from 'react-icons/fi';
 
 export default function ReportIndex({ reportStats = {}, filters = {} }) {
+    const [isNavigating, setIsNavigating] = useState(false);
+    const today = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+    const [cashDate, setCashDate] = useState(today);
+    const [cashSummary, setCashSummary] = useState(null);
+    const [openingCash, setOpeningCash] = useState('0');
+    const [cashOut, setCashOut] = useState('0');
+    const [actualCash, setActualCash] = useState('');
+    const [cashNotes, setCashNotes] = useState('');
+    const [savingCash, setSavingCash] = useState(false);
+
+    useEffect(() => {
+        const removeStart = router.on('start', (event) => {
+            const rawUrl = event?.detail?.visit?.url;
+            let targetPath = '';
+            if (typeof rawUrl === 'string') {
+                targetPath = new URL(rawUrl, window.location.origin).pathname;
+            } else if (rawUrl?.pathname) {
+                targetPath = rawUrl.pathname;
+            }
+            if (targetPath && targetPath.startsWith('/reports')) {
+                setIsNavigating(true);
+            }
+        });
+        const removeFinish = router.on('finish', () => setIsNavigating(false));
+        return () => { removeStart(); removeFinish(); };
+    }, []);
     const { auth, app_settings } = usePage().props;
     const locale = app_settings?.locale || 'id';
     const userName = auth?.user?.name || 'Owner';
     const userRole = auth?.roles?.[0] || auth?.user?.role || 'owner';
 
+    useEffect(() => {
+        let active = true;
+        setCashSummary(null);
+        setOpeningCash('0');
+        setCashOut('0');
+        setActualCash('');
+        setCashNotes('');
+        axios.get('/api/reports/cash', { params: { date: cashDate } }).then(({ data }) => {
+            if (!active) return;
+            setCashSummary(data.data);
+            if (data.data.closing) {
+                setOpeningCash(String(data.data.closing.opening_cash));
+                setCashOut(String(data.data.closing.cash_out));
+                setActualCash(String(data.data.closing.actual_cash));
+                setCashNotes(data.data.closing.notes || '');
+            }
+        }).catch(() => { if (active) toast.error('Gagal memuat rekap kas.'); });
+        return () => { active = false; };
+    }, [cashDate]);
+
     const totalRevenue = Number(reportStats.total_revenue ?? 0);
+    const totalRefunds = Number(reportStats.total_refunds ?? 0);
     const totalSubtotal = Number(reportStats.total_subtotal ?? 0);
     const totalTax = Number(reportStats.total_tax ?? 0);
     const totalOrders = Number(reportStats.total_orders ?? 0);
@@ -35,6 +85,28 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
     }));
 
     const formatRp = (val) => `Rp ${Number(val || 0).toLocaleString('id-ID')}`;
+    const expectedCash = Number(openingCash || 0) + Number(cashSummary?.cash_sales || 0) - Number(cashSummary?.cash_returns || 0) - Number(cashOut || 0);
+    const cashDifference = actualCash === '' ? null : Number(actualCash) - expectedCash;
+
+    const saveCashClosing = async () => {
+        if (savingCash || cashSummary?.closing || actualCash === '') return;
+        setSavingCash(true);
+        try {
+            const { data } = await axios.post('/api/reports/cash/close', {
+                date: cashDate,
+                opening_cash: Number(openingCash),
+                cash_out: Number(cashOut),
+                actual_cash: Number(actualCash),
+                notes: cashNotes,
+            });
+            setCashSummary(prev => ({ ...prev, closing: data.data }));
+            toast.success('Tutup kas harian tersimpan.');
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Gagal menyimpan tutup kas.');
+        } finally {
+            setSavingCash(false);
+        }
+    };
     const formatPct = (val) => {
         if (val === 0) return '0%';
         if (val > 0 && val < 1) return '<1%';
@@ -109,8 +181,8 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
 
     return (
         <AuthenticatedLayout pageTitle={locale === 'en' ? 'Financial Reports' : 'Laporan Keuangan'}>
-            <Head title={`${locale === 'en' ? 'Financial Reports' : 'Laporan Keuangan'} - Toko Sparepart`}>
-                <meta name="description" content="Laporan dan analisis statistik penjualan, pendapatan, dan produk terlaris Toko Sparepart." />
+            <Head title={`${locale === 'en' ? 'Financial Reports' : 'Laporan Keuangan'}`}>
+                <meta name="description" content="Laporan dan analisis statistik penjualan, pendapatan, dan produk terlaris Motorku." />
             </Head>
 
             <style>{`
@@ -131,6 +203,9 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
             `}</style>
 
             {/* ── SCREEN VIEW ── */}
+            {isNavigating ? (
+                <ReportSkeleton />
+            ) : (
             <div className="space-y-5">
 
                 {/* Toolbar: Period + Export */}
@@ -172,13 +247,40 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
                     </button>
                 </div>
 
+                <section className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 space-y-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div>
+                            <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">Cocokkan Kas Harian</h3>
+                            <p className="text-xs text-slate-500">Hitung uang fisik setelah transaksi selesai; satu rekap per tanggal.</p>
+                        </div>
+                        <input type="date" max={today} value={cashDate} onChange={e => setCashDate(e.target.value)} className="rounded-lg border-slate-300 dark:bg-slate-800 text-sm" />
+                    </div>
+                    {cashSummary ? <>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                            <label>Uang awal (Rp)<input type="number" min="0" value={openingCash} disabled={!!cashSummary.closing} onChange={e => setOpeningCash(e.target.value)} className="mt-1 w-full rounded-lg border-slate-300 dark:bg-slate-800" /></label>
+                            <div>Penjualan tunai<p className="mt-2 font-bold">{formatRp(cashSummary.closing?.cash_sales ?? cashSummary.cash_sales)}</p></div>
+                            <div>Retur tunai<p className="mt-2 font-bold">− {formatRp(cashSummary.closing?.cash_returns ?? cashSummary.cash_returns)}</p></div>
+                            <label>Pengeluaran kas (Rp)<input type="number" min="0" value={cashOut} disabled={!!cashSummary.closing} onChange={e => setCashOut(e.target.value)} className="mt-1 w-full rounded-lg border-slate-300 dark:bg-slate-800" /></label>
+                        </div>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 border-t border-slate-200 dark:border-slate-800 pt-3 text-xs">
+                            <div>Seharusnya ada<p className="mt-1 text-lg font-black">{formatRp(cashSummary.closing?.expected_cash ?? expectedCash)}</p></div>
+                            <label>Uang fisik terhitung (Rp)<input type="number" min="0" value={actualCash} disabled={!!cashSummary.closing} onChange={e => setActualCash(e.target.value)} className="mt-1 w-full rounded-lg border-slate-300 dark:bg-slate-800" /></label>
+                            <div>Selisih<p className={`mt-1 text-lg font-black ${Number(cashSummary.closing?.difference ?? cashDifference) === 0 ? 'text-emerald-600' : 'text-rose-600'}`}>{cashDifference === null && !cashSummary.closing ? '—' : formatRp(cashSummary.closing?.difference ?? cashDifference)}</p></div>
+                        </div>
+                        <input type="text" maxLength="255" placeholder="Catatan selisih / pengeluaran (opsional)" value={cashNotes} disabled={!!cashSummary.closing} onChange={e => setCashNotes(e.target.value)} className="w-full rounded-lg border-slate-300 dark:bg-slate-800 text-xs" />
+                        {cashSummary.closing ? <p className="text-xs font-bold text-emerald-700">Sudah ditutup. Rekap tersimpan dan tidak dapat diubah; transaksi setelahnya tidak masuk rekap ini.</p> : (
+                            <button type="button" onClick={saveCashClosing} disabled={savingCash || actualCash === '' || Number(openingCash) < 0 || Number(cashOut) < 0 || Number(actualCash) < 0} className="rounded-lg bg-blue-600 px-4 py-2 text-xs font-bold text-white disabled:opacity-40">{savingCash ? 'Menyimpan...' : 'Simpan Tutup Kas'}</button>
+                        )}
+                    </> : <p className="text-xs text-slate-500">Memuat rekap kas...</p>}
+                </section>
+
                 {/* KPI Cards */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                     {[
                         {
-                            label: 'Total Pendapatan',
+                            label: 'Pendapatan Setelah Retur',
                             value: formatRp(totalRevenue),
-                            sub: totalTax > 0 ? `Termasuk pajak ${formatRp(totalTax)}` : null,
+                            sub: totalRefunds > 0 ? `Retur ${formatRp(totalRefunds)} sudah dikurangi` : null,
                             icon: FiDollarSign,
                             iconBg: 'bg-blue-600 text-white shadow-xs',
                         },
@@ -197,7 +299,7 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
                             iconBg: 'bg-yellow-400 text-white shadow-xs',
                         },
                         {
-                            label: 'Penjualan Bersih',
+                            label: 'Subtotal Penjualan',
                             value: formatRp(totalSubtotal),
                             sub: 'Sebelum pajak',
                             icon: FiDollarSign,
@@ -267,7 +369,7 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
                     {/* Category Breakdown — 2 cols */}
                     <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden transition-colors">
                         <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
-                            <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">Omzet per Kategori</h3>
+                            <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">Penjualan Kotor per Kategori</h3>
                             <p className="text-[11px] text-slate-400 dark:text-slate-500 font-medium mt-0.5">
                                 Total {formatRp(categoryBreakdown.reduce((s, c) => s + c.amount, 0))}
                             </p>
@@ -300,21 +402,21 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
                         {(totalTax > 0) && (
                             <div className="px-4 pb-3">
                                 <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium border-t border-slate-100 dark:border-slate-800 pt-2">
-                                    * Omzet kategori dihitung dari subtotal item (sebelum pajak).
-                                    Selisih dengan total pendapatan: {formatRp(totalRevenue - categoryBreakdown.reduce((s, c) => s + c.amount, 0))}
+                                    * Kategori dihitung dari subtotal barang sebelum pajak dan retur.
                                 </p>
                             </div>
                         )}
                     </div>
                 </div>
             </div>
+            )}
 
             {/* ── PRINT VIEW ── */}
             <div id="printable-financial-report">
                 <div style={{ borderBottom: '2px solid #0f172a', paddingBottom: '12px', marginBottom: '20px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                         <div>
-                            <h1 style={{ fontSize: '22px', fontWeight: '900', color: '#0f172a', margin: 0 }}>TOKO SPAREPART</h1>
+                            <h1 style={{ fontSize: '22px', fontWeight: '900', color: '#0f172a', margin: 0 }}>MOTORKU</h1>
                             <p style={{ fontSize: '11px', color: '#475569', margin: '2px 0 0 0', fontWeight: 600 }}>Sistem Manajemen Toko</p>
                         </div>
                         <div style={{ textAlign: 'right' }}>
@@ -335,9 +437,9 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
                 {/* Print KPI */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '20px' }}>
                     <div style={{ border: '1px solid #cbd5e1', borderRadius: '8px', padding: '12px', backgroundColor: '#f8fafc' }}>
-                        <p style={{ fontSize: '10px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', margin: 0 }}>Total Pendapatan</p>
+                        <p style={{ fontSize: '10px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', margin: 0 }}>Pendapatan Setelah Retur</p>
                         <p style={{ fontSize: '18px', fontWeight: '900', color: '#0f172a', margin: '4px 0 0 0' }}>{formatRp(totalRevenue)}</p>
-                        {totalTax > 0 && <p style={{ fontSize: '10px', color: '#64748b', margin: '2px 0 0 0' }}>Termasuk pajak {formatRp(totalTax)}</p>}
+                        {totalRefunds > 0 && <p style={{ fontSize: '10px', color: '#64748b', margin: '2px 0 0 0' }}>Retur dikurangi: {formatRp(totalRefunds)}</p>}
                     </div>
                     <div style={{ border: '1px solid #cbd5e1', borderRadius: '8px', padding: '12px', backgroundColor: '#f8fafc' }}>
                         <p style={{ fontSize: '10px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', margin: 0 }}>Total Transaksi</p>
@@ -352,13 +454,13 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
 
                 {/* Print Category */}
                 <div style={{ marginBottom: '20px' }}>
-                    <h3 style={{ fontSize: '12px', fontWeight: '800', color: '#0f172a', margin: '0 0 8px 0', textTransform: 'uppercase' }}>1. Kontribusi Omzet per Kategori</h3>
+                    <h3 style={{ fontSize: '12px', fontWeight: '800', color: '#0f172a', margin: '0 0 8px 0', textTransform: 'uppercase' }}>1. Penjualan Kotor per Kategori</h3>
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px' }}>
                         <thead>
                             <tr style={{ backgroundColor: '#f1f5f9', borderBottom: '1px solid #cbd5e1' }}>
-                                <th style={{ padding: '8px', textAlign: 'left', fontWeight: '700' }}>Kategori Menu</th>
+                                <th style={{ padding: '8px', textAlign: 'left', fontWeight: '700' }}>Kategori Produk</th>
                                 <th style={{ padding: '8px', textAlign: 'center', fontWeight: '700' }}>Kontribusi</th>
-                                <th style={{ padding: '8px', textAlign: 'right', fontWeight: '700' }}>Total Omzet</th>
+                                <th style={{ padding: '8px', textAlign: 'right', fontWeight: '700' }}>Penjualan Kotor</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -371,19 +473,19 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
                             ))}
                         </tbody>
                     </table>
-                    <p style={{ fontSize: '9px', color: '#94a3b8', margin: '4px 0 0 0' }}>* Omzet dihitung dari subtotal item sebelum pajak & service charge</p>
+                    <p style={{ fontSize: '9px', color: '#94a3b8', margin: '4px 0 0 0' }}>* Subtotal barang sebelum pajak dan retur.</p>
                 </div>
 
                 {/* Print Top Products */}
                 <div style={{ marginBottom: '24px' }}>
-                    <h3 style={{ fontSize: '12px', fontWeight: '800', color: '#0f172a', margin: '0 0 8px 0', textTransform: 'uppercase' }}>2. Peringkat Penjualan Produk Terlaris</h3>
+                    <h3 style={{ fontSize: '12px', fontWeight: '800', color: '#0f172a', margin: '0 0 8px 0', textTransform: 'uppercase' }}>2. Produk Terlaris (Sebelum Retur)</h3>
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px' }}>
                         <thead>
                             <tr style={{ backgroundColor: '#f1f5f9', borderBottom: '1px solid #cbd5e1' }}>
                                 <th style={{ padding: '8px', textAlign: 'center', fontWeight: '700', width: '40px' }}>No</th>
-                                <th style={{ padding: '8px', textAlign: 'left', fontWeight: '700' }}>Nama Menu</th>
+                                <th style={{ padding: '8px', textAlign: 'left', fontWeight: '700' }}>Nama Produk</th>
                                 <th style={{ padding: '8px', textAlign: 'left', fontWeight: '700' }}>Kategori</th>
-                                <th style={{ padding: '8px', textAlign: 'center', fontWeight: '700' }}>Porsi Terjual</th>
+                                <th style={{ padding: '8px', textAlign: 'center', fontWeight: '700' }}>Unit Terjual</th>
                                 <th style={{ padding: '8px', textAlign: 'right', fontWeight: '700' }}>Total Pendapatan</th>
                             </tr>
                         </thead>
@@ -416,11 +518,11 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
                         <div style={{ textAlign: 'center', width: '180px' }}>
                             <p style={{ color: '#475569', margin: '0 0 50px 0' }}>Disetujui Oleh,</p>
                             <p style={{ fontWeight: '800', color: '#0f172a', borderBottom: '1px solid #94a3b8', paddingBottom: '2px', margin: 0 }}>( Manager / Owner )</p>
-                            <p style={{ fontSize: '10px', color: '#64748b', margin: '4px 0 0 0' }}>Toko Sparepart Management</p>
+                            <p style={{ fontSize: '10px', color: '#64748b', margin: '4px 0 0 0' }}>Motorku Management</p>
                         </div>
                     </div>
                     <p style={{ fontSize: '9px', textAlign: 'center', color: '#94a3b8', marginTop: '24px' }}>
-                        *** Dokumen ini dicetak otomatis dari Sistem POS Toko Sparepart pada {todayFormatted} ***
+                        *** Dokumen ini dicetak otomatis dari Sistem POS Motorku pada {todayFormatted} ***
                     </p>
                 </div>
             </div>

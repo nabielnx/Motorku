@@ -1,0 +1,54 @@
+.customer-storefront {
+    font-family: 'Plus Jakarta Sans', 'Figtree', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+
+.customer-storefront :focus-visible {
+    outline: 2px solid #71CAEE;
+    outline-offset: 2px;
+}
+
+.customer-storefront button,
+.customer-storefront a,
+.customer-storefront input {
+    -webkit-tap-highlight-color: transparent;
+}
+
+.customer-storefront button:disabled {
+    cursor: not-allowed;
+}
+
+.customer-storefront input[type='search']::-webkit-search-cancel-button,
+.customer-quantity::-webkit-inner-spin-button,
+.customer-quantity::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+}
+
+.customer-quantity {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+.customer-cart-bar {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.perspective-1000 {
+    perspective: 1000px;
+    -webkit-perspective: 1000px;
+}
+
+.depth-recede-banner {
+    transform-origin: center left;
+    will-change: transform, opacity, filter;
+    transition: transform 0.25s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.25s ease, filter 0.25s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .customer-storefront *,
+    .customer-storefront *::before,
+    .customer-storefront *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0s !important;
+    }
+}

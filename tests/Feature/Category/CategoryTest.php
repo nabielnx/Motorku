@@ -55,6 +55,20 @@ class CategoryTest extends TestCase
         $this->assertDatabaseHas('categories', ['name' => 'Minuman Spesial']);
     }
 
+    public function test_created_subcategory_keeps_its_parent(): void
+    {
+        $this->actingAs($this->owner)->postJson('/api/categories', [
+            'name' => 'Oli, Pelumas & Kimia',
+            'sub_categories' => [['name' => 'Oli Mesin (4T)']],
+        ])->assertCreated();
+
+        $parentId = Category::where('name', 'Oli, Pelumas & Kimia')->value('id');
+        $this->assertDatabaseHas('categories', [
+            'name' => 'Oli Mesin (4T)',
+            'parent_id' => $parentId,
+        ]);
+    }
+
     public function test_owner_can_update_category(): void
     {
         $category = Category::factory()->create(['name' => 'Kategori Lama']);

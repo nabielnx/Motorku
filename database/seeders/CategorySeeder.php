@@ -9,42 +9,96 @@ class CategorySeeder extends Seeder
 {
     public function run(): void
     {
-        $categories = [
-            [
-                'name' => 'Ban & Velg',
-                'description' => 'Ban luar, ban dalam, dan velg untuk motor',
+        $hierarkiKategori = [
+            'Oli, Pelumas & Kimia' => [
+                'Oli Mesin (4T)',
+                'Oli Samping (2T)',
+                'Oli Gardan / Transmisi',
+                'Oli Shockbreaker',
+                'Minyak Rem',
+                'Air Radiator (Coolant)',
+                'Cairan Kimia & Perawatan' // Carb Cleaner, Chain Lube, Grease/Gemuk
             ],
-            [
-                'name' => 'Aki & Kelistrikan',
-                'description' => 'Aki, busi, koil, lampu, kiprok, dan komponen kelistrikan',
+            'Ban & Kaki-kaki' => [
+                'Ban Luar Tubeless',
+                'Ban Luar Biasa / Tube Type',
+                'Ban Dalam',
+                'Pentil & Cairan Tubeless',
+                'Shockbreaker',
+                'Seal Shock Depan',
+                'Bearing / Laher',
+                'Bushing & Karet Tromol'
             ],
-            [
-                'name' => 'Oli & Pelumas',
-                'description' => 'Oli mesin, oli gardan, minyak rem, coolant, dan pelumas lainnya',
+            'Penggerak & CVT' => [
+                'V-Belt',
+                'Roller & Slider CVT',
+                'Kampas Ganda & Mangkok',
+                'Rumah Roller & Pulley Set',
+                'Per CVT & Kampas',
+                'Kampas Kopling Manual (Bebek/Sport)',
+                'Gear Set & Rantai'
             ],
-            [
-                'name' => 'Filter & Konsumsi',
-                'description' => 'Filter udara, filter oli, coolant, injector cleaner',
+            'Pengereman' => [
+                'Kampas Rem Cakram (Brake Pad)',
+                'Kampas Rem Tromol (Brake Shoe)',
+                'Piringan Cakram (Disc)',
+                'Master Rem & Kaliper (Kit Seal)',
+                'Kabel & Selang Rem'
             ],
-            [
-                'name' => 'Rem & Kaki-kaki',
-                'description' => 'Kampas rem, master rem, piringan cakram, shockbreaker, dan komponen kaki-kaki',
+            'Kelistrikan & Pengapian' => [
+                'Aki / Baterai',
+                'Busi',
+                'Bohlam & Lampu LED',
+                'Kiprok / Regulator',
+                'Koil & Spul',
+                'CDI / ECU',
+                'Sekring (Fuse), Relay & Flasher'
             ],
-            [
-                'name' => 'Penggerak & CVT',
-                'description' => 'V-Belt, roller, kampas ganda, per CVT, gear set, rantai, kampas kopling',
+            'Mesin & Bahan Bakar' => [
+                'Filter Udara',
+                'Filter Oli & Bensin',
+                'Piston & Ring Piston',
+                'Noken As, Klep & Seal Klep',
+                'Rantai Keteng & Tensioner',
+                'Paking / Gasket Set',
+                'Karburator / Throttle Body & Injektor',
+                'Fuel Pump & Dinamo Starter'
             ],
-            [
-                'name' => 'Aksesoris',
-                'description' => 'Spion, handgrip, klakson, handle, kabel gas, jok, dan aksesoris lainnya',
-            ],
+            'Kemudi, Bodi & Aksesoris' => [
+                'Spion',
+                'Handgrip & Jalu',
+                'Kabel Gas & Kopling',
+                'Baut, Mur & Klip Bodi',
+                'Plastik Bodi & Kaca Lampu'
+            ]
         ];
 
-        foreach ($categories as $category) {
-            Category::updateOrCreate(
-                ['name' => $category['name']],
-                $category
-            );
+        foreach ($hierarkiKategori as $parentName => $subCategories) {
+            $parent = Category::withTrashed()->where('name', $parentName)->first();
+            $desc = implode(', ', $subCategories);
+            if (!$parent) {
+                $parent = Category::create(['name' => $parentName, 'description' => $desc]);
+            } else {
+                if ($parent->trashed()) {
+                    $parent->restore();
+                }
+                $parent->update(['description' => $desc]);
+            }
+
+            foreach ($subCategories as $subCategoryName) {
+                $sub = Category::withTrashed()->where('name', $subCategoryName)->first();
+                if (!$sub) {
+                    $sub = Category::create([
+                        'name' => $subCategoryName,
+                        'parent_id' => $parent->id
+                    ]);
+                } else {
+                    if ($sub->trashed()) {
+                        $sub->restore();
+                    }
+                    $sub->update(['parent_id' => $parent->id]);
+                }
+            }
         }
     }
 }

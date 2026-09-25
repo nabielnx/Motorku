@@ -23,13 +23,13 @@ export default function Register() {
 
     return (
         <GuestLayout>
-            <Head title="Daftar Akun Baru - Toko Sparepart">
-                <meta name="description" content="Pendaftaran akun baru staf dan pegawai toko Toko Sparepart." />
+            <Head title="Daftar Akun Baru">
+                <meta name="description" content="Pendaftaran akun baru staf dan pegawai toko Motorku." />
             </Head>
 
             <div className="mb-6">
                 <h2 className="text-xl font-black text-slate-900 tracking-tight">Daftar Akun Baru</h2>
-                <p className="text-xs text-slate-500 mt-1">Buat akun untuk mengakses Sistem Manajemen Toko Sparepart</p>
+                <p className="text-xs text-slate-500 mt-1">Buat akun untuk mengakses Sistem Manajemen Motorku</p>
             </div>
 
             <form onSubmit={submit} className="space-y-4">

@@ -19,9 +19,13 @@ class DokuWebhookTest extends TestCase
     {
         parent::setUp();
         config([
+            'doku.enabled' => true,
             'doku.client_id' => $this->clientId,
             'doku.shared_key' => $this->sharedKey,
         ]);
+
+        \Illuminate\Support\Facades\Route::post('/api/webhook/doku', [\App\Http\Controllers\Payment\DokuPaymentController::class, 'handleWebhook']);
+        \Illuminate\Support\Facades\Route::post('/api/customer/payment/qris/check-status', [\App\Http\Controllers\Payment\DokuPaymentController::class, 'checkPaymentStatus']);
     }
 
     private function generateSignature(array $payload, string $timestamp, string $requestId, string $target = '/api/webhook/doku'): string

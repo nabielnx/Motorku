@@ -1,9 +1,19 @@
 import { useEffect, useState } from 'react';
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import Dropdown from '@/Components/Dropdown';
-import { Link, usePage } from '@inertiajs/react';
+import { Link, usePage, router } from '@inertiajs/react';
 import { toast, Toaster } from 'sonner';
 import { getTranslation } from '@/i18n/translations';
+import DashboardSkeleton from '@/Components/Skeletons/DashboardSkeleton';
+import OrderTableSkeleton from '@/Components/Skeletons/OrderTableSkeleton';
+import ProductTableSkeleton from '@/Components/Skeletons/ProductTableSkeleton';
+import ReportSkeleton from '@/Components/Skeletons/ReportSkeleton';
+import UserTableSkeleton from '@/Components/Skeletons/UserTableSkeleton';
+import SettingSkeleton from '@/Components/Skeletons/SettingSkeleton';
+import InventoryTableSkeleton from '@/Components/Skeletons/InventoryTableSkeleton';
+import MotorcyclePageSkeleton from '@/Components/Skeletons/MotorcyclePageSkeleton';
+import PosCardSkeleton from '@/Components/Skeletons/PosCardSkeleton';
+import Skeleton from '@/Components/Skeleton';
 import { 
     FiGrid, 
     FiCoffee, 
@@ -24,10 +34,137 @@ import {
     FiBell
 } from 'react-icons/fi';
 
+function getDestinationInfo(path, locale = 'id') {
+    if (!path) return null;
+    if (path.startsWith('/orders')) {
+        return {
+            title: locale === 'en' ? 'Orders List' : 'Daftar Pesanan',
+            component: <OrderTableSkeleton />,
+            noPadding: false,
+        };
+    }
+    if (path.startsWith('/users')) {
+        return {
+            title: locale === 'en' ? 'Staff Management' : 'Kelola Staff & Pegawai',
+            component: <UserTableSkeleton fullPage={true} />,
+            noPadding: false,
+        };
+    }
+    if (path.startsWith('/products') || path.startsWith('/categories')) {
+        let viewMode = 'grid';
+        if (typeof window !== 'undefined') {
+            try {
+                viewMode = localStorage.getItem('product_view_mode') || 'grid';
+            } catch {}
+        }
+        return {
+            title: locale === 'en' ? 'Product Management' : 'Manajemen Produk',
+            component: <ProductTableSkeleton fullPage={true} viewMode={viewMode} />,
+            noPadding: false,
+        };
+    }
+    if (path.startsWith('/reports')) {
+        return {
+            title: locale === 'en' ? 'Financial Reports' : 'Laporan Keuangan',
+            component: <ReportSkeleton />,
+            noPadding: false,
+        };
+    }
+    if (path.startsWith('/settings')) {
+        return {
+            title: locale === 'en' ? 'Settings' : 'Pengaturan',
+            component: <SettingSkeleton />,
+            noPadding: false,
+        };
+    }
+    if (path.startsWith('/inventory')) {
+        return {
+            title: locale === 'en' ? 'Inventory Stock' : 'Stok Inventaris',
+            component: <InventoryTableSkeleton />,
+            noPadding: false,
+        };
+    }
+    if (path.startsWith('/motorcycles')) {
+        return {
+            title: 'Data Motor',
+            component: <MotorcyclePageSkeleton />,
+            noPadding: true,
+        };
+    }
+    if (path === '/dashboard' || path === '/') {
+        return {
+            title: locale === 'en' ? 'Dashboard' : 'Dashboard',
+            component: <DashboardSkeleton />,
+            noPadding: false,
+        };
+    }
+    if (path.startsWith('/pos')) {
+        return {
+            title: 'POS Kasir',
+            component: (
+                <div className="h-full flex overflow-hidden">
+                    <div className="flex-1 p-4 overflow-y-auto space-y-4">
+                        <div className="flex gap-2 py-1">
+                            {Array.from({ length: 5 }).map((_, i) => (
+                                <Skeleton key={i} className="h-7 w-20 rounded-lg shrink-0" />
+                            ))}
+                        </div>
+                        <PosCardSkeleton count={8} />
+                    </div>
+                    <div className="w-80 lg:w-96 bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 hidden md:flex flex-col p-4 shrink-0 space-y-4">
+                        <Skeleton className="h-6 w-32" />
+                        <div className="flex-1 space-y-3">
+                            {Array.from({ length: 3 }).map((_, i) => (
+                                <Skeleton key={i} className="h-16 w-full rounded-xl" />
+                            ))}
+                        </div>
+                        <Skeleton className="h-12 w-full rounded-xl" />
+                    </div>
+                </div>
+            ),
+            noPadding: true,
+        };
+    }
+    return null;
+}
+
 export default function AuthenticatedLayout({ header, pageTitle, noPadding = false, children }) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [navigatingDestination, setNavigatingDestination] = useState(null);
     const { url, props } = usePage(); 
     const locale = props.app_settings?.locale || 'id';
+
+    useEffect(() => {
+        const removeStart = router.on('start', (event) => {
+            try {
+                const rawUrl = event?.detail?.visit?.url;
+                let targetPath = '';
+                if (typeof rawUrl === 'string') {
+                    targetPath = new URL(rawUrl, window.location.origin).pathname;
+                } else if (rawUrl instanceof URL) {
+                    targetPath = rawUrl.pathname;
+                } else if (rawUrl?.pathname) {
+                    targetPath = rawUrl.pathname;
+                }
+
+                const currentPath = window.location.pathname;
+                if (targetPath && targetPath !== currentPath) {
+                    setNavigatingDestination(targetPath);
+                }
+            } catch {
+                setNavigatingDestination(null);
+            }
+        });
+
+        const removeFinish = router.on('finish', () => {
+            setNavigatingDestination(null);
+        });
+
+        return () => {
+            removeStart();
+            removeFinish();
+        };
+    }, []);
     const user = props.auth?.user || { name: 'Admin', email: 'admin@tokosparepart.com' };
     const primaryRole = props.auth?.roles?.[0] ?? null;
     const userRoles = props.auth?.roles ?? (primaryRole ? [primaryRole] : []);
@@ -105,6 +242,16 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
     };
 
     const homeHref = hasRole('cashier') ? '/pos' : '/dashboard';
+    const destInfo = getDestinationInfo(navigatingDestination, locale);
+    const activePath = navigatingDestination || url;
+
+    const isItemActive = (itemHref) => {
+        if (!itemHref) return false;
+        if (itemHref === '/dashboard' || itemHref.endsWith('/dashboard')) {
+            return activePath === '/dashboard' || activePath === '/';
+        }
+        return activePath.startsWith(itemHref);
+    };
 
     // Menu sections with role-based visibility
     const menuSections = [
@@ -115,14 +262,14 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                     name: getTranslation(locale, 'dashboard', 'Dashboard'), 
                     icon: FiGrid, 
                     href: safeRoute('dashboard', '/dashboard'), 
-                    active: url === '/dashboard' || url === '/',
+                    active: isItemActive('/dashboard'),
                     roles: ['owner']
                 },
                 { 
                     name: getTranslation(locale, 'pos_kasir', 'POS Kasir'), 
                     icon: FiShoppingCart, 
                     href: safeRoute('pos.index', '/pos'), 
-                    active: url.startsWith('/pos'),
+                    active: isItemActive('/pos'),
                     roles: ['cashier']
                 },
             ]
@@ -134,28 +281,21 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                     name: getTranslation(locale, 'daftar_pesanan', 'Pesanan'),
                     icon: FiClipboard,
                     href: safeRoute('orders.index', '/orders'),
-                    active: url.startsWith('/orders'),
+                    active: isItemActive('/orders'),
                     roles: ['owner', 'cashier']
                 },
                 {
                     name: getTranslation(locale, 'menu_produk', 'Produk'),
-                    icon: FiCoffee,
-                    href: safeRoute('products.index', '/products'),
-                    active: url.startsWith('/products') || url.startsWith('/categories'),
-                    roles: ['owner']
-                },
-                {
-                    name: getTranslation(locale, 'stok_inventaris', 'Stok Inventaris'),
                     icon: FiPackage,
-                    href: safeRoute('inventory.index', '/inventory'),
-                    active: url.startsWith('/inventory'),
+                    href: safeRoute('products.index', '/products'),
+                    active: isItemActive('/products') || activePath.startsWith('/categories'),
                     roles: ['owner']
                 },
                 {
                     name: 'Data Motor',
                     icon: FiMonitor,
                     href: safeRoute('motorcycles.index', '/motorcycles'),
-                    active: url.startsWith('/motorcycles'),
+                    active: isItemActive('/motorcycles'),
                     roles: ['owner']
                 },
             ]
@@ -167,7 +307,7 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                     name: getTranslation(locale, 'laporan_keuangan', 'Laporan Keuangan'), 
                     icon: FiBarChart2, 
                     href: safeRoute('reports.index', '/reports'), 
-                    active: url.startsWith('/reports'),
+                    active: isItemActive('/reports'),
                     roles: ['owner']
                 },
             ]
@@ -179,14 +319,14 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                     name: getTranslation(locale, 'kelola_staf', 'Kelola Staf'), 
                     icon: FiUsers, 
                     href: safeRoute('users.index', '/users'), 
-                    active: url.startsWith('/users'),
+                    active: isItemActive('/users'),
                     roles: ['owner']
                 },
                 { 
                     name: getTranslation(locale, 'pengaturan', 'Pengaturan'), 
                     icon: FiSettings, 
                     href: safeRoute('settings.index', '/settings'), 
-                    active: url.startsWith('/settings'),
+                    active: isItemActive('/settings'),
                     roles: ['owner']
                 },
             ]
@@ -220,10 +360,10 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                     <Link href={homeHref} className="flex items-center gap-3">
                         <ApplicationLogo className="w-12 h-16 shrink-0" />
                         <div>
-                            <h1 className="text-lg font-black text-slate-900 dark:text-white tracking-tight leading-none">
-                                Toko Sparepart
+                            <h1 className="text-lg font-heading font-black text-slate-900 dark:text-white tracking-tight leading-none">
+                                {props.app_settings?.store_name || 'Motorku'}
                             </h1>
-                            <p className="text-[10px] font-bold text-blue-600 dark:text-yellow-400 uppercase tracking-widest mt-1">POS & Order</p>
+                            <p className="text-[10px] font-bold text-primary dark:text-accentYellow uppercase tracking-widest mt-1">POS & Order</p>
                         </div>
                     </Link>
 
@@ -256,11 +396,11 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                                             onClick={() => setIsSidebarOpen(false)}
                                             className={`flex items-center gap-3 -mx-3 px-6 py-2.5 transition-colors font-semibold text-[13px] ${
                                                 item.active 
-                                                    ? 'bg-blue-100/70 dark:bg-blue-950/60 text-blue-600 dark:text-yellow-400 border-l-4 border-blue-600 dark:border-blue-500 font-bold' 
+                                                    ? 'bg-primary/10 dark:bg-primaryDark/60 text-primary dark:text-accentYellow border-l-4 border-accentYellow font-bold'
                                                     : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white border-l-4 border-transparent'
                                             }`}
                                         >
-                                            <Icon size={17} className={item.active ? 'text-blue-600 dark:text-yellow-400' : 'text-slate-400 dark:text-slate-500'} strokeWidth={2.2} />
+                                            <Icon size={17} className={item.active ? 'text-primary dark:text-accentYellow' : 'text-slate-400 dark:text-slate-500'} strokeWidth={2.2} />
                                             {item.name}
                                         </Link>
                                     );
@@ -291,7 +431,7 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                     </Link>
 
                     <div className="pt-2.5 mt-1.5 border-t border-slate-100/80 dark:border-slate-800 px-3 text-[10px] text-slate-400 dark:text-slate-500 space-y-1">
-                        <p className="font-semibold text-slate-500 dark:text-slate-400">© 2026 Toko Sparepart</p>
+                        <p className="font-semibold text-slate-500 dark:text-slate-400">© 2026 Motorku</p>
                         <div className="flex items-center gap-2 font-medium text-slate-400 dark:text-slate-500">
                             <a href="#privacy" className="hover:text-slate-600 dark:hover:text-slate-300 transition">{locale === 'en' ? 'Privacy Policy' : 'Kebijakan Privasi'}</a>
                             <span>•</span>
@@ -314,8 +454,8 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                             <FiMenu size={22} strokeWidth={2.5} />
                         </button>
                         
-                        <h2 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white tracking-tight">
-                            {pageTitle || header || getTranslation(locale, 'dashboard', 'Dashboard')}
+                        <h2 className="text-lg sm:text-xl font-heading font-black text-slate-900 dark:text-white tracking-tight">
+                            {destInfo?.title || pageTitle || header || getTranslation(locale, 'dashboard', 'Dashboard')}
                         </h2>
                     </div>
 
@@ -363,7 +503,7 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                                             className="w-10 h-10 rounded-lg border-2 border-slate-300 dark:border-slate-700 object-cover shadow-xs"
                                         />
                                     ) : (
-                                        <div className="w-10 h-10 rounded-lg bg-blue-600 text-white font-black text-sm flex items-center justify-center border-2 border-blue-700 shadow-xs">
+                                        <div className="w-10 h-10 rounded-lg bg-primary text-white font-black text-sm flex items-center justify-center border-2 border-primaryDark shadow-xs">
                                             {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
                                         </div>
                                     )}
@@ -389,8 +529,8 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                 </header>
 
                 {/* SCROLLABLE CONTENT BODY */}
-                <main className={`flex-1 min-h-0 ${noPadding ? 'p-0 flex flex-col overflow-hidden' : 'p-6 lg:p-8 overflow-y-auto'}`}>
-                    {children}
+                <main className={`flex-1 min-h-0 ${(destInfo ? (destInfo.noPadding ?? false) : noPadding) ? 'p-0 flex flex-col overflow-hidden' : 'p-6 lg:p-8 overflow-y-auto'}`}>
+                    {destInfo ? destInfo.component : children}
                 </main>
                 <Toaster position="top-right" richColors closeButton />
             </div>

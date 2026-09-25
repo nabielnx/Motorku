@@ -24,6 +24,40 @@ class PosAuditVerificationTest extends TestCase
         return $user;
     }
 
+    #[Test]
+    public function cash_pos_sale_is_atomic_and_finishes_immediately(): void
+    {
+        $cashier = $this->cashier();
+        $product = Product::factory()->create(['is_available' => true, 'stock' => 5, 'price' => 15000]);
+
+        $this->actingAs($cashier)->postJson('/api/orders/pos-sale', [
+            'items' => [['product_id' => $product->id, 'quantity' => 2]],
+            'amount_received' => 40000,
+        ])->assertCreated()
+            ->assertJsonPath('data.order.customer_name', 'Pelanggan Umum')
+            ->assertJsonPath('data.order.order_status', 'completed')
+            ->assertJsonPath('data.order.payment_status', 'paid');
+
+        $this->assertEquals(3, $product->fresh()->stock);
+        $this->assertDatabaseHas('payments', ['amount_received' => 40000, 'status' => 'paid']);
+    }
+
+    #[Test]
+    public function failed_pos_payment_does_not_leave_an_order_or_reduce_stock(): void
+    {
+        $cashier = $this->cashier();
+        $product = Product::factory()->create(['is_available' => true, 'stock' => 5, 'price' => 15000]);
+
+        $this->actingAs($cashier)->postJson('/api/orders/pos-sale', [
+            'items' => [['product_id' => $product->id, 'quantity' => 2]],
+            'amount_received' => 1000,
+        ])->assertUnprocessable();
+
+        $this->assertDatabaseCount('orders', 0);
+        $this->assertDatabaseCount('payments', 0);
+        $this->assertEquals(5, $product->fresh()->stock);
+    }
+
     // ─── SKENARIO 1: Penjualan Langsung POS (ambil di toko) ───
     #[Test]
     public function scenario_1_pos_direct_sale(): void
@@ -34,7 +68,6 @@ class PosAuditVerificationTest extends TestCase
 
         $response = $this->actingAs($cashier)->postJson('/api/orders', [
             'customer_name' => 'Pelanggan Normal',
-            'order_type' => 'take_away',
             'items' => [
                 ['product_id' => $product1->id, 'quantity' => 2],
                 ['product_id' => $product2->id, 'quantity' => 1],
@@ -46,7 +79,6 @@ class PosAuditVerificationTest extends TestCase
         // Order terbuat dengan tipe ambil di toko
         $this->assertDatabaseHas('orders', [
             'customer_name' => 'Pelanggan Normal',
-            'order_type' => 'take_away',
             'order_status' => 'pending',
         ]);
 
@@ -80,7 +112,6 @@ class PosAuditVerificationTest extends TestCase
 
         $response = $this->actingAs($cashier)->postJson('/api/orders', [
             'customer_name' => 'Kasir 2',
-            'order_type' => 'take_away',
             'items' => [['product_id' => $product->id, 'quantity' => 2]],
         ]);
 
@@ -101,7 +132,6 @@ class PosAuditVerificationTest extends TestCase
 
         $response = $this->actingAs($cashier)->postJson('/api/orders', [
             'customer_name' => '<script>alert(1)</script>',
-            'order_type' => 'take_away',
             'items' => [
                 ['product_id' => $product->id, 'quantity' => 1],
             ],
@@ -124,7 +154,6 @@ class PosAuditVerificationTest extends TestCase
 
         $response = $this->actingAs($cashier)->postJson('/api/orders', [
             'customer_name' => 'Budi Excess Qty',
-            'order_type' => 'take_away',
             'items' => [
                 ['product_id' => $product->id, 'quantity' => 201],
             ],
@@ -150,7 +179,6 @@ class PosAuditVerificationTest extends TestCase
 
         $response = $this->actingAs($cashier)->postJson('/api/orders', [
             'customer_name' => 'Budi Excess Items',
-            'order_type' => 'take_away',
             'items' => $items,
         ]);
 

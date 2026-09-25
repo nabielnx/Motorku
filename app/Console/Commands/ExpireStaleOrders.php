@@ -49,14 +49,21 @@ class ExpireStaleOrders extends Command
 
         foreach ($staleOrders as $order) {
             try {
-                DB::transaction(function () use ($order, $inventoryService) {
+                $wasExpired = DB::transaction(function () use ($order, $inventoryService) {
+                    $order = Order::whereKey($order->id)->lockForUpdate()->first();
+                    if (! $order || ! Order::stale()->whereKey($order->id)->exists()) {
+                        return false;
+                    }
+
                     // Restore stock for each item
                     foreach ($order->items as $item) {
                         $inventoryService->adjustStock(
                             [
                                 'product_id' => $item->product_id,
-                                'type'       => InventoryLogType::StockIn,
+                                'type'       => InventoryLogType::StockReturn,
                                 'quantity'   => $item->quantity,
+                                'reference_type' => \App\Models\Order::class,
+                                'reference_id' => $order->id,
                             ],
                             null, // system operation
                             'Stok dikembalikan — order ' . $order->order_number . ' kadaluarsa otomatis'
@@ -67,10 +74,13 @@ class ExpireStaleOrders extends Command
                         'order_status' => OrderStatus::Cancelled,
                         'sync_version' => $order->sync_version + 1,
                     ]);
+                    return true;
                 });
 
-                $expired++;
-                $this->line("  ✓ {$order->order_number} — dibatalkan.");
+                if ($wasExpired) {
+                    $expired++;
+                    $this->line("  ✓ {$order->order_number} — dibatalkan.");
+                }
             } catch (\Throwable $e) {
                 $failed++;
                 $this->error("  ✗ {$order->order_number} — gagal: {$e->getMessage()}");

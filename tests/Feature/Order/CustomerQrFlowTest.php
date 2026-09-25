@@ -25,7 +25,6 @@ class CustomerQrFlowTest extends TestCase
 
         $orderResponse = $this->postJson('/api/customer/order', [
             'customer_name' => 'Pelanggan Test',
-            'order_type' => 'take_away',
             'items' => [
                 ['product_id' => $product->id, 'quantity' => 2, 'notes' => 'Besi cor'],
                 ['product_id' => $product->id, 'quantity' => 1, 'notes' => 'Baja ringan'],
@@ -40,7 +39,6 @@ class CustomerQrFlowTest extends TestCase
         $this->actingAs(User::factory()->create());
         $authenticatedOrder = $this->postJson('/api/customer/order', [
             'customer_name' => 'Pelanggan Login',
-            'order_type' => 'take_away',
             'items' => [['product_id' => $product->id, 'quantity' => 1]],
         ]);
         $authenticatedOrder->assertCreated()->assertJsonPath('data.customer_token', fn ($token) => is_string($token) && strlen($token) === 64);
@@ -70,13 +68,23 @@ class CustomerQrFlowTest extends TestCase
     }
 
     #[Test]
+    public function disabled_qris_is_not_offered_at_customer_checkout(): void
+    {
+        config()->set('doku.enabled', false);
+
+        $this->get('/payment')->assertOk()->assertInertia(fn ($page) => $page
+            ->component('Payment/Index')
+            ->where('qrisEnabled', false));
+        $this->get('/payment/qris')->assertRedirect('/order/status');
+    }
+
+    #[Test]
     public function customer_can_cancel_unpaid_pending_order(): void
     {
         $product = Product::factory()->create(['stock' => 10, 'is_available' => true]);
 
         $orderResponse = $this->postJson('/api/customer/order', [
             'customer_name' => 'Pelanggan Batal',
-            'order_type' => 'take_away',
             'items' => [['product_id' => $product->id, 'quantity' => 2]],
         ]);
 
@@ -97,6 +105,16 @@ class CustomerQrFlowTest extends TestCase
             'order_status' => 'cancelled',
         ]);
 
+        $this->assertEquals(10, $product->fresh()->stock);
+        $this->assertDatabaseHas('inventory_logs', [
+            'product_id' => $product->id,
+            'type' => 'stock_return',
+            'quantity' => 2,
+        ]);
+
+        $this->postJson("/api/customer/order/{$orderId}/cancel", [
+            'customer_token' => $customerToken,
+        ])->assertStatus(400);
         $this->assertEquals(10, $product->fresh()->stock);
     }
 }

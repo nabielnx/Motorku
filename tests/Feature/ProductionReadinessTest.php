@@ -6,6 +6,7 @@ use App\Models\Category;
 use App\Models\InventoryLog;
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
@@ -52,6 +53,23 @@ class ProductionReadinessTest extends TestCase
 
         // Reports
         $this->actingAs($this->cashier)->get('/reports')->assertForbidden();
+    }
+
+    #[Test]
+    public function cashier_can_still_use_pos_outside_opening_hours(): void
+    {
+        Product::factory()->create(['is_available' => true]);
+        Setting::create(['group' => 'store', 'key' => 'open_time', 'value' => '10:00']);
+        Setting::create(['group' => 'store', 'key' => 'close_time', 'value' => '11:00']);
+
+        $this->travelTo(now()->setTime(12, 0));
+
+        $this->actingAs($this->cashier)->get('/pos')
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('POS/Index')
+                ->missing('isOutsideHours')
+                ->has('initialProducts', 1));
     }
 
     #[Test]
@@ -119,7 +137,7 @@ class ProductionReadinessTest extends TestCase
         $this->actingAs($this->owner)
             ->putJson("/api/orders/{$orderProcessing->id}", ['order_status' => 'cancelled'])
             ->assertUnprocessable()
-            ->assertJsonPath('message', 'Pesanan hanya dapat dibatalkan jika masih berstatus pending.');
+            ->assertJsonPath('message', 'Pesanan yang sudah dibayar tidak dapat dibatalkan.');
 
         // Owner CAN cancel pending order -> 200
         $this->actingAs($this->owner)

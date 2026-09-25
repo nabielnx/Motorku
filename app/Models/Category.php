@@ -14,6 +14,7 @@ class Category extends Model
 
     protected $fillable = [
         'name',
+        'parent_id',
         'description',
         'sync_version'
     ];
@@ -21,5 +22,15 @@ class Category extends Model
     public function products(): HasMany
     {
         return $this->hasMany(Product::class);
+    }
+
+    public function parent(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Category::class, 'parent_id');
+    }
+
+    public function children(): HasMany
+    {
+        return $this->hasMany(Category::class, 'parent_id');
     }
 }

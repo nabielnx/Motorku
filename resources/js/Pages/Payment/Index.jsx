@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import axios from 'axios';
 import useForceLightTheme from '@/Utils/useForceLightTheme';
+import PaymentSkeleton from '@/Components/Skeletons/PaymentSkeleton';
 import {
     FiArrowLeft,
     FiCheck,
@@ -10,43 +11,59 @@ import {
     FiMapPin,
     FiGrid,
     FiAlertCircle,
-    FiDollarSign
+    FiDollarSign,
+    FiTrash2
 } from 'react-icons/fi';
 
-const ORDER_KEY = 'mie_amour_pending_order';
-const CART_KEY = 'mie_amour_cart';
+const ORDER_KEY = 'motorku_pending_order';
+const LEGACY_ORDER_KEY = 'mie_amour_pending_order';
+const CART_KEY = 'motorku_cart';
+const LEGACY_CART_KEY = 'mie_amour_cart';
+const PAYMENT_KEY = 'motorku_order_for_payment';
+const CURRENT_ORDER_KEY = 'motorku_current_order';
+const HISTORY_KEY = 'motorku_orders_history';
 
-export default function Payment() {
+export default function Payment({ qrisEnabled = false }) {
     useForceLightTheme();
     const [orderData, setOrderData] = useState(null);
     const [customerName, setCustomerName] = useState('');
-    const [paymentMethod, setPaymentMethod] = useState(null);
+    const [paymentMethod, setPaymentMethod] = useState(qrisEnabled ? null : 'kasir');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState(null);
     const customerNameInputRef = useRef(null);
 
+    const handleClearAndReturn = () => {
+        localStorage.removeItem(ORDER_KEY);
+        localStorage.removeItem(LEGACY_ORDER_KEY);
+        localStorage.removeItem(CART_KEY);
+        localStorage.removeItem(LEGACY_CART_KEY);
+        localStorage.removeItem('motorku_cart_time');
+        localStorage.removeItem('mie_amour_cart_time');
+        router.visit('/');
+    };
+
     useEffect(() => {
         try {
-            const raw = localStorage.getItem(ORDER_KEY);
+            const raw = localStorage.getItem(ORDER_KEY) || localStorage.getItem(LEGACY_ORDER_KEY);
             if (!raw) {
                 router.visit('/');
                 return;
             }
             const data = JSON.parse(raw);
+            if (!data || !data.cart || data.cart.length === 0) {
+                handleClearAndReturn();
+                return;
+            }
             setOrderData(data);
         } catch {
-            router.visit('/');
+            handleClearAndReturn();
         }
     }, []);
 
     const formatRp = (val) => `Rp ${val.toLocaleString('id-ID')}`;
 
     if (!orderData) {
-        return (
-            <div className="min-h-screen bg-slate-100 flex items-center justify-center">
-                <div className="text-slate-400 text-xs">Memuat data...</div>
-            </div>
-        );
+        return <PaymentSkeleton />;
     }
 
     const handleSubmitOrder = async () => {
@@ -58,7 +75,7 @@ export default function Payment() {
             return;
         }
         if (!paymentMethod) {
-            setError('Harap pilih metode pembayaran (QRIS atau Bayar di Kasir)!');
+            setError('Harap pilih metode pembayaran!');
             return;
         }
 
@@ -66,7 +83,6 @@ export default function Payment() {
 
         const payload = {
             customer_name: customerName,
-            order_type: 'take_away', // Toko sparepart: ambil di toko
             notes: `Pre-order Web | Pembayaran: ${paymentMethod === 'qris' ? 'QRIS' : 'Bayar di Kasir'}`,
             items: orderData.cart.map(i => ({
                 product_id: i.id,
@@ -80,8 +96,11 @@ export default function Payment() {
             const order = res.data?.data;
 
             localStorage.removeItem(ORDER_KEY);
+            localStorage.removeItem(LEGACY_ORDER_KEY);
             localStorage.removeItem(CART_KEY);
-            localStorage.removeItem(CART_KEY + '_time');
+            localStorage.removeItem(LEGACY_CART_KEY);
+            localStorage.removeItem('motorku_cart_time');
+            localStorage.removeItem('mie_amour_cart_time');
 
             // Build items array for immediate display on Waiting page
             const cartItems = orderData.cart.map(i => ({
@@ -107,19 +126,21 @@ export default function Payment() {
                 items: cartItems,
             };
 
+            localStorage.setItem(PAYMENT_KEY, JSON.stringify(paymentData));
+            localStorage.setItem(CURRENT_ORDER_KEY, JSON.stringify(paymentData));
             localStorage.setItem('mie_amour_order_for_payment', JSON.stringify(paymentData));
             localStorage.setItem('mie_amour_current_order', JSON.stringify(paymentData));
 
             // Append to order history list in localStorage
             try {
-                const historyKey = 'mie_amour_orders_history';
-                const rawHistory = localStorage.getItem(historyKey);
+                const rawHistory = localStorage.getItem(HISTORY_KEY) || localStorage.getItem('mie_amour_orders_history');
                 let history = rawHistory ? JSON.parse(rawHistory) : [];
                 if (!Array.isArray(history)) history = [];
                 // Prevent duplicate order_id
                 history = history.filter(o => o.order_id !== order.id);
                 history.push(paymentData);
-                localStorage.setItem(historyKey, JSON.stringify(history));
+                localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+                localStorage.setItem('mie_amour_orders_history', JSON.stringify(history));
             } catch {}
 
             // Redirect based on payment method
@@ -138,7 +159,7 @@ export default function Payment() {
     return (
         <div className="h-full w-full bg-slate-100 font-sans text-slate-800 flex justify-center overflow-y-auto">
             <Head title="Konfirmasi Pembayaran - Toko Sparepart">
-                <meta name="description" content="Pilih metode pembayaran (QRIS atau Bayar di Kasir) dan selesaikan pesanan Anda." />
+                <meta name="description" content="Selesaikan pesanan dan bayar di kasir toko." />
             </Head>
 
             <div className="w-full max-w-md bg-white min-h-full shadow-2xl flex flex-col pb-24">
@@ -169,7 +190,18 @@ export default function Payment() {
                     <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-3">
                         <div className="flex items-center justify-between border-b border-slate-200/80 pb-2">
                             <h3 className="text-xs font-bold text-slate-800">Ringkasan Pesanan</h3>
-                            <span className="text-[10px] text-slate-500 font-semibold">{orderData.cart.length} Item</span>
+                            <div className="flex items-center gap-3">
+                                <span className="text-[10px] text-slate-500 font-semibold">{orderData.cart.length} Item</span>
+                                <button
+                                    type="button"
+                                    onClick={handleClearAndReturn}
+                                    className="text-[11px] text-red-500 hover:text-red-700 font-bold flex items-center gap-1 transition-colors cursor-pointer"
+                                    title="Kosongkan keranjang"
+                                >
+                                    <FiTrash2 size={12} />
+                                    <span>Kosongkan</span>
+                                </button>
+                            </div>
                         </div>
 
                         {/* Table Header */}
@@ -233,7 +265,7 @@ export default function Payment() {
                     <div className="space-y-2">
                         <label className="text-xs font-bold text-slate-800 block">Metode Pembayaran</label>
                         <div className="space-y-2">
-                            <button
+                            {qrisEnabled && <button
                                 onClick={() => setPaymentMethod('qris')}
                                 className={`w-full p-4 rounded-2xl border-2 text-left flex items-center gap-4 transition-all ${
                                     paymentMethod === 'qris'
@@ -255,7 +287,7 @@ export default function Payment() {
                                         <FiCheck size={12} className="text-white" />
                                     </div>
                                 )}
-                            </button>
+                            </button>}
 
                             <button
                                 onClick={() => setPaymentMethod('kasir')}
@@ -287,9 +319,22 @@ export default function Payment() {
                 {/* SUBMIT */}
                 <div className="p-4 border-t border-slate-100 bg-white space-y-2">
                     {error && (
-                        <div className="flex items-center gap-2 text-xs text-red-600 bg-red-50 p-3 rounded-xl">
-                            <FiAlertCircle size={14} className="shrink-0" />
-                            <span>{error}</span>
+                        <div className="space-y-2">
+                            <div className="flex items-start gap-2 text-xs text-red-600 bg-red-50 p-3 rounded-xl border border-red-100">
+                                <FiAlertCircle size={15} className="shrink-0 mt-0.5" />
+                                <div className="flex-1">
+                                    <p className="font-semibold">{error}</p>
+                                    <p className="text-[11px] text-red-500 mt-0.5">Produk di keranjang mungkin sudah tidak tersedia atau data lama tersimpan di browser.</p>
+                                </div>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={handleClearAndReturn}
+                                className="w-full py-2.5 px-4 bg-red-50 hover:bg-red-100 text-red-700 font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-2 border border-red-200 cursor-pointer"
+                            >
+                                <FiTrash2 size={14} />
+                                <span>Kosongkan Keranjang & Belanja Ulang</span>
+                            </button>
                         </div>
                     )}
                     <button

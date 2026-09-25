@@ -5,6 +5,7 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import { FiSearch, FiAlertTriangle, FiPackage, FiX, FiSliders, FiChevronDown } from 'react-icons/fi';
 import { getProductImage } from '@/Utils/productImage';
+import InventoryTableSkeleton from '@/Components/Skeletons/InventoryTableSkeleton';
 
 export default function InventoryIndex() {
     const { props } = usePage();
@@ -22,6 +23,7 @@ export default function InventoryIndex() {
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [form, setForm] = useState({ product_id: '', type: 'stock_in', quantity: 1, note: '' });
     const [loading, setLoading] = useState(false);
+    const [initialLoading, setInitialLoading] = useState(true);
     const [lowStockItems, setLowStockItems] = useState([]);
     const searchTimer = useRef(null);
 
@@ -53,6 +55,8 @@ export default function InventoryIndex() {
             }
         } catch {
             setProducts([]);
+        } finally {
+            setInitialLoading(false);
         }
     };
 
@@ -164,10 +168,10 @@ export default function InventoryIndex() {
 
     return (
         <AuthenticatedLayout pageTitle={locale === 'en' ? 'Inventory Stock' : 'Stok Inventaris'}>
-            <Head title={`${locale === 'en' ? 'Inventory Stock' : 'Stok Inventaris'} - Toko Sparepart`}>
-                <meta name="description" content="Pantau ketersediaan stok bahan baku dan produk toko Toko Sparepart secara akurat." />
+            <Head title={`${locale === 'en' ? 'Inventory Stock' : 'Stok Inventaris'}`}>
+                <meta name="description" content="Pantau ketersediaan stok bahan baku dan produk Motorku secara akurat." />
             </Head>
-            <div className="w-full space-y-4">
+            {initialLoading ? <InventoryTableSkeleton /> : <div className="w-full space-y-4">
 
                 {/* ALERT SUMMARY RESTOCK */}
                 {summary.low_stock > 0 && !debouncedSearch && (
@@ -371,7 +375,7 @@ export default function InventoryIndex() {
                         </div>
                     )}
                 </div>
-            </div>
+            </div>}
 
             {/* MODAL PENYESUAIAN STOK */}
             {modal === 'form' && selectedProduct && (
