@@ -860,7 +860,7 @@ export default function MenuManagement({
                                                     onClick={(e) => { e.stopPropagation(); setPreviewProduct(item); }}
                                                 >
                                                     {item.image ? (
-                                                        <img src={item.image} alt={item.name} loading="lazy" className="absolute inset-0 w-full h-full object-contain" />
+                                                        <img src={item.image} alt={item.name} loading="lazy" className="absolute inset-0 w-full h-full object-cover" />
                                                     ) : (
                                                         <div className="absolute inset-0 flex items-center justify-center text-slate-300 dark:text-slate-600">
                                                             <FiPackage size={24} aria-label="Foto belum ada" />
