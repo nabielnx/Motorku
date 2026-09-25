@@ -69,8 +69,12 @@ class OrderController extends Controller implements HasMiddleware
 
     public function showWeb(string $orderId): InertiaResponse
     {
+        $order = $this->orderService->getOrderById($orderId);
+        abort_unless($order, 404);
+        Gate::authorize('view', $order);
+
         return Inertia::render('Order/Show', [
-            'orderId' => $orderId,
+            'order' => (new OrderResource($order))->resolve(),
         ]);
     }
 

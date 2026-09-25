@@ -42,7 +42,8 @@ class OrderCrudTest extends TestCase
             ->assertOk()
             ->assertInertia(fn ($page) => $page
                 ->component('Order/Show')
-                ->where('orderId', $order->id));
+                ->where('order.id', $order->id)
+                ->where('order.order_number', $order->order_number));
 
         $this->getJson("/api/orders/{$order->id}")
             ->assertOk()
