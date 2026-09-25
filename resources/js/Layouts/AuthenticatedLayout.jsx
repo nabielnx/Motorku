@@ -205,7 +205,7 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
         const fetchCount = async () => {
             try {
                 const res = await window.axios.get('/api/orders/active-count');
-                if (!cancelled) setActiveOrderCount(Number(res.data?.data?.count ?? 0));
+                if (!cancelled) setActiveOrderCount(Number(res.data?.count ?? 0));
             } catch {
                 // Jangan ganggu UI kalau fetch gagal; biarkan nilai lama.
             }

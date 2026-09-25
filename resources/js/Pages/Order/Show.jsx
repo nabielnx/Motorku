@@ -24,7 +24,7 @@ export default function OrderShow({ orderId }) {
         const fetch = async () => {
             try {
                 const res = await axios.get(`/api/orders/${orderId}`);
-                setOrder(res.data?.data || null);
+                setOrder(res.data || null);
             } catch {
                 setOrder(null);
             } finally {
@@ -83,7 +83,7 @@ export default function OrderShow({ orderId }) {
                 reason: returnReason,
                 cash_refunded: cashRefunded,
             });
-            setOrder(response.data.data);
+            setOrder(response.data);
             setReturningItem(null);
             returnRequestId.current = null;
             setReturnReason('');

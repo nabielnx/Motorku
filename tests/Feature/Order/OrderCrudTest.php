@@ -33,6 +33,23 @@ class OrderCrudTest extends TestCase
         $response->assertStatus(200);
     }
 
+    public function test_cashier_can_open_order_detail_from_list(): void
+    {
+        $order = Order::factory()->create();
+
+        $this->actingAs($this->cashier)
+            ->get("/orders/{$order->id}")
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('Order/Show')
+                ->where('orderId', $order->id));
+
+        $this->getJson("/api/orders/{$order->id}")
+            ->assertOk()
+            ->assertJsonPath('data.id', $order->id)
+            ->assertJsonPath('data.order_number', $order->order_number);
+    }
+
     public function test_cashier_can_create_order(): void
     {
         $product = Product::factory()->create();

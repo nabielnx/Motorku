@@ -89,7 +89,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
             status: statusFilter,
             date: statusFilter === 'All' && dateFilter !== 'all' ? dateFilter : undefined,
             search: searchQuery || undefined,
-        }, { preserveState: true, preserveScroll: true });
+        }, { preserveState: true, preserveScroll: true, showProgress: false });
     };
 
     const handleFilterChange = (newStatus) => {
@@ -101,7 +101,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
             status: newStatus,
             date: newStatus === 'All' && dateFilterRef.current !== 'all' ? dateFilterRef.current : undefined,
             search: searchQuery || undefined,
-        }, { preserveState: true, preserveScroll: true });
+        }, { preserveState: true, preserveScroll: true, showProgress: false });
     };
 
     const handleDateFilterChange = (newDate) => {
@@ -112,7 +112,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
             status: statusFilter,
             date: newDate !== 'all' ? newDate : undefined,
             search: searchQuery || undefined,
-        }, { preserveState: true, preserveScroll: true });
+        }, { preserveState: true, preserveScroll: true, showProgress: false });
     };
 
     // Search di-debounce → refetch dari server agar mencari SEMUA pesanan (lintas halaman).
@@ -135,7 +135,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                 status: statusFilterRef.current,
                 date: statusFilterRef.current === 'All' && dateFilterRef.current !== 'all' ? dateFilterRef.current : undefined,
                 search: searchQuery || undefined,
-            }, { preserveState: true, preserveScroll: true });
+            }, { preserveState: true, preserveScroll: true, showProgress: false });
         }, 400);
         searchTimerRef.current = t;
         return () => clearTimeout(t);
@@ -146,7 +146,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
         status: statusFilter,
         date: statusFilter === 'All' && dateFilter !== 'all' ? dateFilter : undefined,
         search: searchQuery || undefined,
-    }, { preserveState: true, preserveScroll: true });
+    }, { preserveState: true, preserveScroll: true, showProgress: false });
 
     // Keyboard shortcut (Ctrl+F or Cmd+F) to focus search
     useEffect(() => {
@@ -415,7 +415,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                                         <button
                                             key={s}
                                             onClick={() => handleFilterChange(s)}
-                                            className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all ${
+                                            className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap ${
                                                 isActive 
                                                     ? 'bg-blue-600 text-white shadow-2xs' 
                                                     : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
