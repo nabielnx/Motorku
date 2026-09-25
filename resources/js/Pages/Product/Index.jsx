@@ -1745,19 +1745,20 @@ export default function MenuManagement({
             {selectedProductForAdjust && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/80 p-4">
                     <div className="bg-white dark:bg-slate-900 rounded-xl shadow-xl w-full max-w-md max-h-[calc(100dvh-2rem)] flex flex-col overflow-hidden border border-slate-300 dark:border-slate-800 animate-in fade-in zoom-in duration-150 text-slate-900 dark:text-white">
-                        <div className="shrink-0 px-4 py-3 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-800/80">
-                            <div>
+                        <div className="shrink-0 px-4 py-3 border-b border-slate-200 dark:border-slate-800 flex items-start gap-3 bg-slate-50 dark:bg-slate-800/80">
+                            <div className="min-w-0 flex-1">
                                 <h3 className="font-extrabold text-slate-900 dark:text-white text-sm">
                                     Atur Stok
                                 </h3>
-                                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium truncate max-w-xs mt-0.5">
+                                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium truncate mt-0.5">
                                     {selectedProductForAdjust.name}
                                 </p>
                             </div>
                             <button 
                                 type="button"
                                 onClick={() => setSelectedProductForAdjust(null)}
-                                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer"
+                                aria-label="Tutup pengaturan stok"
+                                className="shrink-0 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer"
                             >
                                 <FiX className="w-5 h-5" />
                             </button>
