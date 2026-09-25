@@ -195,8 +195,8 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
         setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
     };
 
-    // ── Pending orders count (untuk badge notifikasi yang jujur) ──
-    const [pendingCount, setPendingCount] = useState(0);
+    // ── Pesanan yang masih perlu ditangani ──
+    const [activeOrderCount, setActiveOrderCount] = useState(0);
 
     useEffect(() => {
         let cancelled = false;
@@ -204,8 +204,8 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
 
         const fetchCount = async () => {
             try {
-                const res = await window.axios.get('/api/orders/pending-count');
-                if (!cancelled) setPendingCount(Number(res.data?.count ?? 0));
+                const res = await window.axios.get('/api/orders/active-count');
+                if (!cancelled) setActiveOrderCount(Number(res.data?.count ?? 0));
             } catch {
                 // Jangan ganggu UI kalau fetch gagal; biarkan nilai lama.
             }
@@ -463,17 +463,17 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                     <div className="flex items-center gap-1 sm:gap-1.5">
                         {/* Notification Bell Badge */}
                         <Link
-                            href="/orders?status=pending"
-                            title={pendingCount > 0
-                                ? `${pendingCount} Pesanan Menunggu Konfirmasi`
+                            href="/orders?status=action"
+                            title={activeOrderCount > 0
+                                ? `${activeOrderCount} pesanan perlu ditangani`
                                 : 'Notifikasi Pesanan'}
-                            aria-label="Notifikasi Pesanan"
+                            aria-label={activeOrderCount > 0 ? `${activeOrderCount} pesanan perlu ditangani` : 'Notifikasi Pesanan'}
                             className="relative p-2 rounded-lg text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer flex items-center justify-center shrink-0"
                         >
-                            <FiBell size={19} className={pendingCount > 0 ? 'text-amber-500 dark:text-amber-400 animate-bounce' : ''} />
-                            {pendingCount > 0 && (
+                            <FiBell size={19} className={activeOrderCount > 0 ? 'text-amber-500 dark:text-amber-400' : ''} />
+                            {activeOrderCount > 0 && (
                                 <span className="absolute top-1 right-1 bg-rose-600 text-white text-[9px] font-black min-w-4 h-4 px-1 rounded-full flex items-center justify-center border border-white dark:border-slate-900 shadow-2xs">
-                                    {pendingCount > 99 ? '99+' : pendingCount}
+                                    {activeOrderCount > 99 ? '99+' : activeOrderCount}
                                 </span>
                             )}
                         </Link>
