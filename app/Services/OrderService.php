@@ -84,6 +84,10 @@ class OrderService
                     'type' => 'Ambil di Toko',
                     'table' => '-',
                     'items' => $order->items ? $order->items->sum('quantity') : 0,
+                    'item_details' => $order->items->map(fn ($item) => [
+                        'name' => $item->product_name,
+                        'quantity' => (int) $item->quantity,
+                    ])->values()->all(),
                     'matching_item' => $search ? $order->items->first(fn ($item) =>
                         stripos((string) $item->product_name, $search) !== false ||
                         stripos((string) $item->product_sku, $search) !== false

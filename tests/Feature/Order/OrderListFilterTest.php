@@ -32,6 +32,7 @@ class OrderListFilterTest extends TestCase
             'order_id' => $order->id,
             'product_name' => 'Ban IRC Ring 14',
             'product_sku' => 'IRC-R14',
+            'quantity' => 1,
         ]);
         Order::factory()->create();
 
@@ -40,6 +41,9 @@ class OrderListFilterTest extends TestCase
         $this->assertSame([$order->id], $service->getOrdersForWeb(search: 'Ring 14')->pluck('real_id')->all());
         $this->assertSame([$order->id], $service->getOrdersForWeb(search: 'IRC-R14')->pluck('real_id')->all());
         $this->assertSame('Ban IRC Ring 14', $service->getOrdersForWeb(search: 'IRC-R14')->first()['matching_item']);
+        $this->assertSame([
+            ['name' => 'Ban IRC Ring 14', 'quantity' => 1],
+        ], $service->getOrdersForWeb(search: 'IRC-R14')->first()['item_details']);
     }
 
     public function test_date_filter_limits_results_to_today_or_last_seven_days(): void
