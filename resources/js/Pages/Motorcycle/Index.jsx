@@ -1780,13 +1780,10 @@ export default function MotorcycleIndex({
 
             {/* ADD SINGLE PART MAPPING MODAL */}
             {showPartModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4" onClick={() => setShowPartModal(null)}>
-                    <div className="bg-white dark:bg-slate-900 rounded-lg shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-lg p-5 sm:p-6 space-y-4 max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
-                            <div>
-                                <h3 className="font-black text-base sm:text-lg text-slate-900 dark:text-white">Mapping Sparepart ke Motor</h3>
-                                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Pilih komponen sparepart dan tipe/kategori yang sesuai.</p>
-                            </div>
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3 sm:p-4" onClick={() => setShowPartModal(null)}>
+                    <div className="bg-white dark:bg-slate-900 rounded-lg shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-lg h-[90dvh] sm:h-auto max-h-[90dvh] p-4 sm:p-6 flex flex-col gap-3" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex shrink-0 items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
+                            <h3 className="font-black text-base sm:text-lg text-slate-900 dark:text-white">Tambah Sparepart</h3>
                             <button onClick={() => setShowPartModal(null)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"><FiX size={20} /></button>
                         </div>
 
@@ -1796,10 +1793,10 @@ export default function MotorcycleIndex({
                             </div>
                         )}
 
-                        <div className="space-y-3 overflow-y-auto pr-1 flex-1">
+                        <div className="flex min-h-0 flex-1 flex-col gap-2.5 sm:flex-none">
                             {/* Kategori / Tipe Part Dropdown with Optgroups */}
                             <div>
-                                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 block">Tipe / Kategori Part *</label>
+                                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 block">Kategori *</label>
                                 <select
                                     value={partFormData.part_category}
                                     onChange={e => setPartFormData({ ...partFormData, part_category: e.target.value })}
@@ -1819,23 +1816,24 @@ export default function MotorcycleIndex({
                             {/* Search Product */}
                             <div>
                                 <div className="flex items-center justify-between mb-1">
-                                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                                        Cari Produk Sparepart *
+                                    <label htmlFor="part-product-search" className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                                        Pilih sparepart *
                                     </label>
-                                    <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md border border-slate-300 dark:border-slate-700">
+                                    <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
                                         {partSearch.trim()
-                                            ? `${filteredProductsForModal.length} dari ${products.length} sparepart`
-                                            : `Total: ${products.length} sparepart`}
+                                            ? `${filteredProductsForModal.length} / ${products.length} sparepart`
+                                            : `${products.length} sparepart`}
                                     </span>
                                 </div>
                                 <div className="relative">
                                     <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
                                     <input
+                                        id="part-product-search"
                                         type="text"
                                         value={partSearch}
                                         onChange={e => setPartSearch(e.target.value)}
-                                        placeholder="Cari nama, SKU, atau kategori..."
-                                        className="w-full pl-9 pr-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs sm:text-sm font-medium"
+                                        placeholder="Cari nama atau SKU..."
+                                        className="w-full pl-9 pr-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs sm:text-sm font-medium focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500"
                                     />
                                     {partSearch && (
                                         <button onClick={() => setPartSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer">
@@ -1847,7 +1845,7 @@ export default function MotorcycleIndex({
                             </div>
 
                             {/* Product Select List */}
-                            <div className="max-h-56 overflow-y-auto border border-slate-200 dark:border-slate-700 rounded-md divide-y divide-slate-100 dark:divide-slate-750">
+                            <div className="min-h-0 flex-1 overflow-y-auto border border-slate-200 dark:border-slate-700 rounded-md divide-y divide-slate-100 dark:divide-slate-750 sm:max-h-64 sm:flex-none">
                                 {filteredProductsForModal.map(p => (
                                     <div
                                         key={p.id}
@@ -1897,40 +1895,40 @@ export default function MotorcycleIndex({
                                 )}
                             </div>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                                <div>
-                                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 block">
-                                        Catatan Kompatibilitas (Opsional)
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={partFormData.notes}
-                                        onChange={e => setPartFormData({ ...partFormData, notes: e.target.value })}
-                                        placeholder="Contoh: Cocok untuk varian CBS & ABS"
-                                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs font-medium focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500"
-                                    />
-                                    {partFormErrors.notes && <p className="text-[11px] text-red-500 font-bold mt-1">{partFormErrors.notes}</p>}
-                                </div>
-                                <div>
-                                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 block">
-                                        Rekomendasi (Opsional)
-                                    </label>
-                                    <label className="flex items-center gap-2 cursor-pointer bg-slate-50 dark:bg-slate-800 px-3 py-2 h-[38px] rounded-md border border-slate-300 dark:border-slate-700 w-full hover:bg-slate-100 dark:hover:bg-slate-750 transition">
+                            <details className="shrink-0 text-xs text-slate-600 dark:text-slate-300">
+                                <summary className="cursor-pointer font-semibold">Opsi tambahan</summary>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2">
+                                    <div>
+                                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 block">
+                                            Catatan
+                                        </label>
                                         <input
-                                            type="checkbox"
-                                            checked={partFormData.is_recommended}
-                                            onChange={e => setPartFormData({ ...partFormData, is_recommended: e.target.checked })}
-                                            className="rounded text-amber-500 focus:ring-amber-400 cursor-pointer"
+                                            type="text"
+                                            value={partFormData.notes}
+                                            onChange={e => setPartFormData({ ...partFormData, notes: e.target.value })}
+                                            placeholder="Contoh: Cocok untuk varian CBS & ABS"
+                                            className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs font-medium focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500"
                                         />
-                                        <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 select-none">
-                                            <FiStar size={13} className="text-amber-500 fill-amber-400 shrink-0" /> Tandai Rekomendasi
-                                        </span>
-                                    </label>
+                                        {partFormErrors.notes && <p className="text-[11px] text-red-500 font-bold mt-1">{partFormErrors.notes}</p>}
+                                    </div>
+                                    <div className="sm:self-end">
+                                        <label className="flex items-center gap-2 cursor-pointer bg-slate-50 dark:bg-slate-800 px-3 py-2 h-[38px] rounded-md border border-slate-300 dark:border-slate-700 w-full hover:bg-slate-100 dark:hover:bg-slate-750 transition">
+                                            <input
+                                                type="checkbox"
+                                                checked={partFormData.is_recommended}
+                                                onChange={e => setPartFormData({ ...partFormData, is_recommended: e.target.checked })}
+                                                className="rounded text-amber-500 focus:ring-amber-400 cursor-pointer"
+                                            />
+                                            <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 select-none">
+                                                <FiStar size={13} className="text-amber-500 fill-amber-400 shrink-0" /> Tandai Rekomendasi
+                                            </span>
+                                        </label>
+                                    </div>
                                 </div>
-                            </div>
+                            </details>
                         </div>
 
-                        <div className="flex gap-3 pt-3 border-t border-slate-200 dark:border-slate-800">
+                        <div className="flex shrink-0 gap-3 pt-2 border-t border-slate-200 dark:border-slate-800">
                             <button
                                 onClick={() => setShowPartModal(null)}
                                 className="flex-1 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 rounded-md text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 cursor-pointer transition"
