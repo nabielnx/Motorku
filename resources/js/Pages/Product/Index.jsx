@@ -618,8 +618,9 @@ export default function MenuManagement({
                             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-2.5">
                                 {/* Left: Search input + Category Dropdown + Stock Status Dropdown */}
                                 <div className="flex flex-wrap sm:flex-nowrap items-center gap-1.5 sm:gap-2 flex-1 max-w-2xl">
+                                    <div className="flex flex-wrap w-full items-center gap-1.5 sm:contents">
                                     {/* Search Input */}
-                                    <div className="relative flex-1 min-w-0 sm:min-w-[180px]">
+                                    <div className="relative flex-1 min-w-[140px] sm:min-w-[180px]">
                                         <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" size={14} />
                                         <input
                                             type="text"
@@ -635,6 +636,7 @@ export default function MenuManagement({
                                          )}
                                      </div>
 
+                                     <div className="sm:hidden flex shrink-0 items-center gap-1">
                                      <button
                                          type="button"
                                          onClick={() => setShowMobileFilters(value => !value)}
@@ -647,13 +649,15 @@ export default function MenuManagement({
                                          )}
                                      </button>
 
-                                     <div className="sm:hidden inline-flex items-center gap-0.5" aria-label="Tampilan produk">
+                                     <div className="inline-flex items-center gap-0.5" aria-label="Tampilan produk">
                                          <button type="button" onClick={() => handleViewModeChange('grid')} aria-label="Tampilan grid" aria-pressed={viewMode === 'grid'} className={`p-1.5 rounded-md ${viewMode === 'grid' ? 'bg-primary text-white' : 'text-slate-500 dark:text-slate-400'}`}>
                                              <FiGrid size={15} />
                                          </button>
                                          <button type="button" onClick={() => handleViewModeChange('list')} aria-label="Tampilan daftar" aria-pressed={viewMode === 'list'} className={`p-1.5 rounded-md ${viewMode === 'list' ? 'bg-primary text-white' : 'text-slate-500 dark:text-slate-400'}`}>
                                              <FiList size={15} />
                                          </button>
+                                     </div>
+                                     </div>
                                      </div>
 
                                      {/* Category Dropdown */}
