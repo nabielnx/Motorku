@@ -20,7 +20,7 @@ class TireProductSeeder extends Seeder
   0 =>
   array (
     'brand' => 'IRC',
-    'category_name' => 'Ban Luar Biasa / Tube Type',
+    'category_name' => 'Ban Luar (Pakai Ban Dalam)',
     'name' => 'Ban Luar IRC Ring 8 - 3.50 Non-Tubeless (Scooter / Vespa)',
     'size' => 'Ring 8 - 3.50',
     'peruntukan' => 'Scooter / Vespa',
@@ -31,7 +31,7 @@ class TireProductSeeder extends Seeder
   1 =>
   array (
     'brand' => 'IRC',
-    'category_name' => 'Ban Luar Biasa / Tube Type',
+    'category_name' => 'Ban Luar (Pakai Ban Dalam)',
     'name' => 'Ban Luar IRC Ring 14 - 70/90 Non-Tubeless (Matic Ring 14)',
     'size' => 'Ring 14 - 70/90',
     'peruntukan' => 'Matic Ring 14',
@@ -42,7 +42,7 @@ class TireProductSeeder extends Seeder
   2 =>
   array (
     'brand' => 'IRC',
-    'category_name' => 'Ban Luar Biasa / Tube Type',
+    'category_name' => 'Ban Luar (Pakai Ban Dalam)',
     'name' => 'Ban Luar IRC Ring 14 - 80/90 Non-Tubeless (Matic Ring 14)',
     'size' => 'Ring 14 - 80/90',
     'peruntukan' => 'Matic Ring 14',
@@ -53,7 +53,7 @@ class TireProductSeeder extends Seeder
   3 =>
   array (
     'brand' => 'IRC',
-    'category_name' => 'Ban Luar Biasa / Tube Type',
+    'category_name' => 'Ban Luar (Pakai Ban Dalam)',
     'name' => 'Ban Luar IRC Ring 14 - 80/90 TR Non-Tubeless (Matic Trail / Semi)',
     'size' => 'Ring 14 - 80/90 TR',
     'peruntukan' => 'Matic Trail / Semi',
@@ -64,7 +64,7 @@ class TireProductSeeder extends Seeder
   4 =>
   array (
     'brand' => 'IRC',
-    'category_name' => 'Ban Luar Biasa / Tube Type',
+    'category_name' => 'Ban Luar (Pakai Ban Dalam)',
     'name' => 'Ban Luar IRC Ring 14 - 90/90 Non-Tubeless (Matic Ring 14)',
     'size' => 'Ring 14 - 90/90',
     'peruntukan' => 'Matic Ring 14',
@@ -75,7 +75,7 @@ class TireProductSeeder extends Seeder
   5 =>
   array (
     'brand' => 'IRC',
-    'category_name' => 'Ban Luar Biasa / Tube Type',
+    'category_name' => 'Ban Luar (Pakai Ban Dalam)',
     'name' => 'Ban Luar IRC Ring 14 - 90/90 TR Non-Tubeless (Matic Trail / Semi)',
     'size' => 'Ring 14 - 90/90 TR',
     'peruntukan' => 'Matic Trail / Semi',
@@ -86,7 +86,7 @@ class TireProductSeeder extends Seeder
   6 =>
   array (
     'brand' => 'IRC',
-    'category_name' => 'Ban Luar Biasa / Tube Type',
+    'category_name' => 'Ban Luar (Pakai Ban Dalam)',
     'name' => 'Ban Luar IRC Ring 16 - 70/90 Non-Tubeless (Matic Ring 16 - Nouvo/Skywave)',
     'size' => 'Ring 16 - 70/90',
     'peruntukan' => 'Matic Ring 16 (Nouvo/Skywave)',
@@ -97,7 +97,7 @@ class TireProductSeeder extends Seeder
   7 =>
   array (
     'brand' => 'IRC',
-    'category_name' => 'Ban Luar Biasa / Tube Type',
+    'category_name' => 'Ban Luar (Pakai Ban Dalam)',
     'name' => 'Ban Luar IRC Ring 16 - 80/90 Non-Tubeless (Matic Ring 16 - Nouvo/Skywave)',
     'size' => 'Ring 16 - 80/90',
     'peruntukan' => 'Matic Ring 16 (Nouvo/Skywave)',
@@ -108,7 +108,7 @@ class TireProductSeeder extends Seeder
   8 =>
   array (
     'brand' => 'IRC',
-    'category_name' => 'Ban Luar Biasa / Tube Type',
+    'category_name' => 'Ban Luar (Pakai Ban Dalam)',
     'name' => 'Ban Luar IRC Ring 17 - 2.25 Non-Tubeless (Bebek Ring 17)',
     'size' => 'Ring 17 - 2.25',
     'peruntukan' => 'Bebek Ring 17',
@@ -119,7 +119,7 @@ class TireProductSeeder extends Seeder
   9 =>
   array (
     'brand' => 'IRC',
-    'category_name' => 'Ban Luar Biasa / Tube Type',
+    'category_name' => 'Ban Luar (Pakai Ban Dalam)',
     'name' => 'Ban Luar IRC Ring 17 - 2.50 Non-Tubeless (Bebek Ring 17)',
     'size' => 'Ring 17 - 2.50',
     'peruntukan' => 'Bebek Ring 17',
@@ -130,7 +130,7 @@ class TireProductSeeder extends Seeder
   10 =>
   array (
     'brand' => 'IRC',
-    'category_name' => 'Ban Luar Biasa / Tube Type',
+    'category_name' => 'Ban Luar (Pakai Ban Dalam)',
     'name' => 'Ban Luar IRC Ring 17 - 70/90 Non-Tubeless (Bebek Ring 17)',
     'size' => 'Ring 17 - 70/90',
     'peruntukan' => 'Bebek Ring 17',
@@ -141,7 +141,7 @@ class TireProductSeeder extends Seeder
   11 =>
   array (
     'brand' => 'IRC',
-    'category_name' => 'Ban Luar Biasa / Tube Type',
+    'category_name' => 'Ban Luar (Pakai Ban Dalam)',
     'name' => 'Ban Luar IRC Ring 17 - 2.50 TR Non-Tubeless (Bebek Trail / Semi)',
     'size' => 'Ring 17 - 2.50 TR',
     'peruntukan' => 'Bebek Trail / Semi',
@@ -152,7 +152,7 @@ class TireProductSeeder extends Seeder
   12 =>
   array (
     'brand' => 'IRC',
-    'category_name' => 'Ban Luar Biasa / Tube Type',
+    'category_name' => 'Ban Luar (Pakai Ban Dalam)',
     'name' => 'Ban Luar IRC Ring 17 - 2.75 Non-Tubeless (Bebek Ring 17)',
     'size' => 'Ring 17 - 2.75',
     'peruntukan' => 'Bebek Ring 17',
@@ -163,7 +163,7 @@ class TireProductSeeder extends Seeder
   13 =>
   array (
     'brand' => 'IRC',
-    'category_name' => 'Ban Luar Biasa / Tube Type',
+    'category_name' => 'Ban Luar (Pakai Ban Dalam)',
     'name' => 'Ban Luar IRC Ring 17 - 80/90 Non-Tubeless (Bebek Ring 17)',
     'size' => 'Ring 17 - 80/90',
     'peruntukan' => 'Bebek Ring 17',
@@ -174,7 +174,7 @@ class TireProductSeeder extends Seeder
   14 =>
   array (
     'brand' => 'IRC',
-    'category_name' => 'Ban Luar Biasa / Tube Type',
+    'category_name' => 'Ban Luar (Pakai Ban Dalam)',
     'name' => 'Ban Luar IRC Ring 17 - 2.75 TR Non-Tubeless (Bebek Trail / Semi)',
     'size' => 'Ring 17 - 2.75 TR',
     'peruntukan' => 'Bebek Trail / Semi',
@@ -185,7 +185,7 @@ class TireProductSeeder extends Seeder
   15 =>
   array (
     'brand' => 'IRC',
-    'category_name' => 'Ban Luar Biasa / Tube Type',
+    'category_name' => 'Ban Luar (Pakai Ban Dalam)',
     'name' => 'Ban Luar IRC Ring 17 - 3.00 Non-Tubeless (Sport / Bebek)',
     'size' => 'Ring 17 - 3.00',
     'peruntukan' => 'Sport / Bebek',
@@ -196,7 +196,7 @@ class TireProductSeeder extends Seeder
   16 =>
   array (
     'brand' => 'IRC',
-    'category_name' => 'Ban Luar Biasa / Tube Type',
+    'category_name' => 'Ban Luar (Pakai Ban Dalam)',
     'name' => 'Ban Luar IRC Ring 17 - 90/90 Non-Tubeless (Sport / Bebek)',
     'size' => 'Ring 17 - 90/90',
     'peruntukan' => 'Sport / Bebek',
@@ -207,7 +207,7 @@ class TireProductSeeder extends Seeder
   17 =>
   array (
     'brand' => 'IRC',
-    'category_name' => 'Ban Luar Biasa / Tube Type',
+    'category_name' => 'Ban Luar (Pakai Ban Dalam)',
     'name' => 'Ban Luar IRC Ring 17 - 80/100 Non-Tubeless (Sport / Trail)',
     'size' => 'Ring 17 - 80/100',
     'peruntukan' => 'Sport / Trail',
@@ -218,7 +218,7 @@ class TireProductSeeder extends Seeder
   18 =>
   array (
     'brand' => 'IRC',
-    'category_name' => 'Ban Luar Biasa / Tube Type',
+    'category_name' => 'Ban Luar (Pakai Ban Dalam)',
     'name' => 'Ban Luar IRC Ring 17 - 100/90 Non-Tubeless (Sport / Trail)',
     'size' => 'Ring 17 - 100/90',
     'peruntukan' => 'Sport / Trail',
@@ -229,7 +229,7 @@ class TireProductSeeder extends Seeder
   19 =>
   array (
     'brand' => 'IRC',
-    'category_name' => 'Ban Luar Biasa / Tube Type',
+    'category_name' => 'Ban Luar (Pakai Ban Dalam)',
     'name' => 'Ban Luar IRC Ring 18 - 2.50 Non-Tubeless (Sport Ring 18)',
     'size' => 'Ring 18 - 2.50',
     'peruntukan' => 'Sport Ring 18',
@@ -240,7 +240,7 @@ class TireProductSeeder extends Seeder
   20 =>
   array (
     'brand' => 'IRC',
-    'category_name' => 'Ban Luar Biasa / Tube Type',
+    'category_name' => 'Ban Luar (Pakai Ban Dalam)',
     'name' => 'Ban Luar IRC Ring 18 - 2.75 Non-Tubeless (Sport Ring 18)',
     'size' => 'Ring 18 - 2.75',
     'peruntukan' => 'Sport Ring 18',
@@ -251,7 +251,7 @@ class TireProductSeeder extends Seeder
   21 =>
   array (
     'brand' => 'IRC',
-    'category_name' => 'Ban Luar Biasa / Tube Type',
+    'category_name' => 'Ban Luar (Pakai Ban Dalam)',
     'name' => 'Ban Luar IRC Ring 18 - 3.00 Non-Tubeless (Sport Ring 18)',
     'size' => 'Ring 18 - 3.00',
     'peruntukan' => 'Sport Ring 18',
@@ -262,7 +262,7 @@ class TireProductSeeder extends Seeder
   22 =>
   array (
     'brand' => 'IRC',
-    'category_name' => 'Ban Luar Biasa / Tube Type',
+    'category_name' => 'Ban Luar (Pakai Ban Dalam)',
     'name' => 'Ban Luar IRC Ring 18 - 100/90 Non-Tubeless (Sport Ring 18)',
     'size' => 'Ring 18 - 100/90',
     'peruntukan' => 'Sport Ring 18',
@@ -691,7 +691,7 @@ class TireProductSeeder extends Seeder
   61 =>
   array (
     'brand' => 'AHM',
-    'category_name' => 'Ban Luar Biasa / Tube Type',
+    'category_name' => 'Ban Luar (Pakai Ban Dalam)',
     'name' => 'Ban Luar AHM Ring 17 - 70/90 (2.25) Non-Tubeless (Bebek Honda Depan - Supra / Revo / Blade)',
     'size' => 'Ring 17 - 70/90 (2.25)',
     'peruntukan' => 'Bebek Honda Depan (Supra / Revo / Blade)',
@@ -702,7 +702,7 @@ class TireProductSeeder extends Seeder
   62 =>
   array (
     'brand' => 'AHM',
-    'category_name' => 'Ban Luar Biasa / Tube Type',
+    'category_name' => 'Ban Luar (Pakai Ban Dalam)',
     'name' => 'Ban Luar AHM Ring 17 - 2.50 Non-Tubeless (Bebek Honda Standar)',
     'size' => 'Ring 17 - 2.50',
     'peruntukan' => 'Bebek Honda Standar',
@@ -713,7 +713,7 @@ class TireProductSeeder extends Seeder
   63 =>
   array (
     'brand' => 'AHM',
-    'category_name' => 'Ban Luar Biasa / Tube Type',
+    'category_name' => 'Ban Luar (Pakai Ban Dalam)',
     'name' => 'Ban Luar AHM Ring 17 - 80/90 (2.75) Non-Tubeless (Bebek Honda Belakang - Supra / Revo / Blade)',
     'size' => 'Ring 17 - 80/90 (2.75)',
     'peruntukan' => 'Bebek Honda Belakang (Supra / Revo / Blade)',
@@ -724,7 +724,7 @@ class TireProductSeeder extends Seeder
   64 =>
   array (
     'brand' => 'AHM',
-    'category_name' => 'Ban Luar Biasa / Tube Type',
+    'category_name' => 'Ban Luar (Pakai Ban Dalam)',
     'name' => 'Ban Luar AHM Ring 17 - 2.75 Non-Tubeless (Bebek Honda Belakang)',
     'size' => 'Ring 17 - 2.75',
     'peruntukan' => 'Bebek Honda Belakang',
@@ -735,7 +735,7 @@ class TireProductSeeder extends Seeder
   65 =>
   array (
     'brand' => 'AHM',
-    'category_name' => 'Ban Luar Biasa / Tube Type',
+    'category_name' => 'Ban Luar (Pakai Ban Dalam)',
     'name' => 'Ban Luar AHM Ring 14 - 80/90 Non-Tubeless (Skutik Honda Depan - Beat / Vario / Spacy)',
     'size' => 'Ring 14 - 80/90',
     'peruntukan' => 'Skutik Honda Depan (Beat / Vario / Spacy)',
@@ -746,7 +746,7 @@ class TireProductSeeder extends Seeder
   66 =>
   array (
     'brand' => 'AHM',
-    'category_name' => 'Ban Luar Biasa / Tube Type',
+    'category_name' => 'Ban Luar (Pakai Ban Dalam)',
     'name' => 'Ban Luar AHM Ring 14 - 90/90 Non-Tubeless (Skutik Honda Belakang - Beat / Vario / Spacy)',
     'size' => 'Ring 14 - 90/90',
     'peruntukan' => 'Skutik Honda Belakang (Beat / Vario / Spacy)',
@@ -827,7 +827,7 @@ class TireProductSeeder extends Seeder
             if (!$category) {
                 $parent = Category::firstOrCreate(
                     ['name' => 'Ban & Kaki-kaki'],
-                    ['description' => 'Ban Luar Tubeless, Ban Luar Biasa / Tube Type, Ban Dalam']
+                    ['description' => 'Ban Luar Tubeless, Ban Luar (Pakai Ban Dalam), Ban Dalam']
                 );
                 $category = Category::create([
                     'name' => $item['category_name'],

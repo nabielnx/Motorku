@@ -139,7 +139,7 @@ class DashboardAuditVerificationTest extends TestCase
         $this->assertSame('Perlu Kulak', $alerts[0]['name']);
     }
 
-    public function test_dashboard_returns_only_ten_best_selling_products(): void
+    public function test_dashboard_returns_only_five_best_selling_products(): void
     {
         $order = Order::factory()->create(['order_status' => 'completed', 'payment_status' => 'paid']);
         Payment::factory()->create(['order_id' => $order->id, 'paid_at' => now()]);
@@ -156,9 +156,9 @@ class DashboardAuditVerificationTest extends TestCase
 
         $topSelling = app(DashboardService::class)->getDashboardStats()['top_selling'];
 
-        $this->assertCount(10, $topSelling);
+        $this->assertCount(5, $topSelling);
         $this->assertSame('Produk 1', $topSelling[0]['name']);
-        $this->assertSame('Produk 10', $topSelling[9]['name']);
+        $this->assertSame('Produk 5', $topSelling[4]['name']);
     }
 
     public function test_daily_chart_marks_only_the_current_day(): void

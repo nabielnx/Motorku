@@ -149,11 +149,8 @@ export default function Dashboard({ stats = {}, filters = {} }) {
             {isNavigating ? <DashboardSkeleton /> : <div className="w-full grid grid-cols-12 gap-5 items-start">
                 
                 {/* Header Filter Periode */}
-                <div className="col-span-12 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white dark:bg-slate-900 p-4 sm:px-5 rounded-xl border border-slate-300 dark:border-slate-800 shadow-xs transition-colors">
-                    <div>
-                        <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-white">Ringkasan Toko</h2>
-                        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Periode berlaku untuk penjualan; antrean dan stok adalah kondisi saat ini.</p>
-                    </div>
+                <div className="col-span-12 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-white">Ringkasan Toko</h2>
                     <div className="flex flex-wrap items-center gap-2">
                         {/* Preset Select Dropdown */}
                         <select 
@@ -181,18 +178,17 @@ export default function Dashboard({ stats = {}, filters = {} }) {
 
                 {/* Kondisi saat ini dan penjualan pada periode terpilih */}
                 <div className="col-span-12 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-                    <Link href={route('orders.index')} className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-300 dark:border-slate-800 hover:border-amber-400 transition-colors">
+                    <Link href={route('orders.index')} className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-300 dark:border-slate-800 hover:border-amber-400 transition-colors">
                         <div className="flex items-start justify-between gap-2">
                             <div>
                                 <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Antrean saat ini</p>
-                                <h3 className="text-2xl font-black text-slate-900 dark:text-white mt-1">{pendingOrders} <span className="text-sm font-bold text-slate-500 dark:text-slate-400">pesanan</span></h3>
+                                <h3 className="text-2xl font-black text-slate-900 dark:text-white mt-1">{pendingOrders}</h3>
                             </div>
                             <FiClock className="text-blue-600 shrink-0" size={20} />
                         </div>
-                        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-3">Pending, disiapkan, atau siap diambil <FiArrowRight className="inline" /></p>
                     </Link>
 
-                    <div className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-300 dark:border-slate-800">
+                    <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-300 dark:border-slate-800" title="Pembayaran pada periode terpilih setelah retur">
                         <div className="flex items-start justify-between gap-2">
                             <div>
                                 <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Penjualan bersih</p>
@@ -200,29 +196,26 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                             </div>
                             <FiDollarSign className="text-blue-600 shrink-0" size={20} />
                         </div>
-                        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-3">Dibayar {periodLabel.toLowerCase()}, setelah retur</p>
                     </div>
 
-                    <div className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-300 dark:border-slate-800">
+                    <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-300 dark:border-slate-800">
                         <div className="flex items-start justify-between gap-2">
                             <div>
                                 <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Transaksi lunas</p>
-                                <h3 className="text-2xl font-black text-slate-900 dark:text-white mt-1">{ordersToday} <span className="text-sm font-bold text-slate-500 dark:text-slate-400">transaksi</span></h3>
+                                <h3 className="text-2xl font-black text-slate-900 dark:text-white mt-1">{ordersToday}</h3>
                             </div>
                             <FiShoppingBag className="text-blue-600 shrink-0" size={20} />
                         </div>
-                        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-3">Dibayar {periodLabel.toLowerCase()}</p>
                     </div>
 
-                    <Link href={route('products.index')} className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-300 dark:border-slate-800 hover:border-amber-400 transition-colors">
+                    <Link href={route('products.index')} className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-300 dark:border-slate-800 hover:border-amber-400 transition-colors">
                         <div className="flex items-start justify-between gap-2">
                             <div>
                                 <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Stok perlu dicek</p>
-                                <h3 className="text-2xl font-black text-slate-900 dark:text-white mt-1">{lowStockAlerts.length} <span className="text-sm font-bold text-slate-500 dark:text-slate-400">produk</span></h3>
+                                <h3 className="text-2xl font-black text-slate-900 dark:text-white mt-1">{lowStockAlerts.length}</h3>
                             </div>
                             <FiPackage className={lowStockAlerts.length > 0 ? 'text-accentYellow shrink-0' : 'text-slate-400 shrink-0'} size={20} />
                         </div>
-                        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-3">Berdasarkan batas minimum tiap produk <FiArrowRight className="inline" /></p>
                     </Link>
                 </div>
 
@@ -231,17 +224,8 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                     
                     {/* Left: Financial Sales Bar Chart with Y-Axis Ticks & Gridlines */}
                     <div className="col-span-12 xl:col-span-8 order-3 h-[280px] bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-xl border border-slate-300 dark:border-slate-800 shadow-xs flex flex-col justify-between transition-colors">
-                        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-2">
-                            <div>
-                                <h3 className="font-extrabold text-slate-900 dark:text-white text-base">Penjualan {periodLabel}</h3>
-                                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-0.5">Berdasarkan waktu pembayaran</p>
-                            </div>
-                            {showSalesChart && <div className="text-right">
-                                <span className="text-xs font-bold text-slate-400 block uppercase tracking-wider">Puncak Penjualan</span>
-                                <span className="text-sm font-black text-blue-600 dark:text-yellow-400">
-                                    {formatRp(maxSalesValue)}
-                                </span>
-                            </div>}
+                        <div className="border-b border-slate-100 dark:border-slate-800 pb-3 mb-2">
+                            <h3 className="font-extrabold text-slate-900 dark:text-white text-base">Penjualan</h3>
                         </div>
 
                         {!showSalesChart ? (
@@ -330,11 +314,8 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2 mb-1.5 shrink-0">
                                 <h3 className="font-bold text-slate-900 dark:text-white text-sm flex items-center gap-2">
                                     <FiTrendingUp className="text-blue-600 dark:text-yellow-400" size={16} />
-                                    <span>Produk Terlaris {periodLabel}</span>
+                                    <span>Produk terlaris</span>
                                 </h3>
-                                {topSellingMenu.length > 0 && (
-                                    <span className="text-xs text-slate-500 dark:text-slate-400">{topSellingMenu.length} produk</span>
-                                )}
                             </div>
                             
                             <div className="min-h-0 flex-1 overflow-y-auto pr-1 space-y-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600" role="region" aria-label={`Produk terlaris ${periodLabel}`} tabIndex={0}>
@@ -360,7 +341,6 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                         <div className="col-span-12 xl:col-span-4 order-1 xl:order-2 bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-xl border border-slate-300 dark:border-slate-800 shadow-xs">
                             <div className="flex items-center justify-between gap-3 pb-2 border-b border-slate-100 dark:border-slate-800">
                                 <h3 className="font-bold text-slate-900 dark:text-white text-sm">Stok perlu dicek</h3>
-                                <span className="text-xs text-slate-500 dark:text-slate-400">{lowStockAlerts.length} produk</span>
                             </div>
                             
                             <div className="space-y-1.5">
@@ -369,7 +349,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                                         <div key={idx} className="flex items-center justify-between gap-3 py-2 border-b border-slate-100 dark:border-slate-800 last:border-none text-xs">
                                             <div className="min-w-0">
                                                 <span className="font-semibold text-slate-900 dark:text-slate-100 block truncate">{stock.name}</span>
-                                                <span className="text-xs text-slate-500 dark:text-slate-400">{stock.left}</span>
+                                                {stock.status !== 'Critical' && <span className="text-xs text-slate-500 dark:text-slate-400">{stock.left}</span>}
                                             </div>
                                             <span className={`font-semibold shrink-0 ${stock.status === 'Critical' ? 'text-rose-700 dark:text-rose-400' : 'text-accentYellow'}`}>
                                                 {stock.status === 'Critical' ? 'Habis' : 'Menipis'}
@@ -385,7 +365,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                             </div>
                             {lowStockAlerts.length > 3 && (
                                 <Link href={route('products.index')} className="inline-block mt-2 text-xs font-bold text-blue-600 dark:text-yellow-400">
-                                    Lihat semua {lowStockAlerts.length} produk <FiArrowRight className="inline" />
+                                    Lihat produk <FiArrowRight className="inline" />
                                 </Link>
                             )}
                         </div>
@@ -396,12 +376,9 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                 {/* Pesanan terbaru tampil sebelum grafik */}
                 <div className="col-span-12 xl:col-span-8 order-2 xl:order-1 bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-800 shadow-xs overflow-hidden transition-colors">
                     <div className="p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/80 dark:bg-slate-800/50">
-                        <div>
-                            <h3 className="font-extrabold text-slate-900 dark:text-white text-sm sm:text-base">Transaksi Terakhir</h3>
-                            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-0.5">Pesanan dibuat {periodLabel.toLowerCase()}, termasuk yang belum dibayar</p>
-                        </div>
+                        <h3 className="font-extrabold text-slate-900 dark:text-white text-sm sm:text-base">Pesanan terbaru</h3>
                         <Link href={route('orders.index')} className="text-xs font-bold text-blue-600 dark:text-yellow-400 hover:text-blue-700 flex items-center gap-1.5">
-                            <span>Kelola Semua Pesanan</span>
+                            <span>Lihat semua</span>
                             <FiArrowRight className="w-4 h-4" strokeWidth={2.5} />
                         </Link>
                     </div>
@@ -411,11 +388,11 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                         <table className="w-full min-w-[650px] text-left text-xs">
                             <thead className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-[10px] uppercase border-b border-slate-200 dark:border-slate-800 sticky top-0 z-10">
                                 <tr>
-                                    <th className="px-4 py-3">No. Invoice</th>
+                                    <th className="px-4 py-3">Pesanan</th>
                                     <th className="px-4 py-3">Pelanggan</th>
                                     <th className="px-4 py-3">Dibuat</th>
-                                    <th className="px-4 py-3">Total Tagihan</th>
-                                    <th className="px-4 py-3">Status Pembayaran</th>
+                                    <th className="px-4 py-3">Total</th>
+                                    <th className="px-4 py-3">Bayar</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-200 dark:divide-slate-800 font-semibold text-slate-700 dark:text-slate-300">
@@ -463,7 +440,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                     {totalPages > 1 && (
                         <div className="p-3 bg-slate-50 dark:bg-slate-800/60 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs font-semibold text-slate-600 dark:text-slate-400">
                             <span>
-                                Menampilkan {((currentPage - 1) * perPage) + 1} - {Math.min(currentPage * perPage, totalOrdersCount)} dari {totalOrdersCount} transaksi
+                                {((currentPage - 1) * perPage) + 1}–{Math.min(currentPage * perPage, totalOrdersCount)} dari {totalOrdersCount}
                             </span>
 
                             <div className="flex items-center space-x-1.5">

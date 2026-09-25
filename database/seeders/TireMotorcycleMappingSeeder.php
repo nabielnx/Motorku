@@ -23,7 +23,7 @@ class TireMotorcycleMappingSeeder extends Seeder
         $tireProducts = Product::whereHas('category', function ($q) {
             $q->whereIn('name', [
                 'Ban Luar Tubeless',
-                'Ban Luar Biasa / Tube Type',
+                'Ban Luar (Pakai Ban Dalam)',
                 'Ban Dalam',
             ]);
         })->get();
