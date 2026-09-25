@@ -50,6 +50,17 @@ jobs:
           cp .env.example .env
           php artisan key:generate
       - name: Run tests
-        run: composer test
+        run: |
+          if ! composer test 2>&1 | tee test-output.log; then
+            {
+              echo '### PHPUnit failure'
+              echo '```text'
+              tail -n 100 test-output.log
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+            details=$(tail -n 60 test-output.log | awk '{ gsub(/%/, "%25"); gsub(/\r/, "%0D"); printf "%s%%0A", $0 }')
+            echo "::error title=PHPUnit failures::$details"
+            exit 1
+          fi
       - name: Build frontend
         run: npm run build
