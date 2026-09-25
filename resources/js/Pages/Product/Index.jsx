@@ -1297,8 +1297,8 @@ export default function MenuManagement({
             {/* PRODUCT MODAL (Add / Edit) */}
             {isProductModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/80 p-4">
-                    <div className="bg-white dark:bg-slate-900 rounded-xl shadow-xl w-full max-w-lg overflow-hidden border border-slate-300 dark:border-slate-800 animate-in fade-in zoom-in duration-150 text-slate-900 dark:text-white">
-                        <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-800/80">
+                    <div className="bg-white dark:bg-slate-900 rounded-xl shadow-xl w-full max-w-lg max-h-[calc(100dvh-2rem)] flex flex-col overflow-hidden border border-slate-300 dark:border-slate-800 animate-in fade-in zoom-in duration-150 text-slate-900 dark:text-white">
+                        <div className="shrink-0 px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-800/80">
                             <h3 className="font-extrabold text-slate-900 dark:text-white text-sm">
                                 {editingItem ? 'Edit Produk' : 'Tambah Produk Baru'}
                             </h3>
@@ -1310,7 +1310,7 @@ export default function MenuManagement({
                             </button>
                         </div>
 
-                        <form onSubmit={handleSaveProduct} className="p-6 space-y-4">
+                        <form onSubmit={handleSaveProduct} className="min-h-0 flex-1 overflow-y-auto p-6 space-y-4">
                             <div>
                                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Nama Produk</label>
                                 <input
