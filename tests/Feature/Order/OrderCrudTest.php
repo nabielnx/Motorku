@@ -3,6 +3,7 @@
 namespace Tests\Feature\Order;
 
 use App\Models\Order;
+use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -31,6 +32,27 @@ class OrderCrudTest extends TestCase
     {
         $response = $this->actingAs($this->cashier)->getJson('/api/orders');
         $response->assertStatus(200);
+    }
+
+    public function test_cashier_can_open_order_detail_from_list(): void
+    {
+        $order = Order::factory()->create();
+        OrderItem::factory()->create(['order_id' => $order->id, 'product_name' => 'Ban IRC Ring 14', 'quantity' => 2]);
+
+        $this->actingAs($this->cashier)
+            ->get("/orders/{$order->id}")
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('Order/Show')
+                ->where('order.id', $order->id)
+                ->where('order.order_number', $order->order_number)
+                ->where('order.items.0.product_name', 'Ban IRC Ring 14')
+                ->where('order.items.0.quantity', 2));
+
+        $this->getJson("/api/orders/{$order->id}")
+            ->assertOk()
+            ->assertJsonPath('data.id', $order->id)
+            ->assertJsonPath('data.order_number', $order->order_number);
     }
 
     public function test_cashier_can_create_order(): void
