@@ -614,7 +614,7 @@ export default function MenuManagement({
                                         <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" size={14} />
                                         <input
                                             type="text"
-                                            placeholder="Cari nama atau SKU..."
+                                            placeholder="Cari produk..."
                                             value={searchQuery}
                                             onChange={e => setSearchQuery(e.target.value)}
                                             className="w-full pl-9 pr-7 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-xs font-semibold text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500 transition sm:shadow-2xs"
@@ -630,13 +630,22 @@ export default function MenuManagement({
                                          type="button"
                                          onClick={() => setShowMobileFilters(value => !value)}
                                          aria-expanded={showMobileFilters}
-                                         className="sm:hidden inline-flex items-center gap-1 px-2 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300"
+                                         className="sm:hidden inline-flex items-center gap-1 px-1 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300"
                                      >
                                          <FiFilter size={14} /> Filter
                                          {(selectedCategoryFilter !== 'All' || selectedStockFilter !== 'all' || statusFilter !== 'all' || selectedSort !== 'latest') && (
                                              <span className="text-primary dark:text-accentYellow">{Number(selectedCategoryFilter !== 'All') + Number(selectedStockFilter !== 'all') + Number(statusFilter !== 'all') + Number(selectedSort !== 'latest')}</span>
                                          )}
                                      </button>
+
+                                     <div className="sm:hidden inline-flex items-center gap-0.5" aria-label="Tampilan produk">
+                                         <button type="button" onClick={() => handleViewModeChange('grid')} aria-label="Tampilan grid" aria-pressed={viewMode === 'grid'} className={`p-1.5 rounded-md ${viewMode === 'grid' ? 'bg-primary text-white' : 'text-slate-500 dark:text-slate-400'}`}>
+                                             <FiGrid size={15} />
+                                         </button>
+                                         <button type="button" onClick={() => handleViewModeChange('list')} aria-label="Tampilan daftar" aria-pressed={viewMode === 'list'} className={`p-1.5 rounded-md ${viewMode === 'list' ? 'bg-primary text-white' : 'text-slate-500 dark:text-slate-400'}`}>
+                                             <FiList size={15} />
+                                         </button>
+                                     </div>
 
                                      {/* Category Dropdown */}
                                      <div className={`relative w-[calc(50%-0.1875rem)] sm:w-44 sm:shrink-0 ${showMobileFilters ? 'block' : 'hidden'} sm:block`}>
@@ -793,7 +802,7 @@ export default function MenuManagement({
                                     </div>
                                 ) : (
                                     <>
-                                    <div className="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
+                                    {viewMode === 'list' && <div className="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
                                         {filteredItems.map(item => {
                                             const isExpanded = expandedRows.includes(item.id);
                                             return (
@@ -839,15 +848,15 @@ export default function MenuManagement({
                                                 </article>
                                             );
                                         })}
-                                    </div>
+                                    </div>}
                                     {viewMode === 'grid' ? (
                                     /* GRID VIEW */
-                                    <div className="hidden md:grid grid-cols-[repeat(auto-fill,minmax(160px,180px))] gap-3 p-3 sm:p-4">
+                                    <div className="grid grid-cols-2 md:grid-cols-[repeat(auto-fill,minmax(160px,180px))] gap-2 md:gap-3 p-2 md:p-4">
                                         {filteredItems.map(item => (
-                                            <div key={item.id} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-xs hover:shadow-md hover:border-blue-300 dark:hover:border-blue-600 transition-all flex flex-col relative group">
+                                            <div key={item.id} className="bg-white dark:bg-slate-800 rounded-md md:rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden md:shadow-xs hover:shadow-md hover:border-blue-300 dark:hover:border-blue-600 transition-all flex flex-col relative group">
                                                 {/* Image Container */}
                                                 <div
-                                                    className="relative w-full aspect-square bg-slate-50 dark:bg-slate-900 cursor-pointer overflow-hidden border-b border-slate-100 dark:border-slate-700"
+                                                    className="relative w-full aspect-[4/3] md:aspect-square bg-slate-50 dark:bg-slate-900 cursor-pointer overflow-hidden border-b border-slate-100 dark:border-slate-700"
                                                     onClick={(e) => { e.stopPropagation(); setPreviewProduct(item); }}
                                                 >
                                                     {item.image ? (
@@ -869,15 +878,15 @@ export default function MenuManagement({
                                                 </div>
 
                                                 {/* Card Content */}
-                                                <div className="p-3 flex flex-col flex-1">
-                                                    <div className="flex items-center gap-1.5 mb-1.5 text-[10px]">
+                                                <div className="p-2 md:p-3 flex flex-col flex-1">
+                                                    <div className="hidden md:flex items-center gap-1.5 mb-1.5 text-[10px]">
                                                         <span className="text-slate-500 dark:text-slate-400 truncate max-w-full">
                                                             {item.category}
                                                         </span>
                                                     </div>
                                                     <div className="min-w-0 mb-2">
                                                         <h3
-                                                            className="font-bold text-slate-900 dark:text-white text-sm leading-snug line-clamp-2 hover:text-blue-600 cursor-pointer transition"
+                                                            className="font-bold text-slate-900 dark:text-white text-xs md:text-sm leading-snug line-clamp-2 hover:text-blue-600 cursor-pointer transition"
                                                             title={item.name}
                                                             onClick={() => openEditProductModal(item)}
                                                         >
@@ -890,10 +899,10 @@ export default function MenuManagement({
                                                         )}
                                                     </div>
                                                     <div className="mt-auto">
-                                                        <p className="font-black text-slate-900 dark:text-white text-[15px] sm:text-base">
+                                                        <p className="font-black text-slate-900 dark:text-white text-xs md:text-base">
                                                             Rp {Number(item.price).toLocaleString('id-ID')}
                                                         </p>
-                                                        <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">{item.stock} pcs · {item.status === 'Active' ? 'Aktif di POS' : 'Nonaktif'}</p>
+                                                        <p className="text-[10px] md:text-[11px] text-slate-500 dark:text-slate-400 mt-1">{item.stock} pcs · {item.status === 'Active' ? 'Aktif di POS' : 'Nonaktif'}</p>
                                                     </div>
                                                 </div>
 
