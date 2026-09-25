@@ -11,6 +11,7 @@ import {
     FiEdit2, 
     FiTrash2, 
     FiChevronDown, 
+    FiChevronLeft,
     FiChevronRight,
     FiX, 
     FiCheck, 
@@ -19,6 +20,7 @@ import {
     FiAlertTriangle,
     FiGrid,
     FiList,
+    FiFilter,
     FiFolder
 } from 'react-icons/fi';
 
@@ -132,6 +134,7 @@ export default function MenuManagement({
     const [categorySearch, setCategorySearch] = useState('');
     const [selectedSort, setSelectedSort] = useState(filters.sort || 'latest');
     const [statusFilter, setStatusFilter] = useState(filters.availability || 'all');
+    const [showMobileFilters, setShowMobileFilters] = useState(false);
     const [expandedCategories, setExpandedCategories] = useState([]);
 
     const filteredCategories = categories.filter((c) => {
@@ -205,8 +208,7 @@ export default function MenuManagement({
         }, { preserveState: true, preserveScroll: true });
     };
 
-    const handleSortChange = (field) => {
-        const nextSort = selectedSort === `${field}_asc` ? `${field}_desc` : `${field}_asc`;
+    const handleSortValueChange = (nextSort) => {
         setSelectedSort(nextSort);
         router.get('/products', {
             page: 1,
@@ -216,6 +218,10 @@ export default function MenuManagement({
             availability: statusFilter === 'all' ? undefined : statusFilter,
             sort: nextSort
         }, { preserveState: true, preserveScroll: true });
+    };
+
+    const handleSortChange = (field) => {
+        handleSortValueChange(selectedSort === `${field}_asc` ? `${field}_desc` : `${field}_asc`);
     };
 
     // Search yang di-debounce → refetch dari server agar mencari SEMUA produk
@@ -256,9 +262,13 @@ export default function MenuManagement({
 
     const handleAdjustSubmit = async (e) => {
         e.preventDefault();
-        const qty = parseInt(adjustForm.quantity, 10);
-        if (isNaN(qty) || qty < (adjustForm.type === 'adjustment' ? 0 : 1)) {
-            toast.error(adjustForm.type === 'adjustment' ? 'Stok fisik tidak boleh negatif.' : 'Jumlah kuantitas wajib diisi minimal 1 unit.');
+        const qty = Number(adjustForm.quantity);
+        if (adjustForm.quantity === '' || !Number.isInteger(qty) || qty < (adjustForm.type === 'adjustment' ? 0 : 1)) {
+            toast.error(adjustForm.type === 'adjustment' ? 'Isi stok fisik dengan angka bulat 0 atau lebih.' : 'Isi jumlah dengan angka bulat minimal 1 pcs.');
+            return;
+        }
+        if (adjustForm.type === 'stock_out' && qty > Number(selectedProductForAdjust.stock)) {
+            toast.error(`Jumlah keluar maksimal ${selectedProductForAdjust.stock} pcs.`);
             return;
         }
 
@@ -504,6 +514,11 @@ export default function MenuManagement({
 
     // The server applies filters and sorting before pagination.
     const filteredItems = items;
+    const currentStock = Number(selectedProductForAdjust?.stock ?? 0);
+    const adjustmentQuantity = Number(adjustForm.quantity);
+    const validAdjustmentQuantity = adjustForm.quantity !== '' && Number.isInteger(adjustmentQuantity) && adjustmentQuantity >= (adjustForm.type === 'adjustment' ? 0 : 1);
+    const stockOutTooLarge = adjustForm.type === 'stock_out' && validAdjustmentQuantity && adjustmentQuantity > currentStock;
+    const projectedStock = adjustForm.type === 'stock_in' ? currentStock + adjustmentQuantity : adjustForm.type === 'stock_out' ? currentStock - adjustmentQuantity : adjustmentQuantity;
 
     return (
         <AuthenticatedLayout pageTitle={getTranslation(locale, 'menu_produk', 'Menu & Produk')} noPadding={true}>
@@ -511,70 +526,69 @@ export default function MenuManagement({
                 <meta name="description" content="Kelola katalog produk sparepart, oli, aki, ban, harga, dan ketersediaan stok Motorku." />
             </Head>
 
-            <div className="p-3 sm:p-4 lg:p-5 flex-1 min-h-0 flex flex-col overflow-hidden">
+            <div className="p-0 sm:p-4 lg:p-5 flex-1 min-h-0 flex flex-col overflow-hidden">
                 {/* UNIFIED PRODUCT MANAGEMENT CONTAINER */}
-                <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs flex-1 min-h-0 flex flex-col overflow-hidden">
+                <div className="bg-white dark:bg-slate-900 sm:rounded-xl sm:border border-slate-200 dark:border-slate-800 sm:shadow-xs flex-1 min-h-0 flex flex-col overflow-hidden">
                     {/* Compact Header & Filter Section */}
-                    <div className="p-3 sm:p-3.5 space-y-2.5 border-b border-slate-200 dark:border-slate-800 shrink-0 bg-white dark:bg-slate-900 z-10">
+                    <div className="p-2.5 sm:p-3.5 space-y-2 sm:space-y-2.5 border-b border-slate-200 dark:border-slate-800 shrink-0 bg-white dark:bg-slate-900 z-10">
                         {/* Top Row: Title, Badge, Tabs & Action */}
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5">
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                             {/* Left: Title + Badge + Tabs */}
-                            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                            <div className="flex items-center gap-2">
                                 <h1 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight shrink-0">
                                     {activeTab === 'products' ? 'Daftar Produk' : 'Kategori Produk'}
                                 </h1>
-                                <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 shrink-0">
+                                <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 shrink-0">
                                     {activeTab === 'products' ? totalProducts : categories.length}
                                 </span>
 
-                                <div className="h-4 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block"></div>
+                            </div>
 
-                                {/* Compact Tab Switcher */}
-                                <div className="inline-flex items-center bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs">
+                            {/* Compact Tab Switcher */}
+                            <div className="order-3 flex w-full gap-3 border-b border-slate-100 dark:border-slate-800 text-xs sm:order-none sm:w-auto sm:border-0">
                                     <button
                                         type="button"
                                         onClick={() => setActiveTab('products')}
-                                        className={`px-3 py-1 rounded-md text-xs font-bold transition cursor-pointer ${
+                                        className={`border-b-2 px-1 py-1 text-xs font-bold transition cursor-pointer ${
                                             activeTab === 'products'
-                                                ? 'bg-white dark:bg-slate-900 text-primary dark:text-accentYellow shadow-2xs'
-                                                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                                                ? 'border-primary text-primary dark:text-accentYellow'
+                                                : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
                                         }`}
                                     >
-                                        Semua Produk
+                                        Produk
                                     </button>
                                     <button
                                         type="button"
                                         onClick={() => setActiveTab('categories')}
-                                        className={`px-3 py-1 rounded-md text-xs font-bold transition cursor-pointer ${
+                                        className={`border-b-2 px-1 py-1 text-xs font-bold transition cursor-pointer ${
                                             activeTab === 'categories'
-                                                ? 'bg-white dark:bg-slate-900 text-primary dark:text-accentYellow shadow-2xs'
-                                                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                                                ? 'border-primary text-primary dark:text-accentYellow'
+                                                : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
                                         }`}
                                     >
                                         Kategori ({categories.length})
                                     </button>
-                                </div>
                             </div>
 
                             {/* Right: Action Button */}
-                            <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+                            <div className="ml-auto flex items-center gap-2 shrink-0">
                                 {activeTab === 'products' ? (
                                     <button
                                         type="button"
                                         onClick={openAddProductModal}
-                                        className="px-3.5 py-1.5 bg-primary hover:bg-primaryDark active:scale-95 text-white font-bold rounded-lg text-xs shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+                                        className="px-2.5 sm:px-3.5 py-1.5 bg-primary hover:bg-primaryDark active:scale-95 text-white font-bold rounded-lg text-xs shadow-xs transition flex items-center gap-1.5 cursor-pointer"
                                     >
                                         <FiPlus size={15} />
-                                        <span>Tambah Produk</span>
+                                        <span className="hidden sm:inline">Tambah Produk</span><span className="sm:hidden">Tambah</span>
                                     </button>
                                 ) : (
                                     <button
                                         type="button"
                                         onClick={openAddCategoryModal}
-                                        className="px-3.5 py-1.5 bg-primary hover:bg-primaryDark active:scale-95 text-white font-bold rounded-lg text-xs shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+                                        className="px-2.5 sm:px-3.5 py-1.5 bg-primary hover:bg-primaryDark active:scale-95 text-white font-bold rounded-lg text-xs shadow-xs transition flex items-center gap-1.5 cursor-pointer"
                                     >
                                         <FiPlus size={15} />
-                                        <span>Tambah Kategori</span>
+                                        <span className="hidden sm:inline">Tambah Kategori</span><span className="sm:hidden">Tambah</span>
                                     </button>
                                 )}
                             </div>
@@ -582,37 +596,38 @@ export default function MenuManagement({
 
                         {/* Low Stock Alert Banner */}
                         {(lowStockCount > 0 || outOfStockCount > 0) && activeTab === 'products' && (
-                            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 px-3.5 py-2 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 rounded-lg text-xs">
-                                <div className="flex items-center gap-2 text-amber-800 dark:text-amber-200 font-semibold">
-                                    <FiAlertTriangle className="text-amber-600 dark:text-amber-400 shrink-0" size={16} />
+                            <div className="flex items-center justify-between gap-2 border-l-2 border-amber-400 pl-2 text-[11px] sm:text-xs">
+                                <div className="flex min-w-0 items-center gap-1.5 text-amber-800 dark:text-amber-200 font-semibold">
+                                    <FiAlertTriangle className="text-amber-600 dark:text-amber-400 shrink-0" size={14} />
                                     <span>
-                                        {lowStockCount} produk perlu kulak{outOfStockCount > 0 ? `, ${outOfStockCount} stok habis` : ''}.
+                                        {[lowStockCount > 0 && `${lowStockCount} perlu kulak`, outOfStockCount > 0 && `${outOfStockCount} stok habis`].filter(Boolean).join(' · ')}
                                     </span>
                                 </div>
                                 <button
                                     type="button"
                                     onClick={() => handleStockFilterChange(selectedStockFilter === (lowStockCount > 0 ? 'low' : 'out') ? 'all' : (lowStockCount > 0 ? 'low' : 'out'))}
-                                    className="px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded text-[11px] transition shrink-0 cursor-pointer shadow-2xs"
+                                    className="shrink-0 text-amber-700 dark:text-amber-300 font-bold hover:underline cursor-pointer"
                                 >
-                                    {selectedStockFilter === (lowStockCount > 0 ? 'low' : 'out') ? 'Tampilkan Semua Stok' : lowStockCount > 0 ? 'Lihat Perlu Kulak' : 'Lihat Stok Habis'}
+                                    {selectedStockFilter === (lowStockCount > 0 ? 'low' : 'out') ? 'Semua' : 'Lihat'}
                                 </button>
                             </div>
                         )}
 
                         {/* Filter Bar (Search + Dropdown Kategori + Dropdown Status Stok + Status Segmented Button) */}
                         {activeTab === 'products' && (
-                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 pt-0.5">
+                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-2.5">
                                 {/* Left: Search input + Category Dropdown + Stock Status Dropdown */}
-                                <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 flex-1 max-w-2xl">
+                                <div className="flex flex-wrap sm:flex-nowrap items-center gap-1.5 sm:gap-2 flex-1 max-w-2xl">
+                                    <div className="flex flex-wrap w-full items-center gap-1.5 sm:contents">
                                     {/* Search Input */}
-                                    <div className="relative flex-1 min-w-[180px]">
+                                    <div className="relative flex-1 min-w-[140px] sm:min-w-[180px]">
                                         <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" size={14} />
                                         <input
                                             type="text"
-                                            placeholder="Cari nama produk atau SKU..."
+                                            placeholder="Cari produk..."
                                             value={searchQuery}
                                             onChange={e => setSearchQuery(e.target.value)}
-                                            className="w-full pl-9 pr-7 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-xs font-semibold text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition shadow-2xs"
+                                            className="w-full pl-9 pr-7 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-xs font-semibold text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500 transition sm:shadow-2xs"
                                         />
                                         {searchQuery && (
                                              <button onClick={() => setSearchQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer">
@@ -621,12 +636,37 @@ export default function MenuManagement({
                                          )}
                                      </div>
 
+                                     <div className="sm:hidden flex shrink-0 items-center gap-1">
+                                     <button
+                                         type="button"
+                                         onClick={() => setShowMobileFilters(value => !value)}
+                                         aria-expanded={showMobileFilters}
+                                         className="sm:hidden inline-flex items-center gap-1 px-1 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300"
+                                     >
+                                         <FiFilter size={14} /> Filter
+                                         {(selectedCategoryFilter !== 'All' || selectedStockFilter !== 'all' || statusFilter !== 'all' || selectedSort !== 'latest') && (
+                                             <span className="text-primary dark:text-accentYellow">{Number(selectedCategoryFilter !== 'All') + Number(selectedStockFilter !== 'all') + Number(statusFilter !== 'all') + Number(selectedSort !== 'latest')}</span>
+                                         )}
+                                     </button>
+
+                                     <div className="inline-flex items-center gap-0.5" aria-label="Tampilan produk">
+                                         <button type="button" onClick={() => handleViewModeChange('grid')} aria-label="Tampilan grid" aria-pressed={viewMode === 'grid'} className={`p-1.5 rounded-md ${viewMode === 'grid' ? 'bg-primary text-white' : 'text-slate-500 dark:text-slate-400'}`}>
+                                             <FiGrid size={15} />
+                                         </button>
+                                         <button type="button" onClick={() => handleViewModeChange('list')} aria-label="Tampilan daftar" aria-pressed={viewMode === 'list'} className={`p-1.5 rounded-md ${viewMode === 'list' ? 'bg-primary text-white' : 'text-slate-500 dark:text-slate-400'}`}>
+                                             <FiList size={15} />
+                                         </button>
+                                     </div>
+                                     </div>
+                                     </div>
+
                                      {/* Category Dropdown */}
-                                     <div className="relative shrink-0 w-36 sm:w-44">
+                                     <div className={`relative w-[calc(50%-0.1875rem)] sm:w-44 sm:shrink-0 ${showMobileFilters ? 'block' : 'hidden'} sm:block`}>
                                          <select
                                              value={selectedCategoryFilter}
                                              onChange={e => handleCategoryFilterChange(e.target.value)}
-                                             className="w-full appearance-none bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-xs rounded-lg pl-3 pr-8 py-1.5 font-semibold shadow-2xs focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                                             aria-label="Filter kategori produk"
+                                             className="w-full appearance-none bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-xs rounded-lg pl-2 sm:pl-3 pr-7 sm:pr-8 py-1.5 font-semibold sm:shadow-2xs focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500 cursor-pointer"
                                          >
                                              <option value="All">Semua Kategori</option>
                                              {categories.map(c => (
@@ -642,11 +682,12 @@ export default function MenuManagement({
                                      </div>
 
                                      {/* Stock Status Dropdown */}
-                                     <div className="relative shrink-0 w-36 sm:w-40">
+                                     <div className={`relative w-[calc(50%-0.1875rem)] sm:w-40 sm:shrink-0 ${showMobileFilters ? 'block' : 'hidden'} sm:block`}>
                                          <select
                                              value={selectedStockFilter}
                                              onChange={e => handleStockFilterChange(e.target.value)}
-                                             className="w-full appearance-none bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-xs rounded-lg pl-3 pr-8 py-1.5 font-semibold shadow-2xs focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                                             aria-label="Filter stok produk"
+                                             className="w-full appearance-none bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-xs rounded-lg pl-2 sm:pl-3 pr-7 sm:pr-8 py-1.5 font-semibold sm:shadow-2xs focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500 cursor-pointer"
                                          >
                                              <option value="all">Semua Stok</option>
                                              <option value="low">Perlu Kulak ({lowStockCount})</option>
@@ -655,10 +696,37 @@ export default function MenuManagement({
                                          </select>
                                          <FiChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 dark:text-slate-500" size={14} />
                                      </div>
+
+                                     {showMobileFilters && (
+                                         <>
+                                             <select
+                                                 value={statusFilter}
+                                                 onChange={e => handleStatusFilterChange(e.target.value)}
+                                                 aria-label="Filter status POS"
+                                                 className="sm:hidden w-[calc(50%-0.1875rem)] border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 px-2 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-0 focus:border-slate-400"
+                                             >
+                                                 <option value="all">Semua Status</option>
+                                                 <option value="active">Aktif di POS</option>
+                                                 <option value="inactive">Nonaktif</option>
+                                             </select>
+                                             <select
+                                                 value={selectedSort}
+                                                 onChange={e => handleSortValueChange(e.target.value)}
+                                                 aria-label="Urutkan produk"
+                                                 className="sm:hidden w-[calc(50%-0.1875rem)] border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 px-2 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-0 focus:border-slate-400"
+                                             >
+                                                 <option value="latest">Terbaru</option>
+                                                 <option value="name_asc">Nama A–Z</option>
+                                                 <option value="name_desc">Nama Z–A</option>
+                                                 <option value="price_asc">Harga terendah</option>
+                                                 <option value="price_desc">Harga tertinggi</option>
+                                             </select>
+                                         </>
+                                     )}
                                  </div>
 
                                  {/* Right: Toggle View and Status Buttons */}
-                                 <div className="flex flex-row items-center gap-2 self-start sm:self-auto shrink-0">
+                                 <div className="hidden sm:flex flex-row items-center gap-2 self-start sm:self-auto shrink-0">
                                      {/* View Toggle */}
                                      <div className="inline-flex items-center bg-white dark:bg-slate-800 p-0.5 rounded-lg border border-slate-300 dark:border-slate-700 shadow-2xs">
                                          <button
@@ -738,25 +806,74 @@ export default function MenuManagement({
                             <ProductTableSkeleton viewMode={skeletonParam === 'grid' ? 'grid' : (skeletonParam === 'list' ? 'list' : viewMode)} />
                         ) : (
                         <>
-                            <div className="flex-1 min-h-0 overflow-y-auto overflow-x-auto">
+                            <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden md:overflow-x-auto">
                                 {filteredItems.length === 0 ? (
                                     <div className="flex flex-col items-center justify-center py-20 text-slate-400">
                                         <FiPackage className="w-12 h-12 text-slate-300 dark:text-slate-600 mb-3" />
                                         <p className="text-base font-extrabold text-slate-700 dark:text-slate-300">Tidak ada produk ditemukan</p>
                                         <p className="text-xs font-semibold mt-1">Coba ubah kata kunci pencarian atau filter status kamu.</p>
                                     </div>
-                                ) : viewMode === 'grid' ? (
+                                ) : (
+                                    <>
+                                    {viewMode === 'list' && <div className="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
+                                        {filteredItems.map(item => {
+                                            const isExpanded = expandedRows.includes(item.id);
+                                            return (
+                                                <article key={item.id} className="px-3 py-2.5">
+                                                    <div className="flex items-start gap-2.5">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setPreviewProduct(item)}
+                                                            className="w-11 h-11 shrink-0 rounded-md bg-slate-50 dark:bg-slate-800 overflow-hidden flex items-center justify-center text-slate-300 dark:text-slate-600"
+                                                            aria-label={`Lihat foto ${item.name}`}
+                                                        >
+                                                            {item.image ? <img src={item.image} alt="" className="w-full h-full object-contain" /> : <FiPackage size={18} />}
+                                                        </button>
+                                                        <button type="button" onClick={() => toggleRowExpand(item.id)} className="min-w-0 flex-1 text-left" aria-expanded={isExpanded}>
+                                                            <span className="block line-clamp-2 text-xs font-bold leading-snug text-slate-900 dark:text-white">{item.name}</span>
+                                                            <span className="mt-0.5 block truncate text-[11px] text-slate-500 dark:text-slate-400">{item.sku || 'Tanpa SKU'} · {item.category}</span>
+                                                        </button>
+                                                        <button type="button" onClick={() => toggleRowExpand(item.id)} className="shrink-0 p-1 text-slate-400" aria-label={`Detail ${item.name}`} aria-expanded={isExpanded}>
+                                                            {isExpanded ? <FiChevronDown size={16} /> : <FiChevronRight size={16} />}
+                                                        </button>
+                                                    </div>
+                                                    <div className="mt-1.5 flex items-center justify-between gap-2 pl-[3.375rem] text-xs">
+                                                        <span className="font-bold text-slate-900 dark:text-white whitespace-nowrap">Rp {Number(item.price).toLocaleString('id-ID')}</span>
+                                                        <span className={`font-semibold whitespace-nowrap ${item.stock <= 0 ? 'text-rose-600' : item.stock <= (item.minimum_stock ?? 3) ? 'text-amber-600' : 'text-emerald-600 dark:text-emerald-400'}`}>
+                                                            {item.stock <= 0 ? 'Stok habis' : item.stock <= (item.minimum_stock ?? 3) ? `${item.stock} pcs · Perlu kulak` : `${item.stock} pcs`}
+                                                        </span>
+                                                    </div>
+                                                    {isExpanded && (
+                                                        <div className="mt-2 space-y-2 pl-[3.375rem] text-[11px] text-slate-600 dark:text-slate-300">
+                                                            <div className="flex flex-wrap gap-x-3 gap-y-1">
+                                                                <span>Modal: {item.cost_price == null ? 'Belum diisi' : `Rp ${item.cost_price.toLocaleString('id-ID')}`}</span>
+                                                                <span>Min. stok: {item.minimum_stock || 0}</span>
+                                                                <span>POS: {item.status === 'Active' ? 'Aktif' : 'Nonaktif'}</span>
+                                                            </div>
+                                                            {item.subtitle && <p className="line-clamp-3">{item.subtitle}</p>}
+                                                            <div className="flex items-center gap-3 pt-1 font-semibold">
+                                                                <button type="button" onClick={() => openAdjustModal(item)} className="inline-flex items-center gap-1 text-primary dark:text-blue-300"><FiPlus size={14} /> Stok</button>
+                                                                <button type="button" onClick={() => openEditProductModal(item)} className="inline-flex items-center gap-1 text-slate-700 dark:text-slate-200"><FiEdit2 size={13} /> Edit</button>
+                                                                <button type="button" onClick={() => handleDeleteProduct(item)} className="inline-flex items-center gap-1 text-rose-600 dark:text-rose-400"><FiTrash2 size={13} /> Hapus</button>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </article>
+                                            );
+                                        })}
+                                    </div>}
+                                    {viewMode === 'grid' ? (
                                     /* GRID VIEW */
-                                    <div className="grid grid-cols-2 sm:grid-cols-[repeat(auto-fill,minmax(160px,180px))] gap-3 p-3 sm:p-4">
+                                    <div className="grid grid-cols-2 md:grid-cols-[repeat(auto-fill,minmax(160px,180px))] gap-2 md:gap-3 p-2 md:p-4">
                                         {filteredItems.map(item => (
-                                            <div key={item.id} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-xs hover:shadow-md hover:border-blue-300 dark:hover:border-blue-600 transition-all flex flex-col relative group">
+                                            <div key={item.id} className="bg-white dark:bg-slate-800 rounded-md md:rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden md:shadow-xs hover:shadow-md hover:border-blue-300 dark:hover:border-blue-600 transition-all flex flex-col relative group">
                                                 {/* Image Container */}
                                                 <div
-                                                    className="relative w-full aspect-square bg-slate-50 dark:bg-slate-900 cursor-pointer overflow-hidden border-b border-slate-100 dark:border-slate-700"
+                                                    className="relative w-full aspect-[4/3] md:aspect-square bg-slate-50 dark:bg-slate-900 cursor-pointer overflow-hidden border-b border-slate-100 dark:border-slate-700"
                                                     onClick={(e) => { e.stopPropagation(); setPreviewProduct(item); }}
                                                 >
                                                     {item.image ? (
-                                                        <img src={item.image} alt={item.name} loading="lazy" className="absolute inset-0 w-full h-full object-contain" />
+                                                        <img src={item.image} alt={item.name} loading="lazy" className="absolute inset-0 w-full h-full object-cover" />
                                                     ) : (
                                                         <div className="absolute inset-0 flex items-center justify-center text-slate-300 dark:text-slate-600">
                                                             <FiPackage size={24} aria-label="Foto belum ada" />
@@ -774,15 +891,15 @@ export default function MenuManagement({
                                                 </div>
 
                                                 {/* Card Content */}
-                                                <div className="p-3 flex flex-col flex-1">
-                                                    <div className="flex items-center gap-1.5 mb-1.5 text-[10px]">
+                                                <div className="p-2 md:p-3 flex flex-col flex-1">
+                                                    <div className="hidden md:flex items-center gap-1.5 mb-1.5 text-[10px]">
                                                         <span className="text-slate-500 dark:text-slate-400 truncate max-w-full">
                                                             {item.category}
                                                         </span>
                                                     </div>
                                                     <div className="min-w-0 mb-2">
                                                         <h3
-                                                            className="font-bold text-slate-900 dark:text-white text-sm leading-snug line-clamp-2 hover:text-blue-600 cursor-pointer transition"
+                                                            className="font-bold text-slate-900 dark:text-white text-xs md:text-sm leading-snug line-clamp-2 hover:text-blue-600 cursor-pointer transition"
                                                             title={item.name}
                                                             onClick={() => openEditProductModal(item)}
                                                         >
@@ -795,10 +912,10 @@ export default function MenuManagement({
                                                         )}
                                                     </div>
                                                     <div className="mt-auto">
-                                                        <p className="font-black text-slate-900 dark:text-white text-[15px] sm:text-base">
+                                                        <p className="font-black text-slate-900 dark:text-white text-xs md:text-base">
                                                             Rp {Number(item.price).toLocaleString('id-ID')}
                                                         </p>
-                                                        <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">{item.stock} pcs · {item.status === 'Active' ? 'Aktif di POS' : 'Nonaktif'}</p>
+                                                        <p className="text-[10px] md:text-[11px] text-slate-500 dark:text-slate-400 mt-1">{item.stock} pcs · {item.status === 'Active' ? 'Aktif di POS' : 'Nonaktif'}</p>
                                                     </div>
                                                 </div>
 
@@ -834,7 +951,7 @@ export default function MenuManagement({
                                         ))}
                                     </div>
                                 ) : (
-                                    <table className="w-full text-left border-collapse min-w-[900px]">
+                                    <table className="hidden md:table w-full text-left border-collapse min-w-[900px]">
                                         {/* Table Header */}
                                         <thead className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-10 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                             <tr>
@@ -1068,34 +1185,39 @@ export default function MenuManagement({
                                             })}
                                         </tbody>
                                     </table>
+                                    )}
+                                    </>
                                 )}
                             </div>
 
                             {/* Pinned Pagination Footer */}
                             {totalProducts > 0 && (
-                                <div className="px-4 py-2.5 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-2.5 bg-white dark:bg-slate-900 shrink-0 z-10">
-                                    <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                                        Menampilkan {((currentPage - 1) * perPage) + 1} - {Math.min(currentPage * perPage, totalProducts)} dari {totalProducts} produk · {perPage} per halaman
+                                <div className="px-3 sm:px-4 py-2 sm:py-2.5 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2 bg-white dark:bg-slate-900 shrink-0 z-10">
+                                    <span className="text-[11px] sm:text-xs font-semibold text-slate-500 dark:text-slate-400">
+                                        <span className="sm:hidden">{((currentPage - 1) * perPage) + 1}–{Math.min(currentPage * perPage, totalProducts)} / {totalProducts}</span>
+                                        <span className="hidden sm:inline">Menampilkan {((currentPage - 1) * perPage) + 1} - {Math.min(currentPage * perPage, totalProducts)} dari {totalProducts} produk · {perPage} per halaman</span>
                                     </span>
-                                    <div className="flex items-center space-x-2">
+                                    <div className="flex items-center gap-2">
                                         <button
                                             type="button"
                                             onClick={() => changeProductPage(currentPage - 1)}
                                             disabled={currentPage <= 1}
-                                            className="px-3.5 py-1.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-200 transition border border-slate-300 dark:border-slate-700 shadow-2xs cursor-pointer"
+                                            aria-label="Halaman sebelumnya"
+                                            className="p-1 sm:px-3.5 sm:py-1.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-200 transition sm:border border-slate-300 dark:border-slate-700 sm:shadow-2xs cursor-pointer"
                                         >
-                                            Sebelumnya
+                                            <FiChevronLeft size={16} className="sm:hidden" /><span className="hidden sm:inline">Sebelumnya</span>
                                         </button>
-                                        <span className="px-3 py-1 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-xs font-bold text-slate-800 dark:text-slate-200">
+                                        <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
                                             {currentPage} / {totalPages}
                                         </span>
                                         <button
                                             type="button"
                                             onClick={() => changeProductPage(currentPage + 1)}
                                             disabled={currentPage >= totalPages}
-                                            className="px-3.5 py-1.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-200 transition border border-slate-300 dark:border-slate-700 shadow-2xs cursor-pointer"
+                                            aria-label="Halaman berikutnya"
+                                            className="p-1 sm:px-3.5 sm:py-1.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-200 transition sm:border border-slate-300 dark:border-slate-700 sm:shadow-2xs cursor-pointer"
                                         >
-                                            Selanjutnya
+                                            <FiChevronRight size={16} className="sm:hidden" /><span className="hidden sm:inline">Selanjutnya</span>
                                         </button>
                                     </div>
                                 </div>
@@ -1188,8 +1310,8 @@ export default function MenuManagement({
             {/* PRODUCT MODAL (Add / Edit) */}
             {isProductModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/80 p-4">
-                    <div className="bg-white dark:bg-slate-900 rounded-xl shadow-xl w-full max-w-lg overflow-hidden border border-slate-300 dark:border-slate-800 animate-in fade-in zoom-in duration-150 text-slate-900 dark:text-white">
-                        <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-800/80">
+                    <div className="bg-white dark:bg-slate-900 rounded-xl shadow-xl w-full max-w-lg max-h-[calc(100dvh-2rem)] flex flex-col overflow-hidden border border-slate-300 dark:border-slate-800 animate-in fade-in zoom-in duration-150 text-slate-900 dark:text-white">
+                        <div className="shrink-0 px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-800/80">
                             <h3 className="font-extrabold text-slate-900 dark:text-white text-sm">
                                 {editingItem ? 'Edit Produk' : 'Tambah Produk Baru'}
                             </h3>
@@ -1201,7 +1323,7 @@ export default function MenuManagement({
                             </button>
                         </div>
 
-                        <form onSubmit={handleSaveProduct} className="p-6 space-y-4">
+                        <form onSubmit={handleSaveProduct} className="min-h-0 flex-1 overflow-y-auto p-6 space-y-4">
                             <div>
                                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Nama Produk</label>
                                 <input
@@ -1626,29 +1748,29 @@ export default function MenuManagement({
             {/* STOCK ADJUSTMENT MODAL (Kulakan / Opname / Keluar) */}
             {selectedProductForAdjust && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/80 p-4">
-                    <div className="bg-white dark:bg-slate-900 rounded-xl shadow-xl w-full max-w-md overflow-hidden border border-slate-300 dark:border-slate-800 animate-in fade-in zoom-in duration-150 text-slate-900 dark:text-white">
-                        <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-800/80">
-                            <div>
+                    <div className="bg-white dark:bg-slate-900 rounded-xl shadow-xl w-full max-w-md max-h-[calc(100dvh-2rem)] flex flex-col overflow-hidden border border-slate-300 dark:border-slate-800 animate-in fade-in zoom-in duration-150 text-slate-900 dark:text-white">
+                        <div className="shrink-0 px-4 py-3 border-b border-slate-200 dark:border-slate-800 flex items-start gap-3 bg-slate-50 dark:bg-slate-800/80">
+                            <div className="min-w-0 flex-1">
                                 <h3 className="font-extrabold text-slate-900 dark:text-white text-sm">
-                                    Atur Persediaan Stok
+                                    Atur Stok
                                 </h3>
-                                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium truncate max-w-xs mt-0.5">
+                                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium truncate mt-0.5">
                                     {selectedProductForAdjust.name}
                                 </p>
                             </div>
                             <button 
                                 type="button"
                                 onClick={() => setSelectedProductForAdjust(null)}
-                                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer"
+                                aria-label="Tutup pengaturan stok"
+                                className="shrink-0 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer"
                             >
                                 <FiX className="w-5 h-5" />
                             </button>
                         </div>
 
-                        <form onSubmit={handleAdjustSubmit} className="p-5 space-y-4">
-                            {/* Current Stock Banner */}
-                            <div className="flex items-center justify-between px-3 py-2 bg-slate-100 dark:bg-slate-800 rounded-lg text-xs">
-                                <span className="text-slate-600 dark:text-slate-400 font-semibold">Stok Saat Ini</span>
+                        <form onSubmit={handleAdjustSubmit} className="min-h-0 flex-1 overflow-y-auto p-4 space-y-4">
+                            <div className="flex items-center justify-between text-xs">
+                                <span className="text-slate-600 dark:text-slate-400 font-semibold">Stok saat ini</span>
                                 <span className="font-extrabold text-blue-600 dark:text-blue-400 text-sm">
                                     {selectedProductForAdjust.stock} pcs
                                 </span>
@@ -1659,42 +1781,42 @@ export default function MenuManagement({
                                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                                     Jenis Perubahan
                                 </label>
-                                <div className="grid grid-cols-3 gap-2">
+                                <div className="grid grid-cols-3 gap-1 rounded-lg bg-slate-100 dark:bg-slate-800 p-1" role="group" aria-label="Jenis perubahan stok">
                                     <button
                                         type="button"
-                                        onClick={() => setAdjustForm(prev => ({ ...prev, type: 'stock_in' }))}
-                                        className={`px-2.5 py-2 rounded-lg text-xs font-bold border transition text-center cursor-pointer ${
+                                        onClick={() => setAdjustForm(prev => prev.type === 'stock_in' ? prev : { ...prev, type: 'stock_in', quantity: '' })}
+                                        aria-pressed={adjustForm.type === 'stock_in'}
+                                        className={`min-w-0 py-2 rounded-md text-xs font-bold transition text-center cursor-pointer ${
                                             adjustForm.type === 'stock_in'
-                                                ? 'bg-blue-50 dark:bg-blue-950/60 border-blue-500 text-blue-700 dark:text-blue-300 ring-1 ring-blue-500'
-                                                : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-750'
+                                                ? 'bg-white dark:bg-slate-700 text-blue-700 dark:text-blue-300 shadow-xs'
+                                                : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
                                         }`}
                                     >
-                                        <span className="block text-sm font-black">+</span>
-                                        <span className="block text-[11px] mt-0.5">Kulakan / Masuk</span>
+                                        + Masuk
                                     </button>
                                     <button
                                         type="button"
-                                        onClick={() => setAdjustForm(prev => ({ ...prev, type: 'stock_out' }))}
-                                        className={`px-2.5 py-2 rounded-lg text-xs font-bold border transition text-center cursor-pointer ${
+                                        onClick={() => setAdjustForm(prev => prev.type === 'stock_out' ? prev : { ...prev, type: 'stock_out', quantity: '' })}
+                                        aria-pressed={adjustForm.type === 'stock_out'}
+                                        className={`min-w-0 py-2 rounded-md text-xs font-bold transition text-center cursor-pointer ${
                                             adjustForm.type === 'stock_out'
-                                                ? 'bg-rose-50 dark:bg-rose-950/60 border-rose-500 text-rose-700 dark:text-rose-300 ring-1 ring-rose-500'
-                                                : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-750'
+                                                ? 'bg-white dark:bg-slate-700 text-rose-700 dark:text-rose-300 shadow-xs'
+                                                : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
                                         }`}
                                     >
-                                        <span className="block text-sm font-black">-</span>
-                                        <span className="block text-[11px] mt-0.5">Keluar / Rusak</span>
+                                        − Keluar
                                     </button>
                                     <button
                                         type="button"
-                                        onClick={() => setAdjustForm(prev => ({ ...prev, type: 'adjustment' }))}
-                                        className={`px-2.5 py-2 rounded-lg text-xs font-bold border transition text-center cursor-pointer ${
+                                        onClick={() => setAdjustForm(prev => prev.type === 'adjustment' ? prev : { ...prev, type: 'adjustment', quantity: '' })}
+                                        aria-pressed={adjustForm.type === 'adjustment'}
+                                        className={`min-w-0 py-2 rounded-md text-xs font-bold transition text-center cursor-pointer ${
                                             adjustForm.type === 'adjustment'
-                                                ? 'bg-amber-50 dark:bg-amber-950/60 border-amber-500 text-amber-700 dark:text-amber-300 ring-1 ring-amber-500'
-                                                : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-750'
+                                                ? 'bg-white dark:bg-slate-700 text-amber-700 dark:text-amber-300 shadow-xs'
+                                                : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
                                         }`}
                                     >
-                                        <span className="block text-sm font-black">=</span>
-                                        <span className="block text-[11px] mt-0.5">Opname Fisik</span>
+                                        = Opname
                                     </button>
                                 </div>
                             </div>
@@ -1702,23 +1824,25 @@ export default function MenuManagement({
                             {/* Quantity Input */}
                             <div>
                                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                                    {adjustForm.type === 'adjustment' ? 'Jumlah Total Fisik Sebenarnya (pcs)' : 'Jumlah Kuantitas (pcs)'}
+                                    {adjustForm.type === 'adjustment' ? 'Stok fisik (pcs)' : adjustForm.type === 'stock_in' ? 'Jumlah masuk (pcs)' : 'Jumlah keluar (pcs)'}
                                 </label>
                                 <input
                                     type="number"
                                     min={adjustForm.type === 'adjustment' ? '0' : '1'}
+                                    max={adjustForm.type === 'stock_out' ? currentStock : undefined}
+                                    step="1"
+                                    inputMode="numeric"
                                     required
                                     value={adjustForm.quantity}
                                     onChange={(e) => setAdjustForm(prev => ({ ...prev, quantity: e.target.value }))}
-                                    placeholder={adjustForm.type === 'stock_in' ? 'Contoh: 15 (barang masuk dari supplier)' : 'Contoh: 5'}
-                                    className="w-full px-3.5 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg text-xs font-semibold text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-                                    autoFocus
+                                    placeholder="0"
+                                    className="w-full px-3.5 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500 transition"
                                 />
-                                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
-                                    {adjustForm.type === 'stock_in' && `Stok baru akan menjadi: ${Number(selectedProductForAdjust.stock) + (parseInt(adjustForm.quantity, 10) || 0)} pcs`}
-                                    {adjustForm.type === 'stock_out' && `Stok baru akan menjadi: ${Math.max(0, Number(selectedProductForAdjust.stock) - (parseInt(adjustForm.quantity, 10) || 0))} pcs`}
-                                    {adjustForm.type === 'adjustment' && `Stok akan langsung direset menjadi: ${parseInt(adjustForm.quantity, 10) || 0} pcs`}
-                                </p>
+                                {stockOutTooLarge ? (
+                                    <p className="text-[11px] font-semibold text-rose-600 dark:text-rose-400 mt-1">Maksimal {currentStock} pcs tersedia.</p>
+                                ) : validAdjustmentQuantity && (
+                                    <p className="text-[11px] text-slate-600 dark:text-slate-300 mt-1">Stok setelah disimpan: <strong>{projectedStock} pcs</strong></p>
+                                )}
                             </div>
 
                             {/* Note / Reference */}
@@ -1730,8 +1854,9 @@ export default function MenuManagement({
                                     type="text"
                                     value={adjustForm.note}
                                     onChange={(e) => setAdjustForm(prev => ({ ...prev, note: e.target.value }))}
-                                    placeholder="Contoh: Kulakan dari Toko Jaya / Penyesuaian stok fisik mingguan"
-                                    className="w-full px-3.5 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg text-xs font-semibold text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                                    placeholder="Contoh: Kulakan dari Toko Jaya"
+                                    maxLength={255}
+                                    className="w-full px-3.5 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500 transition"
                                 />
                             </div>
 
@@ -1747,7 +1872,7 @@ export default function MenuManagement({
                                 </button>
                                 <button
                                     type="submit"
-                                    disabled={adjustLoading}
+                                    disabled={adjustLoading || stockOutTooLarge}
                                     className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-bold rounded-lg border border-blue-700 shadow-xs transition cursor-pointer flex items-center gap-1.5"
                                 >
                                     {adjustLoading ? (
