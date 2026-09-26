@@ -140,18 +140,10 @@ function OrderCard({ order, onCancel, isCancelling, formatRp }) {
 
     const status = order.order_status || 'pending';
     const cfg = STATUS_CONFIG[status] || STATUS_CONFIG.pending;
-    const StatusIcon = cfg.icon;
     const isPaid = order.payment_status === 'paid';
-    const isCancelled = status === 'cancelled';
-    const isCompleted = status === 'completed';
     const canCancel = status === 'pending' && !isPaid;
 
-    // Items display
     const items = order.items || [];
-    const MAX_VISIBLE = 2;
-    const hasMore = items.length > MAX_VISIBLE;
-    const visibleItems = expanded ? items : items.slice(0, MAX_VISIBLE);
-    const hiddenCount = items.length - MAX_VISIBLE;
 
     const handleCopy = () => {
         if (order.order_number) {
@@ -170,7 +162,13 @@ function OrderCard({ order, onCancel, isCancelling, formatRp }) {
             cfg.border,
             (status === 'ready') && 'ring-2 ring-emerald-300 shadow-md shadow-emerald-100',
         )}>
-            {/* ── Card Header: Status + Date ── */}
+            <button
+                type="button"
+                onClick={() => setExpanded(!expanded)}
+                aria-expanded={expanded}
+                aria-label={`${expanded ? 'Tutup' : 'Lihat'} rincian pesanan ${order.order_number || ''}`}
+                className="block w-full text-left cursor-pointer"
+            >
             <div className={clsx('px-4 py-3 flex items-center justify-between', cfg.bg)}>
                 <div className="flex items-center gap-2.5">
                     <div className={clsx(
@@ -207,6 +205,22 @@ function OrderCard({ order, onCancel, isCancelling, formatRp }) {
                     )}
                 </div>
             </div>
+
+            <div className="px-4 py-3 bg-white flex items-center gap-3">
+                <div className="min-w-0 flex-1">
+                    <p className="text-xs font-semibold text-slate-800 truncate">
+                        {items[0]?.product_name || order.order_number || 'Pesanan'}
+                    </p>
+                    <p className="mt-0.5 text-[11px] text-slate-500">
+                        {items.length > 1 ? `+${items.length - 1} produk lainnya` : items.length === 1 ? `${items[0].quantity} barang` : 'Lihat rincian'}
+                    </p>
+                </div>
+                <span className="shrink-0 text-sm font-black text-slate-900 tabular-nums">{formatRp(order.total)}</span>
+                {expanded ? <FiChevronUp size={16} className="shrink-0 text-slate-400" /> : <FiChevronDown size={16} className="shrink-0 text-slate-400" />}
+            </div>
+            </button>
+
+            {expanded && <>
 
             {/* ── Order Number + Copy ── */}
             <div className="px-4 py-2.5 border-b border-slate-100 flex items-center justify-between bg-white">
@@ -259,7 +273,7 @@ function OrderCard({ order, onCancel, isCancelling, formatRp }) {
             {items.length > 0 && (
                 <div className="bg-white">
                     <div className="divide-y divide-slate-50">
-                        {visibleItems.map((item, idx) => (
+                        {items.map((item, idx) => (
                             <div key={item.id || idx} className="px-4 py-2.5 flex items-center justify-between gap-3">
                                 <div className="flex-1 min-w-0">
                                     <p className="text-xs font-semibold text-slate-800 leading-snug truncate">
@@ -283,26 +297,6 @@ function OrderCard({ order, onCancel, isCancelling, formatRp }) {
                         ))}
                     </div>
 
-                    {/* Expand / Collapse */}
-                    {hasMore && (
-                        <button
-                            type="button"
-                            onClick={() => setExpanded(!expanded)}
-                            className="w-full px-4 py-2 flex items-center justify-center gap-1.5 text-[11px] font-semibold text-blue-600 hover:bg-blue-50/50 transition-colors cursor-pointer border-t border-slate-100"
-                        >
-                            {expanded ? (
-                                <>
-                                    <FiChevronUp size={13} />
-                                    <span>Sembunyikan</span>
-                                </>
-                            ) : (
-                                <>
-                                    <FiChevronDown size={13} />
-                                    <span>+{hiddenCount} produk lainnya</span>
-                                </>
-                            )}
-                        </button>
-                    )}
                 </div>
             )}
 
@@ -341,26 +335,6 @@ function OrderCard({ order, onCancel, isCancelling, formatRp }) {
                     <div>
                         <p className="text-xs font-bold text-emerald-800">Pesanan Siap Diambil!</p>
                         <p className="text-[10px] text-emerald-600">Silakan datang ke kasir untuk mengambil pesanan.</p>
-                    </div>
-                </div>
-            )}
-
-            {status === 'completed' && (
-                <div className="px-4 py-3 bg-slate-50 border-t border-slate-200 flex items-center gap-2.5">
-                    <FiCheckCircle size={16} className="text-green-500 shrink-0" />
-                    <div>
-                        <p className="text-xs font-bold text-slate-700">Pesanan Selesai</p>
-                        <p className="text-[10px] text-slate-500">Terima kasih telah belanja di Motorku!</p>
-                    </div>
-                </div>
-            )}
-
-            {isCancelled && (
-                <div className="px-4 py-3 bg-red-50 border-t border-red-200 flex items-center gap-2.5">
-                    <FiXCircle size={16} className="text-red-500 shrink-0" />
-                    <div>
-                        <p className="text-xs font-bold text-red-700">Pesanan Dibatalkan</p>
-                        <p className="text-[10px] text-red-500">Pesanan ini telah dibatalkan.</p>
                     </div>
                 </div>
             )}
@@ -408,6 +382,7 @@ function OrderCard({ order, onCancel, isCancelling, formatRp }) {
                     </button>
                 </div>
             )}
+            </>}
         </div>
     );
 }

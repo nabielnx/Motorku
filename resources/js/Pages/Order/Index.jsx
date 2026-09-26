@@ -472,25 +472,32 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                             const orderId = order.real_id || order.id;
 
                             return (
-                                <article key={orderId} className="px-3 py-3">
+                                <article key={orderId} className="relative px-3 py-3 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                                    <Link href={`/orders/${orderId}`} aria-label={`Lihat detail pesanan ${order.id}`} className="absolute inset-0 z-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-blue-600" />
                                     <div className="flex items-start justify-between gap-3">
                                         <div className="min-w-0">
-                                            <Link href={`/orders/${orderId}`} className="block truncate font-mono text-xs font-bold text-blue-700 dark:text-blue-300">{order.id}</Link>
+                                            <p className="truncate font-mono text-xs font-bold text-blue-700 dark:text-blue-300">{order.id}</p>
                                             <p className="mt-0.5 truncate text-sm font-semibold text-slate-900 dark:text-white">{order.customer}</p>
                                         </div>
                                         <strong className="shrink-0 text-sm text-slate-900 dark:text-white">{formatRp(order.total)}</strong>
                                     </div>
                                     <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">{order.channel} · {order.date} · {order.time} · {order.items} item</p>
-                                    {order.matching_item && <p className="mt-0.5 truncate text-[11px] text-blue-700 dark:text-blue-300">Barang: {order.matching_item}</p>}
+                                    {order.item_details?.length > 0 ? (
+                                        <div className="mt-1 text-[11px] text-slate-600 dark:text-slate-300">
+                                            {order.item_details.slice(0, 2).map((item, index) => (
+                                                <p key={index} className="truncate">{item.quantity}× {item.name}</p>
+                                            ))}
+                                            {order.item_details.length > 2 && <p className="text-slate-500 dark:text-slate-400">+{order.item_details.length - 2} barang lainnya</p>}
+                                        </div>
+                                    ) : <p className="mt-1 text-[11px] text-slate-500">Belum ada rincian barang</p>}
                                     <div className="mt-2 flex flex-wrap items-center gap-1.5" title={display.tooltip}>
                                         <span className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-bold ${display.primary.color}`}>
                                             <StatusIcon size={12} />{display.primary.label}
                                         </span>
                                         {display.secondary && <span className={`rounded-md px-1.5 py-0.5 text-[10px] font-bold ${display.secondary.color}`}>{display.secondary.label}</span>}
                                     </div>
-                                    <div className="mt-2 flex items-center gap-2 border-t border-slate-100 dark:border-slate-800 pt-2 text-xs font-bold">
-                                        <Link href={`/orders/${orderId}`} className="inline-flex items-center gap-1 text-blue-700 dark:text-blue-300">Detail <FiChevronRight size={14} /></Link>
-                                        <div className="ml-auto flex items-center gap-2">
+                                    <div className="mt-2 flex items-center justify-end gap-2 border-t border-slate-100 dark:border-slate-800 pt-2 text-xs font-bold">
+                                        <div className="relative z-20 flex items-center gap-2">
                                             {order.payment_status === 'unpaid' && order.status !== 'cancelled' && (
                                                 <button type="button" onClick={() => openPayment(order)} className="rounded-md bg-emerald-600 px-2.5 py-1.5 text-white">Konfirmasi Bayar</button>
                                             )}

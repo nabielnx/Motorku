@@ -29,8 +29,8 @@ class OrderResource extends JsonResource
             'order_status' => $this->order_status instanceof \BackedEnum ? $this->order_status->value : $this->order_status,
             'payment_status' => $this->payment_status instanceof \BackedEnum ? $this->payment_status->value : $this->payment_status,
             'payment_method' => $paymentMethod ?? 'cash',
-            'cashier' => new UserResource($this->whenLoaded('cashier')),
-            'items' => OrderItemResource::collection($this->whenLoaded('items')),
+            'cashier' => $this->whenLoaded('cashier', fn () => $this->cashier ? (new UserResource($this->cashier))->resolve($request) : null),
+            'items' => $this->whenLoaded('items', fn () => $this->items->map(fn ($item) => (new OrderItemResource($item))->resolve($request))->all()),
             'returns' => $this->whenLoaded('returns', fn () => $this->returns->map(fn ($return) => [
                 'id' => $return->id,
                 'order_item_id' => $return->order_item_id,
