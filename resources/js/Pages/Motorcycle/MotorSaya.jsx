@@ -391,60 +391,53 @@ export default function MotorSaya({
                                 )}
                             </div>
 
-                            {/* Section Toolbar: Kiri (Filter Merk & Tipe) | Pembatas Garis Tipis | Kanan (Kosong) */}
-                            <div className="flex items-stretch gap-2.5 sm:gap-3">
-                                {/* Sisi Kiri: Filter Merk & Tipe Motor */}
-                                <div className="flex-1 min-w-0 space-y-1.5 pr-2.5 sm:pr-3 border-r border-slate-200">
-                                    {/* Filter Merk Motor (Baris Atas: Semua, Honda, Kawasaki, Suzuki, Yamaha) */}
-                                    <div className="flex w-full gap-1 items-center">
-                                        {['semua', ...brands].map(brand => {
-                                            const isActive = activeBrand === brand;
-                                            const label = brand === 'semua' ? 'Semua' : brand;
-                                            return (
-                                                <button
-                                                    key={brand}
-                                                    type="button"
-                                                    onClick={() => {
-                                                        setActiveBrand(brand);
-                                                    }}
-                                                    className={clsx(
-                                                        'flex-1 min-w-0 py-1 px-1 rounded-lg text-[10.5px] sm:text-[11px] font-bold text-center transition-all border cursor-pointer truncate',
-                                                        isActive
-                                                            ? 'bg-[#4066AD] border-[#4066AD] text-white font-black shadow-xs'
-                                                            : 'bg-white border-slate-200/90 text-slate-700 hover:bg-slate-50 hover:border-slate-300 font-bold'
-                                                    )}
-                                                >
-                                                    {label}
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-
-                                    {/* Filter Tipe Motor (Baris Bawah: Semua, Matic, Bebek, Sport - Rounded & Kuning Aktif) */}
-                                    <div className="flex w-full gap-1 items-center">
-                                        {Object.entries(typeLabels).map(([type, label]) => {
-                                            const isActive = activeType === type;
-                                            return (
-                                                <button
-                                                    key={type}
-                                                    type="button"
-                                                    onClick={() => setActiveType(type)}
-                                                    className={clsx(
-                                                        'flex-1 min-w-0 py-0.5 px-1 rounded-full text-[10.5px] sm:text-[11px] font-bold text-center transition-all border cursor-pointer truncate',
-                                                        isActive
-                                                            ? 'bg-[#FFDD00] border-[#FFDD00] text-slate-950 font-black shadow-xs'
-                                                            : 'bg-white border-slate-200/90 text-slate-700 hover:bg-slate-50 hover:border-slate-300 font-bold'
-                                                    )}
-                                                >
-                                                    {label}
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
+                            <div className="space-y-1.5">
+                                {/* Filter Merk Motor (Baris Atas: Semua, Honda, Kawasaki, Suzuki, Yamaha) */}
+                                <div className="flex w-full gap-1 items-center">
+                                    {['semua', ...brands].map(brand => {
+                                        const isActive = activeBrand === brand;
+                                        const label = brand === 'semua' ? 'Semua' : brand;
+                                        return (
+                                            <button
+                                                key={brand}
+                                                type="button"
+                                                onClick={() => {
+                                                    setActiveBrand(brand);
+                                                }}
+                                                className={clsx(
+                                                    'flex-1 min-w-0 py-1 px-1 rounded-lg text-[10.5px] sm:text-[11px] font-bold text-center transition-all border cursor-pointer truncate',
+                                                    isActive
+                                                        ? 'bg-[#4066AD] border-[#4066AD] text-white font-black shadow-xs'
+                                                        : 'bg-white border-slate-200/90 text-slate-700 hover:bg-slate-50 hover:border-slate-300 font-bold'
+                                                )}
+                                            >
+                                                {label}
+                                            </button>
+                                        );
+                                    })}
                                 </div>
 
-                                {/* Sisi Kanan: Dikosongkan Sementara Sesuai Permintaan */}
-                                <div className="w-12 sm:w-16 shrink-0 flex items-center justify-center" aria-hidden="true" />
+                                {/* Filter Tipe Motor (Baris Bawah: Semua, Matic, Bebek, Sport - Rounded & Kuning Aktif) */}
+                                <div className="flex w-full gap-1 items-center">
+                                    {Object.entries(typeLabels).map(([type, label]) => {
+                                        const isActive = activeType === type;
+                                        return (
+                                            <button
+                                                key={type}
+                                                type="button"
+                                                onClick={() => setActiveType(type)}
+                                                className={clsx(
+                                                    'flex-1 min-w-0 py-0.5 px-1 rounded-full text-[10.5px] sm:text-[11px] font-bold text-center transition-all border cursor-pointer truncate',
+                                                    isActive
+                                                        ? 'bg-[#FFDD00] border-[#FFDD00] text-slate-950 font-black shadow-xs'
+                                                        : 'bg-white border-slate-200/90 text-slate-700 hover:bg-slate-50 hover:border-slate-300 font-bold'
+                                                )}
+                                            >
+                                                {label}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -854,13 +847,9 @@ export default function MotorSaya({
                                                                 </div>
                                                                 <span className={clsx(
                                                                     'text-[10px] font-bold shrink-0',
-                                                                    isOutOfStock
-                                                                        ? 'text-slate-400'
-                                                                        : item.stock <= 5
-                                                                            ? 'text-amber-600'
-                                                                            : 'text-emerald-600'
+                                                                    isOutOfStock ? 'text-slate-400' : 'text-emerald-600'
                                                                 )}>
-                                                                    {isOutOfStock ? 'Stok Habis' : `Stok: ${item.stock}`}
+                                                                    {isOutOfStock ? 'Stok Habis' : 'Tersedia'}
                                                                 </span>
                                                             </div>
                                                         </div>
@@ -982,7 +971,7 @@ export default function MotorSaya({
                                             </div>
                                         </div>
                                         <p className={clsx('mt-1.5 text-xs font-semibold', selectedDetailProduct.stock > 0 ? 'text-emerald-600' : 'text-rose-600')}>
-                                            {selectedDetailProduct.stock > 0 ? 'Tersedia ' + selectedDetailProduct.stock + ' pcs' : 'Stok habis'}
+                                            {selectedDetailProduct.stock > 0 ? 'Tersedia' : 'Stok habis'}
                                         </p>
                                         <div className="mt-5 border-t border-slate-100 pt-4">
                                             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">Tentang produk</h3>
