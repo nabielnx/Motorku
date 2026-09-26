@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
-import { FiBox, FiTool, FiShoppingBag, FiShoppingCart, FiSearch, FiX } from 'react-icons/fi';
+import { FiTool, FiShoppingBag, FiShoppingCart, FiSearch, FiX, FiDisc, FiDroplet, FiZap, FiShield, FiLayers, FiSun, FiSliders, FiCpu } from 'react-icons/fi';
 import clsx from 'clsx';
 import { getProductImage } from '@/Utils/productImage';
 import { RiMotorbikeFill } from 'react-icons/ri';
@@ -24,9 +24,28 @@ export function MotorIcon({ size = 22, className = "" }) {
     );
 }
 
-export function ProductPhoto({ src, name, className = '', compact = false }) {
+function categoryVisual(category = '') {
+    const name = String(category).toLowerCase();
+    if (['oli', 'cairan', 'coolant'].some(word => name.includes(word))) return { Icon: FiDroplet, label: 'Oli' };
+    if (['ban', 'roda', 'velg', 'shock'].some(word => name.includes(word))) return { Icon: FiDisc, label: 'Ban & roda' };
+    if (['rem', 'piringan'].some(word => name.includes(word))) return { Icon: FiShield, label: 'Rem' };
+    if (['cvt', 'belt', 'roller', 'gear', 'rantai'].some(word => name.includes(word))) return { Icon: FiLayers, label: 'CVT' };
+    if (['aki', 'busi', 'kiprok', 'ecu', 'starter'].some(word => name.includes(word))) return { Icon: FiZap, label: 'Kelistrikan' };
+    if (['lampu', 'saklar'].some(word => name.includes(word))) return { Icon: FiSun, label: 'Lampu' };
+    if (['filter', 'injektor', 'piston', 'mesin'].some(word => name.includes(word))) return { Icon: FiCpu, label: 'Mesin' };
+    if (['spion', 'handle', 'kabel'].some(word => name.includes(word))) return { Icon: FiSliders, label: 'Aksesori' };
+    return { Icon: FiTool, label: 'Sparepart' };
+}
+
+export function ProductCategoryIcon({ category, size = 14, className = '' }) {
+    const { Icon } = categoryVisual(category);
+    return <Icon size={size} className={className} aria-hidden="true" />;
+}
+
+export function ProductPhoto({ src, name, category, className = '', compact = false }) {
     const [failed, setFailed] = useState(false);
     useEffect(() => setFailed(false), [src]);
+    const { Icon, label } = categoryVisual(category || name);
 
     return (
         <div className={clsx('relative flex items-center justify-center overflow-hidden bg-slate-50/80 shrink-0', className)}>
@@ -35,9 +54,10 @@ export function ProductPhoto({ src, name, className = '', compact = false }) {
                     onError={() => setFailed(true)}
                     className="h-full w-full object-cover shrink-0 select-none pointer-events-none block" />
             ) : (
-                <div className="flex flex-col items-center justify-center gap-1 px-2 text-center text-slate-400 select-none">
-                    <FiBox size={compact ? 18 : 24} strokeWidth={1.5} className="text-slate-300" aria-hidden="true" />
-                    {!compact && <span className="text-[10px] font-medium tracking-tight text-slate-400">Belum ada foto</span>}
+                <div role="img" aria-label={`Foto ${name || label} belum tersedia`} className="flex flex-col items-center justify-center gap-1 px-1.5 text-center select-none min-w-0">
+                    <Icon size={compact ? 23 : 32} strokeWidth={1.5} className="text-slate-400" aria-hidden="true" />
+                    <span className="max-w-full truncate text-[10px] font-semibold text-slate-500">{label}</span>
+                    {!compact && <span className="text-[10px] text-slate-400">Foto belum ada</span>}
                 </div>
             )}
         </div>

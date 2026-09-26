@@ -20,19 +20,10 @@ import {
     FiMinus,
     FiCheck,
     FiX,
-    FiDisc,
-    FiDroplet,
-    FiZap,
-    FiShield,
-    FiLayers,
-    FiSun,
-    FiSliders,
     FiTool,
-    FiBox,
-    FiCpu,
     FiStar
 } from 'react-icons/fi';
-import { MotorIcon, ProductPhoto } from '@/Components/Customer/Storefront';
+import { MotorIcon, ProductPhoto, ProductCategoryIcon } from '@/Components/Customer/Storefront';
 import { fuzzyFilterProducts } from '@/Utils/fuzzySearch';
 
 function MotorImage({ src, alt, size = 28, className = 'w-full h-full object-contain' }) {
@@ -102,19 +93,6 @@ function saveCart(cart) {
         localStorage.setItem(CART_KEY, JSON.stringify(cart));
         localStorage.setItem(CART_KEY + '_time', Date.now().toString());
     } catch {}
-}
-
-function renderCategoryIcon(category = '') {
-    const cat = category.toLowerCase();
-    if (cat.includes('oli') || cat.includes('cairan') || cat.includes('coolant')) return <FiDroplet className="shrink-0" size={14} />;
-    if (cat.includes('ban') || cat.includes('roda') || cat.includes('velg') || cat.includes('shock')) return <FiDisc className="shrink-0" size={14} />;
-    if (cat.includes('rem') || cat.includes('piringan')) return <FiShield className="shrink-0" size={14} />;
-    if (cat.includes('cvt') || cat.includes('belt') || cat.includes('roller') || cat.includes('gear') || cat.includes('rantai')) return <FiLayers className="shrink-0" size={14} />;
-    if (cat.includes('aki') || cat.includes('busi') || cat.includes('kiprok') || cat.includes('ecu') || cat.includes('starter')) return <FiZap className="shrink-0" size={14} />;
-    if (cat.includes('lampu') || cat.includes('saklar')) return <FiSun className="shrink-0" size={14} />;
-    if (cat.includes('filter') || cat.includes('injektor') || cat.includes('piston') || cat.includes('mesin')) return <FiCpu className="shrink-0" size={14} />;
-    if (cat.includes('spion') || cat.includes('handle') || cat.includes('kabel')) return <FiSliders className="shrink-0" size={14} />;
-    return <FiTool className="shrink-0" size={14} />;
 }
 
 const motorYears = motor => motor.year_start
@@ -722,7 +700,7 @@ export default function MotorSaya({
                                         )}
                                     >
                                         <span className={isActive ? 'text-white' : 'text-slate-500'}>
-                                            {renderCategoryIcon(group.category)}
+                                            <ProductCategoryIcon category={group.category} className="shrink-0" />
                                         </span>
                                         <span>{group.category_label}</span>
                                     </button>
@@ -802,6 +780,7 @@ export default function MotorSaya({
                                                             <ProductPhoto
                                                                 src={item.image}
                                                                 name={item.name}
+                                                                category={item.category_name || group.category_label}
                                                                 compact
                                                                 className="h-full w-full"
                                                             />
@@ -938,6 +917,7 @@ export default function MotorSaya({
                                     <ProductPhoto
                                         src={selectedDetailProduct.image}
                                         name={selectedDetailProduct.name}
+                                        category={selectedDetailProduct.category_name || selectedDetailProduct.category}
                                         className="aspect-square w-full sm:aspect-auto sm:min-h-[340px]"
                                     />
                                     <div className="px-5 pb-6 pt-6 sm:px-7 sm:pt-10">
