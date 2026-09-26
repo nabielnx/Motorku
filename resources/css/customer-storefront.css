@@ -29,8 +29,10 @@
     appearance: textfield;
 }
 
-.customer-cart-bar {
-    padding-bottom: env(safe-area-inset-bottom, 0px);
+@media (max-width: 639px) {
+    .customer-cart-bar {
+        padding-bottom: max(1.25rem, env(safe-area-inset-bottom, 0px));
+    }
 }
 
 .perspective-1000 {
