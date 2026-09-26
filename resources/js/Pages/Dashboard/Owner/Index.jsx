@@ -146,17 +146,17 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                 <meta name="description" content="Ringkasan performa penjualan, total pendapatan, statistik pesanan, dan produk terlaris toko Motorku." />
             </Head>
 
-            {isNavigating ? <DashboardSkeleton /> : <div className="w-full grid grid-cols-12 gap-5 items-start">
+            {isNavigating ? <DashboardSkeleton /> : <div className="grid w-full grid-cols-12 items-start gap-3 sm:gap-5">
                 
                 {/* Header Filter Periode */}
-                <div className="col-span-12 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="col-span-12 flex flex-col justify-between gap-2 sm:flex-row sm:items-center sm:gap-3">
                     <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-white">Ringkasan Toko</h2>
-                    <div className="flex flex-wrap items-center gap-2">
+                    <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
                         {/* Preset Select Dropdown */}
                         <select 
                             value={currentPeriod === 'custom' ? '' : currentPeriod}
                             onChange={handlePeriodChange}
-                            className="w-full sm:w-auto border border-slate-200/90 dark:border-slate-700 rounded-xl px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-blue-500 focus:outline-none bg-slate-50 dark:bg-slate-800 cursor-pointer shadow-2xs"
+                            className="min-w-0 w-full sm:w-auto border border-slate-200/90 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-blue-500 focus:outline-none bg-slate-50 dark:bg-slate-800 cursor-pointer shadow-2xs sm:px-4"
                         >
                             <option value="" disabled hidden>Pilihan Cepat...</option>
                             <option value="today">Hari Ini</option>
@@ -177,44 +177,44 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                 </div>
 
                 {/* Kondisi saat ini dan penjualan pada periode terpilih */}
-                <div className="col-span-12 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-                    <Link href={route('orders.index')} className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-300 dark:border-slate-800 hover:border-amber-400 transition-colors">
+                <div className="col-span-12 grid grid-cols-2 gap-2 sm:gap-4 xl:grid-cols-4">
+                    <Link href={route('orders.index')} className="bg-white dark:bg-slate-900 p-3 sm:p-4 rounded-xl border border-slate-300 dark:border-slate-800 hover:border-amber-400 transition-colors">
                         <div className="flex items-start justify-between gap-2">
                             <div>
-                                <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Antrean saat ini</p>
-                                <h3 className="text-2xl font-black text-slate-900 dark:text-white mt-1">{pendingOrders}</h3>
+                                <p className="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Antrean saat ini</p>
+                                <h3 className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white mt-1">{pendingOrders}</h3>
                             </div>
-                            <FiClock className="text-blue-600 shrink-0" size={20} />
+                            <FiClock className="hidden text-blue-600 shrink-0 sm:block" size={18} />
                         </div>
                     </Link>
 
-                    <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-300 dark:border-slate-800" title="Pembayaran pada periode terpilih setelah retur">
+                    <div className="bg-white dark:bg-slate-900 p-3 sm:p-4 rounded-xl border border-slate-300 dark:border-slate-800" title="Pembayaran pada periode terpilih setelah retur">
                         <div className="flex items-start justify-between gap-2">
                             <div>
-                                <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Penjualan bersih</p>
-                                <h3 className="text-2xl font-black text-slate-900 dark:text-white mt-1">{formatRp(revenueToday)}</h3>
+                                <p className="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Penjualan bersih</p>
+                                <h3 className="text-base sm:text-2xl font-black tracking-tight text-slate-900 dark:text-white mt-1">{formatRp(revenueToday)}</h3>
                             </div>
-                            <FiDollarSign className="text-blue-600 shrink-0" size={20} />
+                            <FiDollarSign className="hidden text-blue-600 shrink-0 sm:block" size={18} />
                         </div>
                     </div>
 
-                    <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-300 dark:border-slate-800">
+                    <div className="bg-white dark:bg-slate-900 p-3 sm:p-4 rounded-xl border border-slate-300 dark:border-slate-800">
                         <div className="flex items-start justify-between gap-2">
                             <div>
-                                <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Transaksi lunas</p>
-                                <h3 className="text-2xl font-black text-slate-900 dark:text-white mt-1">{ordersToday}</h3>
+                                <p className="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Transaksi lunas</p>
+                                <h3 className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white mt-1">{ordersToday}</h3>
                             </div>
-                            <FiShoppingBag className="text-blue-600 shrink-0" size={20} />
+                            <FiShoppingBag className="hidden text-blue-600 shrink-0 sm:block" size={18} />
                         </div>
                     </div>
 
-                    <Link href={route('products.index')} className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-300 dark:border-slate-800 hover:border-amber-400 transition-colors">
+                    <Link href={route('products.index')} className="bg-white dark:bg-slate-900 p-3 sm:p-4 rounded-xl border border-slate-300 dark:border-slate-800 hover:border-amber-400 transition-colors">
                         <div className="flex items-start justify-between gap-2">
                             <div>
-                                <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Stok perlu dicek</p>
-                                <h3 className="text-2xl font-black text-slate-900 dark:text-white mt-1">{lowStockAlerts.length}</h3>
+                                <p className="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Stok perlu dicek</p>
+                                <h3 className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white mt-1">{lowStockAlerts.length}</h3>
                             </div>
-                            <FiPackage className={lowStockAlerts.length > 0 ? 'text-accentYellow shrink-0' : 'text-slate-400 shrink-0'} size={20} />
+                            <FiPackage className={`hidden shrink-0 sm:block ${lowStockAlerts.length > 0 ? 'text-accentYellow' : 'text-slate-400'}`} size={18} />
                         </div>
                     </Link>
                 </div>
@@ -383,8 +383,24 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                         </Link>
                     </div>
 
+                    <div className="divide-y divide-slate-100 dark:divide-slate-800 sm:hidden">
+                        {paginatedOrders.length > 0 ? paginatedOrders.map((ord) => (
+                            <div key={ord.id} className="flex items-start justify-between gap-3 px-4 py-3 text-xs">
+                                <div className="min-w-0">
+                                    <p className="truncate font-mono font-bold text-slate-900 dark:text-white">{formatInvoiceNumber(ord)}</p>
+                                    <p className="mt-0.5 truncate text-slate-600 dark:text-slate-300">{ord.customer_name || 'Pelanggan Umum'}</p>
+                                    <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">{ord.created_at ? new Date(ord.created_at).toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' }) : '-'}</p>
+                                </div>
+                                <div className="shrink-0 text-right">
+                                    <p className="font-bold text-slate-900 dark:text-white">{formatRp(Number(ord.total || 0))}</p>
+                                    <p className={`mt-1 text-[11px] font-semibold ${ord.payment_status === 'paid' ? 'text-emerald-700 dark:text-emerald-400' : ord.payment_status === 'refunded' ? 'text-slate-600 dark:text-slate-400' : 'text-amber-700 dark:text-amber-400'}`}>{ord.payment_status === 'paid' ? 'Lunas' : ord.payment_status === 'refunded' ? 'Dikembalikan' : 'Belum lunas'}</p>
+                                </div>
+                            </div>
+                        )) : <p className="px-4 py-8 text-center text-xs font-semibold text-slate-500">Belum ada pesanan {periodLabel.toLowerCase()}.</p>}
+                    </div>
+
                     {/* Table Container with Internal Scroll */}
-                    <div className="max-h-[320px] overflow-auto">
+                    <div className="hidden max-h-[320px] overflow-auto sm:block">
                         <table className="w-full min-w-[650px] text-left text-xs">
                             <thead className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-[10px] uppercase border-b border-slate-200 dark:border-slate-800 sticky top-0 z-10">
                                 <tr>
@@ -446,11 +462,12 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                             <div className="flex items-center space-x-1.5">
                                 <button
                                     onClick={() => fetchOrdersPage(currentPage - 1)}
+                                    aria-label="Halaman pesanan sebelumnya"
                                     disabled={currentPage === 1 || isFetchingOrders}
                                     className="px-3 py-1 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 disabled:hover:bg-white border border-slate-300 dark:border-slate-700 rounded-lg font-bold text-slate-700 dark:text-slate-200 transition flex items-center gap-1 shadow-2xs"
                                 >
                                     <FiChevronLeft size={14} strokeWidth={2.5} />
-                                    <span>Sebelumnya</span>
+                                    <span className="hidden sm:inline">Sebelumnya</span>
                                 </button>
                                 
                                 <span className="px-3 py-1 bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg font-bold text-slate-800 dark:text-slate-200 text-[11px]">
@@ -459,10 +476,11 @@ export default function Dashboard({ stats = {}, filters = {} }) {
 
                                 <button
                                     onClick={() => fetchOrdersPage(currentPage + 1)}
+                                    aria-label="Halaman pesanan berikutnya"
                                     disabled={currentPage === totalPages || isFetchingOrders}
                                     className="px-3 py-1 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 disabled:hover:bg-white border border-slate-300 dark:border-slate-700 rounded-lg font-bold text-slate-700 dark:text-slate-200 transition flex items-center gap-1 shadow-2xs"
                                 >
-                                    <span>Selanjutnya</span>
+                                    <span className="hidden sm:inline">Selanjutnya</span>
                                     <FiChevronRight size={14} strokeWidth={2.5} />
                                 </button>
                             </div>
