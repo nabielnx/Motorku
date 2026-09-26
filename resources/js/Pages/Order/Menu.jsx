@@ -647,7 +647,7 @@ export default function CustomerMenu({
                                             </div>
                                         </div>
                                         <p className={clsx('mt-1.5 text-xs font-semibold', selectedDetailProduct.stock > 0 ? 'text-emerald-600' : 'text-rose-600')}>
-                                            {selectedDetailProduct.stock > 0 ? 'Tersedia ' + selectedDetailProduct.stock + ' pcs' : 'Stok habis'}
+                                            {selectedDetailProduct.stock > 0 ? 'Tersedia' : 'Stok habis'}
                                         </p>
                                         {showTotalSold && selectedDetailProduct.total_sold > 0 && <p className="mt-1 text-xs text-slate-400">{selectedDetailProduct.total_sold} terjual</p>}
                                         <div className="mt-5 border-t border-slate-100 pt-4">
