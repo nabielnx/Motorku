@@ -298,7 +298,7 @@ export default function CustomerMenu({
                 )}>
                 <div>
                     <div className="relative block w-full overflow-hidden text-left bg-slate-50/80">
-                        <ProductPhoto src={item.image} name={item.name} compact className="aspect-square w-full transition-transform group-hover:scale-102" />
+                        <ProductPhoto src={item.image} name={item.name} category={item.category} compact className="aspect-square w-full transition-transform group-hover:scale-102" />
                         {outOfStock && (
                             <div className="absolute inset-0 bg-white/70 backdrop-blur-[1px] flex items-center justify-center">
                                 <span className="rounded bg-slate-800/85 px-1.5 py-0.5 text-[9px] font-bold text-white shadow-xs">
@@ -551,26 +551,26 @@ export default function CustomerMenu({
                 <div className="fixed inset-0 flex justify-end">
                     <DialogPanel className="flex h-full w-full max-w-md flex-col bg-white text-slate-900 shadow-2xl">
                         <div className="flex items-center justify-between border-b border-slate-200/80 px-5 py-3.5 sm:px-6">
-                            <div className="flex items-center gap-3">
-                                <DialogTitle className="text-base sm:text-lg font-bold text-slate-900">Keranjang <span className="ml-1 text-sm font-normal text-slate-500">({totalQty})</span></DialogTitle>
+                            <DialogTitle className="text-base sm:text-lg font-bold text-slate-900">Keranjang <span className="ml-1 text-sm font-normal text-slate-500">({totalQty})</span></DialogTitle>
+                            <div className="flex items-center gap-2">
                                 {cart.length > 0 && (
                                     <button
                                         type="button"
                                         onClick={clearCart}
-                                        className="text-xs text-red-500 hover:text-red-700 font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                                        className="flex h-9 w-9 items-center justify-center rounded-full text-slate-400 hover:bg-red-50 hover:text-red-600 transition-colors cursor-pointer"
                                         title="Kosongkan keranjang"
+                                        aria-label="Kosongkan keranjang"
                                     >
-                                        <FiTrash2 size={13} />
-                                        <span>Kosongkan</span>
+                                        <FiTrash2 size={16} />
                                     </button>
                                 )}
+                                <button type="button" onClick={() => setShowCart(false)} className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors" aria-label="Tutup keranjang"><FiX size={17} /></button>
                             </div>
-                            <button type="button" onClick={() => setShowCart(false)} className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors" aria-label="Tutup keranjang"><FiX size={17} /></button>
                         </div>
                         <div className="min-h-0 flex-1 overflow-y-auto px-5 sm:px-6">
                             {cart.length ? cart.map(item => (
                                 <div key={item.cartItemId} className="flex gap-4 border-b border-slate-100 py-4">
-                                    <ProductPhoto src={item.image} name={item.name} compact className="h-16 w-16 sm:h-[70px] sm:w-[70px] shrink-0 rounded-xl border border-slate-100 bg-slate-50 overflow-hidden" />
+                                    <ProductPhoto src={item.image} name={item.name} category={item.category} compact className="h-16 w-16 sm:h-[70px] sm:w-[70px] shrink-0 rounded-xl border border-slate-100 bg-slate-50 overflow-hidden" />
                                     <div className="min-w-0 flex-1">
                                         <p className="text-xs sm:text-sm font-bold text-slate-900 leading-snug">{item.name}</p>
                                         <p className="mt-0.5 text-xs text-slate-400">{formatRp(item.price)} / pcs</p>
@@ -626,7 +626,7 @@ export default function CustomerMenu({
                                     className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white/90 backdrop-blur-xs text-slate-600 hover:text-slate-900 transition-colors shadow-2xs cursor-pointer"
                                     aria-label="Tutup detail produk"><FiX size={17} /></button>
                                 <div className="grid sm:grid-cols-2">
-                                    <ProductPhoto src={selectedDetailProduct.image} name={selectedDetailProduct.name}
+                                    <ProductPhoto src={selectedDetailProduct.image} name={selectedDetailProduct.name} category={selectedDetailProduct.category}
                                         className="aspect-square w-full sm:aspect-auto sm:min-h-[340px]" />
                                     <div className="px-5 pb-6 pt-6 sm:px-7 sm:pt-10">
                                         <div className="flex items-center gap-2">

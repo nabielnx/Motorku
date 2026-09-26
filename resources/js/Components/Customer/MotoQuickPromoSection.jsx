@@ -198,6 +198,7 @@ export default function MotoQuickPromoSection({
                                     <ProductPhoto
                                         src={item.image}
                                         name={item.name}
+                                        category={item.category}
                                         compact
                                         className="aspect-square w-full transition-transform group-hover:scale-102"
                                     />
