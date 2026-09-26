@@ -128,24 +128,27 @@ export default function DateRangePicker({ initialStart = '', initialEnd = '', on
         : 'Rentang Tanggal...';
 
     return (
-        <div className="relative inline-block text-left" ref={containerRef}>
+        <div className="relative w-full text-left sm:w-auto" ref={containerRef}>
             {/* Outer Button */}
             <button
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
-                className={`flex items-center gap-2 border rounded-xl px-3.5 py-2 text-xs font-bold transition shadow-2xs ${
+                className={`flex w-full items-center gap-2 border rounded-xl px-3 py-2 text-xs font-bold transition shadow-2xs sm:w-auto sm:px-3.5 ${
                     isCustomActive
                         ? 'bg-blue-50 dark:bg-blue-950/60 border-blue-300 dark:border-blue-800 text-blue-700 dark:text-blue-300 hover:bg-blue-100'
                         : 'bg-white dark:bg-slate-800 border-slate-200/90 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-750'
                 }`}
             >
                 <FiCalendar className={isCustomActive ? 'text-blue-600 dark:text-yellow-400' : 'text-slate-400 dark:text-slate-500'} size={15} />
-                <span>{activeLabel}</span>
+                <span className="truncate sm:hidden">{isCustomActive ? 'Rentang khusus' : 'Pilih tanggal'}</span>
+                <span className="hidden sm:inline">{activeLabel}</span>
             </button>
 
             {/* Popover Calendar Modal */}
             {isOpen && (
-                <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xl p-4 z-50 animate-in fade-in zoom-in-95 duration-150 text-slate-800 dark:text-slate-100">
+                <>
+                <button type="button" aria-label="Tutup pemilih tanggal" onClick={() => setIsOpen(false)} className="fixed inset-0 z-40 bg-slate-950/40 sm:hidden" />
+                <div className="fixed left-4 right-4 top-1/2 z-50 mx-auto max-h-[calc(100dvh-2rem)] max-w-sm -translate-y-1/2 overflow-y-auto rounded-2xl border border-slate-200 bg-white p-3 text-slate-800 shadow-xl dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 sm:absolute sm:left-auto sm:right-0 sm:top-auto sm:mx-0 sm:mt-2 sm:w-80 sm:translate-y-0 sm:p-4">
                     
                     {/* Popover Header */}
                     <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
@@ -257,6 +260,7 @@ export default function DateRangePicker({ initialStart = '', initialEnd = '', on
                     </div>
 
                 </div>
+                </>
             )}
         </div>
     );
