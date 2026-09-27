@@ -54,7 +54,7 @@ function CardSkeleton({ isGrid = false }) {
  * @param {boolean} isGrid - Grid view flag for partial rendering.
  * @param {number} count - Total items for grid view.
  */
-export default function MenuSkeleton({ fullPage = true, isGrid = false, count = 10 }) {
+export default function MenuSkeleton({ fullPage = true, isGrid = false, showPromo = true, count = 10 }) {
     if (!fullPage) {
         return (
             <SkeletonWrapper className="w-full">
@@ -96,7 +96,7 @@ export default function MenuSkeleton({ fullPage = true, isGrid = false, count = 
             </div>
 
             {/* ═══ 1. STORE HEADER ═══ */}
-            <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white shadow-2xs overflow-hidden relative">
+            <header className="sticky top-0 z-30 border-b-[3px] border-[#FFDD00] bg-white shadow-2xs overflow-hidden relative">
                 <div className="mx-auto flex min-h-[54px] max-w-[1280px] items-center justify-between gap-2 px-3.5 sm:min-h-[62px] sm:gap-4 sm:px-6 lg:px-8 relative z-10">
                     {/* Logo & Store Name Placeholder */}
                     <div className="flex shrink-0 items-center gap-2.5">
@@ -111,7 +111,7 @@ export default function MenuSkeleton({ fullPage = true, isGrid = false, count = 
                     </div>
 
                     {/* Search Bar Placeholder */}
-                    <div className="flex-1 max-w-md px-1">
+                    <div className="relative flex shrink-0 items-center justify-end w-[196px] max-w-[calc(100vw-145px)] sm:max-w-none sm:w-[232px] md:w-[264px] lg:w-[296px] xl:w-[480px] h-9">
                         <div className="h-8.5 sm:h-9 w-full rounded-full bg-slate-100 border border-slate-200/80 shadow-2xs flex items-center px-3.5 gap-2">
                             <Skeleton variant="circle" className="w-3.5 h-3.5 shrink-0" />
                             <Skeleton className="h-3 w-32 rounded" />
@@ -127,7 +127,7 @@ export default function MenuSkeleton({ fullPage = true, isGrid = false, count = 
             </header>
 
             {/* ═══ 2. MOTOR SAYA BANNER ═══ */}
-            <section className="w-full bg-slate-100 border-b border-slate-200/80 rounded-b-[36px] sm:rounded-b-[48px] shadow-2xs mb-3.5 sm:mb-4.5 overflow-hidden">
+            <section className="w-full bg-[#FFDD00] rounded-b-[36px] sm:rounded-b-[48px] shadow-2xs mb-3.5 sm:mb-4.5 overflow-hidden">
                 <div className="mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8 py-3 sm:py-3.5">
                     <div className="flex items-center gap-3 sm:gap-4 pl-3 sm:pl-4 md:pl-5 pr-3.5 sm:pr-5 md:pr-6">
                         <Skeleton className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl shrink-0" />
@@ -143,7 +143,7 @@ export default function MenuSkeleton({ fullPage = true, isGrid = false, count = 
             {/* ═══ 3. MAIN STOREFRONT CONTENT ═══ */}
             <div className="mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8 pb-12">
                 {/* Promo Banner Section */}
-                <section className="pb-3">
+                {showPromo && <section className="pb-1">
                     <div className="relative rounded-2xl sm:rounded-3xl bg-slate-100 border border-slate-200/80 overflow-hidden p-2.5 sm:p-3 shadow-2xs">
                         <div className="flex items-stretch gap-2.5">
                             {/* Left Promo Graphic */}
@@ -162,13 +162,13 @@ export default function MenuSkeleton({ fullPage = true, isGrid = false, count = 
                             </div>
                         </div>
                     </div>
-                </section>
+                </section>}
 
                 {/* ═══ 4. RESPONSIVE LAYOUT (Desktop Sidebar + Main Products) ═══ */}
                 <div className="grid grid-cols-1 gap-y-2.5 lg:grid-cols-[210px_minmax(0,1fr)] lg:gap-x-9 lg:gap-y-0">
                     {/* Desktop Category Sidebar */}
-                    <aside className="min-w-0 hidden lg:block">
-                        <div className="sticky top-24 space-y-2">
+                    <aside className="min-w-0 lg:col-start-1">
+                        <div className="hidden lg:block sticky top-24 space-y-2">
                             <Skeleton className="h-9 w-full rounded-xl" />
                             <Skeleton className="h-9 w-full rounded-xl" />
                             <Skeleton className="h-9 w-full rounded-xl" />
@@ -189,6 +189,7 @@ export default function MenuSkeleton({ fullPage = true, isGrid = false, count = 
 
                     {/* Main Products Shelves */}
                     <main className="min-w-0 lg:col-start-2 space-y-6">
+                        {isGrid ? <div className="grid grid-cols-3 gap-2 sm:gap-2.5 md:grid-cols-4 lg:grid-cols-5 pb-4">{Array.from({ length: count }).map((_, i) => <CardSkeleton key={i} isGrid />)}</div> : <>
                         {/* Shelf 1 */}
                         <section>
                             <div className="mb-2 flex items-center justify-between">
@@ -216,6 +217,7 @@ export default function MenuSkeleton({ fullPage = true, isGrid = false, count = 
                                 <CardSkeleton isGrid={false} />
                             </div>
                         </section>
+                        </>}
                     </main>
                 </div>
             </div>

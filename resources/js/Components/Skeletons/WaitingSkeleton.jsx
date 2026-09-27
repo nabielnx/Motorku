@@ -1,8 +1,5 @@
 import Skeleton, { SkeletonWrapper } from '@/Components/Skeleton';
 
-/**
- * Order waiting/confirmation skeleton — matches Order/Waiting page layout 1:1.
- */
 export default function WaitingSkeleton() {
     return (
         <SkeletonWrapper className="h-full w-full bg-slate-100 font-sans text-slate-800 flex justify-center overflow-y-auto min-h-screen">
@@ -91,11 +88,10 @@ export default function WaitingSkeleton() {
                     </div>
                 </div>
 
-                {/* ═══ ACTION BUTTONS ═══ */}
-                <div className="w-full space-y-2.5 pt-2">
-                    <Skeleton className="h-11 w-full rounded-xl" />
-                    <Skeleton className="h-10 w-full rounded-xl" />
-                </div>
+                {/* Unpaid orders can be cancelled; navigation remains below the status. */}
+                <Skeleton className="h-10 w-full rounded-xl" />
+                <Skeleton className="h-11 w-full rounded-xl" />
+                <Skeleton className="h-3 w-28" />
             </div>
         </SkeletonWrapper>
     );

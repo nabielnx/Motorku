@@ -2,23 +2,22 @@ import Skeleton from '@/Components/Skeleton';
 
 /**
  * User table skeleton — matches User/Index layout.
- * When fullPage is true (cross-page navigation), renders Card 1 + Card 2.
- * When fullPage is false (in-page filter/search), renders only Card 2 so Card 1 remains mounted.
+ * Full-page navigation includes the plain page heading; in-page navigation keeps it mounted.
  */
 export default function UserTableSkeleton({ rows = 5, fullPage = false }) {
     const tableCard = (
-        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200/80 dark:border-slate-800 overflow-hidden transition-colors">
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden transition-colors">
             {/* Filter Role Bar */}
-            <div className="p-4 bg-slate-50/60 dark:bg-slate-800/60 border-b border-slate-100 dark:border-slate-800 flex items-center gap-2">
-                <span className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase">Filter Role:</span>
-                <Skeleton className="h-6 w-16 rounded-lg" />
-                <Skeleton className="h-6 w-16 rounded-lg" />
-                <Skeleton className="h-6 w-16 rounded-lg" />
+            <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-800 flex flex-wrap items-center gap-2">
+                <Skeleton className="h-3 w-10 mr-1" />
+                <Skeleton className="h-7 w-16 rounded-md" />
+                <Skeleton className="h-7 w-16 rounded-md" />
+                <Skeleton className="h-7 w-16 rounded-md" />
             </div>
 
             {/* Table */}
-            <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-400px)] no-scrollbar">
-                <table className="w-full text-left">
+            <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-300px)] no-scrollbar">
+                <table className="w-full min-w-[640px] text-left">
                     <thead>
                         <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-400 dark:text-slate-500 font-bold text-xs uppercase sticky top-0 z-10 bg-slate-50/60 dark:bg-slate-800/90">
                             <th className="py-3.5 px-5 bg-slate-50/60 dark:bg-slate-800/90">Pegawai</th>
@@ -48,7 +47,7 @@ export default function UserTableSkeleton({ rows = 5, fullPage = false }) {
 
                                 {/* Status Akun Badge */}
                                 <td className="py-4 px-5">
-                                    <Skeleton className="h-6 w-20 rounded-md" />
+                                    <Skeleton className="h-4 w-16" />
                                 </td>
 
                                 {/* Aksi Buttons */}
@@ -81,20 +80,18 @@ export default function UserTableSkeleton({ rows = 5, fullPage = false }) {
     }
 
     return (
-        <div className="max-w-7xl mx-auto space-y-6">
-            {/* Card 1: Header + Search + Button */}
-            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200/80 dark:border-slate-800 p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 transition-colors">
+        <div className="space-y-4" aria-busy="true" aria-label="Memuat daftar staf">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                 <div>
-                    <Skeleton className="h-5 w-48" />
-                    <Skeleton className="h-3 w-72 mt-1.5" />
+                    <Skeleton className="h-5 w-32" />
+                    <Skeleton className="h-3 w-40 mt-1.5" />
                 </div>
-                <div className="flex items-center gap-3 w-full sm:w-auto">
-                    <Skeleton className="h-9 w-full sm:w-64 rounded-xl" />
-                    <Skeleton className="h-9 w-36 rounded-xl" />
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+                    <Skeleton className="h-9 w-full sm:w-64 rounded-lg" />
+                    <Skeleton className="h-9 w-full sm:w-36 rounded-lg" />
                 </div>
             </div>
 
-            {/* Card 2: Table Card */}
             {tableCard}
         </div>
     );
