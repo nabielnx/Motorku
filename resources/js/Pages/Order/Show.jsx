@@ -72,7 +72,7 @@ export default function OrderShow({ order: initialOrder }) {
                 <meta name="description" content={`Detail rincian transaksi dan status pesanan ${order.order_number} di Motorku.`} />
             </Head>
             <div className="max-w-4xl mx-auto space-y-6">
-                <Link href="/orders" className="inline-flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-blue-600 transition-colors">
+                <Link href="/orders" className="inline-flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-slate-900 transition-colors">
                     <FiArrowLeft size={16} />
                     Kembali ke Pesanan
                 </Link>
@@ -80,10 +80,10 @@ export default function OrderShow({ order: initialOrder }) {
                 <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm">
                     <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
                         <div>
-                            <h3 className="text-2xl font-black text-slate-900">{order.order_number}</h3>
+                            <h3 className="text-2xl font-black text-primaryDark">{order.order_number}</h3>
                             <div className="flex flex-wrap items-center gap-3 mt-2">
                                 <span className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500"><FiUser size={13} /> {order.customer_name || 'Walk-in'}</span>
-                                <span className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md"><FiMapPin size={13} /> Ambil di Toko</span>
+                                <span className="inline-flex items-center gap-1.5 text-xs font-bold text-primaryDark"><FiMapPin size={13} /> Ambil di Toko</span>
                                 <span className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-400"><FiClock size={13} /> {order.created_at ? new Date(order.created_at).toLocaleString('id-ID') : '-'}</span>
                             </div>
                         </div>
@@ -92,10 +92,10 @@ export default function OrderShow({ order: initialOrder }) {
                                 order.payment_status === 'paid' ? 'bg-emerald-600 text-white' : order.payment_status === 'refunded' ? 'bg-slate-600 text-white' : 'bg-amber-500 text-white'
                             }`}>{order.payment_status === 'refunded' ? 'RETUR PENUH' : order.payment_status === 'paid' ? 'LUNAS' : 'BELUM BAYAR'}</span>
                             <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black uppercase shadow-2xs ${
-                                order.order_status === 'completed' ? 'bg-blue-600 text-white' :
+                                order.order_status === 'completed' ? 'bg-primary text-white' :
                                 order.order_status === 'cancelled' ? 'bg-rose-600 text-white' : 
                                 order.order_status === 'ready' ? 'bg-emerald-600 text-white' :
-                                'bg-yellow-400 text-white'
+                                'bg-accentYellow text-primaryDark'
                             }`}>{order.order_status}</span>
                         </div>
                     </div>
@@ -104,7 +104,7 @@ export default function OrderShow({ order: initialOrder }) {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
                         <div className="p-5 border-b border-slate-100">
-                            <h4 className="font-black text-slate-900">Rincian Barang</h4>
+                            <h4 className="font-black text-primaryDark">Rincian Barang</h4>
                         </div>
                         {order.items?.length > 0 && (
                             <div className="divide-y divide-slate-100">
@@ -127,7 +127,7 @@ export default function OrderShow({ order: initialOrder }) {
                             </div>
                         )}
                         {returningItem && (
-                            <div className="p-5 border-t border-slate-200 bg-blue-50 space-y-3">
+                            <div className="p-5 border-t-2 border-accentYellow bg-white space-y-3">
                                 <p className="text-sm font-bold">Retur: {returningItem.product_name}</p>
                                 <label className="block text-xs font-semibold">Jumlah (maks. {returningItem.quantity - returnedQty(returningItem.id)})
                                     <input type="number" min="1" max={returningItem.quantity - returnedQty(returningItem.id)} value={returnQty} onChange={e => setReturnQty(e.target.value)} className="mt-1 w-full rounded border-slate-300" />
@@ -145,7 +145,7 @@ export default function OrderShow({ order: initialOrder }) {
                                 </label>}
                                 <label className="flex gap-2 text-xs"><input type="checkbox" checked={refundConfirmed} onChange={e => setRefundConfirmed(e.target.checked)} /> Saya sudah mengembalikan uang {refundMethod === 'cash' ? 'tunai' : 'melalui transfer'} kepada pelanggan</label>
                                 <div className="flex gap-2">
-                                    <button type="button" disabled={savingReturn || !returnReason.trim() || !refundConfirmed || Number(returnQty) < 1 || Number(returnQty) > returningItem.quantity - returnedQty(returningItem.id)} onClick={submitReturn} className="rounded bg-blue-600 px-3 py-2 text-xs font-bold text-white disabled:opacity-40">{savingReturn ? 'Menyimpan...' : 'Catat Retur'}</button>
+                                    <button type="button" disabled={savingReturn || !returnReason.trim() || !refundConfirmed || Number(returnQty) < 1 || Number(returnQty) > returningItem.quantity - returnedQty(returningItem.id)} onClick={submitReturn} className="rounded bg-primary px-3 py-2 text-xs font-bold text-white disabled:opacity-40">{savingReturn ? 'Menyimpan...' : 'Catat Retur'}</button>
                                     <button type="button" disabled={savingReturn} onClick={() => { setReturningItem(null); returnRequestId.current = null; }} className="text-xs">Batal</button>
                                 </div>
                             </div>
@@ -169,7 +169,7 @@ export default function OrderShow({ order: initialOrder }) {
                     </div>
 
                     <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm h-fit">
-                        <h4 className="font-black text-slate-900 mb-5">Status Timeline</h4>
+                        <h4 className="font-black text-primaryDark mb-5">Status Timeline</h4>
                         <div className="space-y-0">
                             {statusTimeline.map((step, idx) => (
                                 <div key={idx} className="flex gap-3">

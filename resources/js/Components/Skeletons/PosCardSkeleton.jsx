@@ -10,9 +10,15 @@ export default function PosCardSkeleton({ count = 8, mode = 'list' }) {
                     className={`flex border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900 ${isGrid ? 'flex-col rounded-xl overflow-hidden' : 'items-center gap-3 rounded-xl p-2.5'}`}
                 >
                     <Skeleton className={`${isGrid ? 'aspect-square w-full rounded-none' : 'h-14 w-14 shrink-0 rounded-lg'}`} />
-                    <div className={`min-w-0 flex-1 space-y-2 ${isGrid ? 'p-2.5' : ''}`}>
-                        <Skeleton className="h-4 w-3/5" />
-                        <Skeleton className="h-3 w-2/5" />
+                    <div className={`min-w-0 flex-1 ${isGrid ? 'w-full p-2.5' : ''}`}>
+                        <div className={`${isGrid ? 'space-y-1' : 'flex items-start justify-between gap-3'}`}>
+                            <Skeleton className="h-4 w-3/5" />
+                            <Skeleton className="h-4 w-16 shrink-0" />
+                        </div>
+                        <div className="mt-2 flex items-center justify-between gap-2">
+                            <Skeleton className="h-3 w-2/5" />
+                            {!isGrid && <Skeleton className="h-3 w-12" />}
+                        </div>
                     </div>
                 </div>
             ))}

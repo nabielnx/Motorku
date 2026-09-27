@@ -41,7 +41,21 @@ class SettingController extends Controller implements HasMiddleware
 
     public function indexWeb()
     {
-        return Inertia::render('Setting/Index');
+        $settings = Setting::all(['group', 'key', 'value'])->mapWithKeys(fn ($setting) => [
+            $setting->group.'_'.$setting->key => $setting->value,
+        ]);
+        $imageUrl = fn (string $key) => ($path = $settings->get('store_'.$key))
+            ? Storage::url($path)
+            : null;
+
+        return Inertia::render('Setting/Index', [
+            'initialSettings' => $settings,
+            'logoUrl' => $imageUrl('logo'),
+            'qrisUrl' => $imageUrl('qris_image'),
+            'bannerUrls' => collect(range(1, 3))->mapWithKeys(fn ($slot) => [
+                $slot => $imageUrl('promo_banner_'.$slot),
+            ]),
+        ]);
     }
 
     public function index(): JsonResponse

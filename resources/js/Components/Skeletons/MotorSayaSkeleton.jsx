@@ -24,9 +24,7 @@ function MotorcycleCardSkeleton() {
                 </div>
             </div>
             {/* Bottom "Lihat sparepart >" bar placeholder */}
-            <div className="px-2 pb-2">
-                <Skeleton className="h-5 sm:h-6 w-full rounded-lg" />
-            </div>
+            <Skeleton className="h-8 w-full !rounded-none" />
         </div>
     );
 }
@@ -101,7 +99,7 @@ export function MotorcycleSelectionSkeleton() {
                 {/* STICKY TOP CONTAINER */}
                 <div className="sticky top-0 z-30 bg-white shadow-2xs">
                     {/* Header */}
-                    <header className="relative bg-white border-b border-slate-200/80 shadow-2xs overflow-hidden">
+                    <header className="relative bg-white border-b-[3px] border-[#FFDD00] shadow-2xs overflow-hidden">
                         <div className="flex items-center justify-between min-h-[52px] sm:min-h-[58px] px-3.5 sm:px-5 gap-3">
                             <div className="flex items-center gap-2.5 min-w-0">
                                 <Skeleton className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg shrink-0" />
@@ -126,8 +124,7 @@ export function MotorcycleSelectionSkeleton() {
                         </div>
 
                         {/* Filter Toolbar: Brand & Type Pills */}
-                        <div className="flex items-stretch gap-2.5 sm:gap-3">
-                            <div className="flex-1 min-w-0 space-y-1.5 pr-2.5 sm:pr-3 border-r border-slate-200">
+                        <div className="space-y-1.5">
                                 {/* Brand Pills (Semua, Honda, Kawasaki, Suzuki, Yamaha) */}
                                 <div className="flex w-full gap-1 items-center">
                                     <Skeleton className="h-6 sm:h-7 flex-1 rounded-lg" />
@@ -143,8 +140,6 @@ export function MotorcycleSelectionSkeleton() {
                                     <Skeleton className="h-5 sm:h-6 flex-1 rounded-full" />
                                     <Skeleton className="h-5 sm:h-6 flex-1 rounded-full" />
                                 </div>
-                            </div>
-                            <div className="w-12 sm:w-16 shrink-0" />
                         </div>
                     </div>
                 </div>
@@ -177,7 +172,7 @@ export function CompatiblePartsPageSkeleton() {
                 {/* STICKY TOP CONTAINER */}
                 <div className="sticky top-0 z-30 bg-white shadow-2xs">
                     {/* Header: Selected Motor Info */}
-                    <header className="relative bg-white border-b border-slate-200/80 shadow-2xs overflow-hidden">
+                    <header className="relative bg-white border-b-[3px] border-[#FFDD00] shadow-2xs overflow-hidden">
                         <div className="flex items-center justify-between min-h-[52px] sm:min-h-[58px] px-3.5 sm:px-5 gap-3">
                             <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
                                 <Skeleton variant="circle" className="w-6 h-6 shrink-0" />
