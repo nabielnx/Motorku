@@ -348,11 +348,11 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
             <aside className={`fixed inset-y-0 left-0 bg-white dark:bg-slate-900 w-64 border-r border-slate-200 dark:border-slate-800 z-50 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:sticky lg:top-0 lg:h-full lg:inset-auto flex flex-col ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
                 
                 {/* Brand Logo */}
-                <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
+                <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between shrink-0">
                     <Link href={homeHref} className="flex items-center gap-3">
                         <ApplicationLogo className="w-12 h-16 shrink-0" />
                         <div>
-                            <h1 className="text-lg font-heading font-black text-slate-900 dark:text-white tracking-tight leading-none">
+                            <h1 className="text-lg font-heading font-black text-primaryDark dark:text-white tracking-tight leading-none">
                                 {props.app_settings?.store_name || 'Motorku'}
                             </h1>
                             <p className="text-[10px] font-bold text-primary dark:text-accentYellow uppercase tracking-widest mt-1">POS & Order</p>
@@ -388,11 +388,11 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                                             onClick={() => setIsSidebarOpen(false)}
                                             className={`flex items-center gap-3 -mx-3 px-6 py-2.5 transition-colors font-semibold text-[13px] ${
                                                 item.active 
-                                                    ? 'bg-primary/10 dark:bg-primaryDark/60 text-primary dark:text-accentYellow border-l-4 border-accentYellow font-bold'
+                                                    ? 'bg-primary text-white border-l-4 border-accentYellow font-bold'
                                                     : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white border-l-4 border-transparent'
                                             }`}
                                         >
-                                            <Icon size={17} className={item.active ? 'text-primary dark:text-accentYellow' : 'text-slate-400 dark:text-slate-500'} strokeWidth={2.2} />
+                                            <Icon size={17} className={item.active ? 'text-white' : 'text-slate-400 dark:text-slate-500'} strokeWidth={2.2} />
                                             {item.name}
                                         </Link>
                                     );
@@ -446,7 +446,7 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                             <FiMenu size={22} strokeWidth={2.5} />
                         </button>
                         
-                        <h2 className="text-lg sm:text-xl font-heading font-black text-slate-900 dark:text-white tracking-tight">
+                        <h2 className="text-lg sm:text-xl font-heading font-black text-primaryDark dark:text-white tracking-tight">
                             {destInfo?.title || pageTitle || header || getTranslation(locale, 'dashboard', 'Dashboard')}
                         </h2>
                     </div>
