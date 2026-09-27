@@ -3,6 +3,7 @@
 namespace Tests\Feature\Category;
 
 use App\Models\Category;
+use App\Models\Product;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -85,6 +86,21 @@ class CategoryTest extends TestCase
             'id' => $category->id,
             'name' => 'Kategori Baru',
         ]);
+    }
+
+    public function test_failed_subcategory_removal_rolls_back_parent_update(): void
+    {
+        $category = Category::factory()->create(['name' => 'Kategori Awal']);
+        $child = Category::factory()->create(['parent_id' => $category->id]);
+        Product::factory()->create(['category_id' => $child->id]);
+
+        $this->actingAs($this->owner)->putJson("/api/categories/{$category->id}", [
+            'name' => 'Kategori Baru',
+            'sub_categories' => [],
+        ])->assertUnprocessable();
+
+        $this->assertSame('Kategori Awal', $category->fresh()->name);
+        $this->assertNotNull($child->fresh());
     }
 
     public function test_owner_can_delete_category(): void

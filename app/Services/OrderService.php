@@ -23,7 +23,8 @@ class OrderService
 
     public function __construct(
         protected InventoryService $inventoryService,
-        protected PaymentService $paymentService
+        protected PaymentService $paymentService,
+        protected DocumentNumberService $documentNumbers
     ) {}
 
     public function createPosSale(array $data): array
@@ -348,29 +349,7 @@ class OrderService
 
     private function nextOrderNumber(): string
     {
-        $dateKey = now()->format('Ymd');
-        $driver = DB::connection()->getDriverName();
-        $lockKey = 'spare-part-order-'.$dateKey;
-
-        if ($driver === 'pgsql') {
-            DB::select('SELECT pg_advisory_xact_lock(?)', [crc32($lockKey)]);
-        } elseif ($driver === 'mysql') {
-            DB::select('SELECT GET_LOCK(?, 10)', [$lockKey]);
-        }
-
-        try {
-            $sequence = Order::whereDate('created_at', now()->toDateString())->count() + 1;
-
-            do {
-                $orderNumber = 'ORD-'.$dateKey.'-'.str_pad((string) $sequence++, 4, '0', STR_PAD_LEFT);
-            } while (Order::where('order_number', $orderNumber)->exists());
-
-            return $orderNumber;
-        } finally {
-            if ($driver === 'mysql') {
-                DB::select('SELECT RELEASE_LOCK(?)', [$lockKey]);
-            }
-        }
+        return $this->documentNumbers->next('order');
     }
 
     /**

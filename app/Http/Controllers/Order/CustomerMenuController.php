@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -55,7 +56,16 @@ class CustomerMenuController extends Controller
         // Single query for both totalSoldMap AND bestSellerProductIds (was 2 separate queries)
         $salesData = DB::table('order_items')
             ->join('orders', 'order_items.order_id', '=', 'orders.id')
+            ->whereNull('orders.deleted_at')
+            ->whereNull('order_items.deleted_at')
             ->where('orders.order_status', '!=', 'cancelled')
+            ->whereExists(function ($query) {
+                $query->selectRaw('1')
+                    ->from('payments')
+                    ->whereColumn('payments.order_id', 'orders.id')
+                    ->where('payments.status', 'paid')
+                    ->whereNull('payments.deleted_at');
+            })
             ->select('order_items.product_id', DB::raw('SUM(order_items.quantity) as total_sold'))
             ->groupBy('order_items.product_id')
             ->orderByDesc('total_sold')
@@ -106,6 +116,11 @@ class CustomerMenuController extends Controller
     public function storeOrder(StoreCustomerOrderRequest $request, OrderService $orderService): JsonResponse
     {
         $data = $request->validated();
+        if (collect($data['items'])->sum('quantity') > config('order.public_max_total_quantity', 30)) {
+            throw ValidationException::withMessages([
+                'items' => 'Total barang melebihi batas pesanan online.',
+            ]);
+        }
         $data['payment_status'] = 'unpaid';
 
         $order = DB::transaction(function () use ($data, $orderService) {
@@ -211,7 +226,7 @@ class CustomerMenuController extends Controller
                         'product_id' => $item->product_id,
                         'type' => InventoryLogType::StockReturn,
                         'quantity' => $item->quantity,
-                        'reference_type' => \App\Models\Order::class,
+                        'reference_type' => Order::class,
                         'reference_id' => $order->id,
                     ],
                     null,
