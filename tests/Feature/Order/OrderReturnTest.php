@@ -7,6 +7,8 @@ use App\Models\Product;
 use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
@@ -142,5 +144,69 @@ class OrderReturnTest extends TestCase
 
         $this->assertEquals(22000, $order->returns()->sum('amount'));
         $this->assertEquals('refunded', $order->fresh()->payment_status->value);
+    }
+
+    public function test_owner_can_refund_manual_qris_by_transfer_without_reducing_cash_drawer(): void
+    {
+        $this->seed(\Database\Seeders\RoleSeeder::class);
+        Storage::fake('public');
+        $owner = User::factory()->create();
+        $owner->assignRole('owner');
+        $product = Product::factory()->create(['stock' => 3, 'price' => 30000]);
+
+        $this->actingAs($owner)->postJson('/api/settings/qris-image', [
+            'qris_image' => UploadedFile::fake()->image('qr.png'),
+        ])->assertOk();
+
+        $this->actingAs($owner)->postJson('/api/orders/pos-sale', [
+            'items' => [['product_id' => $product->id, 'quantity' => 1]],
+            'payment_method' => 'qris_manual',
+        ])->assertCreated();
+
+        $order = Order::with('items')->firstOrFail();
+        $this->actingAs($owner)->postJson("/api/orders/{$order->id}/returns", [
+            'request_id' => fake()->uuid(),
+            'order_item_id' => $order->items->first()->id,
+            'quantity' => 1,
+            'restock' => true,
+            'refund_method' => 'transfer',
+            'refund_reference' => 'BANK-123',
+            'refund_confirmed' => true,
+            'reason' => 'Ukuran salah',
+        ])->assertCreated()
+            ->assertJsonPath('data.returns.0.refund_method', 'transfer')
+            ->assertJsonPath('data.returns.0.refund_reference', 'BANK-123');
+
+        $this->actingAs($owner)->getJson('/api/reports/cash?date='.now()->toDateString())
+            ->assertOk()->assertJsonPath('data.cash_returns', 0);
+    }
+
+    public function test_manual_qris_cash_refund_is_counted_in_cash_drawer(): void
+    {
+        $this->seed(\Database\Seeders\RoleSeeder::class);
+        Storage::fake('public');
+        $owner = User::factory()->create();
+        $owner->assignRole('owner');
+        $product = Product::factory()->create(['stock' => 3, 'price' => 30000]);
+        $this->actingAs($owner)->postJson('/api/settings/qris-image', [
+            'qris_image' => UploadedFile::fake()->image('qr.png'),
+        ])->assertOk();
+        $this->actingAs($owner)->postJson('/api/orders/pos-sale', [
+            'items' => [['product_id' => $product->id, 'quantity' => 1]],
+            'payment_method' => 'qris_manual',
+        ])->assertCreated();
+        $order = Order::with('items')->firstOrFail();
+        $this->actingAs($owner)->postJson("/api/orders/{$order->id}/returns", [
+            'request_id' => fake()->uuid(),
+            'order_item_id' => $order->items->first()->id,
+            'quantity' => 1,
+            'restock' => true,
+            'refund_method' => 'cash',
+            'refund_confirmed' => true,
+            'reason' => 'Ukuran salah',
+        ])->assertCreated();
+
+        $this->actingAs($owner)->getJson('/api/reports/cash?date='.now()->toDateString())
+            ->assertOk()->assertJsonPath('data.cash_returns', 30000);
     }
 }

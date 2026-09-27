@@ -23,9 +23,13 @@ class OrderReturnService
             }
             $item = $order->items()->whereKey($data['order_item_id'])->firstOrFail();
 
-            if ($order->order_status === OrderStatus::Cancelled || ! $order->payments()
-                ->where('payment_method', 'cash')->where('status', 'paid')->exists()) {
-                throw ValidationException::withMessages(['order_id' => 'Retur hanya tersedia untuk transaksi tunai yang sudah lunas.']);
+            $paidMethod = $order->payments()->whereIn('payment_method', ['cash', 'qris_manual'])
+                ->where('status', 'paid')->value('payment_method');
+            if ($order->order_status === OrderStatus::Cancelled || ! $paidMethod) {
+                throw ValidationException::withMessages(['order_id' => 'Retur hanya tersedia untuk transaksi tunai atau QRIS Manual yang sudah lunas.']);
+            }
+            if ($paidMethod === 'cash' && $data['refund_method'] !== 'cash') {
+                throw ValidationException::withMessages(['refund_method' => 'Transaksi tunai dikembalikan secara tunai.']);
             }
 
             $returnedQty = (int) $order->returns()->where('order_item_id', $item->id)->sum('quantity');
@@ -53,6 +57,8 @@ class OrderReturnService
                 'user_id' => auth()->id(),
                 'quantity' => $quantity,
                 'amount' => $refundCents / 100,
+                'refund_method' => $data['refund_method'],
+                'refund_reference' => $data['refund_reference'] ?? null,
                 'restocked' => (bool) $data['restock'],
                 'reason' => $data['reason'],
             ]);

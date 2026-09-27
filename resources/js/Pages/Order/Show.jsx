@@ -14,7 +14,9 @@ export default function OrderShow({ order: initialOrder }) {
     const [returnQty, setReturnQty] = useState(1);
     const [restock, setRestock] = useState(true);
     const [returnReason, setReturnReason] = useState('');
-    const [cashRefunded, setCashRefunded] = useState(false);
+    const [refundMethod, setRefundMethod] = useState('cash');
+    const [refundReference, setRefundReference] = useState('');
+    const [refundConfirmed, setRefundConfirmed] = useState(false);
     const [savingReturn, setSavingReturn] = useState(false);
     const returnRequestId = useRef(null);
 
@@ -46,13 +48,16 @@ export default function OrderShow({ order: initialOrder }) {
                 quantity: Number(returnQty),
                 restock,
                 reason: returnReason,
-                cash_refunded: cashRefunded,
+                refund_method: refundMethod,
+                refund_reference: refundReference.trim() || null,
+                refund_confirmed: refundConfirmed,
             });
             setOrder(response.data);
             setReturningItem(null);
             returnRequestId.current = null;
             setReturnReason('');
-            setCashRefunded(false);
+            setRefundConfirmed(false);
+            setRefundReference('');
             toast.success('Retur tercatat. Uang dan stok sudah diperbarui.');
         } catch (error) {
             toast.error(error.response?.data?.message || 'Gagal mencatat retur. Periksa data lalu coba lagi.');
@@ -109,8 +114,8 @@ export default function OrderShow({ order: initialOrder }) {
                                             <p className="font-bold text-slate-800 text-sm">{item.product_name}</p>
                                             {item.notes && <p className="text-xs text-slate-400 mt-0.5">"{item.notes}"</p>}
                                             {returnedQty(item.id) > 0 && <p className="text-xs text-amber-700 mt-1">Diretur: {returnedQty(item.id)} dari {item.quantity}</p>}
-                                            {isOwner && order.payment_method === 'cash' && order.payment_status === 'paid' && returnedQty(item.id) < item.quantity && (
-                                                <button type="button" onClick={() => { setReturningItem(item); returnRequestId.current = crypto.randomUUID(); setReturnQty(1); setRestock(true); setReturnReason(''); setCashRefunded(false); }} className="text-xs font-bold text-blue-600 mt-2">Retur barang ini</button>
+                                            {isOwner && ['cash', 'qris_manual'].includes(order.payment_method) && order.payment_status === 'paid' && returnedQty(item.id) < item.quantity && (
+                                                <button type="button" onClick={() => { setReturningItem(item); returnRequestId.current = crypto.randomUUID(); setReturnQty(1); setRestock(true); setReturnReason(''); setRefundMethod('cash'); setRefundReference(''); setRefundConfirmed(false); }} className="text-xs font-bold text-blue-600 mt-2">Retur barang ini</button>
                                             )}
                                         </div>
                                         <div className="text-right">
@@ -132,9 +137,15 @@ export default function OrderShow({ order: initialOrder }) {
                                 </label>
                                 <label className="flex gap-2 text-xs"><input type="checkbox" checked={restock} onChange={e => setRestock(e.target.checked)} /> Barang masih layak jual, masukkan kembali ke stok</label>
                                 <p className="text-sm font-bold">Uang yang dikembalikan: {formatRp(returnAmount)}</p>
-                                <label className="flex gap-2 text-xs"><input type="checkbox" checked={cashRefunded} onChange={e => setCashRefunded(e.target.checked)} /> Saya sudah mengembalikan uang tunai kepada pelanggan</label>
+                                {order.payment_method === 'qris_manual' && <label className="block text-xs font-semibold">Cara pengembalian
+                                    <select value={refundMethod} onChange={e => { setRefundMethod(e.target.value); setRefundConfirmed(false); }} className="mt-1 w-full rounded border-slate-300"><option value="cash">Tunai</option><option value="transfer">Transfer oleh owner</option></select>
+                                </label>}
+                                {refundMethod === 'transfer' && <label className="block text-xs font-semibold">Referensi transfer (opsional)
+                                    <input type="text" maxLength="100" value={refundReference} onChange={e => setRefundReference(e.target.value)} className="mt-1 w-full rounded border-slate-300" placeholder="Nomor referensi bank" />
+                                </label>}
+                                <label className="flex gap-2 text-xs"><input type="checkbox" checked={refundConfirmed} onChange={e => setRefundConfirmed(e.target.checked)} /> Saya sudah mengembalikan uang {refundMethod === 'cash' ? 'tunai' : 'melalui transfer'} kepada pelanggan</label>
                                 <div className="flex gap-2">
-                                    <button type="button" disabled={savingReturn || !returnReason.trim() || !cashRefunded || Number(returnQty) < 1 || Number(returnQty) > returningItem.quantity - returnedQty(returningItem.id)} onClick={submitReturn} className="rounded bg-blue-600 px-3 py-2 text-xs font-bold text-white disabled:opacity-40">{savingReturn ? 'Menyimpan...' : 'Catat Retur'}</button>
+                                    <button type="button" disabled={savingReturn || !returnReason.trim() || !refundConfirmed || Number(returnQty) < 1 || Number(returnQty) > returningItem.quantity - returnedQty(returningItem.id)} onClick={submitReturn} className="rounded bg-blue-600 px-3 py-2 text-xs font-bold text-white disabled:opacity-40">{savingReturn ? 'Menyimpan...' : 'Catat Retur'}</button>
                                     <button type="button" disabled={savingReturn} onClick={() => { setReturningItem(null); returnRequestId.current = null; }} className="text-xs">Batal</button>
                                 </div>
                             </div>
@@ -142,7 +153,7 @@ export default function OrderShow({ order: initialOrder }) {
                         {(order.returns || []).length > 0 && (
                             <div className="p-5 border-t border-slate-200 space-y-1 text-xs">
                                 <p className="font-bold">Riwayat retur</p>
-                                {order.returns.map(r => <p key={r.id}>{r.product_name}: {r.quantity} × · {formatRp(r.amount)} · {r.restocked ? 'stok kembali' : 'tidak masuk stok'}</p>)}
+                                {order.returns.map(r => <p key={r.id}>{r.product_name}: {r.quantity} × · {formatRp(r.amount)} · {r.refund_method === 'transfer' ? 'Transfer' : 'Tunai'}{r.refund_reference ? ` (${r.refund_reference})` : ''} · {r.restocked ? 'stok kembali' : 'tidak masuk stok'}</p>)}
                             </div>
                         )}
                         <div className="p-5 bg-slate-50/50 border-t border-slate-100 space-y-2">
