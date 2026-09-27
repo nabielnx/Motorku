@@ -156,7 +156,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                         <select 
                             value={currentPeriod === 'custom' ? '' : currentPeriod}
                             onChange={handlePeriodChange}
-                            className="min-w-0 w-full sm:w-auto border border-slate-200/90 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 focus:ring-0 focus:border-primary focus:outline-none bg-slate-50 dark:bg-slate-800 cursor-pointer shadow-2xs sm:px-4"
+                            className="min-w-0 w-full sm:w-auto border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-bold text-primaryDark dark:text-accentYellow focus:ring-0 focus:border-primary focus:outline-none bg-white dark:bg-slate-800 cursor-pointer shadow-2xs sm:px-4"
                         >
                             <option value="" disabled hidden>Pilihan Cepat...</option>
                             <option value="today">Hari Ini</option>
@@ -295,7 +295,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                             <div className="pl-14 w-full flex items-center justify-between gap-1 sm:gap-2 pt-3 shrink-0">
                                 {salesData.map((data, idx) => (
                                     <div key={idx} className="flex-1 text-center min-w-0">
-                                        <span className={`text-[10px] sm:text-[11px] font-bold block truncate ${data.is_today ? 'text-amber-700 dark:text-accentYellow' : 'text-slate-600 dark:text-slate-400'}`} title={data.day}>
+                                        <span className={`text-[10px] sm:text-[11px] font-bold block truncate ${data.is_today ? 'text-accentYellow' : 'text-slate-600 dark:text-slate-400'}`} title={data.day}>
                                             {data.day}
                                         </span>
                                     </div>
@@ -323,7 +323,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                                     topSellingMenu.map((item, idx) => (
                                         <div key={idx} className="flex items-center justify-between gap-3 py-2 border-b border-slate-100 dark:border-slate-800 last:border-none">
                                             <div className="flex items-center space-x-2.5 min-w-0">
-                                                <span className={`w-5 text-xs tabular-nums shrink-0 ${idx === 0 ? 'font-bold text-amber-700 dark:text-accentYellow' : 'text-slate-400 dark:text-slate-500'}`}>
+                                                <span className={`w-5 text-xs tabular-nums shrink-0 ${Number(item.rank || idx + 1) <= 3 ? 'font-bold text-primaryDark dark:text-blue-300' : 'text-slate-400 dark:text-slate-500'}`}>
                                                     {String(item.rank || idx + 1).padStart(2, '0')}
                                                 </span>
                                                 <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 truncate">{item.name}</span>
@@ -393,7 +393,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                                 </div>
                                 <div className="shrink-0 text-right">
                                     <p className="font-bold text-slate-900 dark:text-white">{formatRp(Number(ord.total || 0))}</p>
-                                    <p className={`mt-1 text-[11px] font-semibold ${ord.payment_status === 'paid' ? 'text-emerald-700 dark:text-emerald-400' : ord.payment_status === 'refunded' ? 'text-slate-600 dark:text-slate-400' : 'text-amber-700 dark:text-amber-400'}`}>{ord.payment_status === 'paid' ? 'Lunas' : ord.payment_status === 'refunded' ? 'Dikembalikan' : 'Belum lunas'}</p>
+                                    <p className={`mt-1 text-[11px] font-semibold ${ord.payment_status === 'paid' ? 'text-primaryDark dark:text-blue-300' : ord.payment_status === 'refunded' ? 'text-slate-600 dark:text-slate-400' : 'text-amber-700 dark:text-amber-400'}`}>{ord.payment_status === 'paid' ? 'Lunas' : ord.payment_status === 'refunded' ? 'Dikembalikan' : 'Belum lunas'}</p>
                                 </div>
                             </div>
                         )) : <p className="px-4 py-8 text-center text-xs font-semibold text-slate-500">Belum ada pesanan {periodLabel.toLowerCase()}.</p>}
@@ -430,7 +430,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                                                 <td className="px-4 py-3">
                                                     <span className={`text-xs font-semibold ${
                                                         ord.payment_status === 'paid'
-                                                            ? 'text-emerald-700 dark:text-emerald-400'
+                                                            ? 'text-primaryDark dark:text-blue-300'
                                                             : ord.payment_status === 'refunded'
                                                                 ? 'text-slate-600 dark:text-slate-400'
                                                                 : 'text-amber-700 dark:text-amber-400'
