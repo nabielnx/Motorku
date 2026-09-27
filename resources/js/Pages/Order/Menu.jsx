@@ -324,7 +324,7 @@ export default function CustomerMenu({
     };
 
     if (isNavigating || isSkeletonPreview) {
-        return <MenuSkeleton fullPage={true} isGrid={selectedMainCategory !== null} showPromo={!searchQuery.trim() && selectedMainCategory === null} />;
+        return <MenuSkeleton fullPage={true} isGrid={selectedMainCategory !== null} showPromo={!searchQuery.trim() && selectedMainCategory === null} hasCart={cart.length > 0} />;
     }
 
     return (

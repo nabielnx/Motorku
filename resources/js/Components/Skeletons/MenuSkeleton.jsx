@@ -54,7 +54,7 @@ function CardSkeleton({ isGrid = false }) {
  * @param {boolean} isGrid - Grid view flag for partial rendering.
  * @param {number} count - Total items for grid view.
  */
-export default function MenuSkeleton({ fullPage = true, isGrid = false, showPromo = true, count = 10 }) {
+export default function MenuSkeleton({ fullPage = true, isGrid = false, showPromo = true, hasCart = false, count = 10 }) {
     if (!fullPage) {
         return (
             <SkeletonWrapper className="w-full">
@@ -141,7 +141,7 @@ export default function MenuSkeleton({ fullPage = true, isGrid = false, showProm
             </section>
 
             {/* ═══ 3. MAIN STOREFRONT CONTENT ═══ */}
-            <div className="mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8 pb-12">
+            <div className={`mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8 ${hasCart ? 'pb-32' : 'pb-12'}`}>
                 {/* Promo Banner Section */}
                 {showPromo && <section className="pb-1">
                     <div className="relative rounded-2xl sm:rounded-3xl bg-slate-100 border border-slate-200/80 overflow-hidden p-2.5 sm:p-3 shadow-2xs">
@@ -220,7 +220,17 @@ export default function MenuSkeleton({ fullPage = true, isGrid = false, showProm
                         </>}
                     </main>
                 </div>
+                <footer className="mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-slate-200 pt-5">
+                    <Skeleton className="h-3 w-48" />
+                    <Skeleton className="h-3 w-24" />
+                </footer>
             </div>
+            {hasCart && <div className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white shadow-lg">
+                <div className="mx-auto flex max-w-[1280px] items-center justify-between gap-4 px-4 py-2 sm:px-6 lg:px-8">
+                    <div className="flex items-center gap-3"><Skeleton className="h-9 w-9 rounded-xl" /><div className="space-y-1.5"><Skeleton className="h-3 w-32" /><Skeleton className="h-4 w-24" /></div></div>
+                    <Skeleton className="h-10 w-32 rounded-xl sm:w-44" />
+                </div>
+            </div>}
         </SkeletonWrapper>
     );
 }
