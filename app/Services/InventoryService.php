@@ -30,13 +30,13 @@ class InventoryService
     /**
      * Central stock mutation method. ALL stock changes MUST go through this.
      *
-     * @param array $data  Must contain: product_id, type (string|InventoryLogType), quantity
-     * @param string|null $userId  Override auth()->id() for guest/system operations
-     * @param string|null $note  Custom note, defaults to 'Penyesuaian stok manual'
+     * @param  array  $data  Must contain: product_id, type (string|InventoryLogType), quantity
+     * @param  string|null  $userId  Override auth()->id() for guest/system operations
+     * @param  string|null  $note  Custom note, defaults to 'Penyesuaian stok manual'
      */
     public function adjustStock(array $data, ?string $userId = null, ?string $note = null): InventoryLog
     {
-        return DB::transaction(function () use ($data, $userId, $note) {
+        $result = DB::transaction(function () use ($data, $userId, $note) {
             $product = Product::whereKey($data['product_id'])->lockForUpdate()->firstOrFail();
             $quantity = (float) $data['quantity'];
             $previousStock = $product->stock;
@@ -46,24 +46,32 @@ class InventoryService
                 : InventoryLogType::from($data['type']);
 
             match ($type) {
-                InventoryLogType::StockOut   => $this->decrementStock($product, $quantity),
-                InventoryLogType::StockIn    => $product->increment('stock', $quantity),
+                InventoryLogType::StockOut => $this->decrementStock($product, $quantity),
+                InventoryLogType::StockIn => $product->increment('stock', $quantity),
                 InventoryLogType::StockReturn => $product->increment('stock', $quantity),
                 InventoryLogType::Adjustment => $product->update(['stock' => $quantity]),
             };
 
             return InventoryLog::create([
                 'product_id' => $data['product_id'],
-                'user_id'    => $userId ?? auth()->id(),
-                'type'       => $type,
-                'quantity'   => $quantity,
-                'note'       => $note ?? $data['note'] ?? 'Penyesuaian stok manual',
+                'user_id' => $userId ?? auth()->id(),
+                'type' => $type,
+                'quantity' => $quantity,
+                'note' => $note ?? $data['note'] ?? 'Penyesuaian stok manual',
                 'previous_stock' => $previousStock,
-                'new_stock'      => $product->fresh()->stock,
+                'new_stock' => $product->fresh()->stock,
                 'reference_type' => $data['reference_type'] ?? null,
-                'reference_id'   => $data['reference_id'] ?? null,
+                'reference_id' => $data['reference_id'] ?? null,
             ]);
         });
+
+        if (DB::transactionLevel() > 0) {
+            DB::afterCommit(fn () => CacheService::flushMotorcycleParts());
+        } else {
+            CacheService::flushMotorcycleParts();
+        }
+
+        return $result;
     }
 
     private function decrementStock(Product $product, float $quantity): void
@@ -75,5 +83,4 @@ class InventoryService
         }
         $product->decrement('stock', $quantity);
     }
-
 }

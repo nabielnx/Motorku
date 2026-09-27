@@ -12,7 +12,10 @@ use Illuminate\Validation\ValidationException;
 
 class OrderReturnService
 {
-    public function __construct(private InventoryService $inventoryService) {}
+    public function __construct(
+        private InventoryService $inventoryService,
+        private CashClosingService $cashClosing
+    ) {}
 
     public function returnItem(string $orderId, array $data): Order
     {
@@ -30,6 +33,9 @@ class OrderReturnService
             }
             if ($paidMethod === 'cash' && $data['refund_method'] !== 'cash') {
                 throw ValidationException::withMessages(['refund_method' => 'Transaksi tunai dikembalikan secara tunai.']);
+            }
+            if ($data['refund_method'] === 'cash') {
+                $this->cashClosing->assertCashDayOpen(now()->toDateString());
             }
 
             $returnedQty = (int) $order->returns()->where('order_item_id', $item->id)->sum('quantity');
@@ -79,6 +85,6 @@ class OrderReturnService
             ]);
 
             return $order->fresh(['items', 'cashier', 'payments', 'returns.item']);
-        });
+        }, 3);
     }
 }

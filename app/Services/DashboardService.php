@@ -4,9 +4,11 @@ namespace App\Services;
 
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\OrderReturn;
 use App\Models\Product;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class DashboardService
 {
@@ -42,6 +44,12 @@ class DashboardService
                 $startDate = $today->copy()->subDays(6);
                 $endDate = $today->copy()->endOfDay();
                 break;
+        }
+
+        if ($endDate->lt($startDate) || $startDate->diffInDays($endDate) > 366) {
+            throw ValidationException::withMessages([
+                'start_date' => 'Rentang dashboard maksimal 366 hari dan tanggal akhir tidak boleh lebih awal.',
+            ]);
         }
 
         $revenue = $this->reportService->netRevenue($startDate, $endDate);
@@ -85,13 +93,15 @@ class DashboardService
             });
 
         $salesData = collect();
+        $grouping = $period === 'today' ? 'hour' : ($period === 'this_year' ? 'month' : 'day');
+        [$salesByPeriod, $returnsByPeriod] = $this->seriesTotals($startDate, $endDate, $grouping);
 
         if ($period === 'today') {
             for ($i = 0; $i < 24; $i++) {
                 $start = $startDate->copy()->addHours($i);
-                $end = $start->copy()->endOfHour();
-                $total = $this->reportService->netRevenue($start, $end);
-                $count = Order::paidWithinRange($start, $end)->count();
+                $key = $start->format('Y-m-d H');
+                $total = (float) ($salesByPeriod[$key]->total ?? 0) - (float) ($returnsByPeriod[$key] ?? 0);
+                $count = (int) ($salesByPeriod[$key]->orders_count ?? 0);
 
                 // Only show active hours or if there's sales
                 if ($total > 0 || $count > 0 || ($i >= 8 && $i <= 22)) {
@@ -108,9 +118,9 @@ class DashboardService
 
             while ($startMonth <= $endMonth) {
                 $monthStart = $startMonth->copy()->startOfMonth();
-                $monthEnd = $startMonth->copy()->endOfMonth();
-                $total = $this->reportService->netRevenue($monthStart, $monthEnd);
-                $count = Order::paidWithinRange($monthStart, $monthEnd)->count();
+                $key = $monthStart->format('Y-m');
+                $total = (float) ($salesByPeriod[$key]->total ?? 0) - (float) ($returnsByPeriod[$key] ?? 0);
+                $count = (int) ($salesByPeriod[$key]->orders_count ?? 0);
 
                 $salesData->push([
                     'day' => $monthStart->translatedFormat('M Y'),
@@ -125,9 +135,9 @@ class DashboardService
 
             while ($startDay <= $endDay) {
                 $dayStart = $startDay->copy()->startOfDay();
-                $dayEnd = $startDay->copy()->endOfDay();
-                $total = $this->reportService->netRevenue($dayStart, $dayEnd);
-                $count = Order::paidWithinRange($dayStart, $dayEnd)->count();
+                $key = $dayStart->format('Y-m-d');
+                $total = (float) ($salesByPeriod[$key]->total ?? 0) - (float) ($returnsByPeriod[$key] ?? 0);
+                $count = (int) ($salesByPeriod[$key]->orders_count ?? 0);
 
                 $salesData->push([
                     'day' => $dayStart->translatedFormat('d M'),
@@ -150,5 +160,51 @@ class DashboardService
             'low_stock' => $lowStock,
             'sales_data' => $salesData->values()->toArray(),
         ];
+    }
+
+    private function seriesTotals(Carbon $start, Carbon $end, string $grouping): array
+    {
+        $driver = DB::connection()->getDriverName();
+        $dateKey = static function (string $column) use ($driver, $grouping): string {
+            if ($grouping === 'day') {
+                return "DATE({$column})";
+            }
+
+            $format = $grouping === 'hour' ? '%Y-%m-%d %H' : '%Y-%m';
+
+            if ($driver === 'pgsql') {
+                $postgresFormat = $grouping === 'hour' ? 'YYYY-MM-DD HH24' : 'YYYY-MM';
+
+                return "to_char({$column}, '{$postgresFormat}')";
+            }
+
+            return $driver === 'sqlite'
+                ? "strftime('{$format}', {$column})"
+                : "DATE_FORMAT({$column}, '{$format}')";
+        };
+
+        $paymentKey = $dateKey('payments.paid_at');
+        $returnKey = $dateKey('order_returns.created_at');
+
+        $sales = DB::table('orders')
+            ->join('payments', 'payments.order_id', '=', 'orders.id')
+            ->whereNull('orders.deleted_at')
+            ->whereNull('payments.deleted_at')
+            ->where('orders.order_status', '!=', 'cancelled')
+            ->where('payments.status', 'paid')
+            ->whereBetween('payments.paid_at', [$start, $end])
+            ->selectRaw("{$paymentKey} as period_key, SUM(orders.total) as total, COUNT(DISTINCT orders.id) as orders_count")
+            ->groupByRaw($paymentKey)
+            ->get()
+            ->keyBy('period_key');
+
+        $returns = OrderReturn::query()
+            ->whereBetween('created_at', [$start, $end])
+            ->selectRaw("{$returnKey} as period_key, SUM(amount) as total")
+            ->groupByRaw($returnKey)
+            ->get()
+            ->pluck('total', 'period_key');
+
+        return [$sales, $returns];
     }
 }

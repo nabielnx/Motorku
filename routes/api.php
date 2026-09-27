@@ -10,7 +10,7 @@ Route::get('/user', fn(Request $request) => $request->user())
 
 // ─── PUBLIC: Customer QR Self-Order (no auth, no CSRF) ───
 Route::post('/customer/order', [CustomerMenuController::class, 'storeOrder'])
-    ->middleware('throttle:10,1')
+    ->middleware('throttle:3,1')
     ->name('api.customer.order');
 Route::get('/customer/order/{orderId}/status', [CustomerMenuController::class, 'orderStatus'])
     ->middleware('throttle:240,1')

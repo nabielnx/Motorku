@@ -3,9 +3,11 @@
 namespace Tests\Feature\Setting;
 
 use App\Models\Category;
+use App\Models\CashClosing;
 use App\Models\InventoryLog;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\OrderReturn;
 use App\Models\Payment;
 use App\Models\Product;
 use App\Models\Role;
@@ -86,7 +88,7 @@ class ResetTransactionsTest extends TestCase
             'payment_status' => 'paid',
         ]);
 
-        OrderItem::create([
+        $item = OrderItem::create([
             'order_id' => $order->id,
             'product_id' => $this->product->id,
             'product_name' => $this->product->name,
@@ -103,6 +105,28 @@ class ResetTransactionsTest extends TestCase
             'amount' => 25000,
             'status' => 'paid',
             'paid_at' => now(),
+        ]);
+
+        OrderReturn::create([
+            'request_id' => fake()->uuid(),
+            'order_id' => $order->id,
+            'order_item_id' => $item->id,
+            'user_id' => $this->owner->id,
+            'quantity' => 1,
+            'amount' => 25000,
+            'refund_method' => 'cash',
+            'restocked' => true,
+        ]);
+        CashClosing::create([
+            'closing_date' => now()->toDateString(),
+            'opening_cash' => 0,
+            'cash_out' => 0,
+            'cash_sales' => 25000,
+            'cash_returns' => 25000,
+            'expected_cash' => 0,
+            'actual_cash' => 0,
+            'difference' => 0,
+            'user_id' => $this->owner->id,
         ]);
 
         InventoryLog::create([
@@ -132,6 +156,8 @@ class ResetTransactionsTest extends TestCase
 
         // Assert transaction data is completely cleared
         $this->assertEquals(0, Order::withTrashed()->count());
+        $this->assertSame(0, OrderReturn::count());
+        $this->assertSame(0, CashClosing::count());
         $this->assertEquals(0, OrderItem::count());
         $this->assertEquals(0, Payment::count());
         $this->assertEquals(0, InventoryLog::count());

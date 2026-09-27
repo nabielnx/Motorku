@@ -11,6 +11,25 @@ use Illuminate\Validation\ValidationException;
 
 class CashClosingService
 {
+    public function assertCashDayOpen(string $date): void
+    {
+        $this->lockCashDay($date);
+
+        if (CashClosing::where('closing_date', $date)->lockForUpdate()->exists()) {
+            throw ValidationException::withMessages([
+                'payment_method' => 'Kas untuk tanggal ini sudah ditutup. Pembayaran atau retur tunai tidak dapat dicatat lagi.',
+            ]);
+        }
+    }
+
+    private function lockCashDay(string $date): void
+    {
+        if (! DB::table('cash_day_locks')->where('business_date', $date)->lockForUpdate()->exists()) {
+            DB::table('cash_day_locks')->insertOrIgnore(['business_date' => $date]);
+        }
+        DB::table('cash_day_locks')->where('business_date', $date)->lockForUpdate()->first();
+    }
+
     public function summary(string $date): array
     {
         $day = Carbon::parse($date);
@@ -31,6 +50,7 @@ class CashClosingService
     public function close(array $data): CashClosing
     {
         return DB::transaction(function () use ($data) {
+            $this->lockCashDay($data['date']);
             if (CashClosing::where('closing_date', $data['date'])->lockForUpdate()->exists()) {
                 throw ValidationException::withMessages(['date' => 'Kas untuk tanggal ini sudah ditutup.']);
             }
@@ -51,6 +71,6 @@ class CashClosingService
                 'notes' => $data['notes'] ?? null,
                 'user_id' => auth()->id(),
             ]);
-        });
+        }, 3);
     }
 }

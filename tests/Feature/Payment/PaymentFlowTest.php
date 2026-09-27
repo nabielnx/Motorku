@@ -7,8 +7,9 @@ use App\Models\Payment;
 use App\Models\User;
 use App\Services\DashboardService;
 use App\Services\ReportService;
-use Illuminate\Support\Str;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -19,7 +20,7 @@ class PaymentFlowTest extends TestCase
     #[Test]
     public function cashier_payment_creates_a_ledger_entry_and_marks_order_paid(): void
     {
-        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $this->seed(RoleSeeder::class);
         $cashier = User::factory()->create();
         $cashier->assignRole('cashier');
 
@@ -61,6 +62,25 @@ class PaymentFlowTest extends TestCase
     }
 
     #[Test]
+    public function invoice_number_does_not_reuse_a_soft_deleted_number(): void
+    {
+        $this->seed(RoleSeeder::class);
+        $cashier = User::factory()->create();
+        $cashier->assignRole('cashier');
+        $first = Payment::factory()->create([
+            'invoice_number' => 'INV-'.now()->format('Ymd').'-0001',
+        ]);
+        $first->delete();
+        $order = Order::factory()->create(['total' => 25000, 'payment_status' => 'unpaid']);
+
+        $this->actingAs($cashier)->postJson('/api/payments', [
+            'order_id' => $order->id,
+            'payment_method' => 'cash',
+            'amount_received' => 25000,
+        ])->assertCreated()->assertJsonPath('data.invoice_number', 'INV-'.now()->format('Ymd').'-0002');
+    }
+
+    #[Test]
     public function revenue_uses_payment_time_not_order_completion_time(): void
     {
         $order = Order::factory()->create([
@@ -86,7 +106,7 @@ class PaymentFlowTest extends TestCase
     #[Test]
     public function cashier_can_pay_order_with_existing_pending_qris_payment(): void
     {
-        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $this->seed(RoleSeeder::class);
         $cashier = User::factory()->create();
         $cashier->assignRole('cashier');
 
@@ -137,7 +157,7 @@ class PaymentFlowTest extends TestCase
     #[Test]
     public function paid_customer_order_is_ready_for_staff_to_prepare(): void
     {
-        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $this->seed(RoleSeeder::class);
         $cashier = User::factory()->create();
         $cashier->assignRole('cashier');
         $order = Order::factory()->create([
