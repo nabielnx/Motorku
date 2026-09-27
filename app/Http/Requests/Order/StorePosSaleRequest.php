@@ -15,6 +15,11 @@ class StorePosSaleRequest extends StoreOrderRequest
 
     public function rules(): array
     {
-        return [...parent::rules(), 'amount_received' => ['required', 'numeric', 'gt:0']];
+        return [
+            ...parent::rules(),
+            'payment_method' => ['sometimes', 'in:cash,qris_manual'],
+            'amount_received' => ['required_unless:payment_method,qris_manual', 'nullable', 'numeric', 'gt:0'],
+            'reference_number' => ['nullable', 'string', 'max:100'],
+        ];
     }
 }

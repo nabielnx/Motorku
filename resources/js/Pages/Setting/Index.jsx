@@ -90,6 +90,10 @@ export default function SettingIndex() {
   const [logoPreview, setLogoPreview] = useState(null);
   const [logoUrl, setLogoUrl] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [qrisFile, setQrisFile] = useState(null);
+  const [qrisPreview, setQrisPreview] = useState(null);
+  const [qrisUrl, setQrisUrl] = useState(null);
+  const [uploadingQris, setUploadingQris] = useState(false);
 
   // Reset transactions state
   const [showResetModal, setShowResetModal] = useState(false);
@@ -121,7 +125,7 @@ export default function SettingIndex() {
   // Banner promo state: { 1: { url, file, preview }, 2: {...}, 3: {...} }
   const [banners, setBanners] = useState({ 1: {}, 2: {}, 3: {} });
   const [bannerUploading, setBannerUploading] = useState({ 1: false, 2: false, 3: false });
-  // Konfirmasi hapus logo/banner: { type: 'logo' } | { type: 'banner', slot }
+  // Konfirmasi hapus gambar toko.
   const [deleteConfirm, setDeleteConfirm] = useState(null);
 
   const executeDelete = async () => {
@@ -140,6 +144,19 @@ export default function SettingIndex() {
         toast.error('Gagal menghapus logo: ' + (err.response?.data?.message || err.message));
       } finally {
         setUploading(false);
+      }
+    } else if (deleteConfirm.type === 'qris') {
+      setUploadingQris(true);
+      try {
+        await axios.delete('/api/settings/qris-image');
+        setQrisUrl(null);
+        setQrisFile(null);
+        setQrisPreview(null);
+        toast.success('Gambar QRIS toko berhasil dihapus.');
+      } catch (err) {
+        toast.error('Gagal menghapus gambar QRIS: ' + (err.response?.data?.message || err.message));
+      } finally {
+        setUploadingQris(false);
       }
     } else {
       const slot = deleteConfirm.slot;
@@ -162,9 +179,10 @@ export default function SettingIndex() {
   useEffect(() => {
     (async () => {
       try {
-        const [settingsRes, logoRes] = await Promise.all([
+        const [settingsRes, logoRes, qrisRes] = await Promise.all([
           axios.get('/api/settings'),
           axios.get('/api/settings/logo'),
+          axios.get('/api/settings/qris-image'),
         ]);
         if (settingsRes.data?.data) {
           const loaded = {};
@@ -180,6 +198,7 @@ export default function SettingIndex() {
         if (logoRes.data?.url) {
           setLogoUrl(logoRes.data.url);
         }
+        setQrisUrl(qrisRes.data?.url || null);
         // Load existing banners
         try {
           const bannersRes = await axios.get('/api/settings/banners');
@@ -234,6 +253,24 @@ export default function SettingIndex() {
 
   const handleDeleteLogo = () => {
     setDeleteConfirm({ type: 'logo' });
+  };
+
+  const handleUploadQris = async () => {
+    if (!qrisFile) return;
+    setUploadingQris(true);
+    try {
+      const data = new FormData();
+      data.append('qris_image', qrisFile);
+      const response = await axios.post('/api/settings/qris-image', data);
+      setQrisUrl(response.data?.url || null);
+      setQrisFile(null);
+      setQrisPreview(null);
+      toast.success('Gambar QRIS toko berhasil disimpan.');
+    } catch (err) {
+      toast.error('Gagal upload gambar QRIS: ' + (err.response?.data?.message || err.message));
+    } finally {
+      setUploadingQris(false);
+    }
   };
 
   const handleUploadBanner = async (slot) => {
@@ -411,6 +448,33 @@ export default function SettingIndex() {
                   </button>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
+          <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
+            <FiUpload className="text-blue-600 dark:text-yellow-400" size={20} />
+            <h3 className="font-extrabold text-base text-slate-900 dark:text-white">Gambar QRIS Toko</h3>
+          </div>
+          <p className="text-xs text-slate-500 dark:text-slate-400">Kasir menampilkan QR ini saat pembayaran. Pelanggan memasukkan nominal sesuai total pesanan.</p>
+          <div className="flex flex-wrap items-start gap-4">
+            <div className="w-32 h-32 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex items-center justify-center overflow-hidden">
+              {qrisPreview || qrisUrl ? <img src={qrisPreview || qrisUrl} alt="QRIS toko" className="w-full h-full object-contain" /> : <span className="text-xs text-slate-400">Belum ada QRIS</span>}
+            </div>
+            <div className="space-y-2">
+              <label className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg cursor-pointer">
+                <FiUpload size={14} /> Pilih Gambar
+                <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  if (file) { setQrisFile(file); setQrisPreview(URL.createObjectURL(file)); }
+                }} className="hidden" />
+              </label>
+              <p className="text-[10px] text-slate-400">JPEG, PNG, WEBP. Maks 2MB.</p>
+              <div className="flex flex-wrap gap-2">
+                {qrisFile && <button type="button" onClick={handleUploadQris} disabled={uploadingQris} className="px-4 py-2 rounded-lg bg-slate-900 text-white text-xs font-bold disabled:opacity-50">{uploadingQris ? 'Menyimpan...' : 'Simpan QRIS'}</button>}
+                {qrisUrl && <button type="button" onClick={() => setDeleteConfirm({ type: 'qris' })} disabled={uploadingQris} className="px-4 py-2 rounded-lg border border-red-200 text-red-600 text-xs font-bold disabled:opacity-50">Hapus QRIS</button>}
+              </div>
             </div>
           </div>
         </div>
@@ -613,6 +677,17 @@ export default function SettingIndex() {
             </button>
           </div>
         </div>
+
+        <Modal show={!!deleteConfirm} onClose={() => setDeleteConfirm(null)} maxWidth="sm">
+          <div className="p-6 space-y-4 bg-white dark:bg-slate-900 text-slate-900 dark:text-white">
+            <h3 className="font-bold">Hapus {deleteConfirm?.type === 'logo' ? 'logo toko' : deleteConfirm?.type === 'qris' ? 'gambar QRIS toko' : 'banner promo'}?</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400">Gambar yang sedang dipakai akan dihapus.</p>
+            <div className="flex justify-end gap-2">
+              <button type="button" onClick={() => setDeleteConfirm(null)} className="px-4 py-2 text-sm font-semibold">Batal</button>
+              <button type="button" onClick={executeDelete} className="px-4 py-2 rounded-lg bg-red-600 text-white text-sm font-bold">Hapus</button>
+            </div>
+          </div>
+        </Modal>
 
         {/* Modal Konfirmasi Reset Transaksi */}
         <Modal show={showResetModal} onClose={() => setShowResetModal(false)} maxWidth="md">

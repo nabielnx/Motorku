@@ -28,7 +28,7 @@ class AuditRemediationTest extends TestCase
     }
 
     #[Test]
-    public function doku_routes_are_not_registered_when_disabled(): void
+    public function customer_qris_payment_route_is_not_registered(): void
     {
         $response = $this->postJson('/api/customer/payment/qris', [
             'order_id' => '00000000-0000-0000-0000-000000000000',
@@ -38,11 +38,11 @@ class AuditRemediationTest extends TestCase
     }
 
     #[Test]
-    public function store_payment_request_rejects_non_cash_methods(): void
+    public function store_payment_request_accepts_only_cash_and_manual_qris(): void
     {
         $rules = (new StorePaymentRequest)->rules();
 
-        // Non-cash should fail
+        // Unsupported methods should fail.
         foreach (['qris', 'debit', 'credit', 'transfer', 'gopay'] as $method) {
             $validator = Validator::make([
                 'order_id' => '00000000-0000-0000-0000-000000000000',
@@ -62,6 +62,13 @@ class AuditRemediationTest extends TestCase
         ], $rules);
 
         $this->assertArrayNotHasKey('payment_method', $validator->errors()->toArray());
+
+        $validator = Validator::make([
+            'order_id' => '00000000-0000-0000-0000-000000000000',
+            'payment_method' => 'qris_manual',
+        ], $rules);
+        $this->assertArrayNotHasKey('payment_method', $validator->errors()->toArray());
+        $this->assertArrayNotHasKey('amount_received', $validator->errors()->toArray());
     }
 
     #[Test]

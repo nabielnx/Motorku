@@ -9,42 +9,35 @@ import {
     FiShoppingBag,
     FiUser,
     FiMapPin,
-    FiGrid,
     FiAlertCircle,
     FiDollarSign,
     FiTrash2
 } from 'react-icons/fi';
 
 const ORDER_KEY = 'motorku_pending_order';
-const LEGACY_ORDER_KEY = 'mie_amour_pending_order';
 const CART_KEY = 'motorku_cart';
-const LEGACY_CART_KEY = 'mie_amour_cart';
 const PAYMENT_KEY = 'motorku_order_for_payment';
 const CURRENT_ORDER_KEY = 'motorku_current_order';
 const HISTORY_KEY = 'motorku_orders_history';
 
-export default function Payment({ qrisEnabled = false }) {
+export default function Payment() {
     useForceLightTheme();
     const [orderData, setOrderData] = useState(null);
     const [customerName, setCustomerName] = useState('');
-    const [paymentMethod, setPaymentMethod] = useState(qrisEnabled ? null : 'kasir');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState(null);
     const customerNameInputRef = useRef(null);
 
     const handleClearAndReturn = () => {
         localStorage.removeItem(ORDER_KEY);
-        localStorage.removeItem(LEGACY_ORDER_KEY);
         localStorage.removeItem(CART_KEY);
-        localStorage.removeItem(LEGACY_CART_KEY);
         localStorage.removeItem('motorku_cart_time');
-        localStorage.removeItem('mie_amour_cart_time');
         router.visit('/');
     };
 
     useEffect(() => {
         try {
-            const raw = localStorage.getItem(ORDER_KEY) || localStorage.getItem(LEGACY_ORDER_KEY);
+            const raw = localStorage.getItem(ORDER_KEY);
             if (!raw) {
                 router.visit('/');
                 return;
@@ -74,16 +67,11 @@ export default function Payment({ qrisEnabled = false }) {
             customerNameInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
             return;
         }
-        if (!paymentMethod) {
-            setError('Harap pilih metode pembayaran!');
-            return;
-        }
-
         setIsSubmitting(true);
 
         const payload = {
             customer_name: customerName,
-            notes: `Pre-order Web | Pembayaran: ${paymentMethod === 'qris' ? 'QRIS' : 'Bayar di Kasir'}`,
+            notes: 'Pre-order Web | Pembayaran: Bayar di Kasir',
             items: orderData.cart.map(i => ({
                 product_id: i.id,
                 quantity: i.qty,
@@ -96,11 +84,8 @@ export default function Payment({ qrisEnabled = false }) {
             const order = res.data?.data;
 
             localStorage.removeItem(ORDER_KEY);
-            localStorage.removeItem(LEGACY_ORDER_KEY);
             localStorage.removeItem(CART_KEY);
-            localStorage.removeItem(LEGACY_CART_KEY);
             localStorage.removeItem('motorku_cart_time');
-            localStorage.removeItem('mie_amour_cart_time');
 
             // Build items array for immediate display on Waiting page
             const cartItems = orderData.cart.map(i => ({
@@ -117,10 +102,9 @@ export default function Payment({ qrisEnabled = false }) {
                 total: order.total,
                 subtotal: orderData.subtotal,
                 tax_amount: orderData.tax,
-                table_name: 'Ambil di Toko',
-                order_type: 'take_away',
+                pickup_label: 'Ambil di Toko',
                 customer_name: customerName,
-                payment_method: paymentMethod,
+                payment_method: 'kasir',
                 order_status: 'pending',
                 created_at: new Date().toISOString(),
                 items: cartItems,
@@ -128,27 +112,19 @@ export default function Payment({ qrisEnabled = false }) {
 
             localStorage.setItem(PAYMENT_KEY, JSON.stringify(paymentData));
             localStorage.setItem(CURRENT_ORDER_KEY, JSON.stringify(paymentData));
-            localStorage.setItem('mie_amour_order_for_payment', JSON.stringify(paymentData));
-            localStorage.setItem('mie_amour_current_order', JSON.stringify(paymentData));
 
             // Append to order history list in localStorage
             try {
-                const rawHistory = localStorage.getItem(HISTORY_KEY) || localStorage.getItem('mie_amour_orders_history');
+                const rawHistory = localStorage.getItem(HISTORY_KEY);
                 let history = rawHistory ? JSON.parse(rawHistory) : [];
                 if (!Array.isArray(history)) history = [];
                 // Prevent duplicate order_id
                 history = history.filter(o => o.order_id !== order.id);
                 history.push(paymentData);
                 localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
-                localStorage.setItem('mie_amour_orders_history', JSON.stringify(history));
             } catch {}
 
-            // Redirect based on payment method
-            if (paymentMethod === 'qris') {
-                router.visit('/payment/qris');
-            } else {
-                router.visit('/order/waiting');
-            }
+            router.visit('/order/waiting');
         } catch (err) {
             setError(err.response?.data?.message || 'Terjadi kesalahan saat memproses pesanan.');
         } finally {
@@ -264,54 +240,12 @@ export default function Payment({ qrisEnabled = false }) {
                     {/* PAYMENT METHOD */}
                     <div className="space-y-2">
                         <label className="text-xs font-bold text-slate-800 block">Metode Pembayaran</label>
-                        <div className="space-y-2">
-                            {qrisEnabled && <button
-                                onClick={() => setPaymentMethod('qris')}
-                                className={`w-full p-4 rounded-2xl border-2 text-left flex items-center gap-4 transition-all ${
-                                    paymentMethod === 'qris'
-                                        ? 'border-blue-600 bg-blue-50 shadow-md'
-                                        : 'border-slate-200 bg-white hover:border-slate-300'
-                                }`}
-                            >
-                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                                    paymentMethod === 'qris' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-400'
-                                }`}>
-                                    <FiGrid size={20} />
-                                </div>
-                                <div className="flex-1">
-                                    <p className="font-bold text-xs text-slate-800">QRIS</p>
-                                    <p className="text-[10px] text-slate-500">Scan QR code untuk pembayaran instan</p>
-                                </div>
-                                {paymentMethod === 'qris' && (
-                                    <div className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center">
-                                        <FiCheck size={12} className="text-white" />
-                                    </div>
-                                )}
-                            </button>}
-
-                            <button
-                                onClick={() => setPaymentMethod('kasir')}
-                                className={`w-full p-4 rounded-2xl border-2 text-left flex items-center gap-4 transition-all ${
-                                    paymentMethod === 'kasir'
-                                        ? 'border-blue-600 bg-blue-50 shadow-md'
-                                        : 'border-slate-200 bg-white hover:border-slate-300'
-                                }`}
-                            >
-                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                                    paymentMethod === 'kasir' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-400'
-                                }`}>
-                                    <FiDollarSign size={20} />
-                                </div>
-                                <div className="flex-1">
-                                    <p className="font-bold text-xs text-slate-800">Bayar di Kasir</p>
-                                    <p className="text-[10px] text-slate-500">Tunjukkan pesanan ini ke kasir</p>
-                                </div>
-                                {paymentMethod === 'kasir' && (
-                                    <div className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center">
-                                        <FiCheck size={12} className="text-white" />
-                                    </div>
-                                )}
-                            </button>
+                        <div className="flex items-center gap-3 rounded-xl bg-blue-50 px-4 py-3 text-blue-800">
+                            <FiDollarSign size={20} />
+                            <div>
+                                <p className="font-bold text-xs">Bayar di Kasir</p>
+                                <p className="text-[10px]">Tunjukkan pesanan ini saat datang ke toko.</p>
+                            </div>
                         </div>
                     </div>
                 </div>

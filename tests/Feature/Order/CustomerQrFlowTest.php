@@ -68,14 +68,11 @@ class CustomerQrFlowTest extends TestCase
     }
 
     #[Test]
-    public function disabled_qris_is_not_offered_at_customer_checkout(): void
+    public function customer_checkout_only_offers_payment_at_store(): void
     {
-        config()->set('doku.enabled', false);
-
         $this->get('/payment')->assertOk()->assertInertia(fn ($page) => $page
-            ->component('Payment/Index')
-            ->where('qrisEnabled', false));
-        $this->get('/payment/qris')->assertRedirect('/order/status');
+            ->component('Payment/Index'));
+        $this->get('/payment/qris')->assertNotFound();
     }
 
     #[Test]

@@ -22,7 +22,8 @@ class CashClosingService
             'cash_sales' => (float) Payment::where('payment_method', 'cash')
                 ->whereIn('status', ['paid', 'refunded'])
                 ->whereBetween('paid_at', [$start, $end])->sum('amount'),
-            'cash_returns' => (float) OrderReturn::whereBetween('created_at', [$start, $end])->sum('amount'),
+            'cash_returns' => (float) OrderReturn::where('refund_method', 'cash')
+                ->whereBetween('created_at', [$start, $end])->sum('amount'),
             'closing' => CashClosing::where('closing_date', $date)->first(),
         ];
     }
