@@ -577,7 +577,7 @@ export default function MenuManagement({
                                     <button
                                         type="button"
                                         onClick={openAddProductModal}
-                                        className="px-2.5 sm:px-3.5 py-1.5 bg-green-500 hover:bg-green-600 active:scale-95 text-white font-bold rounded-lg text-xs shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+                                        className="px-2.5 sm:px-3.5 py-1.5 bg-accentYellow hover:bg-yellow-300 active:scale-95 text-primaryDark font-bold rounded-lg text-xs shadow-xs transition flex items-center gap-1.5 cursor-pointer"
                                     >
                                         <FiPlus size={15} />
                                         <span className="hidden sm:inline">Tambah Produk</span><span className="sm:hidden">Tambah</span>
@@ -586,7 +586,7 @@ export default function MenuManagement({
                                     <button
                                         type="button"
                                         onClick={openAddCategoryModal}
-                                        className="px-2.5 sm:px-3.5 py-1.5 bg-green-500 hover:bg-green-600 active:scale-95 text-white font-bold rounded-lg text-xs shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+                                        className="px-2.5 sm:px-3.5 py-1.5 bg-accentYellow hover:bg-yellow-300 active:scale-95 text-primaryDark font-bold rounded-lg text-xs shadow-xs transition flex items-center gap-1.5 cursor-pointer"
                                     >
                                         <FiPlus size={15} />
                                         <span className="hidden sm:inline">Tambah Kategori</span><span className="sm:hidden">Tambah</span>
@@ -597,8 +597,8 @@ export default function MenuManagement({
 
                         {/* Low Stock Alert Banner */}
                         {(lowStockCount > 0 || outOfStockCount > 0) && activeTab === 'products' && (
-                            <div className={`flex items-center justify-between gap-2 border-l-2 pl-2 text-[11px] sm:text-xs ${outOfStockCount > 0 ? 'border-red-500' : 'border-amber-400'}`}>
-                                <div className={`flex min-w-0 items-center gap-1.5 font-semibold ${outOfStockCount > 0 ? 'text-red-600 dark:text-red-400' : 'text-amber-800 dark:text-amber-200'}`}>
+                            <div className={`flex items-center justify-between gap-2 border-l-2 pl-2 text-[11px] sm:text-xs ${outOfStockCount > 0 ? 'border-red-500' : 'border-accentYellow'}`}>
+                                <div className={`flex min-w-0 items-center gap-1.5 font-semibold ${outOfStockCount > 0 ? 'text-red-600 dark:text-red-400' : 'text-primaryDark dark:text-accentYellow'}`}>
                                     <FiAlertTriangle className="shrink-0" size={14} />
                                     <span>
                                         {[lowStockCount > 0 && `${lowStockCount} perlu kulak`, outOfStockCount > 0 && `${outOfStockCount} stok habis`].filter(Boolean).join(' · ')}
@@ -607,7 +607,7 @@ export default function MenuManagement({
                                 <button
                                     type="button"
                                     onClick={() => handleStockFilterChange(selectedStockFilter === stockAlertFilter ? 'all' : stockAlertFilter)}
-                                    className={`shrink-0 font-bold hover:underline cursor-pointer ${outOfStockCount > 0 ? 'text-red-600 dark:text-red-400' : 'text-amber-700 dark:text-amber-300'}`}
+                                    className={`shrink-0 font-bold hover:underline cursor-pointer ${outOfStockCount > 0 ? 'text-red-600 dark:text-red-400' : 'text-primaryDark dark:text-accentYellow'}`}
                                 >
                                     {selectedStockFilter === stockAlertFilter ? 'Semua' : 'Lihat'}
                                 </button>
@@ -840,7 +840,7 @@ export default function MenuManagement({
                                                     </div>
                                                     <div className="mt-1.5 flex items-center justify-between gap-2 pl-[3.375rem] text-xs">
                                                         <span className="font-bold text-slate-900 dark:text-white whitespace-nowrap">Rp {Number(item.price).toLocaleString('id-ID')}</span>
-                                                        <span className={`font-semibold whitespace-nowrap ${item.stock <= 0 ? 'text-rose-600' : item.stock <= (item.minimum_stock ?? 3) ? 'text-amber-600' : 'text-emerald-600 dark:text-emerald-400'}`}>
+                                                        <span className={`font-semibold whitespace-nowrap ${item.stock <= 0 ? 'text-red-600' : item.stock <= (item.minimum_stock ?? 3) ? 'text-primaryDark dark:text-accentYellow' : 'text-slate-700 dark:text-slate-300'}`}>
                                                             {item.stock <= 0 ? 'Stok habis' : item.stock <= (item.minimum_stock ?? 3) ? `${item.stock} pcs · Perlu kulak` : `${item.stock} pcs`}
                                                         </span>
                                                     </div>
@@ -856,7 +856,7 @@ export default function MenuManagement({
                                                             <div className="flex items-center gap-3 pt-1 font-semibold">
                                                                 <button type="button" onClick={() => openAdjustModal(item)} className="inline-flex items-center gap-1 text-primary dark:text-blue-300"><FiPlus size={14} /> Stok</button>
                                                                 <button type="button" onClick={() => openEditProductModal(item)} className="inline-flex items-center gap-1 text-slate-700 dark:text-slate-200"><FiEdit2 size={13} /> Edit</button>
-                                                                <button type="button" onClick={() => handleDeleteProduct(item)} className="inline-flex items-center gap-1 text-rose-600 dark:text-rose-400"><FiTrash2 size={13} /> Hapus</button>
+                                                                <button type="button" onClick={() => handleDeleteProduct(item)} className="inline-flex items-center gap-1 text-red-600 dark:text-red-400"><FiTrash2 size={13} /> Hapus</button>
                                                             </div>
                                                         </div>
                                                     )}
@@ -885,9 +885,9 @@ export default function MenuManagement({
                                                     {/* Badges on Image */}
                                                     <div className="absolute top-2 left-2 flex flex-col gap-1.5 items-start z-10 pointer-events-none">
                                                         {item.stock <= 0 ? (
-                                                            <span className="px-2 py-0.5 bg-rose-500 text-white text-[10px] font-bold rounded-md shadow-xs whitespace-nowrap">Stok Habis</span>
+                                                            <span className="px-2 py-0.5 bg-red-600 text-white text-[10px] font-bold rounded-md shadow-xs whitespace-nowrap">Stok Habis</span>
                                                         ) : item.stock <= (item.minimum_stock ?? 3) ? (
-                                                            <span className="px-2 py-0.5 bg-amber-500 text-white text-[10px] font-bold rounded-md shadow-xs whitespace-nowrap">Perlu Kulak ({item.stock})</span>
+                                                            <span className="px-2 py-0.5 bg-accentYellow text-primaryDark text-[10px] font-bold rounded-md shadow-xs whitespace-nowrap">Perlu Kulak ({item.stock})</span>
                                                         ) : null}
                                                     </div>
                                                 </div>
@@ -935,7 +935,7 @@ export default function MenuManagement({
                                                     <button
                                                         type="button"
                                                         onClick={() => openEditProductModal(item)}
-                                                        className="p-1.5 text-slate-500 hover:text-amber-600 hover:bg-white dark:hover:bg-slate-800 rounded-lg transition cursor-pointer"
+                                                        className="p-1.5 text-slate-500 hover:text-primaryDark dark:hover:text-white hover:bg-white dark:hover:bg-slate-800 rounded-lg transition cursor-pointer"
                                                         title="Edit Produk"
                                                     >
                                                         <FiEdit2 size={13} />
@@ -1044,7 +1044,7 @@ export default function MenuManagement({
 
                                                             {/* Harga Modal */}
                                                             <td className="px-4 py-2.5 font-semibold text-slate-700 dark:text-slate-300 whitespace-nowrap">
-                                                                {item.cost_price == null ? <span className="font-normal text-amber-700 dark:text-amber-400">Belum diisi</span> : `Rp ${item.cost_price.toLocaleString('id-ID')}`}
+                                                                {item.cost_price == null ? <span className="font-normal text-slate-500 dark:text-slate-400">Belum diisi</span> : `Rp ${item.cost_price.toLocaleString('id-ID')}`}
                                                             </td>
 
                                                             {/* Harga Jual */}
@@ -1056,9 +1056,9 @@ export default function MenuManagement({
                                                             <td className="px-4 py-2.5 whitespace-nowrap">
                                                                 <span className={`font-semibold ${
                                                                     item.stock <= 0 
-                                                                        ? 'text-rose-600 font-bold' 
+                                                                        ? 'text-red-600 font-bold'
                                                                         : item.stock <= (item.minimum_stock ?? 3)
-                                                                            ? 'text-amber-500 font-bold' 
+                                                                            ? 'text-primaryDark dark:text-accentYellow font-bold'
                                                                             : 'text-slate-700 dark:text-slate-300'
                                                                 }`}>
                                                                     {item.stock <= 0 ? 'Habis' : item.stock <= (item.minimum_stock ?? 3) ? `Perlu Kulak (${item.stock})` : `${item.stock} pcs`}
@@ -1136,8 +1136,8 @@ export default function MenuManagement({
                                                                                 </div>
                                                                                 <div>
                                                                                     <span className="text-slate-400 dark:text-slate-500 font-medium block">Monitor Persediaan</span>
-                                                                                    <span className="inline-flex items-center gap-1.5 font-semibold text-blue-600 dark:text-blue-400 mt-0.5">
-                                                                                        <span className="w-1.5 h-1.5 rounded-full bg-blue-600"></span> Aktif ({item.stock} pcs tersedia)
+                                                                                    <span className="inline-flex items-center font-semibold text-slate-700 dark:text-slate-300 mt-0.5">
+                                                                                        Aktif ({item.stock} pcs tersedia)
                                                                                     </span>
                                                                                 </div>
                                                                                 <div>
@@ -1173,7 +1173,7 @@ export default function MenuManagement({
                                                                             <button
                                                                                 type="button"
                                                                                 onClick={() => handleDeleteProduct(item)}
-                                                                                className="px-3 py-1.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-rose-600 dark:text-rose-400 text-xs font-bold rounded-md border border-slate-300 dark:border-slate-700 transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                                                                                className="px-3 py-1.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-red-600 dark:text-red-400 text-xs font-bold rounded-md border border-slate-300 dark:border-slate-700 transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
                                                                             >
                                                                                 <FiTrash2 size={13} /> Hapus
                                                                             </button>
@@ -1256,7 +1256,7 @@ export default function MenuManagement({
                                         <button
                                             type="button"
                                             onClick={openAddCategoryModal}
-                                            className="px-4 py-2 bg-green-500 hover:bg-green-600 active:scale-95 text-white font-bold rounded-lg text-xs shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+                                            className="px-4 py-2 bg-accentYellow hover:bg-yellow-300 active:scale-95 text-primaryDark font-bold rounded-lg text-xs shadow-xs transition flex items-center gap-1.5 cursor-pointer"
                                         >
                                             <FiPlus size={15} />
                                             <span>Tambah Kategori Baru</span>
@@ -1285,7 +1285,7 @@ export default function MenuManagement({
                                                         <p className="text-sm font-semibold text-slate-900 dark:text-white">{cat.name}</p>
                                                         <p className="text-xs text-slate-500 dark:text-slate-400">{cat.count} produk · {cat.children.length} subkategori</p>
                                                     </div>
-                                                    <button type="button" onClick={() => { setActiveTab('products'); handleCategoryFilterChange(cat.name); }} className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline whitespace-nowrap">Lihat produk</button>
+                                                    <button type="button" onClick={() => { setActiveTab('products'); handleCategoryFilterChange(cat.name); }} className="text-xs font-semibold text-primary dark:text-blue-300 hover:underline whitespace-nowrap">Lihat produk</button>
                                                     <button type="button" onClick={() => openEditCategoryModal(cat)} className="p-2 text-slate-500 hover:text-slate-900 dark:hover:text-white" title="Edit kategori dan subkategori" aria-label={`Edit ${cat.name}`}><FiEdit2 size={15} /></button>
                                                     <button type="button" onClick={() => handleDeleteCategory(cat)} className="p-2 text-slate-400 hover:text-red-600" title="Hapus kategori" aria-label={`Hapus ${cat.name}`}><FiTrash2 size={15} /></button>
                                                 </div>
@@ -1496,7 +1496,7 @@ export default function MenuManagement({
                                             <div className="w-12 h-12 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500 text-xs font-bold border border-slate-300 dark:border-slate-700">Foto</div>
                                         )}
                                         <div className="text-xs text-slate-500 dark:text-slate-400">
-                                            <span className="font-bold text-green-600 dark:text-green-400">Upload foto</span>
+                                            <span className="font-bold text-primary dark:text-blue-300">Upload foto</span>
                                             <br />JPG, PNG, WEBP · maks 2 MB
                                         </div>
                                     </label>
@@ -1514,7 +1514,7 @@ export default function MenuManagement({
                                 <button
                                     type="submit"
                                     disabled={isLoading}
-                                    className="min-h-10 flex-1 px-3.5 py-2 bg-green-500 hover:bg-green-600 text-white text-xs font-bold rounded-lg shadow-xs transition cursor-pointer disabled:opacity-50"
+                                    className="min-h-10 flex-1 px-3.5 py-2 bg-accentYellow hover:bg-yellow-300 text-primaryDark text-xs font-bold rounded-lg shadow-xs transition cursor-pointer disabled:opacity-50"
                                 >
                                     {isLoading ? 'Menyimpan...' : editingItem ? 'Simpan Perubahan' : 'Tambah Produk'}
                                 </button>
@@ -1569,7 +1569,7 @@ export default function MenuManagement({
                                                     sub_categories: [...(categoryFormData.sub_categories || []), { name: '' }]
                                                 });
                                             }}
-                                            className="shrink-0 text-xs font-bold text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 flex items-center gap-1 cursor-pointer"
+                                            className="shrink-0 text-xs font-bold text-primary dark:text-blue-300 hover:text-primaryDark dark:hover:text-white flex items-center gap-1 cursor-pointer"
                                         >
                                             <FiPlus size={13} />
                                             <span>Tambah</span>
@@ -1623,7 +1623,7 @@ export default function MenuManagement({
                                 <button
                                     type="submit"
                                     disabled={isLoading}
-                                    className="min-h-10 flex-1 px-3.5 py-2 bg-green-500 hover:bg-green-600 text-white text-xs font-bold rounded-lg shadow-xs transition cursor-pointer disabled:opacity-50"
+                                    className="min-h-10 flex-1 px-3.5 py-2 bg-accentYellow hover:bg-yellow-300 text-primaryDark text-xs font-bold rounded-lg shadow-xs transition cursor-pointer disabled:opacity-50"
                                 >
                                     {isLoading ? 'Menyimpan...' : 'Simpan Kategori'}
                                 </button>
@@ -1722,14 +1722,14 @@ export default function MenuManagement({
                         {/* Modal Info Footer */}
                         <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 space-y-2">
                             <div className="flex items-center justify-between">
-                                <span className="text-base sm:text-lg font-black text-blue-600 dark:text-blue-400">
+                                <span className="text-base sm:text-lg font-black text-primaryDark dark:text-blue-300">
                                     Rp {Number(previewProduct.price).toLocaleString('id-ID')}
                                 </span>
                                 <span className={`text-xs font-semibold ${
                                     previewProduct.stock <= 0 
-                                        ? 'text-rose-600 font-bold' 
+                                        ? 'text-red-600 font-bold'
                                         : previewProduct.stock <= 5 
-                                            ? 'text-amber-500' 
+                                            ? 'text-primaryDark dark:text-accentYellow'
                                             : 'text-slate-700 dark:text-slate-300'
                                 }`}>
                                     Stok: {previewProduct.stock <= 0 ? 'Habis' : `${previewProduct.stock} pcs`}
@@ -1771,7 +1771,7 @@ export default function MenuManagement({
                         <form onSubmit={handleAdjustSubmit} className="min-h-0 flex-1 overflow-y-auto p-4 space-y-4">
                             <div className="flex items-center justify-between text-xs">
                                 <span className="text-slate-600 dark:text-slate-400 font-semibold">Stok saat ini</span>
-                                <span className="font-extrabold text-blue-600 dark:text-blue-400 text-sm">
+                                <span className="font-extrabold text-primaryDark dark:text-blue-300 text-sm">
                                     {selectedProductForAdjust.stock} pcs
                                 </span>
                             </div>
@@ -1788,7 +1788,7 @@ export default function MenuManagement({
                                         aria-pressed={adjustForm.type === 'stock_in'}
                                         className={`min-w-0 py-2 rounded-md text-xs font-bold transition text-center cursor-pointer ${
                                             adjustForm.type === 'stock_in'
-                                                ? 'bg-white dark:bg-slate-700 text-blue-700 dark:text-blue-300 shadow-xs'
+                                                ? 'bg-primary text-white shadow-xs'
                                                 : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
                                         }`}
                                     >
@@ -1800,7 +1800,7 @@ export default function MenuManagement({
                                         aria-pressed={adjustForm.type === 'stock_out'}
                                         className={`min-w-0 py-2 rounded-md text-xs font-bold transition text-center cursor-pointer ${
                                             adjustForm.type === 'stock_out'
-                                                ? 'bg-white dark:bg-slate-700 text-rose-700 dark:text-rose-300 shadow-xs'
+                                                ? 'bg-primary text-white shadow-xs'
                                                 : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
                                         }`}
                                     >
@@ -1812,7 +1812,7 @@ export default function MenuManagement({
                                         aria-pressed={adjustForm.type === 'adjustment'}
                                         className={`min-w-0 py-2 rounded-md text-xs font-bold transition text-center cursor-pointer ${
                                             adjustForm.type === 'adjustment'
-                                                ? 'bg-white dark:bg-slate-700 text-amber-700 dark:text-amber-300 shadow-xs'
+                                                ? 'bg-primary text-white shadow-xs'
                                                 : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
                                         }`}
                                     >
