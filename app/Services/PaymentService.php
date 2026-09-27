@@ -7,6 +7,7 @@ use App\Enums\PaymentStatus;
 use App\Events\OrderStatusUpdated;
 use App\Models\Order;
 use App\Models\Payment;
+use App\Models\Setting;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
@@ -18,10 +19,18 @@ class PaymentService
         return DB::transaction(function () use ($data) {
             $order = Order::whereKey($data['order_id'])->lockForUpdate()->firstOrFail();
 
-            if (($data['payment_method'] ?? null) !== 'cash') {
+            $method = $data['payment_method'] ?? null;
+            if (! in_array($method, ['cash', 'qris_manual'], true)) {
                 throw ValidationException::withMessages([
-                    'payment_method' => 'Hanya metode pembayaran tunai (cash) yang diperbolehkan.',
+                    'payment_method' => 'Metode pembayaran tidak didukung.',
                 ]);
+            }
+
+            if ($method === 'qris_manual' && (
+                Setting::where('group', 'payment')->where('key', 'qris_enabled')->value('value') === 'false'
+                || ! Setting::where('group', 'store')->where('key', 'qris_image')->whereNotNull('value')->exists()
+            )) {
+                throw ValidationException::withMessages(['payment_method' => 'Gambar QRIS toko belum tersedia atau QRIS dinonaktifkan.']);
             }
 
             if ($order->order_status === OrderStatus::Cancelled) {
@@ -33,20 +42,25 @@ class PaymentService
             }
 
             // Cancel any previous pending payments for this order (e.g. pending QRIS attempt)
-            $order->payments()->where('status', 'pending')->update(['status' => 'cancelled']);
+            $order->payments()->where('status', 'pending')
+                ->where(function ($query) {
+                    $query->whereNull('payment_channel')->orWhere('payment_channel', '!=', 'doku_checkout');
+                })->update(['status' => 'cancelled']);
 
-            $amountReceived = (float) ($data['amount_received'] ?? 0);
             $amountDue = (float) $order->total;
-            if ($amountReceived < $amountDue) {
+            $amountReceived = $method === 'cash' ? (float) ($data['amount_received'] ?? 0) : $amountDue;
+            if ($method === 'cash' && $amountReceived < $amountDue) {
                 throw ValidationException::withMessages(['amount_received' => 'Nominal pembayaran kurang dari total pesanan.']);
             }
 
             $payment = Payment::create([
                 'order_id' => $data['order_id'],
-                'payment_method' => 'cash',
+                'payment_method' => $method,
+                'payment_channel' => $method === 'qris_manual' ? 'manual_qris' : null,
                 'amount' => $amountDue,
                 'amount_received' => $amountReceived,
-                'change_amount' => max(0, $amountReceived - $amountDue),
+                'change_amount' => $method === 'cash' ? max(0, $amountReceived - $amountDue) : 0,
+                'reference_number' => $method === 'qris_manual' ? ($data['reference_number'] ?? null) : null,
                 'invoice_number' => $this->nextInvoiceNumber(),
                 'notes' => $data['notes'] ?? null,
                 'status' => 'paid',

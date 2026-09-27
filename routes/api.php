@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Order\CustomerMenuController;
+use App\Http\Controllers\Setting\SettingController;
 
 Route::get('/user', fn(Request $request) => $request->user())
     ->middleware('auth:sanctum');
@@ -19,6 +20,10 @@ Route::post('/customer/order/{orderId}/cancel', [CustomerMenuController::class, 
     ->name('api.customer.order.cancel');
 
 $base = ['web', 'auth'];
+
+Route::middleware([...$base, 'role:owner|cashier'])
+    ->get('/settings/qris-image', [SettingController::class, 'getQrisImage'])
+    ->name('api.settings.qris-image.get');
 
 // ─── 1. OWNER — Admin & Laporan ───
 Route::middleware([...$base, 'role:owner'])->group(function () {

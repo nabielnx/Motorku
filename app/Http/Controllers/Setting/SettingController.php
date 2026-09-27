@@ -33,7 +33,7 @@ class SettingController extends Controller implements HasMiddleware
     public static function middleware(): array
     {
         return [
-            new Middleware('role:owner'),
+            new Middleware('role:owner', except: ['getQrisImage']),
         ];
     }
 
@@ -195,6 +195,51 @@ class SettingController extends Controller implements HasMiddleware
         return response()->json([
             'message' => 'Logo berhasil dihapus!',
         ]);
+    }
+
+    public function uploadQrisImage(Request $request): JsonResponse
+    {
+        $request->validate([
+            'qris_image' => ['required', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
+        ]);
+
+        $old = Setting::where('group', 'store')->where('key', 'qris_image')->value('value');
+        if ($old) {
+            Storage::disk('public')->delete($old);
+        }
+
+        $path = $request->file('qris_image')->store('qris', 'public');
+        Setting::updateOrCreate(
+            ['group' => 'store', 'key' => 'qris_image'],
+            ['value' => $path, 'type' => 'string']
+        );
+        CacheService::flushSettings();
+
+        return response()->json([
+            'message' => 'Gambar QRIS berhasil diupload!',
+            'url' => Storage::url($path),
+        ]);
+    }
+
+    public function getQrisImage(): JsonResponse
+    {
+        $path = Setting::where('group', 'store')->where('key', 'qris_image')->value('value');
+
+        return response()->json(['url' => $path ? Storage::url($path) : null]);
+    }
+
+    public function deleteQrisImage(): JsonResponse
+    {
+        $setting = Setting::where('group', 'store')->where('key', 'qris_image')->first();
+        if ($setting) {
+            if ($setting->value) {
+                Storage::disk('public')->delete($setting->value);
+            }
+            $setting->delete();
+        }
+        CacheService::flushSettings();
+
+        return response()->json(['message' => 'Gambar QRIS berhasil dihapus!']);
     }
 
     /**

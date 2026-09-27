@@ -24,6 +24,8 @@ class Payment extends Model
         'user_id',
         'invoice_number',
         'gateway_reference',
+        'reference_number',
+        'reference_number',
         'paid_at',
         'raw_response',
         'expired_at',

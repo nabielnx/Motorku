@@ -37,8 +37,9 @@ class OrderService
             ]);
             $payment = $this->paymentService->processPayment([
                 'order_id' => $order->id,
-                'payment_method' => 'cash',
-                'amount_received' => $data['amount_received'],
+                'payment_method' => $data['payment_method'] ?? 'cash',
+                'amount_received' => $data['amount_received'] ?? null,
+                'reference_number' => $data['reference_number'] ?? null,
                 'notes' => 'Penjualan langsung POS',
             ]);
 
