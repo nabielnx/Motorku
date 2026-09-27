@@ -12,6 +12,7 @@ import {
     FiClock, 
     FiCheckCircle, 
     FiArrowRight,
+    FiChevronDown,
     FiChevronLeft,
     FiChevronRight
 } from 'react-icons/fi';
@@ -153,18 +154,22 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                     <h2 className="text-base sm:text-lg font-black text-primaryDark dark:text-white">Ringkasan Toko</h2>
                     <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
                         {/* Preset Select Dropdown */}
-                        <select 
-                            value={currentPeriod === 'custom' ? '' : currentPeriod}
-                            onChange={handlePeriodChange}
-                            className="min-w-0 w-full sm:w-auto border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-bold text-primaryDark dark:text-accentYellow focus:ring-0 focus:border-primary focus:outline-none bg-white dark:bg-slate-800 cursor-pointer shadow-2xs sm:px-4"
-                        >
-                            <option value="" disabled hidden>Pilihan Cepat...</option>
-                            <option value="today">Hari Ini</option>
-                            <option value="7_days">7 Hari Terakhir</option>
-                            <option value="30_days">30 Hari Terakhir</option>
-                            <option value="this_month">Bulan Ini</option>
-                            <option value="this_year">Tahun Ini</option>
-                        </select>
+                        <div className="relative min-w-0 w-full sm:w-auto">
+                            <select
+                                value={currentPeriod === 'custom' ? '' : currentPeriod}
+                                onChange={handlePeriodChange}
+                                aria-label="Pilih periode dashboard"
+                                className="w-full appearance-none rounded-xl border border-primary bg-primary py-2 pl-3 pr-8 text-xs font-bold text-white shadow-2xs cursor-pointer transition hover:bg-primaryDark focus:outline-none focus:ring-0 focus:border-primaryDark sm:pl-4"
+                            >
+                                <option className="bg-white text-slate-900" value="" disabled hidden>Pilihan Cepat...</option>
+                                <option className="bg-white text-slate-900" value="today">Hari Ini</option>
+                                <option className="bg-white text-slate-900" value="7_days">7 Hari Terakhir</option>
+                                <option className="bg-white text-slate-900" value="30_days">30 Hari Terakhir</option>
+                                <option className="bg-white text-slate-900" value="this_month">Bulan Ini</option>
+                                <option className="bg-white text-slate-900" value="this_year">Tahun Ini</option>
+                            </select>
+                            <FiChevronDown aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-white" size={14} />
+                        </div>
 
                         {/* Separate Single Calendar Range Picker */}
                         <DateRangePicker 
