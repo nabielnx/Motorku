@@ -183,7 +183,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
 
         if (orderStatus === 'completed') {
             return {
-                primary: { label: 'Selesai', color: 'bg-blue-600 text-white', icon: FiCheckCircle },
+                primary: { label: 'Selesai', color: 'text-primaryDark dark:text-blue-300', icon: FiCheckCircle, plain: true },
                 secondary: returnedAmount > 0 ? { label: 'RETUR SEBAGIAN', color: 'bg-amber-600 text-white' } : null,
                 tooltip: 'Pesanan telah selesai disajikan dan dibayar',
             };
@@ -375,7 +375,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                 <meta name="description" content="Kelola dan pantau seluruh daftar pesanan pelanggan Motorku secara real-time." />
             </Head>
 
-            <div className="mx-auto w-full max-w-[1440px] space-y-3 p-2 sm:space-y-4 sm:p-5">
+            <div className="mx-auto w-full max-w-[1440px] space-y-3 p-2 sm:space-y-4 sm:px-5 sm:pb-5 sm:pt-0">
 
                 <div className="sm:hidden px-1 py-1 text-xs text-slate-600 dark:text-slate-300">
                     <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
@@ -491,7 +491,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                                         </div>
                                     ) : <p className="mt-1 text-[11px] text-slate-500">Belum ada rincian barang</p>}
                                     <div className="mt-2 flex flex-wrap items-center gap-1.5" title={display.tooltip}>
-                                        <span className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-bold ${display.primary.color}`}>
+                                        <span className={`inline-flex items-center gap-1 text-[11px] font-bold ${display.primary.plain ? '' : 'rounded-md px-2 py-0.5'} ${display.primary.color}`}>
                                             <StatusIcon size={12} />{display.primary.label}
                                         </span>
                                         {display.secondary && <span className={`rounded-md px-1.5 py-0.5 text-[10px] font-bold ${display.secondary.color}`}>{display.secondary.label}</span>}
@@ -524,8 +524,8 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                                     <th className="px-3.5 py-2.5">PELANGGAN</th>
                                     <th className="px-3.5 py-2.5">ITEM</th>
                                     <th className="px-3.5 py-2.5">TOTAL</th>
-                                    <th className="px-3.5 py-2.5">STATUS</th>
-                                    <th className="px-3.5 py-2.5 text-right">AKSI</th>
+                                    <th className="w-[150px] px-3.5 py-2.5">STATUS</th>
+                                    <th className="w-[210px] px-3.5 py-2.5">AKSI</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-200 dark:divide-slate-800 border-b border-slate-200 dark:border-slate-800">
@@ -556,13 +556,13 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                                             </td>
 
                                              {/* STATUS PESANAN */}
-                                             <td className="px-3.5 py-2.5">
+                                             <td className="w-[150px] px-3.5 py-2.5">
                                                  {(() => {
                                                      const display = getStatusDisplay(order.status, order.payment_status, Number(order.returned_amount || 0));
                                                      const PrimaryIcon = display.primary.icon;
                                                      return (
                                                          <div className="flex items-center gap-1.5" title={display.tooltip}>
-                                                             <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold ${display.primary.color}`}>
+                                                             <span className={`inline-flex items-center gap-1 text-[11px] font-bold ${display.primary.plain ? '' : 'rounded-md px-2 py-0.5'} ${display.primary.color}`}>
                                                                  <PrimaryIcon size={12} />
                                                                  {display.primary.label}
                                                              </span>
@@ -577,8 +577,8 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                                              </td>
 
                                             {/* AKSI */}
-                                            <td className="px-3.5 py-2.5 text-right">
-                                                <div className="flex items-center justify-end gap-1.5">
+                                            <td className="w-[210px] px-3.5 py-2.5">
+                                                <div className="flex items-center gap-1.5">
                                                     {/* Highlighted Konfirmasi Pembayaran Button for Unpaid Orders */}
                                                     {order.payment_status === 'unpaid' && order.status !== 'cancelled' && (
                                                         <button
