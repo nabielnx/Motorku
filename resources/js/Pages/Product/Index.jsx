@@ -869,12 +869,12 @@ export default function MenuManagement({
                                     </div>}
                                     {viewMode === 'grid' ? (
                                     /* GRID VIEW */
-                                    <div className="grid grid-cols-2 md:grid-cols-[repeat(auto-fill,minmax(160px,180px))] gap-2 md:gap-3 p-2 md:p-4">
+                                    <div className="grid grid-cols-2 gap-2 p-2 md:grid-cols-4 md:gap-3 md:p-4 min-[1700px]:grid-cols-8">
                                         {filteredItems.map(item => (
                                             <div key={item.id} className="bg-white dark:bg-slate-800 rounded-md md:rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden md:shadow-xs hover:shadow-md hover:border-slate-400 dark:hover:border-slate-500 transition-all flex flex-col relative group">
                                                 {/* Image Container */}
                                                 <div
-                                                    className="relative w-full aspect-[4/3] bg-slate-50 dark:bg-slate-900 cursor-pointer overflow-hidden border-b border-slate-100 dark:border-slate-700"
+                                                    className={`relative w-full bg-slate-50 dark:bg-slate-900 cursor-pointer overflow-hidden border-b border-slate-100 dark:border-slate-700 ${item.image ? 'aspect-[4/3]' : 'h-28 sm:h-32'}`}
                                                     onClick={(e) => { e.stopPropagation(); setPreviewProduct(item); }}
                                                 >
                                                     {item.image ? (
