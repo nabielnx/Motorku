@@ -147,7 +147,7 @@ class CustomerMenuController extends Controller
                 'order_status' => $order->order_status,
                 'payment_status' => $order->payment_status,
                 'customer_name' => $order->customer_name,
-                'table_name' => 'Ambil di Toko',
+                'pickup_label' => 'Ambil di Toko',
                 'subtotal' => (float) $order->subtotal,
                 'discount_amount' => (float) $order->discount_amount,
                 'tax_amount' => (float) $order->tax_amount,

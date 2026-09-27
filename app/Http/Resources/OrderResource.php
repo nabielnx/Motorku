@@ -37,6 +37,8 @@ class OrderResource extends JsonResource
                 'product_name' => $return->item?->product_name,
                 'quantity' => $return->quantity,
                 'amount' => (float) $return->amount,
+                'refund_method' => $return->refund_method,
+                'refund_reference' => $return->refund_reference,
                 'restocked' => $return->restocked,
                 'reason' => $return->reason,
                 'created_at' => $return->created_at?->toIso8601String(),

@@ -490,7 +490,7 @@ export default function OrderStatus() {
                         discount_amount: latest.discount_amount,
                         items: latest.items,
                         customer_name: latest.customer_name || ord.customer_name,
-                        table_name: 'Ambil di Toko',
+                        pickup_label: 'Ambil di Toko',
                         ordered_at: latest.ordered_at || ord.ordered_at,
                     };
 

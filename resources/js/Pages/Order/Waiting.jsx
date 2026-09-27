@@ -96,7 +96,7 @@ export default function WaitingConfirmation() {
                     discount_amount: d.discount_amount,
                     items: d.items,
                     customer_name: d.customer_name || orderInfo.customer_name,
-                    table_name: d.table_name || orderInfo.table_name,
+                    pickup_label: d.pickup_label || orderInfo.pickup_label || 'Ambil di Toko',
                     ordered_at: d.ordered_at,
                 };
                 setOrderInfo(info);
@@ -261,7 +261,7 @@ export default function WaitingConfirmation() {
                         <div>
                             <p className="text-xs font-bold text-yellow-800">Menunggu Konfirmasi Kasir</p>
                             <p className="text-[11px] text-yellow-600 leading-tight">
-                                Tunjukkan nomor pesanan di atas ke kasir toko untuk pembayaran tunai.
+                                Tunjukkan nomor pesanan di atas ke kasir toko untuk pembayaran.
                             </p>
                         </div>
                     </div>

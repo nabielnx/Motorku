@@ -1,7 +1,7 @@
 # Toko Sparepart — Master Alur Sistem & Arsitektur Lengkap (Comprehensive System Flow)
 
 > **Dokumen Arsitektur & Alur Kerja Lengkap Toko Sparepart**  
-> Sistem manajemen toko sparepart modern berbasis web dengan dukungan **Omnichannel Pre-Order (QR Self-Order)**, **Katalog Kompatibilitas Motor (Fitment Engine - "Motor Saya")**, **Point of Sale (POS) Kasir Cepat**, **Manajemen Inventaris & Audit Trail Otomatis**, serta **Integrasi Payment Gateway DOKU QRIS & Kasir**.
+> Sistem manajemen toko sparepart berbasis web dengan katalog dan pre-order online, pencarian sparepart yang kompatibel dengan motor, POS kasir, inventaris, pembayaran tunai, dan QRIS statis yang dikonfirmasi kasir.
 
 ---
 
@@ -18,7 +18,7 @@
    - [4.6 Alur Inventaris, Stock Adjustment & Audit Trail](#46-alur-inventaris-stock-adjustment--audit-trail)
    - [4.7 Alur Laporan & Analytics Owner](#47-alur-laporan--analytics-owner)
 5. [Mesin Status (State Machine) & Aturan Bisnis (Business Guards)](#5-mesin-status-state-machine--aturan-bisnis-business-guards)
-6. [Arsitektur Pembayaran (Payment Gateway & Cash Flow)](#6-arsitektur-pembayaran-payment-gateway--cash-flow)
+6. [Arsitektur Pembayaran](#6-arsitektur-pembayaran)
 7. [Matriks Endpoint API & Validasi Form Requests](#7-matriks-endpoint-api--validasi-form-requests)
 8. [Mekanisme Keamanan, Konkurensi & Integritas Data](#8-mekanisme-keamanan-konkurensi--integritas-data)
 
@@ -41,19 +41,14 @@ graph TD
     end
     
     subgraph DataStore [Database & Cache Layer]
-        Eloquent --> PostgreSQL[(PostgreSQL Database)]
+        Eloquent --> MySQL[(MySQL Database)]
     end
     
-    subgraph ThirdParty [Integrasi Pihak Ketiga]
-        Services -->|HMAC-SHA256 / REST| DOKU[DOKU Payment Gateway QRIS]
-        DOKU -->|Webhook Callback| WebhookHandler[DokuPaymentController Webhook]
-        WebhookHandler --> Services
-    end
 ```
 
 - **Backend**: Laravel 12 (PHP 8.2+) dengan pola arsitektur **Controller → Service → Model**. Seluruh aturan bisnis, kalkulasi harga/pajak, transaksi database, dan mutasi stok diisolasi di `app/Services/`.
-- **Database**: PostgreSQL dengan primary key UUID (`HasUuids`), Soft Deletes pada entitas utama (`Product`, `Order`, `Motorcycle`, `Category`), dan indeks komprehensif pada kolom pencarian dan filtering tanggal.
-- **Frontend**: Single Page Application (SPA) monolitik modern menggunakan **Inertia.js** + **React 19** + **Vite** + **Tailwind CSS**.
+- **Database**: MySQL dengan primary key UUID (`HasUuids`), Soft Deletes pada entitas utama (`Product`, `Order`, `Motorcycle`, `Category`), dan indeks pada kolom pencarian dan tanggal.
+- **Frontend**: Single Page Application (SPA) menggunakan **Inertia.js** + **React 18** + **Vite** + **Tailwind CSS**.
 - **State & UI**: Ikon Feather (`react-icons/fi`) dan Game Icons (`react-icons/gi`), auto-refresh reactive state, responsive mobile-first untuk customer dan desktop-optimized untuk POS kasir.
 
 ---
@@ -70,7 +65,7 @@ Sistem menggunakan `spatie/laravel-permission` dengan 2 role utama:
 | **Tracking Pesanan (`/order/status`)** | ✓ | ✓ | ✓ (Via Customer Token) |
 | **POS Kasir (`/pos`)** | ✓ | ✓ | ✗ |
 | **Daftar & Status Pesanan (`/orders`)** | ✓ | ✓ | ✗ |
-| **Pembayaran Pesanan (Cash/QRIS/Debit)** | ✓ | ✓ | ✗ |
+| **Pembayaran Pesanan (Tunai/QRIS Manual)** | ✓ | ✓ | ✗ |
 | **Katalog Sparepart (`/products`)** | Read & Write (CRUD) | Read Only (Lihat & Cari) | ✗ |
 | **Data Motor & Mapping (`/motorcycles`)** | Read & Write (CRUD) | Read Only | ✗ |
 | **Inventaris & Audit Stok (`/inventory`)** | Read & Write (Penyesuaian) | ✗ | ✗ |
@@ -195,7 +190,7 @@ erDiagram
 ### 4.1 Alur Customer: Pre-Order Online via QR Katalog
 
 ```
-[ Customer Scan QR di Meja / Banner ]
+[ Customer Buka Katalog / Scan QR di Banner ]
                 │
                 ▼
       Halaman Katalog (/)
@@ -211,9 +206,7 @@ erDiagram
                 ▼
   [ Checkout / Pembayaran (/payment) ]
    ├── Isi Nama Pelanggan (Wajib)
-   └── Pilih Metode:
-         ├── A. Bayar QRIS (DOKU Online)
-         └── B. Bayar di Kasir (Offline)
+   └── Bayar di kasir saat ambil pesanan
                 │
                 ▼
   POST /api/customer/order (Database Transaction + lockForUpdate)
@@ -225,9 +218,7 @@ erDiagram
                 ▼
   [ Halaman Status Pesanan (/order/status) ]
    ├── Polling status berkala tiap 5 detik
-   ├── Tampilkan QRIS / Kode Bayar
-   └── Status berubah real-time:
-         Menunggu Bayar ──► Disiapkan ──► Siap Diambil (Notifikasi)
+   └── Tampilkan status pesanan; kasir memastikan pembayaran sebelum memproses
                 │
                 ▼
   [ Customer Datang ke Toko & Ambil Barang Tanpa Antre ]
@@ -275,15 +266,11 @@ erDiagram
    │     ├── Sistem menghitung uang kembalian (change_amount)
    │     └── Klik "Bayar Tunai" ──► Order langsung 'completed' & 'paid'
    │
-   ├── Opsi 2: QRIS DOKU DITAMPILKAN DI LAYAR KASIR
-   │     ├── Kasir klik "Generate QRIS"
-   │     ├── Sistem panggil API DOKU & render dynamic QR code di layar POS
-   │     ├── Customer scan QR dengan GoPay/OVO/BCA/ShopeePay/dana
-   │     ├── POS otomatis polling status per 4 detik
-   │     └── Begitu customer bayar di HP ──► POS otomatis konfirmasi Lunas!
-   │
-   └── Opsi 3: DEBIT / TRANSFER MANUAL
-         └── Masukkan nomor referensi EDC / Bank ──► Transaksi Lunas
+   └── Opsi 2: QRIS MANUAL
+         ├── Tampilkan gambar QRIS statis toko yang diunggah owner
+         ├── Customer scan dan mengetik nominal pembayaran di aplikasi mereka
+         ├── Kasir memastikan dana diterima, lalu klik "Konfirmasi Sudah Dibayar"
+         └── Order langsung 'completed' & 'paid'; referensi pembayaran opsional
                 │
                 ▼
    [ Cetak Struk Thermal 58mm / 80mm Otomatis ]
@@ -394,50 +381,34 @@ Setiap pergerakan fisik stok sparepart memiliki catatan mutasi permanen di tabel
 ### 5.2 Matriks Transisi Status Pembayaran (`payment_status`)
 
 ```
-unpaid ──► pending (Menunggu respon QRIS DOKU) ──► paid (Lunas)
-   │                                                   ▲
-   └───────────────────────────────────────────────────┘ (Bayar Tunai di Kasir)
+unpaid ──► paid (kasir mengonfirmasi pembayaran tunai atau QRIS Manual)
+paid ──► refunded (seluruh barang diretur oleh owner)
 ```
 
 - **Idempotency Guard**: Jika order sudah berstatus `paid`, request pembayaran ulang akan ditolak oleh sistem untuk mencegah double ledger entry.
-- **DOKU Pending Invalidation**: Saat kasir atau customer me-regenerate QRIS baru, invoice DOKU pending sebelumnya otomatis dibatalkan di backend untuk mencegah double charge.
+- Riwayat pembayaran dari integrasi lama tetap disimpan sebagai data transaksi, tanpa membuat pembayaran baru melalui layanan tersebut.
 
 ---
 
-## 6. Arsitektur Pembayaran (Payment Gateway & Cash Flow)
+## 6. Arsitektur Pembayaran
 
 ```mermaid
 sequenceDiagram
     autonumber
     actor Customer
-    participant POS as Layar POS / Web
+    participant Owner as Owner
+    participant POS as Kasir / POS
     participant App as Laravel Backend
-    participant DOKU as DOKU Payment API
-    participant Webhook as DOKU Webhook Handler
-    
-    Customer->>POS: Pilih Pembayaran QRIS
-    POS->>App: POST /api/payments/doku-qris (order_id)
-    App->>DOKU: Request Generate QRIS (HMAC-SHA256 Signature)
-    DOKU-->>App: Return Payment URL & QR Data
-    App-->>POS: Render Dynamic QRIS Image
-    
-    Customer->>DOKU: Scan & Bayar via E-Wallet / Mobile Banking
-    
-    par Jalur 1: Webhook Asinkron
-        DOKU->>Webhook: POST /api/webhook/doku (Payment Notification)
-        Webhook->>Webhook: Verifikasi Signature Header (Client-Id, Request-Id, HMAC)
-        Webhook->>App: PaymentService::updatePaymentStatus('paid')
-        App->>App: Update Order payment_status = 'paid'
-    and Jalur 2: Polling Sinkron di Frontend
-        loop Tiap 4 Detik
-            POS->>App: POST /api/payments/doku-qris/check-status
-            App->>DOKU: Check Status Inquiry
-            DOKU-->>App: Status: SUCCESS
-            App-->>POS: Status: PAID
-        end
-    end
-    
-    POS->>POS: Tampilkan Notifikasi Sukses & Cetak Struk
+    Owner->>App: Unggah gambar QRIS toko di Pengaturan
+    POS->>App: GET /api/settings/qris-image
+    App-->>POS: URL gambar QRIS statis
+    POS-->>Customer: Tampilkan QRIS dan total belanja
+    Customer->>Customer: Scan QRIS dan ketik nominal di aplikasi pembayaran
+    Customer-->>POS: Tunjukkan bukti pembayaran
+    POS->>POS: Pastikan dana masuk
+    POS->>App: POST /api/orders/pos-sale (qris_manual)
+    App->>App: Simpan pembayaran dan tandai order paid
+    App-->>POS: Konfirmasi lunas dan struk
 ```
 
 ---
@@ -478,14 +449,13 @@ sequenceDiagram
 | `PATCH` | `/api/orders/{id}/status` | `OrderController@updateStatus` | `role:owner\|cashier` | `UpdateOrderStatusRequest` |
 | `POST` | `/api/orders/{id}/cancel` | `OrderController@cancel` | `role:owner` | Pending status only |
 
-### 7.4 Rute Pembayaran & DOKU Gateway
+### 7.4 Rute Pembayaran dan QRIS Manual
 | Method | URI | Handler | Middleware / Role | Form Request / Validasi |
 |---|---|---|---|---|
 | `POST` | `/api/payments` | `PaymentController@store` | `role:owner\|cashier` | `StorePaymentRequest` |
-| `POST` | `/api/payments/doku-qris` | `DokuPaymentController@generatePosQris` | `role:owner\|cashier` | Order ID exists |
-| `POST` | `/api/payments/doku-qris/check-status` | `DokuPaymentController@checkPosStatus` | `role:owner\|cashier` | Order ID exists |
-| `POST` | `/api/customer/payment/qris` | `DokuPaymentController@createQrisPayment` | Throttle (60/min) | Customer token check |
-| `POST` | `/api/webhook/doku` | `DokuPaymentController@handleWebhook` | Public (No CSRF) | DOKU HMAC Signature |
+| `POST` | `/api/orders/pos-sale` | `OrderController@storePosSale` | `role:owner\|cashier` | `StorePosSaleRequest` |
+| `GET` | `/api/settings/qris-image` | `SettingController@getQrisImage` | `role:owner\|cashier` | N/A |
+| `POST` / `DELETE` | `/api/settings/qris-image` | `SettingController@uploadQrisImage` / `deleteQrisImage` | `role:owner` | Gambar maks. 2 MB |
 
 ---
 
@@ -495,7 +465,7 @@ sequenceDiagram
    - Pada saat checkout pesanan (`OrderService::createOrder`), baris database produk di-lock secara eksklusif dalam database transaction hingga stok diverifikasi dan didekremen. Hal ini menjamin tidak terjadi *race condition* atau *overselling* saat beberapa customer/kasir membeli stok produk terakhir secara bersamaan.
 2. **CSRF & Session Protection**:
    - Semua rute administratif dan operasional staf dilindungi oleh token CSRF.
-   - Rute publik yang memerlukan pengecualian CSRF (seperti webhook DOKU) diverifikasi menggunakan algoritma kriptografi HMAC-SHA256 berdasarkan Secret Key toko.
+   - Aksi pembayaran dan pengaturan QRIS dibatasi untuk staf yang terautentikasi sesuai perannya.
 3. **Payload Sanitization & Rate Limiting (Throttling)**:
    - Endpoint order publik dibatasi maksimal 20 item per pesanan dan maksimal 200 unit per item.
    - Throttling ketat diterapkan pada seluruh rute publik untuk mencegah brute-force atau scraping bot.

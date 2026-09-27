@@ -55,11 +55,10 @@ function ProductImage({ src, alt, className = 'w-full h-full object-contain p-1'
 }
 
 const CART_KEY = 'motorku_cart';
-const LEGACY_CART_KEY = 'mie_amour_cart';
 
 function loadCart() {
     try {
-        const raw = localStorage.getItem(CART_KEY) || localStorage.getItem(LEGACY_CART_KEY);
+        const raw = localStorage.getItem(CART_KEY);
         const cartTime = localStorage.getItem(CART_KEY + '_time');
         if (raw && cartTime) {
             const timeDiff = Date.now() - parseInt(cartTime, 10);
@@ -159,32 +158,28 @@ export default function MotorSaya({
     const totalQty = cart.reduce((s, i) => s + i.qty, 0);
     const cartTotalAmount = cart.reduce((s, i) => s + (i.price * i.qty), 0);
 
-    const storeName = settings['store.name'] || settings['restaurant.name'] || 'Motorku';
-    const storePhone = settings['store.phone'] || settings['restaurant.phone'] || settings['phone'] || '';
+    const storeName = settings['store.name'] || 'Motorku';
+    const storePhone = settings['store.phone'] || settings['phone'] || '';
     const whatsappUrl = storePhone
         ? `https://wa.me/${storePhone.replace(/[^0-9]/g, '').replace(/^0/, '62')}`
         : null;
 
-    const logoSrc = settings['store.logo'] || settings['logo'] || settings['restaurant.logo'];
+    const logoSrc = settings['store.logo'] || settings['logo'];
     const formattedLogoSrc = logoSrc
         ? (logoSrc.startsWith('/storage') ? logoSrc : `/storage/${logoSrc}`)
         : null;
 
     const [hasAnyOrders, setHasAnyOrders] = useState(false);
-    const [orderHref, setOrderHref] = useState('/order/status');
+    const orderHref = '/order/status';
 
     useEffect(() => {
         try {
-            const rawHistory = localStorage.getItem('motorku_orders_history') || localStorage.getItem('mie_amour_orders_history');
+            const rawHistory = localStorage.getItem('motorku_orders_history');
             const history = rawHistory ? JSON.parse(rawHistory) : [];
             if (Array.isArray(history) && history.length > 0) {
                 const activeOrders = history.filter(o => ['pending', 'preparing', 'ready'].includes(o.order_status));
                 setHasAnyOrders(activeOrders.length > 0);
 
-                const pendingPay = history.find(o => o.payment_method === 'qris' && o.order_status === 'pending');
-                if (pendingPay) {
-                    setOrderHref('/payment/qris');
-                }
             } else {
                 setHasAnyOrders(false);
             }

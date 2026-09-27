@@ -28,7 +28,6 @@ import {
     FiHelpCircle,
     FiAlertCircle
 } from 'react-icons/fi';
-import { QRCodeSVG } from 'qrcode.react';
 
 function ProductPhoto({ src, name }) {
     const [failed, setFailed] = useState(false);
@@ -100,7 +99,6 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
     // Refs
     const searchInputRef = useRef(null);
     const cashInputRef = useRef(null);
-    const pendingOrderRef = useRef(null);
     const submittingRef = useRef(false);
     const handleProcessOrderRef = useRef(null);
     const focusSearchAfterDeleteRef = useRef(false);
@@ -127,17 +125,11 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
         localStorage.setItem('pos_customer_name', customerName);
     }, [cart, customerName]);
 
-    // Reset pending order ref jika kasir mengubah cart sebelum retry payment
-    // Mencegah payment diproses untuk order lama dengan total yang berbeda
-    useEffect(() => {
-        pendingOrderRef.current = null;
-    }, [cart, customerName]);
-
     // Payment Modal State
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
     const [isShortcutModalOpen, setIsShortcutModalOpen] = useState(false);
     const [itemToDelete, setItemToDelete] = useState(null);
-    // Canonical payment method values: 'cash' | 'qris' | 'debit' (match backend enum)
+    // Canonical payment method values accepted by the backend.
     const [paymentMethod, setPaymentMethod] = useState('cash');
     const [cashReceived, setCashReceived] = useState('');
     const [isSubmittingOrder, setIsSubmittingOrder] = useState(false);
@@ -146,24 +138,26 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
 
     const [validationError, setValidationError] = useState('');
 
-    // QRIS via Doku (POS)
-    // status: idle | creating | pending | paid | failed | expired
-    const [qrisStatus, setQrisStatus] = useState('idle');
-    const [qrisPaymentUrl, setQrisPaymentUrl] = useState(null);
-    const qrisPollRef = useRef(null);
-
-    const stopQrisPolling = () => {
-        if (qrisPollRef.current) {
-            clearInterval(qrisPollRef.current);
-            qrisPollRef.current = null;
-        }
-    };
+    const [qrisImageUrl, setQrisImageUrl] = useState(null);
+    const [qrisImageLoading, setQrisImageLoading] = useState(false);
+    const [qrisVerified, setQrisVerified] = useState(false);
+    const [qrisReference, setQrisReference] = useState('');
 
     const resetQrisFlow = () => {
-        stopQrisPolling();
-        setQrisStatus('idle');
-        setQrisPaymentUrl(null);
+        setQrisVerified(false);
+        setQrisReference('');
     };
+
+    useEffect(() => {
+        if (!isPaymentModalOpen || isOrderComplete) return;
+        let active = true;
+        setQrisImageLoading(true);
+        axios.get('/api/settings/qris-image')
+            .then(({ data }) => { if (active) setQrisImageUrl(data?.url || null); })
+            .catch(() => { if (active) setQrisImageUrl(null); })
+            .finally(() => { if (active) setQrisImageLoading(false); });
+        return () => { active = false; };
+    }, [isPaymentModalOpen, isOrderComplete]);
 
     // Centralized Validation Function before Payment
     const validateBeforePayment = () => {
@@ -218,7 +212,7 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
     }, [total]);
 
     // Label display yang ramah user, terpisah dari nilai canonical state
-    const paymentMethodLabel = paymentMethod === 'cash' ? 'Tunai' : paymentMethod === 'qris' ? 'QRIS' : 'Debit';
+    const paymentMethodLabel = paymentMethod === 'cash' ? 'Tunai' : 'QRIS Manual';
 
     const parentCategories = categories.filter(category => !category.parent_id);
     const childCategories = categories.filter(category => category.parent_id === selectedParentId);
@@ -340,14 +334,6 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
         }))
     });
 
-    // Buat order bila belum ada; reuse pendingOrderRef saat retry agar tidak dobel order.
-    const ensureOrderCreated = async () => {
-        if (pendingOrderRef.current) return pendingOrderRef.current;
-        const res = await axios.post('/api/orders', buildOrderData());
-        pendingOrderRef.current = res.data?.data;
-        return pendingOrderRef.current;
-    };
-
     const handleProcessOrder = async () => {
         if (submittingRef.current) return;
         const { isValid, message } = validateBeforePayment();
@@ -364,36 +350,32 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
             return;
         }
 
+        if (paymentMethod === 'qris_manual' && (!qrisImageUrl || !qrisVerified)) {
+            toast.error(!qrisImageUrl ? 'Gambar QRIS toko belum tersedia.' : 'Pastikan dana sudah masuk sebelum mengonfirmasi.');
+            return;
+        }
+
         submittingRef.current = true;
         setIsSubmittingOrder(true);
 
         try {
-            // QRIS via Doku: buat order → buat invoice → polling status (di useEffect)
-            if (paymentMethod === 'qris') {
-                const createdOrder = await ensureOrderCreated();
-                setQrisStatus('creating');
-                const qrRes = await axios.post('/api/payments/doku-qris', { order_id: createdOrder.id });
-                setQrisPaymentUrl(qrRes.data?.data?.payment_url);
-                setQrisStatus('pending');
-                return;
-            }
-
-            // Tunai: order dan pembayaran disimpan bersama, tanpa order menggantung.
+            // Simpan order dan pembayaran bersama setelah kasir mengonfirmasi dana masuk.
             const sale = await axios.post('/api/orders/pos-sale', {
                 ...buildOrderData(),
-                amount_received: Number(cashReceived),
+                payment_method: paymentMethod,
+                ...(paymentMethod === 'cash'
+                    ? { amount_received: Number(cashReceived) }
+                    : { reference_number: qrisReference.trim() || null }),
             });
             const createdOrder = sale.data?.data?.order;
             const payment = sale.data?.data?.payment;
             const serverTotal = Number(createdOrder?.total ?? total);
 
-            pendingOrderRef.current = null; // Reset setelah payment berhasil
-
             setLastCreatedOrder({
                 invoice_number: payment?.invoice_number || createdOrder?.order_number || 'ORD-SUCCESS',
                 total_amount: serverTotal,
-                cash_received: Number(cashReceived),
-                change_amount: Math.max(0, Number(cashReceived) - serverTotal),
+                cash_received: paymentMethod === 'cash' ? Number(cashReceived) : null,
+                change_amount: paymentMethod === 'cash' ? Math.max(0, Number(cashReceived) - serverTotal) : 0,
             });
             setIsOrderComplete(true);
 
@@ -407,73 +389,16 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
             const errMsg = validationErr || (errRes?.message && errRes.message !== 'The given data was invalid.' ? errRes.message : null) || err.message || 'Terjadi kesalahan sistem.';
             toast.error('Gagal: ' + errMsg);
             setValidationError(errMsg);
-            // Jika pembuatan invoice Doku gagal, kembali idle agar bisa coba lagi / pindah metode
-            if (paymentMethod === 'qris') {
-                setQrisStatus(qrisPaymentUrl ? 'failed' : 'idle');
-            }
         } finally {
             submittingRef.current = false;
             setIsSubmittingOrder(false);
         }
     };
 
-    // Retry: buat invoice Doku baru untuk order yang sama (invoice lama otomatis di-cancel backend)
-    const retryQris = async () => {
-        setQrisStatus('creating');
-        setQrisPaymentUrl(null);
-        await handleProcessOrder();
-    };
-
-    // Batal QRIS → pindah ke metode Tunai
-    const switchToCash = () => {
-        resetQrisFlow();
-        setPaymentMethod('cash');
-    };
-
     // Keep ref always pointing to latest handleProcessOrder
     useEffect(() => {
         handleProcessOrderRef.current = handleProcessOrder;
     });
-
-    // Polling status QRIS-Doku saat invoice masih pending
-    useEffect(() => {
-        if (qrisStatus !== 'pending') return;
-        const orderId = pendingOrderRef.current?.id;
-        if (!orderId) return;
-
-        stopQrisPolling();
-        qrisPollRef.current = setInterval(async () => {
-            try {
-                const res = await axios.post('/api/payments/doku-qris/check-status', { order_id: orderId });
-                const status = res.data?.status;
-                if (status === 'paid') {
-                    stopQrisPolling();
-                    const createdOrder = pendingOrderRef.current;
-                    pendingOrderRef.current = null; // Reset setelah payment berhasil
-                    setLastCreatedOrder({
-                        invoice_number: createdOrder?.order_number || 'ORD-SUCCESS',
-                        total_amount: Number(createdOrder?.total ?? total),
-                        cash_received: null,
-                        change_amount: 0,
-                    });
-                    setQrisStatus('paid');
-                    setIsOrderComplete(true);
-                    if (settings['printer.auto_print_receipt'] === 'true') {
-                        setTimeout(() => window.print(), 150);
-                    }
-                } else if (status === 'failed' || status === 'expired') {
-                    stopQrisPolling();
-                    setQrisStatus(status);
-                }
-                // 'pending' / 'unknown' / 'unpaid' → lanjut polling
-            } catch (err) {
-                // Network error: biarkan polling lanjut; akan berhenti saat paid/failed/expired
-                console.error('QRIS polling error:', err);
-            }
-        }, 4000);
-
-        return () => stopQrisPolling();
-    }, [qrisStatus]);
 
     const handleNewOrder = () => {
         resetQrisFlow();
@@ -485,7 +410,6 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
         setCashReceived('');
         setLastCreatedOrder(null);
         setValidationError('');
-        pendingOrderRef.current = null;
     };
 
     // Auto-focus Cash Input when Modal Opens
@@ -952,7 +876,7 @@ return (
                     }}
                 >
                     <div
-                        className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-150 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white"
+                        className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md max-h-[calc(100dvh-2rem)] overflow-y-auto animate-in zoom-in-95 duration-150 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white"
                         role="dialog"
                         aria-modal="true"
                     >
@@ -1011,17 +935,21 @@ return (
                                             </button>
                                             <button
                                                 type="button"
-                                                onClick={() => setPaymentMethod('qris')}
+                                                onClick={() => { resetQrisFlow(); setPaymentMethod('qris_manual'); }}
+                                                disabled={qrisImageLoading || !qrisImageUrl || settings['payment.qris_enabled'] === 'false'}
                                                 className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border text-xs font-bold transition cursor-pointer ${
-                                                    paymentMethod === 'qris'
+                                                    paymentMethod === 'qris_manual'
                                                         ? 'border-blue-600 bg-blue-50/70 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 shadow-2xs'
-                                                        : 'border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600'
+                                                        : 'border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600 disabled:opacity-40 disabled:cursor-not-allowed'
                                                 }`}
                                             >
                                                 <FiSmartphone className="w-4 h-4" />
-                                                <span>QRIS (Doku)</span>
+                                                <span>QRIS Manual</span>
                                             </button>
                                         </div>
+                                        {!qrisImageLoading && (!qrisImageUrl || settings['payment.qris_enabled'] === 'false') && (
+                                            <p className="text-[11px] text-slate-500 dark:text-slate-400">QRIS belum tersedia. Owner perlu mengunggah gambar QRIS di Pengaturan.</p>
+                                        )}
                                     </div>
 
                                     {/* Cash Section */}
@@ -1113,71 +1041,24 @@ return (
                                         </div>
                                     )}
 
-                                    {/* QRIS via Doku */}
-                                    {paymentMethod === 'qris' && (
-                                        <div className="text-center p-4 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700/80 space-y-3">
-                                            {qrisStatus === 'creating' && (
-                                                <div className="py-6 flex flex-col items-center gap-2">
-                                                    <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-                                                    <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold">Menyiapkan pembayaran QRIS Doku...</p>
-                                                </div>
-                                            )}
-
-                                            {qrisStatus === 'pending' && qrisPaymentUrl && (
-                                                <>
-                                                    <div className="w-36 h-36 mx-auto rounded-xl bg-white p-2 border border-slate-200 dark:border-slate-700 shadow-xs flex items-center justify-center">
-                                                        <QRCodeSVG value={qrisPaymentUrl} size={130} level="M" marginSize={1} />
-                                                    </div>
-                                                    <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">Scan QR di atas untuk menyelesaikan pembayaran</p>
-                                                    <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-blue-600 dark:text-blue-400">
-                                                        <div className="w-2.5 h-2.5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-                                                        <span>Menunggu verifikasi pembayaran...</span>
-                                                    </div>
-                                                    <div>
-                                                        <button
-                                                            type="button"
-                                                            onClick={switchToCash}
-                                                            className="text-xs font-semibold text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 underline cursor-pointer"
-                                                        >
-                                                            Batal & Beralih ke Tunai
-                                                        </button>
-                                                    </div>
-                                                </>
-                                            )}
-
-                                            {(qrisStatus === 'failed' || qrisStatus === 'expired') && (
-                                                <div className="space-y-2 py-2">
-                                                    <p className={`text-xs font-bold ${qrisStatus === 'expired' ? 'text-amber-600 dark:text-amber-400' : 'text-red-600 dark:text-red-400'}`}>
-                                                        {qrisStatus === 'expired' ? 'Pembayaran QRIS kedaluwarsa.' : 'Pembayaran QRIS gagal diproses.'}
-                                                    </p>
-                                                    <div className="flex gap-2 justify-center pt-1">
-                                                        <button
-                                                            type="button"
-                                                            onClick={retryQris}
-                                                            className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold cursor-pointer"
-                                                        >
-                                                            Coba Lagi
-                                                        </button>
-                                                        <button
-                                                            type="button"
-                                                            onClick={switchToCash}
-                                                            className="px-3.5 py-1.5 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 rounded-lg text-xs font-bold cursor-pointer"
-                                                        >
-                                                            Bayar Tunai
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            {qrisStatus === 'idle' && (
-                                                <div className="py-2 space-y-1 text-center">
-                                                    <FiSmartphone className="w-7 h-7 text-blue-600 dark:text-blue-400 mx-auto mb-1" />
-                                                    <h4 className="text-xs font-bold text-slate-900 dark:text-white">Pembayaran Non-Tunai QRIS</h4>
-                                                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                                                        Klik tombol konfirmasi di bawah untuk membuat kode QR Doku resmi.
-                                                    </p>
-                                                </div>
-                                            )}
+                                    {paymentMethod === 'qris_manual' && (
+                                        <div className="space-y-3">
+                                            <div className="flex justify-center rounded-xl bg-white p-3 border border-slate-200">
+                                                <img src={qrisImageUrl} alt="QRIS toko untuk pembayaran" className="h-48 w-48 object-contain" />
+                                            </div>
+                                            <p className="text-xs text-slate-600 dark:text-slate-300">Minta pelanggan scan QRIS dan isi nominal <strong>{formatRp(total)}</strong>.</p>
+                                            <input
+                                                type="text"
+                                                maxLength={100}
+                                                value={qrisReference}
+                                                onChange={(event) => setQrisReference(event.target.value)}
+                                                placeholder="No. referensi (opsional)"
+                                                className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
+                                            />
+                                            <label className="flex items-start gap-2 text-xs font-semibold text-slate-700 dark:text-slate-200">
+                                                <input type="checkbox" checked={qrisVerified} onChange={(event) => setQrisVerified(event.target.checked)} className="mt-0.5" />
+                                                Saya sudah memastikan pembayaran masuk di aplikasi/rekening toko.
+                                            </label>
                                         </div>
                                     )}
 
@@ -1188,16 +1069,14 @@ return (
                                         disabled={
                                             isSubmittingOrder ||
                                             (paymentMethod === 'cash' && (!cashReceived || cashShortfall > 0)) ||
-                                            (paymentMethod === 'qris' && (qrisStatus === 'creating' || qrisStatus === 'pending'))
+                                            (paymentMethod === 'qris_manual' && (!qrisImageUrl || !qrisVerified))
                                         }
                                         className="w-full py-3.5 px-4 bg-primary hover:bg-primaryDark disabled:bg-slate-200 dark:disabled:bg-slate-800 disabled:text-slate-400 dark:disabled:text-slate-600 text-white font-bold rounded-xl text-xs sm:text-sm shadow-sm transition flex items-center justify-center gap-2 group cursor-pointer disabled:cursor-not-allowed"
                                     >
                                         <FiCheck className="w-4 h-4" strokeWidth={2.5} />
                                         <span>
-                                            {paymentMethod === 'qris'
-                                                ? (qrisStatus === 'creating' || qrisStatus === 'pending')
-                                                    ? 'Menunggu Pembayaran...'
-                                                    : 'Buat Pembayaran QRIS'
+                                            {paymentMethod === 'qris_manual'
+                                                ? (isSubmittingOrder ? 'Memproses Transaksi...' : 'Konfirmasi Sudah Dibayar')
                                                 : (isSubmittingOrder ? 'Memproses Transaksi...' : `Selesaikan Pembayaran (${formatRp(total)})`)}
                                         </span>
                                         <kbd className="ml-auto px-1.5 py-0.5 bg-primaryDark text-white rounded text-[10px] font-mono font-bold group-disabled:hidden">
@@ -1418,7 +1297,7 @@ return (
                     </div>
                     <div className="flex justify-between pt-1">
                         <span>Metode Bayar:</span>
-                        <span className="font-bold">{paymentMethod}</span>
+                        <span className="font-bold">{paymentMethodLabel}</span>
                     </div>
                     {paymentMethod === 'cash' && lastCreatedOrder?.cash_received != null && (
                         <>
