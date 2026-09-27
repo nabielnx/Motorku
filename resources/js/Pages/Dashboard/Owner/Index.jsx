@@ -183,7 +183,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
 
                 {/* Kondisi saat ini dan penjualan pada periode terpilih */}
                 <div className="col-span-12 grid grid-cols-2 gap-2 sm:gap-4 xl:grid-cols-4">
-                    <Link href={route('orders.index')} className="relative overflow-hidden bg-primary p-3 sm:p-4 rounded-xl border border-primaryDark hover:bg-primaryDark transition-colors">
+                    <Link href={route('orders.index')} className="relative overflow-hidden bg-primary p-3 sm:p-4 rounded-xl hover:bg-primaryDark transition-colors">
                         <div className="flex items-start justify-between gap-2">
                             <div>
                                 <p className="text-[10px] sm:text-[11px] font-bold text-white uppercase tracking-wider">Antrean saat ini</p>
@@ -194,7 +194,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                         <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-1.5 bg-accentYellow" />
                     </Link>
 
-                    <div className="relative overflow-hidden bg-primary p-3 sm:p-4 rounded-xl border border-primaryDark" title="Pembayaran pada periode terpilih setelah retur">
+                    <div className="relative overflow-hidden bg-primary p-3 sm:p-4 rounded-xl" title="Pembayaran pada periode terpilih setelah retur">
                         <div className="flex items-start justify-between gap-2">
                             <div>
                                 <p className="text-[10px] sm:text-[11px] font-bold text-white uppercase tracking-wider">Penjualan bersih</p>
@@ -205,7 +205,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                         <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-1.5 bg-accentYellow" />
                     </div>
 
-                    <div className="relative overflow-hidden bg-primary p-3 sm:p-4 rounded-xl border border-primaryDark">
+                    <div className="relative overflow-hidden bg-primary p-3 sm:p-4 rounded-xl">
                         <div className="flex items-start justify-between gap-2">
                             <div>
                                 <p className="text-[10px] sm:text-[11px] font-bold text-white uppercase tracking-wider">Transaksi lunas</p>
@@ -216,7 +216,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                         <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-1.5 bg-accentYellow" />
                     </div>
 
-                    <Link href={route('products.index')} className="relative overflow-hidden bg-primary p-3 sm:p-4 rounded-xl border border-primaryDark hover:bg-primaryDark transition-colors">
+                    <Link href={route('products.index')} className="relative overflow-hidden bg-primary p-3 sm:p-4 rounded-xl hover:bg-primaryDark transition-colors">
                         <div className="flex items-start justify-between gap-2">
                             <div>
                                 <p className="text-[10px] sm:text-[11px] font-bold text-white uppercase tracking-wider">Stok perlu dicek</p>
