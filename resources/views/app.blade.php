@@ -300,7 +300,7 @@
                         </div>
                     </div>
                 </div>
-            @elseif (in_array($comp, ['User/Index', 'Dashboard/Owner/Index', 'Product/Index', 'Order/Index', 'Inventory/Index', 'Report/Index', 'Setting/Index', 'Motorcycle/Index', 'Profile/Edit']) || str_starts_with($comp, 'Dashboard/'))
+            @elseif (in_array($comp, ['User/Index', 'Dashboard/Owner/Index', 'Product/Index', 'Order/Index', 'Report/Index', 'Setting/Index', 'Motorcycle/Index', 'Profile/Edit']) || str_starts_with($comp, 'Dashboard/'))
                 <!-- Authenticated Dashboard Shell (Matching AuthenticatedLayout) -->
                 <div class="h-screen w-screen overflow-hidden bg-slate-50 flex font-sans text-slate-800">
                     <!-- SIDEBAR -->

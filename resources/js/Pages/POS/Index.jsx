@@ -26,7 +26,8 @@ import {
     FiTag,
     FiDollarSign,
     FiHelpCircle,
-    FiAlertCircle
+    FiAlertCircle,
+    FiArrowLeft
 } from 'react-icons/fi';
 
 function ProductPhoto({ src, name }) {
@@ -107,6 +108,7 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
     const [selectedParentId, setSelectedParentId] = useState(null);
     const [selectedChildId, setSelectedChildId] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
+    const [isMobileCartOpen, setIsMobileCartOpen] = useState(false);
     const [viewMode, setViewMode] = useState(() => localStorage.getItem('pos_view_mode') === 'grid' ? 'grid' : 'list');
     const [customerName, setCustomerName] = useState(() => localStorage.getItem('pos_customer_name') || '');
 
@@ -403,6 +405,7 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
     const handleNewOrder = () => {
         resetQrisFlow();
         setCart([]);
+        setIsMobileCartOpen(false);
         setCustomerName('');
         setSearchQuery('');
         setIsPaymentModalOpen(false);
@@ -414,7 +417,7 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
 
     // Auto-focus Cash Input when Modal Opens
     useEffect(() => {
-        if (isPaymentModalOpen && !isOrderComplete && paymentMethod === 'cash') {
+        if (isPaymentModalOpen && !isOrderComplete && paymentMethod === 'cash' && window.matchMedia('(min-width: 768px)').matches) {
             const timer = setTimeout(() => {
                 if (cashInputRef.current) {
                     cashInputRef.current.focus();
@@ -541,11 +544,11 @@ return (
                 <meta name="description" content="Sistem kasir POS cepat dan responsif untuk penjualan sparepart, pencetakan struk, dan pembayaran instan." />
             </Head>
 
-            <div className="flex flex-col md:flex-row h-[calc(100vh-64px)] w-full overflow-hidden bg-slate-100 dark:bg-slate-950">
+            <div className="flex min-h-0 flex-1 flex-col md:flex-row w-full overflow-hidden bg-slate-100 dark:bg-slate-950">
                 {/* LEFT SIDE: Menu & Categories */}
-                <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
+                <div className={`${isMobileCartOpen ? 'hidden md:flex' : 'flex'} flex-1 flex-col min-w-0 min-h-0 overflow-hidden`}>
                     {/* Header Controls & Search */}
-                    <div className="bg-white dark:bg-slate-900 p-4 border-b border-slate-300 dark:border-slate-800 space-y-3 shrink-0 transition-colors">
+                    <div className="bg-white dark:bg-slate-900 p-3 sm:p-4 border-b border-slate-300 dark:border-slate-800 space-y-2 sm:space-y-3 shrink-0 transition-colors">
                         <div className="flex items-center justify-between gap-3">
                             <div className="relative flex-1">
                                 <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" strokeWidth={2.5} size={16} />
@@ -554,7 +557,7 @@ return (
                                     type="text"
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    placeholder="Cari nama, ukuran, motor, atau SKU (F2 atau /)..."
+                                    placeholder="Cari produk, motor, atau SKU..."
                                     className="w-full pl-10 pr-9 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200 focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
                                 />
                                 {searchQuery && (
@@ -569,7 +572,7 @@ return (
                         </div>
 
                         {/* Kategori induk menampilkan seluruh produk subkategorinya */}
-                        <div className="space-y-2 border-t border-slate-200 pt-3 dark:border-slate-800">
+                        <div className="space-y-2 border-t border-slate-200 pt-2 sm:pt-3 dark:border-slate-800">
                             <div className="flex flex-col gap-1 2xl:flex-row 2xl:items-center 2xl:justify-between">
                                 <div className="flex w-full min-w-0 items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
                                     {categories.length > 0 ? (
@@ -598,8 +601,8 @@ return (
                                 </div>
 
                                 <div className="flex shrink-0 items-center gap-2 self-end">
-                                    <span className="text-xs font-bold text-slate-400 dark:text-slate-500 hidden sm:inline-block">
-                                        Total {filteredMenu.length} Produk
+                                    <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
+                                        {filteredMenu.length} produk
                                     </span>
                                     <div className="flex rounded-lg border border-slate-300 bg-slate-100 p-0.5 dark:border-slate-700 dark:bg-slate-800" role="group" aria-label="Tampilan produk">
                                         {[
@@ -611,16 +614,17 @@ return (
                                                 type="button"
                                                 onClick={() => setViewMode(mode)}
                                                 aria-pressed={viewMode === mode}
+                                                title={label}
                                                 className={`flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold transition ${viewMode === mode ? 'bg-white text-blue-700 shadow-xs dark:bg-slate-700 dark:text-blue-300' : 'text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white'}`}
                                             >
                                                 <Icon size={14} aria-hidden="true" />
-                                                {label}
+                                                <span className="hidden sm:inline">{label}</span>
                                             </button>
                                         ))}
                                     </div>
                                     <button
                                         onClick={() => setIsShortcutModalOpen(true)}
-                                        className="flex items-center gap-1 px-2 py-0.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-bold transition border border-slate-300 dark:border-slate-700 cursor-pointer"
+                                        className="hidden md:flex items-center gap-1 px-2 py-0.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-bold transition border border-slate-300 dark:border-slate-700 cursor-pointer"
                                         title="Petunjuk Keyboard Shortcut (F1)"
                                     >
                                         <FiHelpCircle className="w-3.5 h-3.5 text-blue-600 dark:text-yellow-400" strokeWidth={2.5} />
@@ -715,15 +719,26 @@ return (
                         </div>
                         )}
                     </div>
+                    <div className="shrink-0 border-t border-slate-200 bg-white p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] dark:border-slate-800 dark:bg-slate-900 md:hidden">
+                        <button
+                            type="button"
+                            onClick={() => setIsMobileCartOpen(true)}
+                            className="flex w-full items-center justify-between gap-3 rounded-xl bg-primary px-4 py-3 text-left text-sm font-bold text-white"
+                        >
+                            <span className="flex min-w-0 items-center gap-2"><FiShoppingBag className="shrink-0" aria-hidden="true" /> Keranjang ({cart.reduce((sum, item) => sum + item.qty, 0)})</span>
+                            <span className="shrink-0 font-mono">{formatRp(total)}</span>
+                        </button>
+                    </div>
                 </div>
 
                 {/* RIGHT SIDE: Cart & Checkout Panel */}
-                <div className="w-full md:w-96 lg:w-[410px] bg-white dark:bg-slate-900 border-l border-slate-300 dark:border-slate-800 flex flex-col h-full overflow-hidden shrink-0 transition-colors">
+                <div className={`${isMobileCartOpen ? 'flex' : 'hidden'} md:flex w-full md:w-96 lg:w-[410px] bg-white dark:bg-slate-900 border-l border-slate-300 dark:border-slate-800 flex-col min-h-0 flex-1 md:flex-none h-full overflow-hidden shrink-0 transition-colors`}>
                     
                     {/* Customer & Order Settings */}
                     <div className="p-3.5 border-b border-slate-300 dark:border-slate-800 space-y-2 bg-slate-50/70 dark:bg-slate-800/70 shrink-0">
-                        <div className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 font-semibold flex items-center gap-1.5">
-                            <FiShoppingBag className="w-4 h-4 text-slate-500 dark:text-slate-400" strokeWidth={2.5} /> Penjualan Langsung
+                        <div className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 font-semibold flex items-center justify-between gap-2">
+                            <span className="flex items-center gap-1.5"><FiShoppingBag className="w-4 h-4 text-slate-500 dark:text-slate-400" strokeWidth={2.5} /> Keranjang · {cart.reduce((sum, item) => sum + item.qty, 0)} item</span>
+                            <button type="button" onClick={() => setIsMobileCartOpen(false)} className="flex items-center gap-1 rounded-lg px-2 py-1 text-blue-700 dark:text-blue-300 md:hidden" aria-label="Kembali ke daftar produk"><FiArrowLeft aria-hidden="true" /> Produk</button>
                         </div>
                         <div className="flex items-center gap-2">
                             <FiUser className="text-slate-500 dark:text-slate-400 w-4 h-4 shrink-0" strokeWidth={2.5} />
@@ -743,25 +758,23 @@ return (
                         {cart.map(item => (
                             <div key={item.id} className="pt-3 first:pt-0">
                                 <div className="flex items-start justify-between gap-2">
-                                    <div className="flex-1 min-w-0 pr-1">
-                                        <h4 className="text-sm font-bold text-slate-900 dark:text-white break-words">{item.name}</h4>
-                                        {item.qty > 1 && <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">{item.qty} × {formatRp(item.price)}</span>}
-                                    </div>
-                                    <div className="flex items-center gap-1.5 shrink-0">
-                                        <span className="whitespace-nowrap text-sm font-extrabold text-slate-900 dark:text-white">{formatRp(item.price * item.qty)}</span>
-                                        <button
-                                            type="button"
-                                            onClick={() => removeFromCart(item)}
-                                            aria-label={`Hapus ${item.name} dari keranjang`}
-                                            title="Hapus produk"
-                                            className="text-slate-400 hover:text-red-600 dark:hover:text-red-400 p-1 rounded hover:bg-red-50 dark:hover:bg-red-950/40 transition cursor-pointer"
-                                        >
-                                            <FiTrash2 className="w-3.5 h-3.5" />
-                                        </button>
-                                    </div>
+                                    <h4 className="min-w-0 flex-1 text-sm font-bold text-slate-900 dark:text-white break-words">{item.name}</h4>
+                                    <button
+                                        type="button"
+                                        onClick={() => removeFromCart(item)}
+                                        aria-label={`Hapus ${item.name} dari keranjang`}
+                                        title="Hapus produk"
+                                        className="shrink-0 text-slate-400 hover:text-red-600 dark:hover:text-red-400 p-1 rounded hover:bg-red-50 dark:hover:bg-red-950/40 transition cursor-pointer"
+                                    >
+                                        <FiTrash2 className="w-3.5 h-3.5" />
+                                    </button>
+                                </div>
+                                <div className="mt-1 flex items-center justify-between gap-2">
+                                    <span className="min-w-0 truncate text-xs font-medium text-slate-500 dark:text-slate-400">{item.qty} × {formatRp(item.price)}</span>
+                                    <span className="shrink-0 whitespace-nowrap text-sm font-extrabold text-slate-900 dark:text-white">{formatRp(item.price * item.qty)}</span>
                                 </div>
 
-                                <div className="flex items-start justify-between mt-2.5 gap-2">
+                                <div className="flex items-start justify-between mt-2 gap-2">
                                     <details className="min-w-0 flex-1">
                                         <summary className="block cursor-pointer truncate text-xs font-medium text-blue-700 hover:underline dark:text-blue-300" title={item.notes || 'Tambah catatan untuk produk ini'}>
                                             {item.notes ? `Catatan: ${item.notes}` : '+ Catatan'}
@@ -815,13 +828,13 @@ return (
                                     <FiShoppingBag className="w-8 h-8 text-slate-400 dark:text-slate-500" strokeWidth={2} />
                                 </div>
                                 <p className="text-sm font-bold text-slate-700 dark:text-slate-300">Keranjang Masih Kosong</p>
-                                <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Pilih produk di sebelah kiri</p>
+                                <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Pilih produk dari katalog</p>
                             </div>
                         )}
                     </div>
 
                     {/* Summary & Checkout Button */}
-                    <div className="border-t border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0">
+                    <div className="border-t border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0 pb-[env(safe-area-inset-bottom)] md:pb-0">
                         <div className="p-4 space-y-2 text-xs sm:text-sm text-slate-600 dark:text-slate-400">
                             <div className="flex justify-between">
                                 <span>Subtotal</span>
@@ -858,7 +871,7 @@ return (
                         >
                             <FiCreditCard className="w-5 h-5" strokeWidth={2.5} />
                             <span>Proses Pembayaran ({formatRp(total)})</span>
-                            <kbd className="ml-auto px-1.5 py-0.5 bg-primaryDark text-white rounded text-[10px] font-mono font-bold group-disabled:hidden">F8</kbd>
+                            <kbd className="ml-auto hidden md:inline-block px-1.5 py-0.5 bg-primaryDark text-white rounded text-[10px] font-mono font-bold group-disabled:hidden">F8</kbd>
                         </button>
                     </div>
                 </div>
@@ -867,7 +880,7 @@ return (
             {/* PAYMENT MODAL */}
             {isPaymentModalOpen && (
                 <div
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-xs p-4 animate-in fade-in duration-150"
+                    className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-xs p-0 sm:p-4 animate-in fade-in duration-150"
                     onClick={(e) => {
                         if (e.target === e.currentTarget && !isSubmittingOrder && !isOrderComplete) {
                             resetQrisFlow();
@@ -876,7 +889,7 @@ return (
                     }}
                 >
                     <div
-                        className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md max-h-[calc(100dvh-2rem)] overflow-y-auto animate-in zoom-in-95 duration-150 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white"
+                        className="bg-white dark:bg-slate-900 rounded-t-2xl sm:rounded-2xl shadow-2xl w-full max-w-md max-h-[94dvh] sm:max-h-[calc(100dvh-2rem)] overflow-y-auto pb-[env(safe-area-inset-bottom)] sm:pb-0 animate-in zoom-in-95 duration-150 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white"
                         role="dialog"
                         aria-modal="true"
                     >
@@ -1201,7 +1214,9 @@ return (
                 afterLeave={() => {
                     if (focusSearchAfterDeleteRef.current) {
                         focusSearchAfterDeleteRef.current = false;
-                        searchInputRef.current?.focus();
+                        if (!isMobileCartOpen || window.matchMedia('(min-width: 768px)').matches) {
+                            searchInputRef.current?.focus();
+                        }
                     }
                 }}
             >

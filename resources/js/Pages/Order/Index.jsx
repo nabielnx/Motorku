@@ -380,16 +380,16 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                 <div className="sm:hidden px-1 py-1 text-xs text-slate-600 dark:text-slate-300">
                     <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
                         <span>Hari ini</span>
-                        <strong className="text-sm text-slate-900 dark:text-white">{todayOrderCount} pesanan</strong>
-                        <strong className="ml-auto text-sm text-slate-900 dark:text-white">{formatRp(todayOrderValue)}</strong>
+                        <strong className="text-sm text-primaryDark dark:text-white">{todayOrderCount} pesanan</strong>
+                        <strong className="ml-auto text-sm text-primaryDark dark:text-white">{formatRp(todayOrderValue)}</strong>
                     </div>
                     <div className="mt-1">Perlu ditangani <strong className="text-slate-900 dark:text-white">{activeCount}</strong></div>
                 </div>
 
                 {/* Desktop summary */}
                 <div className="hidden sm:flex flex-wrap items-center gap-x-8 gap-y-2 border-b border-slate-200 dark:border-slate-800 px-1 pb-3 text-sm text-slate-500 dark:text-slate-400">
-                    <span>Hari ini <strong className="ml-1 text-slate-900 dark:text-white">{todayOrderCount} pesanan</strong></span>
-                    <span>Nilai <strong className="ml-1 text-slate-900 dark:text-white">{formatRp(todayOrderValue)}</strong></span>
+                    <span>Hari ini <strong className="ml-1 text-primaryDark dark:text-white">{todayOrderCount} pesanan</strong></span>
+                    <span>Nilai <strong className="ml-1 text-primaryDark dark:text-white">{formatRp(todayOrderValue)}</strong></span>
                     <span>Perlu ditangani <strong className="ml-1 text-slate-900 dark:text-white">{activeCount}</strong></span>
                 </div>
 
@@ -399,7 +399,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                     {/* Unified Control Bar */}
                     <div className="p-3 sm:p-4 border-b border-slate-200 dark:border-slate-800 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-2 sm:gap-3 sm:bg-slate-50/50 dark:sm:bg-slate-800/50">
                         <div className="flex w-full items-center justify-between gap-2 lg:w-auto">
-                            <h3 className="text-sm sm:text-base font-black text-slate-900 dark:text-white shrink-0">Pesanan</h3>
+                            <h3 className="text-sm sm:text-base font-black text-primaryDark dark:text-white shrink-0">Pesanan</h3>
                             <button type="button" onClick={refreshOrders} aria-label="Muat ulang pesanan" title="Muat ulang pesanan" className="rounded-md p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white">
                                 <FiRefreshCw size={15} />
                             </button>
@@ -417,7 +417,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                                             onClick={() => handleFilterChange(s)}
                                             className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap ${
                                                 isActive 
-                                                    ? 'bg-blue-600 text-white shadow-2xs' 
+                                                    ? 'bg-primary text-white shadow-2xs'
                                                     : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
                                             }`}
                                         >
@@ -476,7 +476,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                                     <Link href={`/orders/${orderId}`} aria-label={`Lihat detail pesanan ${order.id}`} className="absolute inset-0 z-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-blue-600" />
                                     <div className="flex items-start justify-between gap-3">
                                         <div className="min-w-0">
-                                            <p className="truncate font-mono text-xs font-bold text-blue-700 dark:text-blue-300">{order.id}</p>
+                                            <p className="truncate font-mono text-xs font-bold text-primaryDark dark:text-blue-300">{order.id}</p>
                                             <p className="mt-0.5 truncate text-sm font-semibold text-slate-900 dark:text-white">{order.customer}</p>
                                         </div>
                                         <strong className="shrink-0 text-sm text-slate-900 dark:text-white">{formatRp(order.total)}</strong>
@@ -502,7 +502,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                                                 <button type="button" onClick={() => openPayment(order)} className="rounded-md bg-emerald-600 px-2.5 py-1.5 text-white">Konfirmasi Bayar</button>
                                             )}
                                             {order.payment_status === 'paid' && nextAction && (
-                                                <button type="button" onClick={() => handleUpdateStatus(order, nextAction.nextStatus)} disabled={updatingStatusId === orderId} className="rounded-md bg-blue-600 px-2.5 py-1.5 text-white disabled:opacity-50">{nextAction.label}</button>
+                                                <button type="button" onClick={() => handleUpdateStatus(order, nextAction.nextStatus)} disabled={updatingStatusId === orderId} className="rounded-md bg-primary px-2.5 py-1.5 text-white disabled:opacity-50">{nextAction.label}</button>
                                             )}
                                             <button type="button" onClick={() => handlePrintOrder(order)} disabled={isPrintingId === orderId} aria-label={`Cetak struk ${order.id}`} className="p-1.5 text-slate-500 dark:text-slate-400 disabled:opacity-50">
                                                 <FiPrinter size={16} />
