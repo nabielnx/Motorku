@@ -187,7 +187,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                         <div className="flex items-start justify-between gap-2">
                             <div>
                                 <p className="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Antrean saat ini</p>
-                                <h3 className="text-lg sm:text-2xl font-black text-[#fceb2d] [-webkit-text-stroke:1.5px_#003882] mt-1">{pendingOrders}</h3>
+                                <h3 className="text-lg sm:text-2xl font-black text-[#fceb2d] [-webkit-text-stroke:3px_#003882] [paint-order:stroke_fill] mt-1">{pendingOrders}</h3>
                             </div>
                             <FiClock className="hidden text-primary shrink-0 sm:block" size={18} />
                         </div>
@@ -197,7 +197,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                         <div className="flex items-start justify-between gap-2">
                             <div>
                                 <p className="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Penjualan bersih</p>
-                                <h3 className="text-base sm:text-2xl font-black tracking-tight text-[#fceb2d] [-webkit-text-stroke:1.5px_#003882] mt-1">{formatRp(revenueToday)}</h3>
+                                <h3 className="text-base sm:text-2xl font-black tracking-tight text-[#fceb2d] [-webkit-text-stroke:3px_#003882] [paint-order:stroke_fill] mt-1">{formatRp(revenueToday)}</h3>
                             </div>
                             <FiDollarSign className="hidden text-primary shrink-0 sm:block" size={18} />
                         </div>
@@ -207,7 +207,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                         <div className="flex items-start justify-between gap-2">
                             <div>
                                 <p className="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Transaksi lunas</p>
-                                <h3 className="text-lg sm:text-2xl font-black text-[#fceb2d] [-webkit-text-stroke:1.5px_#003882] mt-1">{ordersToday}</h3>
+                                <h3 className="text-lg sm:text-2xl font-black text-[#fceb2d] [-webkit-text-stroke:3px_#003882] [paint-order:stroke_fill] mt-1">{ordersToday}</h3>
                             </div>
                             <FiShoppingBag className="hidden text-primary shrink-0 sm:block" size={18} />
                         </div>
@@ -217,7 +217,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                         <div className="flex items-start justify-between gap-2">
                             <div>
                                 <p className="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Stok perlu dicek</p>
-                                <h3 className="text-lg sm:text-2xl font-black text-[#fceb2d] [-webkit-text-stroke:1.5px_#003882] mt-1">{lowStockAlerts.length}</h3>
+                                <h3 className="text-lg sm:text-2xl font-black text-[#fceb2d] [-webkit-text-stroke:3px_#003882] [paint-order:stroke_fill] mt-1">{lowStockAlerts.length}</h3>
                             </div>
                             <FiPackage className="hidden text-primary shrink-0 sm:block" size={18} />
                         </div>
