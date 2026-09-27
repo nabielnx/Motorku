@@ -348,7 +348,7 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
             <aside className={`fixed inset-y-0 left-0 bg-white dark:bg-slate-900 w-64 border-r border-slate-200 dark:border-slate-800 z-50 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:sticky lg:top-0 lg:h-full lg:inset-auto flex flex-col ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
                 
                 {/* Brand Logo */}
-                <div className="p-5 border-b border-primary/15 bg-primary/5 dark:bg-slate-900 dark:border-slate-800 flex items-center justify-between shrink-0">
+                <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between shrink-0">
                     <Link href={homeHref} className="flex items-center gap-3">
                         <ApplicationLogo className="w-12 h-16 shrink-0" />
                         <div>
@@ -388,11 +388,11 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                                             onClick={() => setIsSidebarOpen(false)}
                                             className={`flex items-center gap-3 -mx-3 px-6 py-2.5 transition-colors font-semibold text-[13px] ${
                                                 item.active 
-                                                    ? 'bg-primary/10 dark:bg-primaryDark/60 text-primaryDark dark:text-accentYellow border-l-4 border-accentYellow font-bold'
+                                                    ? 'bg-primary text-white border-l-4 border-accentYellow font-bold'
                                                     : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white border-l-4 border-transparent'
                                             }`}
                                         >
-                                            <Icon size={17} className={item.active ? 'text-primary dark:text-accentYellow' : 'text-slate-400 dark:text-slate-500'} strokeWidth={2.2} />
+                                            <Icon size={17} className={item.active ? 'text-white' : 'text-slate-400 dark:text-slate-500'} strokeWidth={2.2} />
                                             {item.name}
                                         </Link>
                                     );
@@ -437,7 +437,7 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
             <div className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden">
                 
                 {/* TOP HEADER */}
-                <header className="h-14 sm:h-16 bg-white dark:bg-slate-900 border-b border-primary/20 dark:border-slate-800 flex items-center justify-between px-4 sm:px-6 lg:px-8 shrink-0 z-20 transition-colors duration-200">
+                <header className="h-14 sm:h-16 bg-white dark:bg-slate-900 border-b border-slate-300 dark:border-slate-800 flex items-center justify-between px-4 sm:px-6 lg:px-8 shrink-0 z-20 transition-colors duration-200">
                     <div className="flex items-center gap-3">
                         <button 
                             onClick={() => setIsSidebarOpen(true)}

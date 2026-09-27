@@ -178,20 +178,20 @@ export default function Dashboard({ stats = {}, filters = {} }) {
 
                 {/* Kondisi saat ini dan penjualan pada periode terpilih */}
                 <div className="col-span-12 grid grid-cols-2 gap-2 sm:gap-4 xl:grid-cols-4">
-                    <Link href={route('orders.index')} className="bg-white dark:bg-slate-900 p-3 sm:p-4 rounded-xl border border-slate-200 dark:border-slate-800 border-l-2 border-l-amber-400 hover:border-amber-400 transition-colors">
+                    <Link href={route('orders.index')} className="bg-white dark:bg-slate-900 p-3 sm:p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-primary transition-colors">
                         <div className="flex items-start justify-between gap-2">
                             <div>
                                 <p className="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Antrean saat ini</p>
                                 <h3 className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white mt-1">{pendingOrders}</h3>
                             </div>
-                            <FiClock className="hidden text-amber-600 dark:text-amber-400 shrink-0 sm:block" size={18} />
+                            <FiClock className="hidden text-primary shrink-0 sm:block" size={18} />
                         </div>
                     </Link>
 
-                    <div className="bg-primary/5 dark:bg-primary/10 p-3 sm:p-4 rounded-xl border border-primary/25 dark:border-primary/30" title="Pembayaran pada periode terpilih setelah retur">
+                    <div className="bg-white dark:bg-slate-900 p-3 sm:p-4 rounded-xl border border-slate-200 dark:border-slate-800" title="Pembayaran pada periode terpilih setelah retur">
                         <div className="flex items-start justify-between gap-2">
                             <div>
-                                <p className="text-[10px] sm:text-[11px] font-bold text-primaryDark dark:text-blue-200 uppercase tracking-wider">Penjualan bersih</p>
+                                <p className="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Penjualan bersih</p>
                                 <h3 className="text-base sm:text-2xl font-black tracking-tight text-primaryDark dark:text-white mt-1">{formatRp(revenueToday)}</h3>
                             </div>
                             <FiDollarSign className="hidden text-primary shrink-0 sm:block" size={18} />
@@ -204,17 +204,17 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                                 <p className="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Transaksi lunas</p>
                                 <h3 className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white mt-1">{ordersToday}</h3>
                             </div>
-                            <FiShoppingBag className="hidden text-emerald-600 shrink-0 sm:block" size={18} />
+                            <FiShoppingBag className="hidden text-primary shrink-0 sm:block" size={18} />
                         </div>
                     </div>
 
-                    <Link href={route('products.index')} className="bg-white dark:bg-slate-900 p-3 sm:p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-rose-400 transition-colors">
+                    <Link href={route('products.index')} className="bg-white dark:bg-slate-900 p-3 sm:p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-primary transition-colors">
                         <div className="flex items-start justify-between gap-2">
                             <div>
                                 <p className="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Stok perlu dicek</p>
                                 <h3 className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white mt-1">{lowStockAlerts.length}</h3>
                             </div>
-                            <FiPackage className={`hidden shrink-0 sm:block ${lowStockAlerts.length > 0 ? 'text-rose-600' : 'text-slate-400'}`} size={18} />
+                            <FiPackage className="hidden text-primary shrink-0 sm:block" size={18} />
                         </div>
                     </Link>
                 </div>

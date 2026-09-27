@@ -282,38 +282,34 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
                             value: formatRp(totalRevenue),
                             sub: totalRefunds > 0 ? `Retur ${formatRp(totalRefunds)} sudah dikurangi` : null,
                             icon: FiDollarSign,
-                            iconBg: 'bg-primary/10 text-primary',
                         },
                         {
                             label: 'Total Transaksi',
                             value: `${totalOrders}`,
                             sub: `~${avgOrdersPerDay} pesanan/hari`,
                             icon: FiShoppingBag,
-                            iconBg: 'bg-primary/10 text-primary',
                         },
                         {
                             label: 'Rata-Rata Order',
                             value: formatRp(avgOrderValue),
                             sub: 'Nilai per transaksi',
                             icon: FiTrendingUp,
-                            iconBg: 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300',
                         },
                         {
                             label: 'Subtotal Penjualan',
                             value: formatRp(totalSubtotal),
                             sub: 'Sebelum pajak',
                             icon: FiDollarSign,
-                            iconBg: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300',
                         },
                     ].map((kpi, i) => (
-                        <div key={i} className={`rounded-xl border p-4 transition-colors ${i === 0 ? 'bg-primary/5 dark:bg-primary/10 border-primary/25 dark:border-primary/30' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800'}`}>
+                        <div key={i} className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 transition-colors">
                             <div className="flex items-start justify-between gap-2">
                                 <div className="min-w-0">
                                     <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider truncate">{kpi.label}</p>
                                     <p className={`text-lg font-black dark:text-white mt-1 leading-tight ${i === 0 ? 'text-primaryDark' : 'text-slate-900'}`}>{kpi.value}</p>
                                     {kpi.sub && <p className="text-[11px] font-medium text-slate-400 dark:text-slate-500 mt-1 truncate">{kpi.sub}</p>}
                                 </div>
-                                <div className={`p-2.5 rounded-xl flex items-center justify-center shrink-0 ${kpi.iconBg}`}>
+                                <div className="p-2.5 rounded-xl flex items-center justify-center shrink-0 bg-primary text-white">
                                     <kpi.icon size={20} strokeWidth={2.5} />
                                 </div>
                             </div>
