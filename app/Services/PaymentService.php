@@ -165,7 +165,7 @@ class PaymentService
     /**
      * Finalize an order when payment is marked as paid:
      * 1. Update Order: payment_status = 'paid'
-     * (Order status remains pending/preparing/ready until kitchen & cashier complete operational flow)
+     * (Order status remains pending/preparing/ready until staff complete the order flow)
      */
     public function finalizePaidOrder(Order $order): void
     {

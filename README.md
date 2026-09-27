@@ -7,7 +7,7 @@ POS dan katalog sparepart motor berbasis Laravel 12, React, dan Inertia.js.
 - Dashboard owner dan POS kasir
 - Katalog publik dan pemesanan customer
 - Manajemen produk, kategori, dan stok
-- Pembayaran cash, debit, credit, dan QRIS melalui DOKU
+- Pembayaran tunai dan QRIS statis yang dikonfirmasi kasir; pengembalian QRIS dapat dicatat tunai atau transfer oleh owner
 - Laporan penjualan
 - Pencarian sparepart berdasarkan model motor
 - Mapping kompatibilitas motor dan sparepart
@@ -49,7 +49,7 @@ npm install
 php artisan migrate --seed
 ```
 
-Atur koneksi database dan kredensial DOKU di `.env` sebelum menjalankan migration.
+Atur koneksi database di `.env` sebelum menjalankan migration. Owner dapat mengunggah gambar QRIS toko lewat Pengaturan.
 
 ## Menjalankan Development
 
