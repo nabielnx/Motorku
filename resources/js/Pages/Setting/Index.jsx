@@ -1,9 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import Modal from '@/Components/Modal';
-import SettingSkeleton from '@/Components/Skeletons/SettingSkeleton';
 import { Head, usePage } from '@inertiajs/react';
-import { getTranslation } from '@/i18n/translations';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { FiSave, FiCheck, FiHome, FiPercent, FiCreditCard, FiPrinter, FiSmartphone, FiClock, FiSettings, FiUpload, FiClipboard, FiTrash2, FiAlertTriangle, FiLock } from 'react-icons/fi';
@@ -81,18 +79,23 @@ peer-checked:after:translate-x-5" />
 export default function SettingIndex() {
   const { props } = usePage();
   const locale = props.app_settings?.locale || 'id';
-  const [form, setForm] = useState(defaults);
+  const [form, setForm] = useState(() => {
+    const initial = { ...defaults };
+    Object.keys(fieldMap).forEach(field => {
+      if (props.initialSettings?.[field] !== undefined) initial[field] = props.initialSettings[field];
+    });
+    return initial;
+  });
   const [saved, setSaved] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [initialLoading, setInitialLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({});
   const [logoFile, setLogoFile] = useState(null);
   const [logoPreview, setLogoPreview] = useState(null);
-  const [logoUrl, setLogoUrl] = useState(null);
+  const [logoUrl, setLogoUrl] = useState(props.logoUrl || null);
   const [uploading, setUploading] = useState(false);
   const [qrisFile, setQrisFile] = useState(null);
   const [qrisPreview, setQrisPreview] = useState(null);
-  const [qrisUrl, setQrisUrl] = useState(null);
+  const [qrisUrl, setQrisUrl] = useState(props.qrisUrl || null);
   const [uploadingQris, setUploadingQris] = useState(false);
 
   // Reset transactions state
@@ -123,7 +126,11 @@ export default function SettingIndex() {
   };
 
   // Banner promo state: { 1: { url, file, preview }, 2: {...}, 3: {...} }
-  const [banners, setBanners] = useState({ 1: {}, 2: {}, 3: {} });
+  const [banners, setBanners] = useState(() => ({
+    1: { url: props.bannerUrls?.[1] || null },
+    2: { url: props.bannerUrls?.[2] || null },
+    3: { url: props.bannerUrls?.[3] || null },
+  }));
   const [bannerUploading, setBannerUploading] = useState({ 1: false, 2: false, 3: false });
   // Konfirmasi hapus gambar toko.
   const [deleteConfirm, setDeleteConfirm] = useState(null);
@@ -175,49 +182,6 @@ export default function SettingIndex() {
     }
     setDeleteConfirm(null);
   };
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const [settingsRes, logoRes, qrisRes] = await Promise.all([
-          axios.get('/api/settings'),
-          axios.get('/api/settings/logo'),
-          axios.get('/api/settings/qris-image'),
-        ]);
-        if (settingsRes.data?.data) {
-          const loaded = {};
-          settingsRes.data.data.forEach(s => { loaded[s.group + '_' + s.key] = s.value; });
-          setForm(prev => {
-            const next = { ...prev };
-            Object.keys(fieldMap).forEach(f => {
-              if (loaded[f] !== undefined) next[f] = loaded[f];
-            });
-            return next;
-          });
-        }
-        if (logoRes.data?.url) {
-          setLogoUrl(logoRes.data.url);
-        }
-        setQrisUrl(qrisRes.data?.url || null);
-        // Load existing banners
-        try {
-          const bannersRes = await axios.get('/api/settings/banners');
-          if (bannersRes.data?.banners) {
-            const b = bannersRes.data.banners;
-            setBanners({
-              1: { url: b[1] || null },
-              2: { url: b[2] || null },
-              3: { url: b[3] || null },
-            });
-          }
-        } catch { /* silent */ }
-      } catch { /* silent */ }
-      finally {
-        setLoading(false);
-        setInitialLoading(false);
-      }
-    })();
-  }, []);
 
   const set = (field, value) => {
     setForm(prev => ({ ...prev, [field]: value }));
@@ -388,9 +352,6 @@ export default function SettingIndex() {
       <Head title={`${locale === 'en' ? 'Settings' : 'Pengaturan'}`}>
         <meta name="description" content="Pengaturan sistem toko, logo, printer struk, pajak, zona waktu, dan bahasa." />
       </Head>
-      {initialLoading ? (
-        <SettingSkeleton />
-      ) : (
       <div className="max-w-4xl mx-auto space-y-6 pb-8">
         {saved && (
           <div className="bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 p-4 rounded-2xl flex items-center gap-2 font-bold text-sm">
@@ -742,7 +703,6 @@ export default function SettingIndex() {
         </Modal>
 
       </div>
-      )}
     </AuthenticatedLayout>
   );
 }

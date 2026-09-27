@@ -67,6 +67,24 @@ class OrderCrudTest extends TestCase
             ->assertJsonPath('message', 'Pesanan berhasil dibuat!');
     }
 
+    public function test_next_order_number_skips_soft_deleted_order(): void
+    {
+        $product = Product::factory()->create(['stock' => 10]);
+        $first = $this->actingAs($this->cashier)->postJson('/api/orders', [
+            'customer_name' => 'Pertama',
+            'items' => [['product_id' => $product->id, 'quantity' => 1]],
+        ])->assertCreated()->json('data');
+
+        $this->actingAs($this->owner)->deleteJson('/api/orders/'.$first['id'])->assertOk();
+
+        $second = $this->actingAs($this->cashier)->postJson('/api/orders', [
+            'customer_name' => 'Kedua',
+            'items' => [['product_id' => $product->id, 'quantity' => 1]],
+        ])->assertCreated()->json('data');
+
+        $this->assertNotSame($first['order_number'], $second['order_number']);
+    }
+
     public function test_order_reserves_stock_and_restores_it_when_cancelled(): void
     {
         $product = Product::factory()->create(['stock' => 3, 'is_available' => true]);

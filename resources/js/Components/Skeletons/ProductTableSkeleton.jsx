@@ -1,44 +1,37 @@
-import React from 'react';
 import Skeleton, { SkeletonWrapper } from '@/Components/Skeleton';
-import clsx from 'clsx';
 
 /**
- * Product Grid Card Skeleton — matches Product/Index grid view card 1:1.
+ * Product card shape used by the current grid view.
  */
 function ProductGridCardSkeleton() {
     return (
-        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-xs flex flex-col relative">
+        <div className="bg-white dark:bg-slate-800 rounded-md md:rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden md:shadow-xs flex flex-col relative">
             {/* Image Container with Badges */}
-            <div className="relative w-full aspect-square bg-slate-50 dark:bg-slate-900 border-b border-slate-100 dark:border-slate-700 overflow-hidden">
-                <Skeleton className="!absolute inset-0 w-full h-full !rounded-none" />
-                {/* Badge on Image */}
-                <div className="absolute top-2 left-2 flex flex-col gap-1.5 items-start z-10 pointer-events-none">
-                    <Skeleton className="h-4.5 w-20 rounded-md shadow-2xs" />
-                </div>
+            <div className="relative w-full h-28 sm:h-32 bg-slate-50 dark:bg-slate-900 border-b border-slate-100 dark:border-slate-700 overflow-hidden">
+                <Skeleton className="h-full w-full !rounded-none" />
             </div>
 
             {/* Card Content */}
-            <div className="p-3 flex flex-col flex-1 space-y-2">
-                {/* Category Pill */}
-                <Skeleton className="h-3.5 w-16 rounded" />
+            <div className="p-2 md:p-3 flex flex-col flex-1">
+                <Skeleton className="hidden md:block h-3 w-24 mb-1.5" />
 
                 {/* Title (2 lines) */}
-                <div className="space-y-1">
+                <div className="space-y-1 mb-2">
                     <Skeleton className="h-3.5 w-5/6 rounded" />
                     <Skeleton className="h-3.5 w-3/5 rounded" />
                 </div>
 
-                {/* SKU */}
-                <Skeleton className="h-2.5 w-20 rounded" />
+                <Skeleton className="h-2.5 w-20 mb-2 rounded" />
 
                 {/* Price */}
                 <div className="mt-auto pt-1">
                     <Skeleton className="h-5 w-24 rounded" />
+                    <Skeleton className="h-3 w-28 mt-1 rounded" />
                 </div>
             </div>
 
             {/* Action Buttons Footer */}
-            <div className="border-t border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50 px-2 py-1.5 flex items-center justify-between gap-1">
+            <div className="border-t border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-2 py-1.5 flex items-center justify-between gap-1">
                 {/* Add / Adjust Stock */}
                 <Skeleton className="h-6 flex-1 rounded-lg" />
                 <div className="w-px h-3 bg-slate-200 dark:bg-slate-700 mx-1"></div>
@@ -75,7 +68,7 @@ export default function ProductTableSkeleton({ rows = 16, fullPage = false, view
     // ─── 1. Grid Skeleton View (Kotak-kotak) ───
     const gridContent = (
         <div className="flex-1 min-h-0 overflow-y-auto overflow-x-auto flex flex-col justify-between">
-            <div className="grid grid-cols-2 sm:grid-cols-[repeat(auto-fill,minmax(160px,180px))] gap-3 p-3 sm:p-4">
+            <div className="grid grid-cols-2 gap-2 p-2 md:grid-cols-4 md:gap-3 md:p-4 min-[1700px]:grid-cols-8">
                 {Array.from({ length: rows }).map((_, i) => (
                     <ProductGridCardSkeleton key={i} />
                 ))}
@@ -96,7 +89,10 @@ export default function ProductTableSkeleton({ rows = 16, fullPage = false, view
     // ─── 2. Table Skeleton View (List / Tabel) ───
     const tableContent = (
         <div className="flex-1 min-h-0 overflow-y-auto overflow-x-auto flex flex-col justify-between">
-            <table className="w-full text-left border-collapse min-w-[900px]">
+            <div className="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
+                {Array.from({ length: rows }).map((_, i) => <div key={i} className="px-3 py-2.5"><div className="flex gap-3"><Skeleton className="h-11 w-11 shrink-0 rounded-md" /><div className="flex-1 space-y-1.5"><Skeleton className="h-3.5 w-3/4" /><Skeleton className="h-3 w-20" /><div className="flex justify-between"><Skeleton className="h-4 w-24" /><Skeleton className="h-3 w-14" /></div></div></div></div>)}
+            </div>
+            <table className="hidden md:table w-full text-left border-collapse min-w-[900px]">
                 {/* Table headers */}
                 <thead className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-10 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                     <tr>
@@ -202,26 +198,24 @@ export default function ProductTableSkeleton({ rows = 16, fullPage = false, view
     }
 
     return (
-        <SkeletonWrapper className="p-3 sm:p-4 lg:p-5 flex-1 min-h-0 flex flex-col overflow-hidden">
-            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs flex-1 min-h-0 flex flex-col overflow-hidden">
+        <SkeletonWrapper className="p-0 sm:p-4 lg:p-5 flex-1 min-h-0 flex flex-col overflow-hidden">
+            <div className="bg-white dark:bg-slate-900 sm:rounded-xl sm:border border-slate-200 dark:border-slate-800 sm:shadow-xs flex-1 min-h-0 flex flex-col overflow-hidden">
                 {/* Header & Filter Section */}
-                <div className="p-3 sm:p-3.5 space-y-2.5 border-b border-slate-200 dark:border-slate-800 shrink-0 bg-white dark:bg-slate-900 z-10">
+                <div className="p-2.5 sm:p-3.5 space-y-2 sm:space-y-2.5 border-b border-slate-200 dark:border-slate-800 shrink-0 bg-white dark:bg-slate-900 z-10">
                     {/* Top Row: Title, Badge, Tabs & Action */}
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5">
-                        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                        <div className="flex items-center gap-2">
                             <Skeleton className="h-6 w-32 rounded-md" />
-                            <Skeleton className="h-5 w-10 rounded-full" />
-                            <div className="h-4 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block"></div>
-                            {/* Tab Switcher */}
-                            <div className="inline-flex items-center bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg border border-slate-200 dark:border-slate-700">
+                            <Skeleton className="h-4 w-8" />
+                        </div>
+                            <div className="order-3 flex w-full gap-1.5 sm:order-none sm:w-auto">
                                 <Skeleton className="h-6 w-24 rounded-md" />
                                 <Skeleton className="h-6 w-20 rounded-md" />
                             </div>
-                        </div>
-
-                        {/* Action Button */}
-                        <Skeleton className="h-8 w-32 rounded-lg shrink-0 self-end sm:self-auto" />
+                        <Skeleton className="ml-auto h-8 w-32 rounded-lg shrink-0" />
                     </div>
+
+                    <div className="flex items-center justify-between gap-2 border-l-2 border-slate-200 pl-2"><Skeleton className="h-3 w-28" /><Skeleton className="h-3 w-10" /></div>
 
                     {/* Filter Bar */}
                     <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 pt-0.5">

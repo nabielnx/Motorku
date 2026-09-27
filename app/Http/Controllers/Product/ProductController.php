@@ -106,6 +106,7 @@ class ProductController extends Controller implements HasMiddleware
         $product = $this->productService->createProduct($request->validated());
 
         CacheService::flushCatalog();
+        CacheService::flushMotorcycleParts();
 
         return $this->successResponse(
             'Produk berhasil ditambahkan!',
@@ -140,6 +141,7 @@ class ProductController extends Controller implements HasMiddleware
         $updatedProduct = $this->productService->updateProduct($id, $request->validated());
 
         CacheService::flushCatalog();
+        CacheService::flushMotorcycleParts();
 
         return $this->successResponse(
             'Produk berhasil diperbarui!',
@@ -160,6 +162,7 @@ class ProductController extends Controller implements HasMiddleware
         $this->productService->deleteProduct($id);
 
         CacheService::flushCatalog();
+        CacheService::flushMotorcycleParts();
 
         return $this->successResponse('Produk berhasil dihapus!');
     }

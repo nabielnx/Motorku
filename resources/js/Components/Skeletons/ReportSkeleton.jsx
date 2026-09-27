@@ -1,16 +1,34 @@
 import Skeleton from '@/Components/Skeleton';
 
 /**
- * Report skeleton — matches Report/Index layout with standalone toolbar, 4 KPI cards, and 5-col content grid (Top 5 table + Category breakdown).
+ * Matches the report toolbar, summary, cash closing, and analysis panels.
  */
 export default function ReportSkeleton() {
     return (
-        <div className="space-y-5">
+        <div className="space-y-4" aria-busy="true" aria-label="Memuat laporan keuangan">
             {/* Toolbar: Period Dropdown + Print Button */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                 <Skeleton className="h-9 w-36 rounded-lg" />
                 <Skeleton className="h-9 w-32 rounded-lg" />
             </div>
+
+            {/* Daily cash closing */}
+            <section className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 space-y-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="space-y-1"><Skeleton className="h-4 w-36" /><Skeleton className="h-3 w-40" /></div>
+                    <Skeleton className="h-10 w-36 rounded-lg" />
+                </div>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                    {Array.from({ length: 4 }).map((_, i) => <div key={i} className="space-y-1"><Skeleton className="h-3 w-24" />{i === 0 || i === 3 ? <Skeleton className="h-10 w-full rounded-lg" /> : <Skeleton className="h-4 w-24 mt-2" />}</div>)}
+                </div>
+                <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 border-t border-slate-200 dark:border-slate-800 pt-3">
+                    <div className="space-y-1"><Skeleton className="h-3 w-24" /><Skeleton className="h-6 w-32" /></div>
+                    <div className="space-y-1"><Skeleton className="h-3 w-36" /><Skeleton className="h-10 w-full rounded-lg" /></div>
+                    <div className="space-y-1"><Skeleton className="h-3 w-12" /><Skeleton className="h-6 w-24" /></div>
+                </div>
+                <Skeleton className="h-9 w-full rounded-lg" />
+                <Skeleton className="h-8 w-36 rounded-lg" />
+            </section>
 
             {/* 4 KPI Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
@@ -22,7 +40,7 @@ export default function ReportSkeleton() {
                                 <Skeleton className="h-6 w-28" />
                                 <Skeleton className="h-2.5 w-20" />
                             </div>
-                            <Skeleton className="w-10 h-10 rounded-xl shrink-0" />
+                            <Skeleton className="w-5 h-5 shrink-0" />
                         </div>
                     </div>
                 ))}

@@ -133,13 +133,9 @@ export default function DateRangePicker({ initialStart = '', initialEnd = '', on
             <button
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
-                className={`flex w-full items-center gap-2 border rounded-xl px-3 py-2 text-xs font-bold transition shadow-2xs sm:w-auto sm:px-3.5 ${
-                    isCustomActive
-                        ? 'bg-blue-50 dark:bg-blue-950/60 border-blue-300 dark:border-blue-800 text-blue-700 dark:text-blue-300 hover:bg-blue-100'
-                        : 'bg-white dark:bg-slate-800 border-slate-200/90 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-750'
-                }`}
+                className="flex w-full items-center gap-2 rounded-xl border border-primary bg-primary px-3 py-2 text-xs font-bold text-white shadow-2xs transition hover:bg-primaryDark focus-visible:outline-2 focus-visible:outline-accentYellow sm:w-auto sm:px-3.5"
             >
-                <FiCalendar className={isCustomActive ? 'text-blue-600 dark:text-yellow-400' : 'text-slate-400 dark:text-slate-500'} size={15} />
+                <FiCalendar size={15} />
                 <span className="truncate sm:hidden">{isCustomActive ? 'Rentang khusus' : 'Pilih tanggal'}</span>
                 <span className="hidden sm:inline">{activeLabel}</span>
             </button>
@@ -152,7 +148,7 @@ export default function DateRangePicker({ initialStart = '', initialEnd = '', on
                     
                     {/* Popover Header */}
                     <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
-                        <span className="text-xs font-black text-slate-900 dark:text-white">Pilih Rentang Tanggal</span>
+                        <span className="text-xs font-black text-primaryDark dark:text-white">Pilih Rentang Tanggal</span>
                         <button
                             onClick={() => setIsOpen(false)}
                             className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
@@ -206,9 +202,9 @@ export default function DateRangePicker({ initialStart = '', initialEnd = '', on
 
                             let cellStyle = 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold';
                             if (isStart || isEnd) {
-                                cellStyle = 'bg-blue-600 text-white font-extrabold shadow-2xs rounded-lg';
+                                cellStyle = 'bg-primary text-white font-extrabold shadow-2xs rounded-lg';
                             } else if (inRange) {
-                                cellStyle = 'bg-blue-100 dark:bg-blue-950/70 text-blue-900 dark:text-blue-200 font-bold';
+                                cellStyle = 'bg-slate-100 dark:bg-slate-800 text-primaryDark dark:text-white font-bold';
                             }
 
                             return (
@@ -230,8 +226,8 @@ export default function DateRangePicker({ initialStart = '', initialEnd = '', on
                         <div className="text-slate-600 dark:text-slate-400">
                             {rangeStart ? (
                                 <span>
-                                    <span className="text-blue-600 dark:text-yellow-400">{formatDisplayStr(formatDateStr(rangeStart))}</span>
-                                    {rangeEnd ? <span> s/d <span className="text-blue-600 dark:text-yellow-400">{formatDisplayStr(formatDateStr(rangeEnd))}</span></span> : ' (Pilih Tgl Selesai)'}
+                                    <span className="text-primaryDark dark:text-accentYellow">{formatDisplayStr(formatDateStr(rangeStart))}</span>
+                                    {rangeEnd ? <span> s/d <span className="text-primaryDark dark:text-accentYellow">{formatDisplayStr(formatDateStr(rangeEnd))}</span></span> : ' (Pilih Tgl Selesai)'}
                                 </span>
                             ) : (
                                 <span className="text-slate-400 dark:text-slate-500">Klik tanggal mulai</span>
@@ -252,7 +248,7 @@ export default function DateRangePicker({ initialStart = '', initialEnd = '', on
                             type="button"
                             onClick={handleApply}
                             disabled={!rangeStart}
-                            className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white rounded-xl text-xs font-extrabold transition shadow-2xs flex items-center gap-1.5"
+                            className="px-3.5 py-1.5 bg-primary hover:bg-primaryDark disabled:opacity-40 text-white rounded-xl text-xs font-extrabold transition shadow-2xs flex items-center gap-1.5"
                         >
                             <FiCheck size={14} />
                             <span>Terapkan Filter</span>

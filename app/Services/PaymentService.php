@@ -14,6 +14,11 @@ use Illuminate\Validation\ValidationException;
 
 class PaymentService
 {
+    public function __construct(
+        private DocumentNumberService $documentNumbers,
+        private CashClosingService $cashClosing
+    ) {}
+
     public function processPayment(array $data)
     {
         return DB::transaction(function () use ($data) {
@@ -53,6 +58,10 @@ class PaymentService
                 throw ValidationException::withMessages(['amount_received' => 'Nominal pembayaran kurang dari total pesanan.']);
             }
 
+            if ($method === 'cash') {
+                $this->cashClosing->assertCashDayOpen(now()->toDateString());
+            }
+
             $payment = Payment::create([
                 'order_id' => $data['order_id'],
                 'payment_method' => $method,
@@ -71,34 +80,12 @@ class PaymentService
             $this->finalizePaidOrder($order);
 
             return $payment->load('order');
-        });
+        }, 3);
     }
 
     public function nextInvoiceNumber(): string
     {
-        $dateKey = now()->format('Ymd');
-        $driver = DB::connection()->getDriverName();
-        $lockKey = 'spare-part-invoice-'.$dateKey;
-
-        if ($driver === 'pgsql') {
-            DB::select('SELECT pg_advisory_xact_lock(?)', [crc32($lockKey)]);
-        } elseif ($driver === 'mysql') {
-            DB::select('SELECT GET_LOCK(?, 10)', [$lockKey]);
-        }
-
-        try {
-            $sequence = Payment::whereDate('created_at', now()->toDateString())->count() + 1;
-
-            do {
-                $invoice = 'INV-'.$dateKey.'-'.str_pad((string) $sequence++, 4, '0', STR_PAD_LEFT);
-            } while (Payment::where('invoice_number', $invoice)->exists());
-
-            return $invoice;
-        } finally {
-            if ($driver === 'mysql') {
-                DB::select('SELECT RELEASE_LOCK(?)', [$lockKey]);
-            }
-        }
+        return $this->documentNumbers->next('invoice');
     }
 
     public function getAllPayments(?int $perPage = null)

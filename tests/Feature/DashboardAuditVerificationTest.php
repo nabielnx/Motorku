@@ -10,6 +10,7 @@ use App\Models\Product;
 use App\Models\User;
 use App\Services\DashboardService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class DashboardAuditVerificationTest extends TestCase
@@ -25,6 +26,17 @@ class DashboardAuditVerificationTest extends TestCase
 
         $this->owner = User::factory()->create();
         $this->owner->assignRole('owner');
+    }
+
+    public function test_monthly_chart_query_count_does_not_grow_with_days(): void
+    {
+        DB::enableQueryLog();
+        DB::flushQueryLog();
+
+        app(DashboardService::class)->getDashboardStats('30_days');
+
+        $this->assertLessThan(25, count(DB::getQueryLog()));
+        DB::disableQueryLog();
     }
 
     public function test_menu_terlaris_includes_today_items_excludes_historical_and_cancelled(): void

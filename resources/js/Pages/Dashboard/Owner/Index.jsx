@@ -12,6 +12,7 @@ import {
     FiClock, 
     FiCheckCircle, 
     FiArrowRight,
+    FiChevronDown,
     FiChevronLeft,
     FiChevronRight
 } from 'react-icons/fi';
@@ -146,25 +147,29 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                 <meta name="description" content="Ringkasan performa penjualan, total pendapatan, statistik pesanan, dan produk terlaris toko Motorku." />
             </Head>
 
-            {isNavigating ? <DashboardSkeleton /> : <div className="grid w-full grid-cols-12 items-start gap-3 sm:gap-5">
+            {isNavigating ? <DashboardSkeleton /> : <div className="grid w-full grid-cols-12 items-start gap-3 sm:gap-4 xl:-mt-2">
                 
                 {/* Header Filter Periode */}
                 <div className="col-span-12 flex flex-col justify-between gap-2 sm:flex-row sm:items-center sm:gap-3">
                     <h2 className="text-base sm:text-lg font-black text-primaryDark dark:text-white">Ringkasan Toko</h2>
                     <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
                         {/* Preset Select Dropdown */}
-                        <select 
-                            value={currentPeriod === 'custom' ? '' : currentPeriod}
-                            onChange={handlePeriodChange}
-                            className="min-w-0 w-full sm:w-auto border border-slate-200/90 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 focus:ring-0 focus:border-primary focus:outline-none bg-slate-50 dark:bg-slate-800 cursor-pointer shadow-2xs sm:px-4"
-                        >
-                            <option value="" disabled hidden>Pilihan Cepat...</option>
-                            <option value="today">Hari Ini</option>
-                            <option value="7_days">7 Hari Terakhir</option>
-                            <option value="30_days">30 Hari Terakhir</option>
-                            <option value="this_month">Bulan Ini</option>
-                            <option value="this_year">Tahun Ini</option>
-                        </select>
+                        <div className="relative min-w-0 w-full sm:w-auto">
+                            <select
+                                value={currentPeriod === 'custom' ? '' : currentPeriod}
+                                onChange={handlePeriodChange}
+                                aria-label="Pilih periode dashboard"
+                                className="w-full appearance-none rounded-xl border border-primary bg-primary py-2 pl-3 pr-8 text-xs font-bold text-white shadow-2xs cursor-pointer transition hover:bg-primaryDark focus:outline-none focus:ring-0 focus:border-primaryDark sm:pl-4"
+                            >
+                                <option className="bg-white text-slate-900" value="" disabled hidden>Pilihan Cepat...</option>
+                                <option className="bg-white text-slate-900" value="today">Hari Ini</option>
+                                <option className="bg-white text-slate-900" value="7_days">7 Hari Terakhir</option>
+                                <option className="bg-white text-slate-900" value="30_days">30 Hari Terakhir</option>
+                                <option className="bg-white text-slate-900" value="this_month">Bulan Ini</option>
+                                <option className="bg-white text-slate-900" value="this_year">Tahun Ini</option>
+                            </select>
+                            <FiChevronDown aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-white" size={14} />
+                        </div>
 
                         {/* Separate Single Calendar Range Picker */}
                         <DateRangePicker 
@@ -182,7 +187,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                         <div className="flex items-start justify-between gap-2">
                             <div>
                                 <p className="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Antrean saat ini</p>
-                                <h3 className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white mt-1">{pendingOrders}</h3>
+                                <h3 className="text-xl sm:text-[30px] font-heading font-extrabold text-[#fceb2d] [-webkit-text-stroke:3px_#003882] [paint-order:stroke_fill] mt-1">{pendingOrders}</h3>
                             </div>
                             <FiClock className="hidden text-primary shrink-0 sm:block" size={18} />
                         </div>
@@ -192,7 +197,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                         <div className="flex items-start justify-between gap-2">
                             <div>
                                 <p className="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Penjualan bersih</p>
-                                <h3 className="text-base sm:text-2xl font-black tracking-tight text-primaryDark dark:text-white mt-1">{formatRp(revenueToday)}</h3>
+                                <h3 className="text-base sm:text-[30px] font-heading font-extrabold text-[#fceb2d] [-webkit-text-stroke:3px_#003882] [paint-order:stroke_fill] mt-1">{formatRp(revenueToday)}</h3>
                             </div>
                             <FiDollarSign className="hidden text-primary shrink-0 sm:block" size={18} />
                         </div>
@@ -202,7 +207,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                         <div className="flex items-start justify-between gap-2">
                             <div>
                                 <p className="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Transaksi lunas</p>
-                                <h3 className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white mt-1">{ordersToday}</h3>
+                                <h3 className="text-xl sm:text-[30px] font-heading font-extrabold text-[#fceb2d] [-webkit-text-stroke:3px_#003882] [paint-order:stroke_fill] mt-1">{ordersToday}</h3>
                             </div>
                             <FiShoppingBag className="hidden text-primary shrink-0 sm:block" size={18} />
                         </div>
@@ -212,7 +217,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                         <div className="flex items-start justify-between gap-2">
                             <div>
                                 <p className="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Stok perlu dicek</p>
-                                <h3 className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white mt-1">{lowStockAlerts.length}</h3>
+                                <h3 className="text-xl sm:text-[30px] font-heading font-extrabold text-[#fceb2d] [-webkit-text-stroke:3px_#003882] [paint-order:stroke_fill] mt-1">{lowStockAlerts.length}</h3>
                             </div>
                             <FiPackage className="hidden text-primary shrink-0 sm:block" size={18} />
                         </div>
@@ -295,7 +300,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                             <div className="pl-14 w-full flex items-center justify-between gap-1 sm:gap-2 pt-3 shrink-0">
                                 {salesData.map((data, idx) => (
                                     <div key={idx} className="flex-1 text-center min-w-0">
-                                        <span className={`text-[10px] sm:text-[11px] font-bold block truncate ${data.is_today ? 'text-amber-700 dark:text-accentYellow' : 'text-slate-600 dark:text-slate-400'}`} title={data.day}>
+                                        <span className={`text-[10px] sm:text-[11px] font-bold block truncate ${data.is_today ? 'text-accentYellow' : 'text-slate-600 dark:text-slate-400'}`} title={data.day}>
                                             {data.day}
                                         </span>
                                     </div>
@@ -323,7 +328,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                                     topSellingMenu.map((item, idx) => (
                                         <div key={idx} className="flex items-center justify-between gap-3 py-2 border-b border-slate-100 dark:border-slate-800 last:border-none">
                                             <div className="flex items-center space-x-2.5 min-w-0">
-                                                <span className={`w-5 text-xs tabular-nums shrink-0 ${idx === 0 ? 'font-bold text-amber-700 dark:text-accentYellow' : 'text-slate-400 dark:text-slate-500'}`}>
+                                                <span className={`w-5 text-xs tabular-nums shrink-0 ${Number(item.rank || idx + 1) <= 3 ? 'font-bold text-[#fceb2d]' : 'text-slate-400 dark:text-slate-500'}`}>
                                                     {String(item.rank || idx + 1).padStart(2, '0')}
                                                 </span>
                                                 <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 truncate">{item.name}</span>
@@ -375,7 +380,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
 
                 {/* Pesanan terbaru tampil sebelum grafik */}
                 <div className="col-span-12 xl:col-span-8 order-2 xl:order-1 bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-800 shadow-xs overflow-hidden transition-colors">
-                    <div className="p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/80 dark:bg-slate-800/50">
+                    <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/80 dark:bg-slate-800/50">
                         <h3 className="font-extrabold text-primaryDark dark:text-white text-sm sm:text-base">Pesanan terbaru</h3>
                         <Link href={route('orders.index')} className="text-xs font-bold text-primary dark:text-yellow-400 hover:text-primaryDark flex items-center gap-1.5">
                             <span>Lihat semua</span>
@@ -393,7 +398,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                                 </div>
                                 <div className="shrink-0 text-right">
                                     <p className="font-bold text-slate-900 dark:text-white">{formatRp(Number(ord.total || 0))}</p>
-                                    <p className={`mt-1 text-[11px] font-semibold ${ord.payment_status === 'paid' ? 'text-emerald-700 dark:text-emerald-400' : ord.payment_status === 'refunded' ? 'text-slate-600 dark:text-slate-400' : 'text-amber-700 dark:text-amber-400'}`}>{ord.payment_status === 'paid' ? 'Lunas' : ord.payment_status === 'refunded' ? 'Dikembalikan' : 'Belum lunas'}</p>
+                                    <p className={`mt-1 text-[11px] font-semibold ${ord.payment_status === 'paid' ? 'text-primaryDark dark:text-blue-300' : ord.payment_status === 'refunded' ? 'text-slate-600 dark:text-slate-400' : 'text-amber-700 dark:text-amber-400'}`}>{ord.payment_status === 'paid' ? 'Lunas' : ord.payment_status === 'refunded' ? 'Dikembalikan' : 'Belum lunas'}</p>
                                 </div>
                             </div>
                         )) : <p className="px-4 py-8 text-center text-xs font-semibold text-slate-500">Belum ada pesanan {periodLabel.toLowerCase()}.</p>}
@@ -404,11 +409,11 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                         <table className="w-full min-w-[650px] text-left text-xs">
                             <thead className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-[10px] uppercase border-b border-slate-200 dark:border-slate-800 sticky top-0 z-10">
                                 <tr>
-                                    <th className="px-4 py-3">Pesanan</th>
-                                    <th className="px-4 py-3">Pelanggan</th>
-                                    <th className="px-4 py-3">Dibuat</th>
-                                    <th className="px-4 py-3">Total</th>
-                                    <th className="px-4 py-3">Bayar</th>
+                                    <th className="px-4 py-2">Pesanan</th>
+                                    <th className="px-4 py-2">Pelanggan</th>
+                                    <th className="px-4 py-2">Dibuat</th>
+                                    <th className="px-4 py-2">Total</th>
+                                    <th className="px-4 py-2">Bayar</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-200 dark:divide-slate-800 font-semibold text-slate-700 dark:text-slate-300">
@@ -417,20 +422,20 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                                         const formattedInv = formatInvoiceNumber(ord);
                                         return (
                                             <tr key={ord.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
-                                                <td className="px-4 py-3 font-mono font-bold text-slate-900 dark:text-white">{formattedInv}</td>
-                                                <td className="px-4 py-3 font-bold text-slate-800 dark:text-slate-200">
+                                                <td className="px-4 py-2 font-mono font-bold text-slate-900 dark:text-white">{formattedInv}</td>
+                                                <td className="px-4 py-2 font-bold text-slate-800 dark:text-slate-200">
                                                     {ord.customer_name || 'Pelanggan Umum'}
                                                 </td>
-                                                <td className="px-4 py-3">
+                                                <td className="px-4 py-2">
                                                     {ord.created_at ? new Date(ord.created_at).toLocaleString('id-ID', {
                                                         day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta'
                                                     }) : '-'}
                                                 </td>
-                                                <td className="px-4 py-3 font-black text-slate-900 dark:text-white">{formatRp(Number(ord.total || 0))}</td>
-                                                <td className="px-4 py-3">
+                                                <td className="px-4 py-2 font-black text-slate-900 dark:text-white">{formatRp(Number(ord.total || 0))}</td>
+                                                <td className="px-4 py-2">
                                                     <span className={`text-xs font-semibold ${
                                                         ord.payment_status === 'paid'
-                                                            ? 'text-emerald-700 dark:text-emerald-400'
+                                                            ? 'text-primaryDark dark:text-blue-300'
                                                             : ord.payment_status === 'refunded'
                                                                 ? 'text-slate-600 dark:text-slate-400'
                                                                 : 'text-amber-700 dark:text-amber-400'

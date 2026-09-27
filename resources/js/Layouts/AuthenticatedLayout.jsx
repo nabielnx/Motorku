@@ -59,7 +59,7 @@ function getDestinationInfo(path, locale = 'id') {
         return {
             title: locale === 'en' ? 'Product Management' : 'Manajemen Produk',
             component: <ProductTableSkeleton fullPage={true} viewMode={viewMode} />,
-            noPadding: false,
+            noPadding: true,
         };
     }
     if (path.startsWith('/reports')) {
@@ -94,23 +94,30 @@ function getDestinationInfo(path, locale = 'id') {
         return {
             title: 'POS Kasir',
             component: (
-                <div className="h-full flex overflow-hidden">
-                    <div className="flex-1 p-4 overflow-y-auto space-y-4">
-                        <div className="flex gap-2 py-1">
-                            {Array.from({ length: 5 }).map((_, i) => (
-                                <Skeleton key={i} className="h-7 w-20 rounded-lg shrink-0" />
-                            ))}
+                <div className="flex min-h-0 flex-1 flex-col md:flex-row w-full overflow-hidden bg-slate-100 dark:bg-slate-950">
+                    <div className="flex flex-1 flex-col min-w-0 min-h-0 overflow-hidden">
+                        <div className="bg-white dark:bg-slate-900 p-3 sm:p-4 border-b border-slate-300 dark:border-slate-800 space-y-3">
+                            <Skeleton className="h-10 w-full rounded-xl" />
+                            <div className="flex items-center justify-between gap-2 border-t border-slate-200 pt-3 dark:border-slate-800">
+                                <div className="flex gap-2 overflow-hidden">
+                                    {Array.from({ length: 5 }).map((_, i) => (
+                                        <Skeleton key={i} className="h-7 w-20 rounded-lg shrink-0" />
+                                    ))}
+                                </div>
+                                <Skeleton className="h-7 w-28 shrink-0 rounded-lg" />
+                            </div>
                         </div>
-                        <PosCardSkeleton count={8} />
+                        <div className="flex-1 min-h-0 overflow-y-auto p-3"><PosCardSkeleton count={8} /></div>
+                        <Skeleton className="mx-3 mb-3 h-12 rounded-xl md:hidden" />
                     </div>
-                    <div className="w-80 lg:w-96 bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 hidden md:flex flex-col p-4 shrink-0 space-y-4">
-                        <Skeleton className="h-6 w-32" />
-                        <div className="flex-1 space-y-3">
+                    <div className="hidden md:flex w-96 lg:w-[410px] bg-white dark:bg-slate-900 border-l border-slate-300 dark:border-slate-800 flex-col min-h-0 shrink-0">
+                        <div className="p-3.5 border-b border-slate-300 dark:border-slate-800 space-y-2"><Skeleton className="h-4 w-32" /><Skeleton className="h-9 w-full rounded-lg" /></div>
+                        <div className="flex-1 p-4 space-y-3">
                             {Array.from({ length: 3 }).map((_, i) => (
                                 <Skeleton key={i} className="h-16 w-full rounded-xl" />
                             ))}
                         </div>
-                        <Skeleton className="h-12 w-full rounded-xl" />
+                        <div className="border-t border-slate-300 dark:border-slate-800 p-4 space-y-3"><Skeleton className="h-4 w-full" /><Skeleton className="h-6 w-2/3" /><Skeleton className="h-12 w-full rounded-xl" /></div>
                     </div>
                 </div>
             ),
@@ -388,11 +395,11 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                                             onClick={() => setIsSidebarOpen(false)}
                                             className={`flex items-center gap-3 -mx-3 px-6 py-2.5 transition-colors font-semibold text-[13px] ${
                                                 item.active 
-                                                    ? 'bg-primary text-white border-l-4 border-accentYellow font-bold'
+                                                    ? 'bg-primary text-[#FFF200] border-l-4 border-[#FFF200] font-bold'
                                                     : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white border-l-4 border-transparent'
                                             }`}
                                         >
-                                            <Icon size={17} className={item.active ? 'text-white' : 'text-slate-400 dark:text-slate-500'} strokeWidth={2.2} />
+                                            <Icon size={17} className={item.active ? 'text-[#FFF200]' : 'text-slate-400 dark:text-slate-500'} strokeWidth={2.2} />
                                             {item.name}
                                         </Link>
                                     );

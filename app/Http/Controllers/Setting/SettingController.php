@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Setting;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Setting\UpdateSettingRequest;
+use App\Models\CashClosing;
 use App\Models\InventoryLog;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\OrderReturn;
 use App\Models\Payment;
 use App\Models\Setting;
 use App\Services\CacheService;
@@ -39,7 +41,21 @@ class SettingController extends Controller implements HasMiddleware
 
     public function indexWeb()
     {
-        return Inertia::render('Setting/Index');
+        $settings = Setting::all(['group', 'key', 'value'])->mapWithKeys(fn ($setting) => [
+            $setting->group.'_'.$setting->key => $setting->value,
+        ]);
+        $imageUrl = fn (string $key) => ($path = $settings->get('store_'.$key))
+            ? Storage::url($path)
+            : null;
+
+        return Inertia::render('Setting/Index', [
+            'initialSettings' => $settings,
+            'logoUrl' => $imageUrl('logo'),
+            'qrisUrl' => $imageUrl('qris_image'),
+            'bannerUrls' => collect(range(1, 3))->mapWithKeys(fn ($slot) => [
+                $slot => $imageUrl('promo_banner_'.$slot),
+            ]),
+        ]);
     }
 
     public function index(): JsonResponse
@@ -158,10 +174,7 @@ class SettingController extends Controller implements HasMiddleware
 
         $path = $request->file('logo')->store('logo', 'public');
 
-        Setting::updateOrCreate(
-            ['group' => 'store', 'key' => 'logo'],
-            ['value' => $path, 'type' => 'string']
-        );
+        $this->settingService->upsertSetting('store', 'logo', $path);
 
         CacheService::flushSettings();
 
@@ -187,7 +200,7 @@ class SettingController extends Controller implements HasMiddleware
             if ($setting->value) {
                 Storage::disk('public')->delete($setting->value);
             }
-            $setting->delete();
+            $setting->update(['value' => null]);
         }
 
         CacheService::flushSettings();
@@ -209,10 +222,7 @@ class SettingController extends Controller implements HasMiddleware
         }
 
         $path = $request->file('qris_image')->store('qris', 'public');
-        Setting::updateOrCreate(
-            ['group' => 'store', 'key' => 'qris_image'],
-            ['value' => $path, 'type' => 'string']
-        );
+        $this->settingService->upsertSetting('store', 'qris_image', $path);
         CacheService::flushSettings();
 
         return response()->json([
@@ -235,7 +245,7 @@ class SettingController extends Controller implements HasMiddleware
             if ($setting->value) {
                 Storage::disk('public')->delete($setting->value);
             }
-            $setting->delete();
+            $setting->update(['value' => null]);
         }
         CacheService::flushSettings();
 
@@ -262,10 +272,7 @@ class SettingController extends Controller implements HasMiddleware
 
         $path = $request->file('banner')->store('promo_banners', 'public');
 
-        Setting::updateOrCreate(
-            ['group' => 'store', 'key' => $key],
-            ['value' => $path, 'type' => 'string']
-        );
+        $this->settingService->upsertSetting('store', $key, $path);
 
         CacheService::flushSettings();
 
@@ -292,7 +299,7 @@ class SettingController extends Controller implements HasMiddleware
             if ($setting->value) {
                 Storage::disk('public')->delete($setting->value);
             }
-            $setting->delete();
+            $setting->update(['value' => null]);
         }
 
         CacheService::flushSettings();
@@ -345,17 +352,21 @@ class SettingController extends Controller implements HasMiddleware
         }
 
         DB::transaction(function () {
+            OrderReturn::query()->delete();
+            CashClosing::query()->delete();
             // Delete order items
-            OrderItem::query()->delete();
+            OrderItem::withTrashed()->forceDelete();
 
             // Delete payments
-            Payment::query()->delete();
+            Payment::withTrashed()->forceDelete();
 
             // Delete orders (force delete including soft deleted if any)
             Order::withTrashed()->forceDelete();
 
             // Delete inventory logs
-            InventoryLog::query()->delete();
+            InventoryLog::withTrashed()->forceDelete();
+            DB::table('document_sequences')->delete();
+            DB::table('cash_day_locks')->delete();
         });
 
         CacheService::flushAll();
