@@ -10,7 +10,6 @@ import ProductTableSkeleton from '@/Components/Skeletons/ProductTableSkeleton';
 import ReportSkeleton from '@/Components/Skeletons/ReportSkeleton';
 import UserTableSkeleton from '@/Components/Skeletons/UserTableSkeleton';
 import SettingSkeleton from '@/Components/Skeletons/SettingSkeleton';
-import InventoryTableSkeleton from '@/Components/Skeletons/InventoryTableSkeleton';
 import MotorcyclePageSkeleton from '@/Components/Skeletons/MotorcyclePageSkeleton';
 import PosCardSkeleton from '@/Components/Skeletons/PosCardSkeleton';
 import Skeleton from '@/Components/Skeleton';
@@ -74,13 +73,6 @@ function getDestinationInfo(path, locale = 'id') {
         return {
             title: locale === 'en' ? 'Settings' : 'Pengaturan',
             component: <SettingSkeleton />,
-            noPadding: false,
-        };
-    }
-    if (path.startsWith('/inventory')) {
-        return {
-            title: locale === 'en' ? 'Inventory Stock' : 'Stok Inventaris',
-            component: <InventoryTableSkeleton />,
             noPadding: false,
         };
     }
