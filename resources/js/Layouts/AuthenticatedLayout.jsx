@@ -262,7 +262,7 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                     icon: FiShoppingCart, 
                     href: safeRoute('pos.index', '/pos'), 
                     active: isItemActive('/pos'),
-                    roles: ['cashier']
+                    roles: ['owner', 'cashier']
                 },
             ]
         },
@@ -334,7 +334,7 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
         .filter(section => section.items.length > 0);
 
     return (
-        <div className="h-screen w-screen overflow-hidden bg-slate-50 dark:bg-slate-950 flex font-sans antialiased text-slate-800 dark:text-slate-100 transition-colors duration-200">
+        <div className="h-[100dvh] w-screen overflow-hidden bg-slate-50 dark:bg-slate-950 flex font-sans antialiased text-slate-800 dark:text-slate-100 transition-colors duration-200">
             
             {/* OVERLAY MOBILE */}
             {isSidebarOpen && (
