@@ -12,14 +12,12 @@ import { FaWhatsapp } from 'react-icons/fa';
 import { fuzzyFilterProducts } from '@/Utils/fuzzySearch';
 
 const CART_KEY = 'motorku_cart';
-const LEGACY_CART_KEY = 'mie_amour_cart';
 const ORDER_KEY = 'motorku_pending_order';
 const HISTORY_KEY = 'motorku_orders_history';
-const LEGACY_HISTORY_KEY = 'mie_amour_orders_history';
 
 function loadCart() {
     try {
-        const raw = localStorage.getItem(CART_KEY) || localStorage.getItem(LEGACY_CART_KEY);
+        const raw = localStorage.getItem(CART_KEY);
         const cartTime = localStorage.getItem(CART_KEY + '_time');
         if (raw && cartTime) {
             const timeDiff = Date.now() - parseInt(cartTime, 10);
@@ -116,7 +114,6 @@ export default function CustomerMenu({
     const [selectedMainCategory, setSelectedMainCategory] = useState(null);
     const [selectedSubCategory, setSelectedSubCategory] = useState(null);
     const [hasAnyOrders, setHasAnyOrders] = useState(false);
-    const [pendingPayment, setPendingPayment] = useState(null);
     const [showCart, setShowCart] = useState(false);
     const [selectedDetailProduct, setSelectedDetailProduct] = useState(null);
     const [detailQty, setDetailQty] = useState(1);
@@ -142,10 +139,8 @@ export default function CustomerMenu({
     const clearCart = () => {
         setCart([]);
         localStorage.removeItem(CART_KEY);
-        localStorage.removeItem(LEGACY_CART_KEY);
         localStorage.removeItem(CART_KEY + '_time');
         localStorage.removeItem(ORDER_KEY);
-        localStorage.removeItem('mie_amour_pending_order');
     };
 
     useEffect(() => {
@@ -162,14 +157,12 @@ export default function CustomerMenu({
                 }
             }
             localStorage.removeItem('motorku_active_motorcycle');
-            const rawHistory = localStorage.getItem(HISTORY_KEY) || localStorage.getItem(LEGACY_HISTORY_KEY);
+            const rawHistory = localStorage.getItem(HISTORY_KEY);
             const history = rawHistory ? JSON.parse(rawHistory) : [];
             if (Array.isArray(history) && history.length > 0) {
                 const activeOrders = history.filter(o => ['pending', 'preparing', 'ready'].includes(o.order_status));
                 setHasAnyOrders(activeOrders.length > 0);
 
-                const pendingPay = history.find(o => o.payment_method === 'qris' && o.order_status === 'pending');
-                setPendingPayment(pendingPay || null);
             } else {
                 setHasAnyOrders(false);
             }
@@ -227,9 +220,8 @@ export default function CustomerMenu({
         if (cart.length === 0) return;
         const orderData = {
             cart: [...cart],
-            table_id: null,
-            table_name: 'Ambil di Toko',
-            subtotal, tax, serviceCharge: 0, total
+            pickup_label: 'Ambil di Toko',
+            subtotal, tax, total
         };
         localStorage.setItem(ORDER_KEY, JSON.stringify(orderData));
         router.visit('/payment');
@@ -256,7 +248,7 @@ export default function CustomerMenu({
     const storeName = settings['store.name'] || 'Motorku';
     const phone = settings['store.phone'] || settings['phone'] || '';
     const whatsapp = phone ? 'https://wa.me/' + phone.replace(/[^0-9]/g, '').replace(/^0/, '62') : null;
-    const orderHref = pendingPayment ? '/payment/qris' : '/order/status';
+    const orderHref = '/order/status';
     const hasFilters = selectedMainCategory !== null || !!searchQuery.trim();
     const resetFilters = () => {
         setSelectedMainCategory(null);
