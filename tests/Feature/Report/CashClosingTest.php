@@ -72,4 +72,27 @@ class CashClosingTest extends TestCase
             'actual_cash' => 0,
         ])->assertForbidden();
     }
+
+    public function test_cash_sale_is_rejected_after_day_is_closed(): void
+    {
+        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $owner = User::factory()->create();
+        $owner->assignRole('owner');
+        $product = Product::factory()->create(['stock' => 3, 'price' => 30000]);
+
+        $this->actingAs($owner)->postJson('/api/reports/cash/close', [
+            'date' => now()->toDateString(),
+            'opening_cash' => 0,
+            'cash_out' => 0,
+            'actual_cash' => 0,
+        ])->assertCreated();
+
+        $this->postJson('/api/orders/pos-sale', [
+            'items' => [['product_id' => $product->id, 'quantity' => 1]],
+            'amount_received' => 30000,
+        ])->assertUnprocessable();
+
+        $this->assertEquals(3, $product->fresh()->stock);
+        $this->assertSame(0, Order::count());
+    }
 }

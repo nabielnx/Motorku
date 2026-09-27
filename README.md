@@ -62,7 +62,10 @@ Atau jalankan service secara terpisah:
 ```bash
 php artisan serve
 npm run dev
+php artisan schedule:work
 ```
+
+Pesanan online yang belum dibayar menahan stok selama 15 menit. `composer dev` sudah menjalankan scheduler untuk membatalkan pesanan kedaluwarsa. Di staging dan production, jalankan `php artisan schedule:run` setiap menit melalui cron atau scheduler hosting; tanpa proses itu stok pesanan kedaluwarsa tidak otomatis dikembalikan.
 
 ## Testing dan Build
 
