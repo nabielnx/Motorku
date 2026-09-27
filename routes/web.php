@@ -21,12 +21,7 @@ Route::get('/', [CustomerMenuController::class, 'index'])->name('home');
 
 // Public Customer QR Flow
 Route::get('/sanctum/csrf-cookie', fn() => response()->noContent());
-Route::get('/payment', fn() => Inertia::render('Payment/Index', [
-    'qrisEnabled' => (bool) config('doku.enabled', false),
-]))->name('customer.payment');
-Route::get('/payment/qris', fn() => config('doku.enabled', false)
-    ? Inertia::render('Payment/Qris')
-    : redirect()->route('customer.order.status'))->name('customer.payment.qris');
+Route::get('/payment', fn() => Inertia::render('Payment/Index'))->name('customer.payment');
 Route::get('/order/waiting', fn() => Inertia::render('Order/Waiting'))->name('customer.order.waiting');
 Route::get('/order/status', fn() => Inertia::render('Order/Status'))->name('customer.order.status');
 

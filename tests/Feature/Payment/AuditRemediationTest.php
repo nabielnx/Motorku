@@ -28,7 +28,7 @@ class AuditRemediationTest extends TestCase
     }
 
     #[Test]
-    public function doku_routes_are_not_registered_when_disabled(): void
+    public function customer_qris_payment_route_is_not_registered(): void
     {
         $response = $this->postJson('/api/customer/payment/qris', [
             'order_id' => '00000000-0000-0000-0000-000000000000',

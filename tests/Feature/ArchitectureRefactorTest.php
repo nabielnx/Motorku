@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Contracts\PaymentGatewayInterface;
 use App\Enums\InventoryLogType;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
@@ -13,7 +12,6 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\User;
-use App\Services\DokuQrisService;
 use App\Services\InventoryService;
 use App\Services\OrderService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -37,12 +35,6 @@ class ArchitectureRefactorTest extends TestCase
 
         $this->cashier = User::factory()->create();
         $this->cashier->assignRole('cashier');
-    }
-
-    public function test_payment_gateway_interface_resolves_to_doku_service(): void
-    {
-        $gateway = app(PaymentGatewayInterface::class);
-        $this->assertInstanceOf(DokuQrisService::class, $gateway);
     }
 
     public function test_order_model_uses_backed_enums(): void
