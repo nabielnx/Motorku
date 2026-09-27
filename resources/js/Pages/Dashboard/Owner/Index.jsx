@@ -7,7 +7,8 @@ import axios from 'axios';
 import { 
     FiTrendingUp, 
     FiShoppingBag, 
-    FiDollarSign, 
+    FiEye,
+    FiEyeOff,
     FiPackage, 
     FiClock, 
     FiCheckCircle, 
@@ -20,6 +21,7 @@ import {
 export default function Dashboard({ stats = {}, filters = {} }) {
 
     const [isNavigating, setIsNavigating] = useState(false);
+    const [isRevenueVisible, setIsRevenueVisible] = useState(true);
 
     useEffect(() => {
         const removeStart = router.on('start', (event) => {
@@ -197,10 +199,18 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                     <div className="relative overflow-hidden bg-primary p-3 sm:p-4 rounded-xl" title="Pembayaran pada periode terpilih setelah retur">
                         <div className="flex items-start justify-between gap-2">
                             <div>
-                                <p className="text-[10px] sm:text-[11px] font-bold text-white uppercase tracking-wider">Penjualan bersih</p>
-                                <h3 className="text-base sm:text-[30px] font-heading font-extrabold text-accentYellow mt-1">{formatRp(revenueToday)}</h3>
+                                <p className="pr-8 text-[10px] sm:text-[11px] font-bold text-white uppercase tracking-wider">Penjualan bersih</p>
+                                <h3 className="text-base sm:text-[30px] font-heading font-extrabold text-accentYellow mt-1">{isRevenueVisible ? formatRp(revenueToday) : 'Rp ••••••'}</h3>
                             </div>
-                            <FiDollarSign className="hidden text-white shrink-0 sm:block" size={18} />
+                            <button
+                                type="button"
+                                onClick={() => setIsRevenueVisible((visible) => !visible)}
+                                aria-label={isRevenueVisible ? 'Sembunyikan penjualan bersih' : 'Tampilkan penjualan bersih'}
+                                title={isRevenueVisible ? 'Sembunyikan nominal' : 'Tampilkan nominal'}
+                                className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-lg text-white hover:text-accentYellow focus-visible:outline focus-visible:outline-2 focus-visible:outline-accentYellow sm:right-3 sm:top-3"
+                            >
+                                {isRevenueVisible ? <FiEye size={18} /> : <FiEyeOff size={18} />}
+                            </button>
                         </div>
                         <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-1.5 bg-accentYellow" />
                     </div>
