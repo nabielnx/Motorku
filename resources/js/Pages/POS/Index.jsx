@@ -758,25 +758,23 @@ return (
                         {cart.map(item => (
                             <div key={item.id} className="pt-3 first:pt-0">
                                 <div className="flex items-start justify-between gap-2">
-                                    <div className="flex-1 min-w-0 pr-1">
-                                        <h4 className="text-sm font-bold text-slate-900 dark:text-white break-words">{item.name}</h4>
-                                        {item.qty > 1 && <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">{item.qty} × {formatRp(item.price)}</span>}
-                                    </div>
-                                    <div className="flex items-center gap-1.5 shrink-0">
-                                        <span className="whitespace-nowrap text-sm font-extrabold text-slate-900 dark:text-white">{formatRp(item.price * item.qty)}</span>
-                                        <button
-                                            type="button"
-                                            onClick={() => removeFromCart(item)}
-                                            aria-label={`Hapus ${item.name} dari keranjang`}
-                                            title="Hapus produk"
-                                            className="text-slate-400 hover:text-red-600 dark:hover:text-red-400 p-1 rounded hover:bg-red-50 dark:hover:bg-red-950/40 transition cursor-pointer"
-                                        >
-                                            <FiTrash2 className="w-3.5 h-3.5" />
-                                        </button>
-                                    </div>
+                                    <h4 className="min-w-0 flex-1 text-sm font-bold text-slate-900 dark:text-white break-words">{item.name}</h4>
+                                    <button
+                                        type="button"
+                                        onClick={() => removeFromCart(item)}
+                                        aria-label={`Hapus ${item.name} dari keranjang`}
+                                        title="Hapus produk"
+                                        className="shrink-0 text-slate-400 hover:text-red-600 dark:hover:text-red-400 p-1 rounded hover:bg-red-50 dark:hover:bg-red-950/40 transition cursor-pointer"
+                                    >
+                                        <FiTrash2 className="w-3.5 h-3.5" />
+                                    </button>
+                                </div>
+                                <div className="mt-1 flex items-center justify-between gap-2">
+                                    <span className="min-w-0 truncate text-xs font-medium text-slate-500 dark:text-slate-400">{item.qty} × {formatRp(item.price)}</span>
+                                    <span className="shrink-0 whitespace-nowrap text-sm font-extrabold text-slate-900 dark:text-white">{formatRp(item.price * item.qty)}</span>
                                 </div>
 
-                                <div className="flex items-start justify-between mt-2.5 gap-2">
+                                <div className="flex items-start justify-between mt-2 gap-2">
                                     <details className="min-w-0 flex-1">
                                         <summary className="block cursor-pointer truncate text-xs font-medium text-blue-700 hover:underline dark:text-blue-300" title={item.notes || 'Tambah catatan untuk produk ini'}>
                                             {item.notes ? `Catatan: ${item.notes}` : '+ Catatan'}
