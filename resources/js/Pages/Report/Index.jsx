@@ -240,7 +240,7 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
 
                     <button
                         onClick={handlePrint}
-                        className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-lg transition cursor-pointer"
+                        className="inline-flex items-center gap-2 bg-primary hover:bg-primaryDark text-white text-xs font-bold px-4 py-2 rounded-lg transition cursor-pointer"
                     >
                         <FiPrinter size={14} />
                         Cetak Laporan
@@ -250,7 +250,7 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
                 <section className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 space-y-3">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                         <div>
-                            <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">Cocokkan Kas Harian</h3>
+                            <h3 className="text-sm font-extrabold text-primaryDark dark:text-white">Cocokkan Kas Harian</h3>
                             <p className="text-xs text-slate-500">Hitung uang fisik setelah transaksi selesai; satu rekap per tanggal.</p>
                         </div>
                         <input type="date" max={today} value={cashDate} onChange={e => setCashDate(e.target.value)} className="rounded-lg border-slate-300 dark:bg-slate-800 text-sm" />
@@ -269,7 +269,7 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
                         </div>
                         <input type="text" maxLength="255" placeholder="Catatan selisih / pengeluaran (opsional)" value={cashNotes} disabled={!!cashSummary.closing} onChange={e => setCashNotes(e.target.value)} className="w-full rounded-lg border-slate-300 dark:bg-slate-800 text-xs" />
                         {cashSummary.closing ? <p className="text-xs font-bold text-emerald-700">Sudah ditutup. Rekap tersimpan dan tidak dapat diubah; transaksi setelahnya tidak masuk rekap ini.</p> : (
-                            <button type="button" onClick={saveCashClosing} disabled={savingCash || actualCash === '' || Number(openingCash) < 0 || Number(cashOut) < 0 || Number(actualCash) < 0} className="rounded-lg bg-blue-600 px-4 py-2 text-xs font-bold text-white disabled:opacity-40">{savingCash ? 'Menyimpan...' : 'Simpan Tutup Kas'}</button>
+                            <button type="button" onClick={saveCashClosing} disabled={savingCash || actualCash === '' || Number(openingCash) < 0 || Number(cashOut) < 0 || Number(actualCash) < 0} className="rounded-lg bg-primary px-4 py-2 text-xs font-bold text-white disabled:opacity-40">{savingCash ? 'Menyimpan...' : 'Simpan Tutup Kas'}</button>
                         )}
                     </> : <p className="text-xs text-slate-500">Memuat rekap kas...</p>}
                 </section>
@@ -282,35 +282,35 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
                             value: formatRp(totalRevenue),
                             sub: totalRefunds > 0 ? `Retur ${formatRp(totalRefunds)} sudah dikurangi` : null,
                             icon: FiDollarSign,
-                            iconBg: 'bg-blue-600 text-white shadow-xs',
+                            iconBg: 'bg-primary/10 text-primary',
                         },
                         {
                             label: 'Total Transaksi',
                             value: `${totalOrders}`,
                             sub: `~${avgOrdersPerDay} pesanan/hari`,
                             icon: FiShoppingBag,
-                            iconBg: 'bg-blue-600 text-white shadow-xs',
+                            iconBg: 'bg-primary/10 text-primary',
                         },
                         {
                             label: 'Rata-Rata Order',
                             value: formatRp(avgOrderValue),
                             sub: 'Nilai per transaksi',
                             icon: FiTrendingUp,
-                            iconBg: 'bg-yellow-400 text-white shadow-xs',
+                            iconBg: 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300',
                         },
                         {
                             label: 'Subtotal Penjualan',
                             value: formatRp(totalSubtotal),
                             sub: 'Sebelum pajak',
                             icon: FiDollarSign,
-                            iconBg: 'bg-emerald-600 text-white shadow-xs',
+                            iconBg: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300',
                         },
                     ].map((kpi, i) => (
-                        <div key={i} className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 transition-colors">
+                        <div key={i} className={`rounded-xl border p-4 transition-colors ${i === 0 ? 'bg-primary/5 dark:bg-primary/10 border-primary/25 dark:border-primary/30' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800'}`}>
                             <div className="flex items-start justify-between gap-2">
                                 <div className="min-w-0">
                                     <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider truncate">{kpi.label}</p>
-                                    <p className="text-lg font-black text-slate-900 dark:text-white mt-1 leading-tight">{kpi.value}</p>
+                                    <p className={`text-lg font-black dark:text-white mt-1 leading-tight ${i === 0 ? 'text-primaryDark' : 'text-slate-900'}`}>{kpi.value}</p>
                                     {kpi.sub && <p className="text-[11px] font-medium text-slate-400 dark:text-slate-500 mt-1 truncate">{kpi.sub}</p>}
                                 </div>
                                 <div className={`p-2.5 rounded-xl flex items-center justify-center shrink-0 ${kpi.iconBg}`}>
@@ -327,7 +327,7 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
                     {/* Top Selling — 3 cols */}
                     <div className="lg:col-span-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden transition-colors">
                         <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
-                            <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">Produk Terlaris</h3>
+                            <h3 className="text-sm font-extrabold text-primaryDark dark:text-white">Produk Terlaris</h3>
                             <p className="text-[11px] text-slate-400 dark:text-slate-500 font-medium mt-0.5">Top 5 berdasarkan porsi terjual</p>
                         </div>
                         <div className="overflow-x-auto">
@@ -351,7 +351,7 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
                                                     {item.category}
                                                 </span>
                                             </td>
-                                            <td className="py-2.5 px-4 text-center font-bold text-blue-600 dark:text-yellow-400">{item.sold}</td>
+                                            <td className="py-2.5 px-4 text-center font-bold text-primary dark:text-yellow-400">{item.sold}</td>
                                             <td className="py-2.5 px-4 text-right font-bold text-slate-900 dark:text-white">{formatRp(item.revenue)}</td>
                                         </tr>
                                     )) : (
@@ -369,7 +369,7 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
                     {/* Category Breakdown — 2 cols */}
                     <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden transition-colors">
                         <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
-                            <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">Penjualan Kotor per Kategori</h3>
+                            <h3 className="text-sm font-extrabold text-primaryDark dark:text-white">Penjualan Kotor per Kategori</h3>
                             <p className="text-[11px] text-slate-400 dark:text-slate-500 font-medium mt-0.5">
                                 Total {formatRp(categoryBreakdown.reduce((s, c) => s + c.amount, 0))}
                             </p>

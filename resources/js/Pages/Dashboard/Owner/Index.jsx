@@ -150,13 +150,13 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                 
                 {/* Header Filter Periode */}
                 <div className="col-span-12 flex flex-col justify-between gap-2 sm:flex-row sm:items-center sm:gap-3">
-                    <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-white">Ringkasan Toko</h2>
+                    <h2 className="text-base sm:text-lg font-black text-primaryDark dark:text-white">Ringkasan Toko</h2>
                     <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
                         {/* Preset Select Dropdown */}
                         <select 
                             value={currentPeriod === 'custom' ? '' : currentPeriod}
                             onChange={handlePeriodChange}
-                            className="min-w-0 w-full sm:w-auto border border-slate-200/90 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-blue-500 focus:outline-none bg-slate-50 dark:bg-slate-800 cursor-pointer shadow-2xs sm:px-4"
+                            className="min-w-0 w-full sm:w-auto border border-slate-200/90 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 focus:ring-0 focus:border-primary focus:outline-none bg-slate-50 dark:bg-slate-800 cursor-pointer shadow-2xs sm:px-4"
                         >
                             <option value="" disabled hidden>Pilihan Cepat...</option>
                             <option value="today">Hari Ini</option>
@@ -178,43 +178,43 @@ export default function Dashboard({ stats = {}, filters = {} }) {
 
                 {/* Kondisi saat ini dan penjualan pada periode terpilih */}
                 <div className="col-span-12 grid grid-cols-2 gap-2 sm:gap-4 xl:grid-cols-4">
-                    <Link href={route('orders.index')} className="bg-white dark:bg-slate-900 p-3 sm:p-4 rounded-xl border border-slate-300 dark:border-slate-800 hover:border-amber-400 transition-colors">
+                    <Link href={route('orders.index')} className="bg-white dark:bg-slate-900 p-3 sm:p-4 rounded-xl border border-slate-200 dark:border-slate-800 border-l-2 border-l-amber-400 hover:border-amber-400 transition-colors">
                         <div className="flex items-start justify-between gap-2">
                             <div>
                                 <p className="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Antrean saat ini</p>
                                 <h3 className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white mt-1">{pendingOrders}</h3>
                             </div>
-                            <FiClock className="hidden text-blue-600 shrink-0 sm:block" size={18} />
+                            <FiClock className="hidden text-amber-600 dark:text-amber-400 shrink-0 sm:block" size={18} />
                         </div>
                     </Link>
 
-                    <div className="bg-white dark:bg-slate-900 p-3 sm:p-4 rounded-xl border border-slate-300 dark:border-slate-800" title="Pembayaran pada periode terpilih setelah retur">
+                    <div className="bg-primary/5 dark:bg-primary/10 p-3 sm:p-4 rounded-xl border border-primary/25 dark:border-primary/30" title="Pembayaran pada periode terpilih setelah retur">
                         <div className="flex items-start justify-between gap-2">
                             <div>
-                                <p className="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Penjualan bersih</p>
-                                <h3 className="text-base sm:text-2xl font-black tracking-tight text-slate-900 dark:text-white mt-1">{formatRp(revenueToday)}</h3>
+                                <p className="text-[10px] sm:text-[11px] font-bold text-primaryDark dark:text-blue-200 uppercase tracking-wider">Penjualan bersih</p>
+                                <h3 className="text-base sm:text-2xl font-black tracking-tight text-primaryDark dark:text-white mt-1">{formatRp(revenueToday)}</h3>
                             </div>
-                            <FiDollarSign className="hidden text-blue-600 shrink-0 sm:block" size={18} />
+                            <FiDollarSign className="hidden text-primary shrink-0 sm:block" size={18} />
                         </div>
                     </div>
 
-                    <div className="bg-white dark:bg-slate-900 p-3 sm:p-4 rounded-xl border border-slate-300 dark:border-slate-800">
+                    <div className="bg-white dark:bg-slate-900 p-3 sm:p-4 rounded-xl border border-slate-200 dark:border-slate-800">
                         <div className="flex items-start justify-between gap-2">
                             <div>
                                 <p className="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Transaksi lunas</p>
                                 <h3 className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white mt-1">{ordersToday}</h3>
                             </div>
-                            <FiShoppingBag className="hidden text-blue-600 shrink-0 sm:block" size={18} />
+                            <FiShoppingBag className="hidden text-emerald-600 shrink-0 sm:block" size={18} />
                         </div>
                     </div>
 
-                    <Link href={route('products.index')} className="bg-white dark:bg-slate-900 p-3 sm:p-4 rounded-xl border border-slate-300 dark:border-slate-800 hover:border-amber-400 transition-colors">
+                    <Link href={route('products.index')} className="bg-white dark:bg-slate-900 p-3 sm:p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-rose-400 transition-colors">
                         <div className="flex items-start justify-between gap-2">
                             <div>
                                 <p className="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Stok perlu dicek</p>
                                 <h3 className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white mt-1">{lowStockAlerts.length}</h3>
                             </div>
-                            <FiPackage className={`hidden shrink-0 sm:block ${lowStockAlerts.length > 0 ? 'text-accentYellow' : 'text-slate-400'}`} size={18} />
+                            <FiPackage className={`hidden shrink-0 sm:block ${lowStockAlerts.length > 0 ? 'text-rose-600' : 'text-slate-400'}`} size={18} />
                         </div>
                     </Link>
                 </div>
@@ -225,7 +225,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                     {/* Left: Financial Sales Bar Chart with Y-Axis Ticks & Gridlines */}
                     <div className="col-span-12 xl:col-span-8 order-3 h-[280px] bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-xl border border-slate-300 dark:border-slate-800 shadow-xs flex flex-col justify-between transition-colors">
                         <div className="border-b border-slate-100 dark:border-slate-800 pb-3 mb-2">
-                            <h3 className="font-extrabold text-slate-900 dark:text-white text-base">Penjualan</h3>
+                            <h3 className="font-extrabold text-primaryDark dark:text-white text-base">Penjualan</h3>
                         </div>
 
                         {!showSalesChart ? (
@@ -271,7 +271,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                                             return (
                                                 <div key={idx} className="flex-1 flex flex-col justify-end h-full group relative">
                                                     <div 
-                                                        className={`w-full max-w-[72px] mx-auto rounded-t-md transition-all duration-200 relative ${data.value > 0 ? (data.is_today ? 'bg-accentYellow group-hover:bg-yellow-400 shadow-xs' : 'bg-blue-600 dark:bg-blue-500 group-hover:bg-blue-700 shadow-xs') : 'bg-slate-200/60 dark:bg-slate-800'}`}
+                                                        className={`w-full max-w-[72px] mx-auto rounded-t-md transition-all duration-200 relative ${data.value > 0 ? (data.is_today ? 'bg-accentYellow group-hover:bg-yellow-400 shadow-xs' : 'bg-primary group-hover:bg-primaryDark shadow-xs') : 'bg-slate-200/60 dark:bg-slate-800'}`}
                                                         style={{ height: `${heightPct}%` }}
                                                     >
                                                         {/* Hover Tooltip */}
@@ -312,8 +312,8 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                         {/* Section A: Produk Terlaris */}
                         <div className="col-span-12 xl:col-span-4 order-4 h-[280px] min-h-0 flex flex-col bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-xl border border-slate-300 dark:border-slate-800 shadow-xs">
                             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2 mb-1.5 shrink-0">
-                                <h3 className="font-bold text-slate-900 dark:text-white text-sm flex items-center gap-2">
-                                    <FiTrendingUp className="text-blue-600 dark:text-yellow-400" size={16} />
+                                <h3 className="font-bold text-primaryDark dark:text-white text-sm flex items-center gap-2">
+                                    <FiTrendingUp className="text-primary dark:text-yellow-400" size={16} />
                                     <span>Produk terlaris</span>
                                 </h3>
                             </div>
@@ -340,7 +340,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                         {/* Section B: Peringatan Stok Minimum */}
                         <div className="col-span-12 xl:col-span-4 order-1 xl:order-2 bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-xl border border-slate-300 dark:border-slate-800 shadow-xs">
                             <div className="flex items-center justify-between gap-3 pb-2 border-b border-slate-100 dark:border-slate-800">
-                                <h3 className="font-bold text-slate-900 dark:text-white text-sm">Stok perlu dicek</h3>
+                                <h3 className="font-bold text-primaryDark dark:text-white text-sm">Stok perlu dicek</h3>
                             </div>
                             
                             <div className="space-y-1.5">
@@ -364,7 +364,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                                 )}
                             </div>
                             {lowStockAlerts.length > 3 && (
-                                <Link href={route('products.index')} className="inline-block mt-2 text-xs font-bold text-blue-600 dark:text-yellow-400">
+                                <Link href={route('products.index')} className="inline-block mt-2 text-xs font-bold text-primary dark:text-yellow-400">
                                     Lihat produk <FiArrowRight className="inline" />
                                 </Link>
                             )}
@@ -376,8 +376,8 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                 {/* Pesanan terbaru tampil sebelum grafik */}
                 <div className="col-span-12 xl:col-span-8 order-2 xl:order-1 bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-800 shadow-xs overflow-hidden transition-colors">
                     <div className="p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/80 dark:bg-slate-800/50">
-                        <h3 className="font-extrabold text-slate-900 dark:text-white text-sm sm:text-base">Pesanan terbaru</h3>
-                        <Link href={route('orders.index')} className="text-xs font-bold text-blue-600 dark:text-yellow-400 hover:text-blue-700 flex items-center gap-1.5">
+                        <h3 className="font-extrabold text-primaryDark dark:text-white text-sm sm:text-base">Pesanan terbaru</h3>
+                        <Link href={route('orders.index')} className="text-xs font-bold text-primary dark:text-yellow-400 hover:text-primaryDark flex items-center gap-1.5">
                             <span>Lihat semua</span>
                             <FiArrowRight className="w-4 h-4" strokeWidth={2.5} />
                         </Link>
