@@ -68,7 +68,7 @@ Sistem menggunakan `spatie/laravel-permission` dengan 2 role utama:
 | **Pembayaran Pesanan (Tunai/QRIS Manual)** | ✓ | ✓ | ✗ |
 | **Katalog Sparepart (`/products`)** | Read & Write (CRUD) | Read Only (Lihat & Cari) | ✗ |
 | **Data Motor & Mapping (`/motorcycles`)** | Read & Write (CRUD) | Read Only | ✗ |
-| **Inventaris & Audit Stok (`/inventory`)** | Read & Write (Penyesuaian) | ✗ | ✗ |
+| **Penyesuaian Stok (`/products`) & Audit Stok (API)** | Read & Write | ✗ | ✗ |
 | **Dashboard KPI & Statistik (`/dashboard`)** | ✓ | ✗ | ✗ |
 | **Laporan Penjualan & Print (`/reports`)** | ✓ | ✗ | ✗ |
 | **Kelola Staff & User (`/users`)** | ✓ (Minimal 1 Owner Aktif) | ✗ | ✗ |
@@ -344,7 +344,7 @@ Setiap pergerakan fisik stok sparepart memiliki catatan mutasi permanen di tabel
  └───────────────────┴────────────────────────────────────────────────────────┘
 ```
 
-- Penyesuaian stok di `/inventory` mencatat `stock_before`, `stock_after`, `quantity_change`, `user_id` yang bertindak, dan alasan penyesuaian.
+- Penyesuaian stok di `/products` mencatat stok sebelum/sesudah, jumlah perubahan, pengguna, dan alasan dalam `inventory_logs`.
 - Log inventaris **tidak dapat dihapus via API** untuk menjaga integritas pembukuan dan mencegah manipulasi data stok.
 
 ---
