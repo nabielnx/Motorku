@@ -546,14 +546,14 @@ export default function MenuManagement({
                             </div>
 
                             {/* Compact Tab Switcher */}
-                            <div className="order-3 flex w-full gap-3 border-b border-slate-100 dark:border-slate-800 text-xs sm:order-none sm:w-auto sm:border-0">
+                            <div className="order-3 flex w-full gap-1.5 text-xs sm:order-none sm:w-auto">
                                     <button
                                         type="button"
                                         onClick={() => setActiveTab('products')}
-                                        className={`border-b-2 px-1 py-1 text-xs font-bold transition cursor-pointer ${
+                                        className={`flex-1 rounded-lg border px-3 py-1.5 text-xs font-bold transition cursor-pointer sm:flex-none ${
                                             activeTab === 'products'
-                                                ? 'border-accentYellow text-primaryDark dark:text-accentYellow'
-                                                : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                                                ? 'border-primary bg-primary text-white'
+                                                : 'border-slate-300 bg-white text-slate-600 hover:border-primary dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300'
                                         }`}
                                     >
                                         Produk
@@ -561,10 +561,10 @@ export default function MenuManagement({
                                     <button
                                         type="button"
                                         onClick={() => setActiveTab('categories')}
-                                        className={`border-b-2 px-1 py-1 text-xs font-bold transition cursor-pointer ${
+                                        className={`flex-1 rounded-lg border px-3 py-1.5 text-xs font-bold transition cursor-pointer sm:flex-none ${
                                             activeTab === 'categories'
-                                                ? 'border-accentYellow text-primaryDark dark:text-accentYellow'
-                                                : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                                                ? 'border-primary bg-primary text-white'
+                                                : 'border-slate-300 bg-white text-slate-600 hover:border-primary dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300'
                                         }`}
                                     >
                                         Kategori ({categories.length})
@@ -757,16 +757,19 @@ export default function MenuManagement({
                                      </div>
 
                                      <label className="sr-only" htmlFor="product-availability">Status di POS</label>
-                                     <select
-                                         id="product-availability"
-                                         value={statusFilter}
-                                         onChange={e => handleStatusFilterChange(e.target.value)}
-                                         className="bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-xs rounded-lg px-2 py-1.5 font-semibold focus:outline-none focus:ring-0 focus:border-primary cursor-pointer"
-                                     >
-                                         <option value="all">Semua Status</option>
-                                         <option value="active">Aktif di POS</option>
-                                         <option value="inactive">Nonaktif</option>
-                                     </select>
+                                     <div className="relative shrink-0">
+                                         <select
+                                             id="product-availability"
+                                             value={statusFilter}
+                                             onChange={e => handleStatusFilterChange(e.target.value)}
+                                             className="w-36 appearance-none rounded-lg border border-slate-300 bg-white py-1.5 pl-3 pr-8 text-xs font-semibold text-slate-800 focus:border-primary focus:outline-none focus:ring-0 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 cursor-pointer"
+                                         >
+                                             <option value="all">Semua Status</option>
+                                             <option value="active">Aktif di POS</option>
+                                             <option value="inactive">Nonaktif</option>
+                                         </select>
+                                         <FiChevronDown aria-hidden="true" size={14} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400" />
+                                     </div>
                             </div>
                         </div>
                     )}
@@ -871,14 +874,15 @@ export default function MenuManagement({
                                             <div key={item.id} className="bg-white dark:bg-slate-800 rounded-md md:rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden md:shadow-xs hover:shadow-md hover:border-slate-400 dark:hover:border-slate-500 transition-all flex flex-col relative group">
                                                 {/* Image Container */}
                                                 <div
-                                                    className="relative w-full aspect-[4/3] md:aspect-square bg-slate-50 dark:bg-slate-900 cursor-pointer overflow-hidden border-b border-slate-100 dark:border-slate-700"
+                                                    className="relative w-full aspect-[4/3] bg-slate-50 dark:bg-slate-900 cursor-pointer overflow-hidden border-b border-slate-100 dark:border-slate-700"
                                                     onClick={(e) => { e.stopPropagation(); setPreviewProduct(item); }}
                                                 >
                                                     {item.image ? (
                                                         <img src={item.image} alt={item.name} loading="lazy" className="absolute inset-0 w-full h-full object-cover" />
                                                     ) : (
-                                                        <div className="absolute inset-0 flex items-center justify-center text-slate-300 dark:text-slate-600">
-                                                            <FiPackage size={24} aria-label="Foto belum ada" />
+                                                        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-slate-400 dark:text-slate-500">
+                                                            <FiPackage size={28} aria-hidden="true" />
+                                                            <span className="text-[10px] font-semibold">Foto belum ada</span>
                                                         </div>
                                                     )}
 
