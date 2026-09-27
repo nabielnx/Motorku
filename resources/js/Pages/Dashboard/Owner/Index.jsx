@@ -183,43 +183,43 @@ export default function Dashboard({ stats = {}, filters = {} }) {
 
                 {/* Kondisi saat ini dan penjualan pada periode terpilih */}
                 <div className="col-span-12 grid grid-cols-2 gap-2 sm:gap-4 xl:grid-cols-4">
-                    <Link href={route('orders.index')} className="bg-white dark:bg-slate-900 p-3 sm:p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-primary transition-colors">
+                    <Link href={route('orders.index')} className="bg-primary p-3 sm:p-4 rounded-xl border border-primaryDark border-b-[6px] border-b-accentYellow hover:bg-primaryDark transition-colors">
                         <div className="flex items-start justify-between gap-2">
                             <div>
-                                <p className="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Antrean saat ini</p>
-                                <h3 className="text-xl sm:text-[30px] font-heading font-extrabold text-[#fceb2d] mt-1">{pendingOrders}</h3>
+                                <p className="text-[10px] sm:text-[11px] font-bold text-white uppercase tracking-wider">Antrean saat ini</p>
+                                <h3 className="text-xl sm:text-[30px] font-heading font-extrabold text-accentYellow mt-1">{pendingOrders}</h3>
                             </div>
-                            <FiClock className="hidden text-primary shrink-0 sm:block" size={18} />
+                            <FiClock className="hidden text-white shrink-0 sm:block" size={18} />
                         </div>
                     </Link>
 
-                    <div className="bg-white dark:bg-slate-900 p-3 sm:p-4 rounded-xl border border-slate-200 dark:border-slate-800" title="Pembayaran pada periode terpilih setelah retur">
+                    <div className="bg-primary p-3 sm:p-4 rounded-xl border border-primaryDark border-b-[6px] border-b-accentYellow" title="Pembayaran pada periode terpilih setelah retur">
                         <div className="flex items-start justify-between gap-2">
                             <div>
-                                <p className="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Penjualan bersih</p>
-                                <h3 className="text-base sm:text-[30px] font-heading font-extrabold text-[#fceb2d] mt-1">{formatRp(revenueToday)}</h3>
+                                <p className="text-[10px] sm:text-[11px] font-bold text-white uppercase tracking-wider">Penjualan bersih</p>
+                                <h3 className="text-base sm:text-[30px] font-heading font-extrabold text-accentYellow mt-1">{formatRp(revenueToday)}</h3>
                             </div>
-                            <FiDollarSign className="hidden text-primary shrink-0 sm:block" size={18} />
+                            <FiDollarSign className="hidden text-white shrink-0 sm:block" size={18} />
                         </div>
                     </div>
 
-                    <div className="bg-white dark:bg-slate-900 p-3 sm:p-4 rounded-xl border border-slate-200 dark:border-slate-800">
+                    <div className="bg-primary p-3 sm:p-4 rounded-xl border border-primaryDark border-b-[6px] border-b-accentYellow">
                         <div className="flex items-start justify-between gap-2">
                             <div>
-                                <p className="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Transaksi lunas</p>
-                                <h3 className="text-xl sm:text-[30px] font-heading font-extrabold text-[#fceb2d] mt-1">{ordersToday}</h3>
+                                <p className="text-[10px] sm:text-[11px] font-bold text-white uppercase tracking-wider">Transaksi lunas</p>
+                                <h3 className="text-xl sm:text-[30px] font-heading font-extrabold text-accentYellow mt-1">{ordersToday}</h3>
                             </div>
-                            <FiShoppingBag className="hidden text-primary shrink-0 sm:block" size={18} />
+                            <FiShoppingBag className="hidden text-white shrink-0 sm:block" size={18} />
                         </div>
                     </div>
 
-                    <Link href={route('products.index')} className="bg-white dark:bg-slate-900 p-3 sm:p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-primary transition-colors">
+                    <Link href={route('products.index')} className="bg-primary p-3 sm:p-4 rounded-xl border border-primaryDark border-b-[6px] border-b-accentYellow hover:bg-primaryDark transition-colors">
                         <div className="flex items-start justify-between gap-2">
                             <div>
-                                <p className="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Stok perlu dicek</p>
-                                <h3 className="text-xl sm:text-[30px] font-heading font-extrabold text-[#fceb2d] mt-1">{lowStockAlerts.length}</h3>
+                                <p className="text-[10px] sm:text-[11px] font-bold text-white uppercase tracking-wider">Stok perlu dicek</p>
+                                <h3 className="text-xl sm:text-[30px] font-heading font-extrabold text-accentYellow mt-1">{lowStockAlerts.length}</h3>
                             </div>
-                            <FiPackage className="hidden text-primary shrink-0 sm:block" size={18} />
+                            <FiPackage className="hidden text-white shrink-0 sm:block" size={18} />
                         </div>
                     </Link>
                 </div>
