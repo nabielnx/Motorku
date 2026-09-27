@@ -779,7 +779,7 @@ export default function MotorcycleIndex({
                                 <button
                                     type="button"
                                     onClick={() => { resetMotorForm(); setEditMotorcycle(null); setShowAddModal(true); }}
-                                    className="px-2.5 sm:px-3.5 py-2 sm:py-1.5 bg-green-500 hover:bg-green-600 active:scale-95 text-white font-bold rounded-lg text-xs shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+                                    className="px-2.5 sm:px-3.5 py-2 sm:py-1.5 bg-accentYellow hover:bg-yellow-300 active:scale-95 text-primaryDark font-bold rounded-lg text-xs shadow-xs transition flex items-center gap-1.5 cursor-pointer"
                                     title="Tambah Data Motor Baru"
                                 >
                                     <FiPlus size={15} />
@@ -1143,7 +1143,7 @@ export default function MotorcycleIndex({
                                                             }`}
                                                             title="Filter sparepart rekomendasi"
                                                         >
-                                                            <FiStar size={12} className={filter.is_recommended ? 'fill-amber-500 text-amber-500' : 'text-slate-400'} />
+                                                            <FiStar size={12} className={filter.is_recommended ? 'fill-accentYellow text-[#b58f00]' : 'text-slate-400'} />
                                                             <span>Rekomendasi</span>
                                                         </button>
                                                     </div>
@@ -1157,7 +1157,7 @@ export default function MotorcycleIndex({
                                                                 setPartFormData({ product_id: '', part_category: 'oli_mesin', notes: '', is_recommended: false });
                                                                 setPartFormErrors({});
                                                             }}
-                                                            className="text-xs bg-green-500 hover:bg-green-600 active:scale-95 text-white px-2 py-1.5 md:px-3 rounded-md font-bold flex items-center justify-center gap-1.5 cursor-pointer transition"
+                                                            className="text-xs bg-accentYellow hover:bg-yellow-300 active:scale-95 text-primaryDark px-2 py-1.5 md:px-3 rounded-md font-bold flex items-center justify-center gap-1.5 cursor-pointer transition"
                                                             title="Tambah sparepart baru ke motor ini"
                                                             aria-label="Tambah sparepart"
                                                         >
@@ -1270,10 +1270,10 @@ export default function MotorcycleIndex({
                                                                     <div className="md:col-span-2 md:text-center">
                                                                         <span className={`text-xs font-semibold ${
                                                                             stock <= 0
-                                                                                ? 'text-rose-600 dark:text-rose-400'
+                                                                                ? 'text-red-600 dark:text-red-400'
                                                                                 : stock <= minStock
-                                                                                ? 'text-amber-600 dark:text-amber-400'
-                                                                                : 'text-emerald-600 dark:text-emerald-400'
+                                                                                ? 'text-primaryDark dark:text-accentYellow'
+                                                                                : 'text-slate-700 dark:text-slate-300'
                                                                         }`}>
                                                                             {stock <= 0 ? 'Habis' : `${stock} ${part.product?.unit || 'pcs'}`}
                                                                         </span>
@@ -1285,13 +1285,13 @@ export default function MotorcycleIndex({
                                                                             onClick={() => togglePartRecommendation(m.id, part)}
                                                                             className={`p-1.5 rounded-md transition cursor-pointer ${
                                                                                 part.is_recommended
-                                                                                    ? 'text-amber-500 hover:bg-slate-100 dark:hover:bg-slate-800'
-                                                                                    : 'text-slate-400 hover:text-amber-500 hover:bg-slate-100 dark:hover:bg-slate-800'
+                                                                                    ? 'text-[#b58f00] hover:bg-slate-100 dark:hover:bg-slate-800'
+                                                                                    : 'text-slate-400 hover:text-[#b58f00] hover:bg-slate-100 dark:hover:bg-slate-800'
                                                                             }`}
                                                                             title={part.is_recommended ? 'Hapus dari rekomendasi' : 'Tandai sebagai rekomendasi'}
                                                                             aria-label="Tandai rekomendasi"
                                                                         >
-                                                                            <FiStar size={15} className={part.is_recommended ? 'fill-amber-400 text-amber-500' : ''} />
+                                                                            <FiStar size={15} className={part.is_recommended ? 'fill-accentYellow text-[#b58f00]' : ''} />
                                                                         </button>
                                                                         <button
                                                                             onClick={() => openEditPart(m.id, part)}
@@ -1543,7 +1543,7 @@ export default function MotorcycleIndex({
                                         ))}
                                     </select>
                                     {bulkCategory !== 'auto' && (
-                                        <p className="text-[11px] text-amber-600 dark:text-amber-400 mt-1 font-medium">
+                                        <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-1 font-medium">
                                             Kategori ini berlaku untuk semua pilihan.
                                         </p>
                                     )}
@@ -1551,7 +1551,7 @@ export default function MotorcycleIndex({
                                 </div>
 
                                 <details className="group">
-                                    <summary className="cursor-pointer text-xs font-semibold text-blue-600 dark:text-blue-400 list-none flex items-center gap-1">
+                                    <summary className="cursor-pointer text-xs font-semibold text-primary dark:text-blue-300 list-none flex items-center gap-1">
                                         <FiChevronDown size={14} className="transition group-open:rotate-180" /> Catatan & rekomendasi
                                     </summary>
                                     <div className="grid grid-cols-1 gap-3 pt-3">
@@ -1573,10 +1573,10 @@ export default function MotorcycleIndex({
                                                 type="checkbox"
                                                 checked={bulkIsRecommended}
                                                 onChange={e => setBulkIsRecommended(e.target.checked)}
-                                                className="w-4 h-4 rounded text-amber-500 focus:ring-amber-400 cursor-pointer border-slate-300 dark:border-slate-600"
+                                                className="w-4 h-4 rounded text-primary focus:ring-accentYellow cursor-pointer border-slate-300 dark:border-slate-600"
                                             />
                                             <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                                                <FiStar size={13} className="text-amber-500 fill-amber-400 shrink-0" />
+                                                <FiStar size={13} className="text-[#b58f00] fill-accentYellow shrink-0" />
                                                 Rekomendasikan
                                             </span>
                                         </label>
@@ -1606,7 +1606,7 @@ export default function MotorcycleIndex({
                                     type="button"
                                     onClick={() => handleSaveBulkMapping()}
                                     disabled={bulkSaving}
-                                    className="flex-1 sm:flex-none px-5 py-2.5 bg-primary hover:bg-primaryDark disabled:opacity-50 text-white rounded-md text-sm font-semibold flex items-center justify-center gap-2 transition cursor-pointer shadow-xs"
+                                    className="flex-1 sm:flex-none px-5 py-2.5 bg-accentYellow hover:bg-yellow-300 disabled:opacity-50 text-primaryDark rounded-md text-sm font-semibold flex items-center justify-center gap-2 transition cursor-pointer shadow-xs"
                                 >
                                     {bulkSaving ? (
                                         <>
@@ -1769,7 +1769,7 @@ export default function MotorcycleIndex({
                             <button
                                 onClick={handleSaveMotor}
                                 disabled={saving}
-                                className="flex-1 py-2.5 bg-green-500 hover:bg-green-600 text-white rounded-md text-xs sm:text-sm font-bold cursor-pointer disabled:opacity-50 transition shadow-xs"
+                                className="flex-1 py-2.5 bg-accentYellow hover:bg-yellow-300 text-primaryDark rounded-md text-xs sm:text-sm font-bold cursor-pointer disabled:opacity-50 transition shadow-xs"
                             >
                                 {saving ? 'Menyimpan...' : editMotorcycle ? 'Simpan Perubahan' : 'Tambah Motor'}
                             </button>
@@ -1917,10 +1917,10 @@ export default function MotorcycleIndex({
                                                 type="checkbox"
                                                 checked={partFormData.is_recommended}
                                                 onChange={e => setPartFormData({ ...partFormData, is_recommended: e.target.checked })}
-                                                className="rounded text-amber-500 focus:ring-amber-400 cursor-pointer"
+                                                className="rounded text-primary focus:ring-accentYellow cursor-pointer"
                                             />
                                             <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 select-none">
-                                                <FiStar size={13} className="text-amber-500 fill-amber-400 shrink-0" /> Tandai Rekomendasi
+                                                <FiStar size={13} className="text-[#b58f00] fill-accentYellow shrink-0" /> Tandai Rekomendasi
                                             </span>
                                         </label>
                                     </div>
@@ -1938,7 +1938,7 @@ export default function MotorcycleIndex({
                             <button
                                 onClick={handleAttachPart}
                                 disabled={saving || !partFormData.product_id}
-                                className="flex-1 py-2.5 bg-green-500 hover:bg-green-600 text-white rounded-md text-xs sm:text-sm font-bold cursor-pointer disabled:opacity-50 transition shadow-xs"
+                                className="flex-1 py-2.5 bg-accentYellow hover:bg-yellow-300 text-primaryDark rounded-md text-xs sm:text-sm font-bold cursor-pointer disabled:opacity-50 transition shadow-xs"
                             >
                                 {saving ? 'Menyimpan...' : 'Tambah Mapping'}
                             </button>
@@ -2003,10 +2003,10 @@ export default function MotorcycleIndex({
                                         type="checkbox"
                                         checked={partFormData.is_recommended}
                                         onChange={e => setPartFormData({ ...partFormData, is_recommended: e.target.checked })}
-                                        className="rounded text-amber-500 focus:ring-amber-400 cursor-pointer"
+                                        className="rounded text-primary focus:ring-accentYellow cursor-pointer"
                                     />
                                     <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 select-none">
-                                        <FiStar size={13} className="text-amber-500 fill-amber-400 shrink-0" /> Tandai Rekomendasi
+                                        <FiStar size={13} className="text-[#b58f00] fill-accentYellow shrink-0" /> Tandai Rekomendasi
                                     </span>
                                 </label>
                             </div>
@@ -2022,7 +2022,7 @@ export default function MotorcycleIndex({
                             <button
                                 onClick={handleUpdatePart}
                                 disabled={saving}
-                                className="flex-1 py-2.5 bg-primary hover:bg-primaryDark text-white rounded-md text-xs sm:text-sm font-bold cursor-pointer disabled:opacity-50 transition shadow-xs"
+                                className="flex-1 py-2.5 bg-accentYellow hover:bg-yellow-300 text-primaryDark rounded-md text-xs sm:text-sm font-bold cursor-pointer disabled:opacity-50 transition shadow-xs"
                             >
                                 {saving ? 'Menyimpan...' : 'Simpan Perubahan'}
                             </button>
@@ -2115,8 +2115,8 @@ export default function MotorcycleIndex({
                                         </span>
                                     )}
                                     {previewPart.is_recommended && (
-                                        <span title="Rekomendasi untuk motor ini" className="shrink-0 inline-flex items-center text-amber-500">
-                                            <FiStar size={14} className="fill-amber-400 text-amber-500" />
+                                        <span title="Rekomendasi untuk motor ini" className="shrink-0 inline-flex items-center text-[#b58f00]">
+                                            <FiStar size={14} className="fill-accentYellow text-[#b58f00]" />
                                         </span>
                                     )}
                                 </div>
