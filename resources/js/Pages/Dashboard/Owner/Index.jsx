@@ -357,15 +357,15 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                         </div>
 
                         {/* Section B: Peringatan Stok Minimum */}
-                        <div className="col-span-12 xl:col-span-4 order-1 xl:order-2 overflow-hidden bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-800 shadow-xs">
+                        <div className="col-span-12 xl:col-span-4 order-1 xl:order-2 flex h-[280px] min-h-0 flex-col overflow-hidden bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-800 shadow-xs xl:h-auto xl:self-stretch">
                             <div className="flex items-center justify-between gap-3 bg-primary px-4 py-3 sm:px-5">
                                 <h3 className="font-bold text-white text-sm">Stok perlu dicek</h3>
                             </div>
                             
-                            <div className="p-4 sm:p-5">
-                                <div className="space-y-1.5">
+                            <div className="flex min-h-0 flex-1 flex-col p-4 sm:p-5">
+                                <div className="min-h-0 flex-1 space-y-1.5 overflow-y-auto pr-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary" role="region" aria-label={`Stok perlu dicek, ${lowStockAlerts.length} produk`} tabIndex={0}>
                                     {lowStockAlerts.length > 0 ? (
-                                        lowStockAlerts.slice(0, 3).map((stock, idx) => (
+                                        lowStockAlerts.map((stock, idx) => (
                                             <div key={idx} className="flex items-center justify-between gap-3 py-2 border-b border-slate-100 dark:border-slate-800 last:border-none text-xs">
                                                 <div className="min-w-0">
                                                     <span className="font-semibold text-slate-900 dark:text-slate-100 block truncate">{stock.name}</span>
@@ -384,7 +384,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                                     )}
                                 </div>
                                 {lowStockAlerts.length > 3 && (
-                                    <Link href={route('products.index')} className="inline-block mt-2 text-xs font-bold text-primary dark:text-yellow-400">
+                                    <Link href={route('products.index')} className="mt-2 shrink-0 text-xs font-bold text-primary dark:text-yellow-400">
                                         Lihat produk <FiArrowRight className="inline" />
                                     </Link>
                                 )}
