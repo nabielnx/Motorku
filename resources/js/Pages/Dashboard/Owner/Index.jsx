@@ -147,7 +147,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                 <meta name="description" content="Ringkasan performa penjualan, total pendapatan, statistik pesanan, dan produk terlaris toko Motorku." />
             </Head>
 
-            {isNavigating ? <DashboardSkeleton /> : <div className="grid w-full grid-cols-12 items-start gap-3 sm:gap-5">
+            {isNavigating ? <DashboardSkeleton /> : <div className="grid w-full grid-cols-12 items-start gap-3 sm:gap-4 xl:-mt-2">
                 
                 {/* Header Filter Periode */}
                 <div className="col-span-12 flex flex-col justify-between gap-2 sm:flex-row sm:items-center sm:gap-3">
@@ -380,7 +380,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
 
                 {/* Pesanan terbaru tampil sebelum grafik */}
                 <div className="col-span-12 xl:col-span-8 order-2 xl:order-1 bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-800 shadow-xs overflow-hidden transition-colors">
-                    <div className="p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/80 dark:bg-slate-800/50">
+                    <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/80 dark:bg-slate-800/50">
                         <h3 className="font-extrabold text-primaryDark dark:text-white text-sm sm:text-base">Pesanan terbaru</h3>
                         <Link href={route('orders.index')} className="text-xs font-bold text-primary dark:text-yellow-400 hover:text-primaryDark flex items-center gap-1.5">
                             <span>Lihat semua</span>
@@ -409,11 +409,11 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                         <table className="w-full min-w-[650px] text-left text-xs">
                             <thead className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-[10px] uppercase border-b border-slate-200 dark:border-slate-800 sticky top-0 z-10">
                                 <tr>
-                                    <th className="px-4 py-3">Pesanan</th>
-                                    <th className="px-4 py-3">Pelanggan</th>
-                                    <th className="px-4 py-3">Dibuat</th>
-                                    <th className="px-4 py-3">Total</th>
-                                    <th className="px-4 py-3">Bayar</th>
+                                    <th className="px-4 py-2">Pesanan</th>
+                                    <th className="px-4 py-2">Pelanggan</th>
+                                    <th className="px-4 py-2">Dibuat</th>
+                                    <th className="px-4 py-2">Total</th>
+                                    <th className="px-4 py-2">Bayar</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-200 dark:divide-slate-800 font-semibold text-slate-700 dark:text-slate-300">
@@ -422,17 +422,17 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                                         const formattedInv = formatInvoiceNumber(ord);
                                         return (
                                             <tr key={ord.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
-                                                <td className="px-4 py-3 font-mono font-bold text-slate-900 dark:text-white">{formattedInv}</td>
-                                                <td className="px-4 py-3 font-bold text-slate-800 dark:text-slate-200">
+                                                <td className="px-4 py-2 font-mono font-bold text-slate-900 dark:text-white">{formattedInv}</td>
+                                                <td className="px-4 py-2 font-bold text-slate-800 dark:text-slate-200">
                                                     {ord.customer_name || 'Pelanggan Umum'}
                                                 </td>
-                                                <td className="px-4 py-3">
+                                                <td className="px-4 py-2">
                                                     {ord.created_at ? new Date(ord.created_at).toLocaleString('id-ID', {
                                                         day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta'
                                                     }) : '-'}
                                                 </td>
-                                                <td className="px-4 py-3 font-black text-slate-900 dark:text-white">{formatRp(Number(ord.total || 0))}</td>
-                                                <td className="px-4 py-3">
+                                                <td className="px-4 py-2 font-black text-slate-900 dark:text-white">{formatRp(Number(ord.total || 0))}</td>
+                                                <td className="px-4 py-2">
                                                     <span className={`text-xs font-semibold ${
                                                         ord.payment_status === 'paid'
                                                             ? 'text-primaryDark dark:text-blue-300'
