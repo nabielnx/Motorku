@@ -7,8 +7,8 @@ import { toast } from 'sonner';
 import { FiPlus, FiEdit2, FiTrash2, FiSearch, FiShield, FiUserCheck, FiUserX, FiX, FiAlertCircle } from 'react-icons/fi';
 
 const ROLE_BADGES = {
-    owner: { label: 'Owner', color: 'bg-purple-100 text-purple-700 border-purple-200' },
-    cashier: { label: 'Kasir', color: 'bg-blue-100 text-blue-700 border-blue-200' },
+    owner: { label: 'Owner', color: 'bg-primary text-white border-primary' },
+    cashier: { label: 'Kasir', color: 'bg-white dark:bg-slate-800 text-primaryDark dark:text-white border-slate-300 dark:border-slate-700' },
 };
 
 const extractPaginator = (data) => {
@@ -220,18 +220,18 @@ export default function UserIndex({ initialUsers = {} }) {
             <Head title={`${locale === 'en' ? 'Staff Management' : 'Kelola Staf'}`}>
                 <meta name="description" content="Kelola akun pengguna, peran hak akses (Owner / Kasir), dan status staf pegawai Motorku." />
             </Head>
-            <div className="max-w-7xl mx-auto space-y-6">
-                <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200/80 dark:border-slate-800 p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 transition-colors">
+            <div className="space-y-4">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                     <div>
-                        <h3 className="text-lg font-black text-slate-900 dark:text-white">Daftar Pegawai & Staff</h3>
-                        <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 mt-0.5">Kelola akun, hak akses, dan peran karyawan toko</p>
+                        <h3 className="text-lg font-bold text-primaryDark dark:text-white">Daftar Staf <span className="ml-1 text-sm font-semibold text-slate-500 dark:text-slate-400">{totalUsers}</span></h3>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Akun dan hak akses toko</p>
                     </div>
-                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
                         <div className="relative w-full sm:w-64">
                             <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" size={16} />
-                            <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Cari nama atau email..." className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 rounded-xl pl-9 pr-3 py-2 text-xs focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-blue-500" autoComplete="off" />
+                            <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Cari nama atau email..." className="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 rounded-lg pl-9 pr-3 py-2 text-xs focus:ring-2 focus:ring-primary" autoComplete="off" />
                         </div>
-                        <button onClick={openAdd} className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-2 shadow-md transition-all cursor-pointer">
+                        <button onClick={openAdd} className="bg-accentYellow hover:bg-yellow-300 text-primaryDark font-bold px-4 py-2 rounded-lg text-xs flex items-center justify-center gap-2 transition cursor-pointer">
                             <FiPlus size={16} /> Tambah Staf Baru
                         </button>
                     </div>
@@ -240,17 +240,17 @@ export default function UserIndex({ initialUsers = {} }) {
                 {isNavigating ? (
                     <UserTableSkeleton />
                 ) : (
-                <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200/80 dark:border-slate-800 overflow-hidden transition-colors">
-                    <div className="p-4 bg-slate-50/60 dark:bg-slate-800/60 border-b border-slate-100 dark:border-slate-800 flex items-center gap-2">
-                        <span className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase">Filter Role:</span>
+                <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden transition-colors">
+                    <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-800 flex flex-wrap items-center gap-2">
+                        <span className="text-xs font-bold text-slate-500 dark:text-slate-400 mr-1">Peran</span>
                         {['All', 'owner', 'cashier'].map(r => (
-                            <button key={r} onClick={() => handleRoleFilterChange(r)} className={`px-3 py-1 rounded-lg text-xs font-bold capitalize transition-all cursor-pointer ${roleFilter === r ? 'bg-blue-600 text-white shadow' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'}`}>
+                            <button key={r} onClick={() => handleRoleFilterChange(r)} className={`px-3 py-1.5 rounded-md text-xs font-bold capitalize transition cursor-pointer ${roleFilter === r ? 'bg-primary text-white' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-300 dark:border-slate-700 hover:border-primary'}`}>
                                 {r === 'All' ? 'Semua' : (ROLE_BADGES[r]?.label || r)}
                             </button>
                         ))}
                     </div>
-                    <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-400px)] no-scrollbar">
-                        <table className="w-full text-left">
+                    <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-300px)] no-scrollbar">
+                        <table className="w-full min-w-[640px] text-left">
                             <thead>
                                 <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-400 dark:text-slate-500 font-bold text-xs uppercase sticky top-0 z-10 bg-slate-50/60 dark:bg-slate-800/90">
                                     <th className="py-3.5 px-5 bg-slate-50/60 dark:bg-slate-800/90">Pegawai</th>
@@ -281,7 +281,7 @@ export default function UserIndex({ initialUsers = {} }) {
                                                             className="w-9 h-9 rounded-full object-cover border border-slate-200 dark:border-slate-700 shadow-2xs shrink-0"
                                                         />
                                                     ) : (
-                                                        <div className="w-9 h-9 rounded-full bg-blue-600 text-white font-bold text-sm flex items-center justify-center shrink-0">
+                                                        <div className="w-9 h-9 rounded-full bg-primary text-white font-bold text-sm flex items-center justify-center shrink-0">
                                                             {String(user.name || 'U').charAt(0).toUpperCase()}
                                                         </div>
                                                     )}
@@ -289,7 +289,7 @@ export default function UserIndex({ initialUsers = {} }) {
                                                         <div className="flex items-center gap-1.5">
                                                             <p className="font-bold text-slate-900 dark:text-white">{user.name}</p>
                                                             {isSelfRow && (
-                                                                <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-yellow-100 dark:bg-yellow-950/70 text-yellow-700 dark:text-yellow-300 border border-yellow-200 dark:border-yellow-700">
+                                                                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-accentYellow text-primaryDark">
                                                                     Akun Anda
                                                                 </span>
                                                             )}
@@ -304,14 +304,14 @@ export default function UserIndex({ initialUsers = {} }) {
                                                 </span>
                                             </td>
                                             <td className="py-4 px-5">
-                                                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-xs font-bold shadow-2xs ${user.is_active !== false ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white'}`}>
+                                                <span className={`inline-flex items-center gap-1 text-xs font-bold ${user.is_active !== false ? 'text-primaryDark dark:text-blue-300' : 'text-red-600'}`}>
                                                     {user.is_active !== false ? <FiUserCheck size={14} /> : <FiUserX size={14} />}
                                                     {user.is_active !== false ? 'Aktif' : 'Nonaktif'}
                                                 </span>
                                             </td>
                                             <td className="py-4 px-5 text-right">
                                                 <div className="flex items-center justify-end gap-2">
-                                                    <button onClick={() => openEdit(user)} className="p-2 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/50 rounded-lg cursor-pointer" title="Edit Staf"><FiEdit2 size={16} /></button>
+                                                    <button onClick={() => openEdit(user)} className="p-2 text-slate-500 hover:text-primaryDark dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg cursor-pointer" title="Edit Staf"><FiEdit2 size={16} /></button>
                                                     <button 
                                                         onClick={() => confirmDelete(user.id)} 
                                                         disabled={deleteDisabled}
@@ -416,7 +416,7 @@ export default function UserIndex({ initialUsers = {} }) {
                         </div>
                         <div className="flex gap-2 pt-2">
                             <button onClick={() => setModal(null)} className="flex-1 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800">Batal</button>
-                            <button onClick={handleSubmit} disabled={loading} className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white rounded-xl text-sm font-bold">{loading ? 'Menyimpan...' : 'Simpan'}</button>
+                            <button onClick={handleSubmit} disabled={loading} className="flex-1 py-2.5 bg-accentYellow hover:bg-yellow-300 disabled:bg-slate-300 text-primaryDark rounded-xl text-sm font-bold">{loading ? 'Menyimpan...' : 'Simpan'}</button>
                         </div>
                     </div>
                 </div>
