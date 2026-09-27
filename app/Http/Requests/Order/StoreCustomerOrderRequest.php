@@ -31,7 +31,7 @@ class StoreCustomerOrderRequest extends FormRequest
 
             'items' => ['required', 'array', 'min:1', 'max:20'],
             'items.*.product_id' => ['required', 'exists:products,id'],
-            'items.*.quantity' => ['required', 'integer', 'min:1', 'max:200'],
+            'items.*.quantity' => ['required', 'integer', 'min:1', 'max:'.config('order.public_max_quantity_per_item', 10)],
             'items.*.notes' => ['nullable', 'string', 'max:500'],
         ];
     }
@@ -43,7 +43,7 @@ class StoreCustomerOrderRequest extends FormRequest
             'items.required' => 'Pesanan tidak boleh kosong.',
             'items.min' => 'Minimal 1 item harus dipesan.',
             'items.max' => 'Maksimal 20 jenis item per pesanan.',
-            'items.*.quantity.max' => 'Maksimal 200 porsi per item.',
+            'items.*.quantity.max' => 'Jumlah per barang melebihi batas pesanan online.',
             'items.*.product_id.exists' => 'Produk tidak ditemukan. Silakan refresh halaman dan coba lagi.',
         ];
     }

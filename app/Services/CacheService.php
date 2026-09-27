@@ -56,6 +56,11 @@ class CacheService
     public static function flushMotorcycles(): void
     {
         Cache::forget(self::MOTORCYCLES_LIST);
+        self::flushMotorcycleParts();
+    }
+
+    public static function flushMotorcycleParts(): void
+    {
         // Pattern-based flush for per-motorcycle parts caches
         // Since database cache driver doesn't support tags, we use a version key
         if (! Cache::has('app:motorcycle:parts:version')) {

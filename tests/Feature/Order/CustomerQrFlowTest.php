@@ -3,6 +3,8 @@
 namespace Tests\Feature\Order;
 
 use App\Models\Order;
+use App\Models\OrderItem;
+use App\Models\Payment;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -65,6 +67,34 @@ class CustomerQrFlowTest extends TestCase
         $this->getJson("/api/customer/order/{$order->id}/status")
             ->assertStatus(401)
             ->assertJsonPath('message', 'Akses ditolak. Token tidak ditemukan.');
+    }
+
+    #[Test]
+    public function public_order_rejects_excessive_quantity_without_reserving_stock(): void
+    {
+        $product = Product::factory()->create(['stock' => 100, 'is_available' => true]);
+
+        $this->postJson('/api/customer/order', [
+            'customer_name' => 'Pembeli',
+            'items' => [['product_id' => $product->id, 'quantity' => 11]],
+        ])->assertUnprocessable();
+
+        $this->assertEquals(100, $product->fresh()->stock);
+    }
+
+    #[Test]
+    public function storefront_best_sellers_only_count_paid_orders(): void
+    {
+        $unpaidProduct = Product::factory()->create();
+        $paidProduct = Product::factory()->create();
+        $unpaid = Order::factory()->create(['order_status' => 'pending', 'payment_status' => 'unpaid']);
+        $paid = Order::factory()->create(['order_status' => 'completed', 'payment_status' => 'paid']);
+        OrderItem::factory()->create(['order_id' => $unpaid->id, 'product_id' => $unpaidProduct->id, 'quantity' => 20]);
+        OrderItem::factory()->create(['order_id' => $paid->id, 'product_id' => $paidProduct->id, 'quantity' => 1]);
+        Payment::factory()->create(['order_id' => $paid->id, 'status' => 'paid', 'paid_at' => now()]);
+
+        $this->get('/')->assertOk()->assertInertia(fn ($page) => $page
+            ->where('bestSellerProductIds', [$paidProduct->id]));
     }
 
     #[Test]

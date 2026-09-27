@@ -80,6 +80,19 @@ class ProfileTest extends TestCase
         $this->assertSoftDeleted('users', ['id' => $user->id]);
     }
 
+    public function test_last_owner_cannot_delete_account_from_profile(): void
+    {
+        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $owner = User::factory()->create();
+        $owner->assignRole('owner');
+
+        $this->actingAs($owner)->from('/profile')->delete('/profile', [
+            'password' => 'password',
+        ])->assertSessionHasErrors('password')->assertRedirect('/profile');
+
+        $this->assertNotNull($owner->fresh());
+    }
+
     public function test_correct_password_must_be_provided_to_delete_account(): void
     {
         $user = User::factory()->create();
