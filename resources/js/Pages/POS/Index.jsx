@@ -558,7 +558,7 @@ return (
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                     placeholder="Cari produk, motor, atau SKU..."
-                                    className="w-full pl-10 pr-9 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200 focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
+                                    className="w-full pl-10 pr-9 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200 focus:bg-white dark:focus:bg-slate-800 focus:ring-0 focus:border-primary focus:outline-none transition"
                                 />
                                 {searchQuery && (
                                     <button 
@@ -615,7 +615,7 @@ return (
                                                 onClick={() => setViewMode(mode)}
                                                 aria-pressed={viewMode === mode}
                                                 title={label}
-                                                className={`flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold transition ${viewMode === mode ? 'bg-white text-blue-700 shadow-xs dark:bg-slate-700 dark:text-blue-300' : 'text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white'}`}
+                                                className={`flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold transition ${viewMode === mode ? 'bg-primary text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white'}`}
                                             >
                                                 <Icon size={14} aria-hidden="true" />
                                                 <span className="hidden sm:inline">{label}</span>
@@ -638,7 +638,7 @@ return (
                                     <button
                                         onClick={() => setSelectedChildId(null)}
                                         aria-pressed={!selectedChildId}
-                                        className={`px-3 py-1 rounded-lg text-xs font-semibold whitespace-nowrap border cursor-pointer ${!selectedChildId ? 'border-blue-600 bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300' : 'border-slate-300 text-slate-600 dark:border-slate-700 dark:text-slate-300'}`}
+                                        className={`px-3 py-1 rounded-lg text-xs font-semibold whitespace-nowrap border cursor-pointer ${!selectedChildId ? 'border-accentYellow bg-accentYellow text-primaryDark' : 'border-slate-300 text-slate-600 dark:border-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
                                     >
                                         Semua subkategori
                                     </button>
@@ -647,7 +647,7 @@ return (
                                             key={category.id}
                                             onClick={() => setSelectedChildId(category.id)}
                                             aria-pressed={selectedChildId === category.id}
-                                            className={`px-3 py-1 rounded-lg text-xs font-semibold whitespace-nowrap border cursor-pointer ${selectedChildId === category.id ? 'border-blue-600 bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300' : 'border-slate-300 text-slate-600 dark:border-slate-700 dark:text-slate-300'}`}
+                                            className={`px-3 py-1 rounded-lg text-xs font-semibold whitespace-nowrap border cursor-pointer ${selectedChildId === category.id ? 'border-accentYellow bg-accentYellow text-primaryDark' : 'border-slate-300 text-slate-600 dark:border-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
                                         >
                                             {category.name}
                                         </button>
@@ -672,10 +672,10 @@ return (
                                         key={item.id}
                                         onClick={() => addToCart(item)}
                                         disabled={isOutOfStock}
-                                        className={`group flex w-full border bg-white text-left shadow-xs transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:bg-slate-900 ${viewMode === 'grid' ? 'flex-col rounded-xl overflow-hidden' : 'items-center gap-3 rounded-xl p-2.5'} ${
+                                        className={`group flex w-full border bg-white text-left shadow-xs transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accentYellow dark:bg-slate-900 ${viewMode === 'grid' ? 'flex-col rounded-xl overflow-hidden' : 'items-center gap-3 rounded-xl p-2.5'} ${
                                             isOutOfStock
                                                 ? 'cursor-not-allowed border-slate-200 opacity-55 dark:border-slate-800'
-                                                : 'cursor-pointer border-slate-200 hover:border-blue-500 hover:bg-blue-50/40 dark:border-slate-700 dark:hover:border-blue-500 dark:hover:bg-slate-800'
+                                                : 'cursor-pointer border-slate-200 hover:border-slate-400 hover:bg-slate-50 dark:border-slate-700 dark:hover:border-slate-500 dark:hover:bg-slate-800'
                                         }`}
                                     >
                                         <span className={`${viewMode === 'grid' ? 'aspect-square w-full' : 'h-14 w-14 shrink-0 rounded-lg border border-slate-200 dark:border-slate-700'} overflow-hidden bg-slate-100 dark:bg-slate-800 flex items-center justify-center`}>
@@ -700,7 +700,7 @@ return (
                                                             {isOutOfStock ? 'Stok habis' : `Stok ${Math.floor(item.stock)}`}
                                                         </span>
                                                     </span>
-                                                    {fitment && <span className="mt-0.5 block truncate text-[11px] text-blue-700 dark:text-blue-300" title={`Cocok: ${fitment}`}>
+                                                    {fitment && <span className="mt-0.5 block truncate text-[11px] text-slate-600 dark:text-slate-300" title={`Cocok: ${fitment}`}>
                                                         Cocok: {fitment}{item.motorcycles.length > 2 ? ` +${item.motorcycles.length - 2} motor` : ''}
                                                     </span>}
                                                 </>
@@ -735,7 +735,7 @@ return (
                 <div className={`${isMobileCartOpen ? 'flex' : 'hidden'} md:flex w-full md:w-96 lg:w-[410px] bg-white dark:bg-slate-900 border-l border-slate-300 dark:border-slate-800 flex-col min-h-0 flex-1 md:flex-none h-full overflow-hidden shrink-0 transition-colors`}>
                     
                     {/* Customer & Order Settings */}
-                    <div className="p-3.5 border-b border-slate-300 dark:border-slate-800 space-y-2 bg-slate-50/70 dark:bg-slate-800/70 shrink-0">
+                    <div className="p-3.5 border-b border-slate-300 dark:border-slate-800 space-y-2 bg-slate-50 dark:bg-slate-800 shrink-0">
                         <div className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 font-semibold flex items-center justify-between gap-2">
                             <span className="flex items-center gap-1.5"><FiShoppingBag className="w-4 h-4 text-slate-500 dark:text-slate-400" strokeWidth={2.5} /> Keranjang · {cart.reduce((sum, item) => sum + item.qty, 0)} item</span>
                             <button type="button" onClick={() => setIsMobileCartOpen(false)} className="flex items-center gap-1 rounded-lg px-2 py-1 text-blue-700 dark:text-blue-300 md:hidden" aria-label="Kembali ke daftar produk"><FiArrowLeft aria-hidden="true" /> Produk</button>
@@ -748,7 +748,7 @@ return (
                                 onChange={(e) => setCustomerName(e.target.value)}
                                 placeholder="Nama pelanggan (opsional)"
                                 aria-label="Nama pelanggan (opsional)"
-                                className="text-xs sm:text-sm font-semibold bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1.5 w-full focus:ring-1 focus:ring-blue-500 focus:border-blue-500 focus:outline-none text-slate-800 dark:text-slate-200"
+                                        className="text-xs sm:text-sm font-semibold bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1.5 w-full focus:ring-0 focus:border-primary focus:outline-none text-slate-800 dark:text-slate-200"
                             />
                         </div>
                     </div>
@@ -785,7 +785,7 @@ return (
                                             value={item.notes || ''}
                                             onChange={(e) => updateNotes(item.id, e.target.value)}
                                             aria-label={`Catatan untuk ${item.name}`}
-                                            className="mt-2 w-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1 focus:bg-white dark:focus:bg-slate-800 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 focus:outline-none text-slate-700 dark:text-slate-200"
+                                            className="mt-2 w-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1 focus:bg-white dark:focus:bg-slate-800 focus:ring-0 focus:border-primary focus:outline-none text-slate-700 dark:text-slate-200"
                                         />
                                     </details>
                                     <div className="flex items-center space-x-1 bg-slate-100 dark:bg-slate-800 rounded-lg p-0.5 shrink-0 border border-slate-300 dark:border-slate-700">
@@ -806,7 +806,7 @@ return (
                                             value={item.qty}
                                             onChange={(e) => setQtyDirect(item.id, e.target.value)}
                                             aria-label={`Jumlah ${item.name}`}
-                                            className="w-8 text-center text-xs font-bold text-slate-900 dark:text-white bg-transparent focus:outline-none focus:ring-1 focus:ring-blue-500 rounded [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                            className="w-8 text-center text-xs font-bold text-slate-900 dark:text-white bg-transparent focus:outline-none focus:ring-0 focus:border-b focus:border-primary rounded [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                         />
                                         <button
                                             type="button"
@@ -853,7 +853,7 @@ return (
                         </div>
 
                         {validationError && (
-                            <div className="px-4 py-2.5 bg-red-50 dark:bg-red-950/60 border-t border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-xs font-bold flex items-center justify-between animate-in fade-in duration-150">
+                            <div className="px-4 py-2.5 bg-white dark:bg-slate-900 border-t-2 border-red-500 text-red-700 dark:text-red-300 text-xs font-bold flex items-center justify-between">
                                 <div className="flex items-center gap-2">
                                     <FiX className="w-4 h-4 shrink-0 text-red-500" strokeWidth={2.5} />
                                     <span>{validationError}</span>
@@ -896,9 +896,9 @@ return (
                         {!isOrderComplete ? (
                             <>
                                 {/* Header */}
-                                <div className="px-5 py-3.5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/60 dark:bg-slate-800/60">
+                                <div className="px-5 py-3.5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800">
                                     <div className="flex items-center gap-2.5">
-                                        <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+                                        <div className="w-8 h-8 rounded-lg bg-primary text-white flex items-center justify-center">
                                             <FiCreditCard className="w-4 h-4" strokeWidth={2.2} />
                                         </div>
                                         <div>
@@ -918,7 +918,7 @@ return (
                                 </div>
 
                                 {/* Total Tagihan Hero */}
-                                <div className="px-5 py-4 text-center border-b border-slate-100 dark:border-slate-800/80 bg-gradient-to-b from-slate-50/70 to-white dark:from-slate-800/40 dark:to-slate-900">
+                                <div className="px-5 py-4 text-center border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
                                     <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
                                         Total Tagihan
                                     </span>
@@ -939,8 +939,8 @@ return (
                                                 onClick={() => { resetQrisFlow(); setPaymentMethod('cash'); }}
                                                 className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border text-xs font-bold transition cursor-pointer ${
                                                     paymentMethod === 'cash'
-                                                        ? 'border-blue-600 bg-blue-50/70 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 shadow-2xs'
-                                                        : 'border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600'
+                                                        ? 'border-primary bg-primary text-white shadow-2xs'
+                                                        : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600'
                                                 }`}
                                             >
                                                 <FiDollarSign className="w-4 h-4" />
@@ -952,8 +952,8 @@ return (
                                                 disabled={qrisImageLoading || !qrisImageUrl || settings['payment.qris_enabled'] === 'false'}
                                                 className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border text-xs font-bold transition cursor-pointer ${
                                                     paymentMethod === 'qris_manual'
-                                                        ? 'border-blue-600 bg-blue-50/70 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 shadow-2xs'
-                                                        : 'border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600 disabled:opacity-40 disabled:cursor-not-allowed'
+                                                        ? 'border-primary bg-primary text-white shadow-2xs'
+                                                        : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600 disabled:opacity-40 disabled:cursor-not-allowed'
                                                 }`}
                                             >
                                                 <FiSmartphone className="w-4 h-4" />
@@ -990,7 +990,7 @@ return (
                                                         placeholder="0"
                                                         value={cashReceived}
                                                         onChange={(e) => setCashReceived(e.target.value)}
-                                                        className="w-full pl-11 pr-8 py-2.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 rounded-xl text-lg font-black text-slate-900 dark:text-white focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 outline-none font-mono transition [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                        className="w-full pl-11 pr-8 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-lg font-black text-slate-900 dark:text-white focus:bg-white dark:focus:bg-slate-800 focus:ring-0 focus:border-primary outline-none font-mono transition [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                                     />
                                                     {cashReceived && (
                                                         <button
@@ -1021,9 +1021,9 @@ return (
                                                                 onClick={() => setCashReceived(amt.toString())}
                                                                 className={`py-2 px-1 rounded-lg text-xs font-bold border transition cursor-pointer text-center truncate ${
                                                                     isSelected
-                                                                        ? 'bg-blue-600 text-white border-blue-600 shadow-2xs'
+                                                                        ? 'bg-primary text-white border-primary shadow-2xs'
                                                                         : isExact
-                                                                            ? 'bg-blue-50/80 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/50'
+                                                                            ? 'bg-accentYellow text-primaryDark border-accentYellow hover:bg-yellow-300'
                                                                             : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
                                                                 }`}
                                                             >
@@ -1036,11 +1036,7 @@ return (
 
                                             {/* Live Change Amount Box */}
                                             {Number(cashReceived) > 0 && (
-                                                <div className={`p-3 rounded-xl border transition-all ${
-                                                    cashShortfall > 0
-                                                        ? 'bg-rose-50/80 dark:bg-rose-950/40 border-rose-200 dark:border-rose-900/50'
-                                                        : 'bg-emerald-50/80 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-900/50'
-                                                }`}>
+                                                <div className="p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
                                                     <div className="flex items-center justify-between">
                                                         <span className={`text-xs font-bold ${cashShortfall > 0 ? 'text-rose-700 dark:text-rose-300' : 'text-emerald-700 dark:text-emerald-300'}`}>
                                                             {cashShortfall > 0 ? 'Uang Masih Kurang' : 'Kembalian'}
@@ -1101,18 +1097,18 @@ return (
                         ) : (
                             /* ORDER COMPLETE SUCCESS SCREEN */
                             <div className="p-6 text-center space-y-4 bg-white dark:bg-slate-900 text-slate-900 dark:text-white">
-                                <div className="w-14 h-14 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 rounded-2xl flex items-center justify-center mx-auto border border-emerald-200 dark:border-emerald-800">
+                                <div className="w-14 h-14 bg-primary text-white rounded-2xl flex items-center justify-center mx-auto">
                                     <FiCheck className="w-7 h-7" strokeWidth={2.5} />
                                 </div>
 
                                 <div>
-                                    <h3 className="font-black text-slate-900 dark:text-white text-lg tracking-tight">Transaksi Berhasil!</h3>
+                                    <h3 className="font-black text-primaryDark dark:text-white text-lg tracking-tight">Transaksi Berhasil!</h3>
                                     <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                                         No. Invoice: <span className="font-mono font-bold text-slate-800 dark:text-slate-200">{lastCreatedOrder?.invoice_number}</span>
                                     </p>
                                 </div>
 
-                                <div className="bg-slate-50 dark:bg-slate-800/60 p-4 rounded-xl border border-slate-200 dark:border-slate-700 text-left text-xs space-y-2">
+                                <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 text-left text-xs space-y-2">
                                     <div className="flex justify-between">
                                         <span className="text-slate-500 dark:text-slate-400">Metode:</span>
                                         <span className="font-bold text-slate-800 dark:text-slate-200 capitalize">{paymentMethodLabel}</span>
@@ -1128,8 +1124,8 @@ return (
                                                 <span className="font-bold text-slate-900 dark:text-white font-mono">{formatRp(lastCreatedOrder.cash_received)}</span>
                                             </div>
                                             <div className="flex justify-between pt-1 border-t border-slate-200 dark:border-slate-700 text-sm">
-                                                <span className="font-bold text-emerald-600 dark:text-emerald-400">Kembalian:</span>
-                                                <span className="font-black text-emerald-600 dark:text-emerald-400 font-mono">{formatRp(lastCreatedOrder.change_amount)}</span>
+                                                <span className="font-bold text-primaryDark dark:text-white">Kembalian:</span>
+                                                <span className="font-black text-primaryDark dark:text-white font-mono">{formatRp(lastCreatedOrder.change_amount)}</span>
                                             </div>
                                         </>
                                     )}
@@ -1148,7 +1144,7 @@ return (
                                     <button
                                         type="button"
                                         onClick={handleNewOrder}
-                                        className="flex-1 py-3 px-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+                                        className="flex-1 py-3 px-3 bg-primary hover:bg-primaryDark text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
                                     >
                                         <FiPlus className="w-4 h-4" strokeWidth={2.5} />
                                         <span>Transaksi Baru</span>
