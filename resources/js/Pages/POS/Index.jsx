@@ -581,7 +581,7 @@ return (
                                             <button
                                                 onClick={() => { setSelectedParentId(null); setSelectedChildId(null); }}
                                                 aria-pressed={!selectedParentId}
-                                                className={`px-3 py-1 rounded-lg text-xs font-bold whitespace-nowrap transition border cursor-pointer ${!selectedParentId ? 'bg-primary text-white border-primary shadow-[inset_0_-3px_0_#FFDD00]' : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'}`}
+                                                className={`px-3 py-1 rounded-lg text-xs font-bold whitespace-nowrap transition border cursor-pointer ${!selectedParentId ? 'bg-primary text-white border-primary shadow-[0_3px_0_#FFDD00]' : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'}`}
                                             >
                                                 All Produk
                                             </button>
@@ -590,7 +590,7 @@ return (
                                                     key={category.id}
                                                     onClick={() => { setSelectedParentId(category.id); setSelectedChildId(null); }}
                                                     aria-pressed={selectedParentId === category.id}
-                                                    className={`px-3 py-1 rounded-lg text-xs font-bold whitespace-nowrap transition border cursor-pointer ${selectedParentId === category.id ? 'bg-primary text-white border-primary shadow-[inset_0_-3px_0_#FFDD00]' : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'}`}
+                                                    className={`px-3 py-1 rounded-lg text-xs font-bold whitespace-nowrap transition border cursor-pointer ${selectedParentId === category.id ? 'bg-primary text-white border-primary shadow-[0_3px_0_#FFDD00]' : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'}`}
                                                 >
                                                     {category.name}
                                                 </button>
