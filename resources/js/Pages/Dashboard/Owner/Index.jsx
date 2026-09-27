@@ -329,15 +329,15 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                     <div className="contents">
                         
                         {/* Section A: Produk Terlaris */}
-                        <div className="col-span-12 xl:col-span-4 order-4 h-[280px] min-h-0 flex flex-col bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-xl border border-slate-300 dark:border-slate-800 shadow-xs">
-                            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2 mb-1.5 shrink-0">
-                                <h3 className="font-bold text-primaryDark dark:text-white text-sm flex items-center gap-2">
-                                    <FiTrendingUp className="text-primary dark:text-yellow-400" size={16} />
+                        <div className="col-span-12 xl:col-span-4 order-4 h-[280px] min-h-0 flex flex-col overflow-hidden bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-800 shadow-xs">
+                            <div className="flex shrink-0 items-center justify-between bg-primary px-4 py-3 sm:px-5">
+                                <h3 className="font-bold text-white text-sm flex items-center gap-2">
+                                    <FiTrendingUp className="text-white" size={16} />
                                     <span>Produk terlaris</span>
                                 </h3>
                             </div>
                             
-                            <div className="min-h-0 flex-1 overflow-y-auto pr-1 space-y-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600" role="region" aria-label={`Produk terlaris ${periodLabel}`} tabIndex={0}>
+                            <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-3 pt-1 sm:px-5 space-y-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600" role="region" aria-label={`Produk terlaris ${periodLabel}`} tabIndex={0}>
                                 {topSellingMenu.length > 0 ? (
                                     topSellingMenu.map((item, idx) => (
                                         <div key={idx} className="flex items-center justify-between gap-3 py-2 border-b border-slate-100 dark:border-slate-800 last:border-none">
@@ -357,36 +357,38 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                         </div>
 
                         {/* Section B: Peringatan Stok Minimum */}
-                        <div className="col-span-12 xl:col-span-4 order-1 xl:order-2 bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-xl border border-slate-300 dark:border-slate-800 shadow-xs">
-                            <div className="flex items-center justify-between gap-3 pb-2 border-b border-slate-100 dark:border-slate-800">
-                                <h3 className="font-bold text-primaryDark dark:text-white text-sm">Stok perlu dicek</h3>
+                        <div className="col-span-12 xl:col-span-4 order-1 xl:order-2 overflow-hidden bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-800 shadow-xs">
+                            <div className="flex items-center justify-between gap-3 bg-primary px-4 py-3 sm:px-5">
+                                <h3 className="font-bold text-white text-sm">Stok perlu dicek</h3>
                             </div>
                             
-                            <div className="space-y-1.5">
-                                {lowStockAlerts.length > 0 ? (
-                                    lowStockAlerts.slice(0, 3).map((stock, idx) => (
-                                        <div key={idx} className="flex items-center justify-between gap-3 py-2 border-b border-slate-100 dark:border-slate-800 last:border-none text-xs">
-                                            <div className="min-w-0">
-                                                <span className="font-semibold text-slate-900 dark:text-slate-100 block truncate">{stock.name}</span>
-                                                {stock.status !== 'Critical' && <span className="text-xs text-slate-500 dark:text-slate-400">{stock.left}</span>}
+                            <div className="p-4 sm:p-5">
+                                <div className="space-y-1.5">
+                                    {lowStockAlerts.length > 0 ? (
+                                        lowStockAlerts.slice(0, 3).map((stock, idx) => (
+                                            <div key={idx} className="flex items-center justify-between gap-3 py-2 border-b border-slate-100 dark:border-slate-800 last:border-none text-xs">
+                                                <div className="min-w-0">
+                                                    <span className="font-semibold text-slate-900 dark:text-slate-100 block truncate">{stock.name}</span>
+                                                    {stock.status !== 'Critical' && <span className="text-xs text-slate-500 dark:text-slate-400">{stock.left}</span>}
+                                                </div>
+                                                <span className={`font-semibold shrink-0 ${stock.status === 'Critical' ? 'text-rose-700 dark:text-rose-400' : 'text-accentYellow'}`}>
+                                                    {stock.status === 'Critical' ? 'Habis' : 'Menipis'}
+                                                </span>
                                             </div>
-                                            <span className={`font-semibold shrink-0 ${stock.status === 'Critical' ? 'text-rose-700 dark:text-rose-400' : 'text-accentYellow'}`}>
-                                                {stock.status === 'Critical' ? 'Habis' : 'Menipis'}
-                                            </span>
+                                        ))
+                                    ) : (
+                                        <div className="text-xs text-slate-600 dark:text-slate-300 flex items-center gap-2">
+                                            <FiCheckCircle size={16} className="text-emerald-600 shrink-0" />
+                                            <span>Belum ada produk di bawah batas minimum.</span>
                                         </div>
-                                    ))
-                                ) : (
-                                    <div className="text-xs text-slate-600 dark:text-slate-300 flex items-center gap-2">
-                                        <FiCheckCircle size={16} className="text-emerald-600 shrink-0" />
-                                        <span>Belum ada produk di bawah batas minimum.</span>
-                                    </div>
+                                    )}
+                                </div>
+                                {lowStockAlerts.length > 3 && (
+                                    <Link href={route('products.index')} className="inline-block mt-2 text-xs font-bold text-primary dark:text-yellow-400">
+                                        Lihat produk <FiArrowRight className="inline" />
+                                    </Link>
                                 )}
                             </div>
-                            {lowStockAlerts.length > 3 && (
-                                <Link href={route('products.index')} className="inline-block mt-2 text-xs font-bold text-primary dark:text-yellow-400">
-                                    Lihat produk <FiArrowRight className="inline" />
-                                </Link>
-                            )}
                         </div>
 
                     </div>
@@ -394,9 +396,9 @@ export default function Dashboard({ stats = {}, filters = {} }) {
 
                 {/* Pesanan terbaru tampil sebelum grafik */}
                 <div className="col-span-12 xl:col-span-8 order-2 xl:order-1 bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-800 shadow-xs overflow-hidden transition-colors">
-                    <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/80 dark:bg-slate-800/50">
-                        <h3 className="font-extrabold text-primaryDark dark:text-white text-sm sm:text-base">Pesanan terbaru</h3>
-                        <Link href={route('orders.index')} className="text-xs font-bold text-primary dark:text-yellow-400 hover:text-primaryDark flex items-center gap-1.5">
+                    <div className="flex items-center justify-between bg-primary p-4">
+                        <h3 className="font-extrabold text-white text-sm sm:text-base">Pesanan terbaru</h3>
+                        <Link href={route('orders.index')} className="text-xs font-bold text-white hover:text-accentYellow flex items-center gap-1.5">
                             <span>Lihat semua</span>
                             <FiArrowRight className="w-4 h-4" strokeWidth={2.5} />
                         </Link>
