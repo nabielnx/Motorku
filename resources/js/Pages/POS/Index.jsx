@@ -185,6 +185,7 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
     };
 
     // Calculation
+    const cartItemCount = cart.reduce((sum, item) => sum + item.qty, 0);
     const subtotal = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
     const taxEnabled = settings['tax.enabled'] !== 'false';
     const taxRate = parseFloat(settings['tax.percentage'] || '10') / 100;
@@ -580,7 +581,7 @@ return (
                                             <button
                                                 onClick={() => { setSelectedParentId(null); setSelectedChildId(null); }}
                                                 aria-pressed={!selectedParentId}
-                                                className={`px-3 py-1 rounded-lg text-xs font-bold whitespace-nowrap transition border cursor-pointer ${!selectedParentId ? 'bg-primary text-white border-primary shadow-xs' : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'}`}
+                                                className={`px-3 py-1 rounded-lg text-xs font-bold whitespace-nowrap transition border cursor-pointer ${!selectedParentId ? 'bg-primary text-white border-primary shadow-[inset_0_-3px_0_#FFDD00]' : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'}`}
                                             >
                                                 All Produk
                                             </button>
@@ -589,7 +590,7 @@ return (
                                                     key={category.id}
                                                     onClick={() => { setSelectedParentId(category.id); setSelectedChildId(null); }}
                                                     aria-pressed={selectedParentId === category.id}
-                                                    className={`px-3 py-1 rounded-lg text-xs font-bold whitespace-nowrap transition border cursor-pointer ${selectedParentId === category.id ? 'bg-primary text-white border-primary shadow-xs' : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'}`}
+                                                    className={`px-3 py-1 rounded-lg text-xs font-bold whitespace-nowrap transition border cursor-pointer ${selectedParentId === category.id ? 'bg-primary text-white border-primary shadow-[inset_0_-3px_0_#FFDD00]' : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'}`}
                                                 >
                                                     {category.name}
                                                 </button>
@@ -665,6 +666,7 @@ return (
                         <div className={`grid gap-2 ${viewMode === 'grid' ? 'grid-cols-[repeat(auto-fill,minmax(144px,1fr))]' : 'grid-cols-1 2xl:grid-cols-2'}`}>
                             {filteredMenu.map(item => {
                                 const isOutOfStock = item.stock <= 0;
+                                const isInCart = cart.some(cartItem => cartItem.id === item.id);
                                 const fitment = viewMode === 'list' ? item.motorcycles.slice(0, 2).map(m => `${m.brand} ${m.model}`).join(', ') : '';
                                 return (
                                     <button
@@ -676,7 +678,7 @@ return (
                                             isOutOfStock
                                                 ? 'cursor-not-allowed border-slate-200 opacity-55 dark:border-slate-800'
                                                 : 'cursor-pointer border-slate-200 hover:border-slate-400 hover:bg-slate-50 dark:border-slate-700 dark:hover:border-slate-500 dark:hover:bg-slate-800'
-                                        }`}
+                                        } ${isInCart ? 'border-l-[3px] !border-l-accentYellow' : ''}`}
                                     >
                                         <span className={`${viewMode === 'grid' ? 'aspect-square w-full' : 'h-14 w-14 shrink-0 rounded-lg border border-slate-200 dark:border-slate-700'} overflow-hidden bg-slate-100 dark:bg-slate-800 flex items-center justify-center`}>
                                             <ProductPhoto src={item.image} name={item.name} />
@@ -725,7 +727,7 @@ return (
                             onClick={() => setIsMobileCartOpen(true)}
                             className="flex w-full items-center justify-between gap-3 rounded-xl bg-primary px-4 py-3 text-left text-sm font-bold text-white"
                         >
-                            <span className="flex min-w-0 items-center gap-2"><FiShoppingBag className="shrink-0" aria-hidden="true" /> Keranjang ({cart.reduce((sum, item) => sum + item.qty, 0)})</span>
+                            <span className="flex min-w-0 items-center gap-2"><FiShoppingBag className="shrink-0" aria-hidden="true" /> Keranjang <span className="text-[#fceb2d]">({cartItemCount})</span></span>
                             <span className="shrink-0 font-mono">{formatRp(total)}</span>
                         </button>
                     </div>
@@ -737,7 +739,7 @@ return (
                     {/* Customer & Order Settings */}
                     <div className="p-3.5 border-b border-slate-300 dark:border-slate-800 space-y-2 bg-slate-50 dark:bg-slate-800 shrink-0">
                         <div className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 font-semibold flex items-center justify-between gap-2">
-                            <span className="flex items-center gap-1.5"><FiShoppingBag className="w-4 h-4 text-slate-500 dark:text-slate-400" strokeWidth={2.5} /> Keranjang · {cart.reduce((sum, item) => sum + item.qty, 0)} item</span>
+                            <span className="flex items-center gap-1.5"><FiShoppingBag className="w-4 h-4 text-slate-500 dark:text-slate-400" strokeWidth={2.5} /> Keranjang <span className="rounded-md bg-primary px-1.5 py-0.5 text-[10px] font-bold text-[#fceb2d]">{cartItemCount} item</span></span>
                             <button type="button" onClick={() => setIsMobileCartOpen(false)} className="flex items-center gap-1 rounded-lg px-2 py-1 text-blue-700 dark:text-blue-300 md:hidden" aria-label="Kembali ke daftar produk"><FiArrowLeft aria-hidden="true" /> Produk</button>
                         </div>
                         <div className="flex items-center gap-2">
