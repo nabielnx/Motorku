@@ -358,30 +358,32 @@ export default function Dashboard({ stats = {}, filters = {} }) {
 
                         {/* Section B: Peringatan Stok Minimum */}
                         <div className="col-span-12 xl:col-span-4 order-1 xl:order-2 flex h-[280px] min-h-0 flex-col overflow-hidden bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-800 shadow-xs xl:h-auto xl:self-stretch">
-                            <div className="flex items-center justify-between gap-3 bg-primary px-4 py-3 sm:px-5">
+                            <div className="flex shrink-0 items-center justify-between gap-3 bg-primary px-4 py-3 sm:px-5">
                                 <h3 className="font-bold text-white text-sm">Stok perlu dicek</h3>
                             </div>
                             
                             <div className="flex min-h-0 flex-1 flex-col p-4 sm:p-5">
-                                <div className="min-h-0 flex-1 space-y-1.5 overflow-y-auto pr-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary" role="region" aria-label={`Stok perlu dicek, ${lowStockAlerts.length} produk`} tabIndex={0}>
-                                    {lowStockAlerts.length > 0 ? (
-                                        lowStockAlerts.map((stock, idx) => (
-                                            <div key={idx} className="flex items-center justify-between gap-3 py-2 border-b border-slate-100 dark:border-slate-800 last:border-none text-xs">
-                                                <div className="min-w-0">
-                                                    <span className="font-semibold text-slate-900 dark:text-slate-100 block truncate">{stock.name}</span>
-                                                    {stock.status !== 'Critical' && <span className="text-xs text-slate-500 dark:text-slate-400">{stock.left}</span>}
+                                <div className="relative min-h-0 flex-1">
+                                    <div className="no-scrollbar absolute inset-0 space-y-1.5 overflow-y-auto pr-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary" role="region" aria-label={`Stok perlu dicek, ${lowStockAlerts.length} produk`} tabIndex={0}>
+                                        {lowStockAlerts.length > 0 ? (
+                                            lowStockAlerts.map((stock, idx) => (
+                                                <div key={idx} className="flex items-center justify-between gap-3 py-2 border-b border-slate-100 dark:border-slate-800 last:border-none text-xs">
+                                                    <div className="min-w-0">
+                                                        <span className="font-semibold text-slate-900 dark:text-slate-100 block truncate">{stock.name}</span>
+                                                        {stock.status !== 'Critical' && <span className="text-xs text-slate-500 dark:text-slate-400">{stock.left}</span>}
+                                                    </div>
+                                                    <span className={`font-semibold shrink-0 ${stock.status === 'Critical' ? 'text-rose-700 dark:text-rose-400' : 'text-accentYellow'}`}>
+                                                        {stock.status === 'Critical' ? 'Habis' : 'Menipis'}
+                                                    </span>
                                                 </div>
-                                                <span className={`font-semibold shrink-0 ${stock.status === 'Critical' ? 'text-rose-700 dark:text-rose-400' : 'text-accentYellow'}`}>
-                                                    {stock.status === 'Critical' ? 'Habis' : 'Menipis'}
-                                                </span>
+                                            ))
+                                        ) : (
+                                            <div className="text-xs text-slate-600 dark:text-slate-300 flex items-center gap-2">
+                                                <FiCheckCircle size={16} className="text-emerald-600 shrink-0" />
+                                                <span>Belum ada produk di bawah batas minimum.</span>
                                             </div>
-                                        ))
-                                    ) : (
-                                        <div className="text-xs text-slate-600 dark:text-slate-300 flex items-center gap-2">
-                                            <FiCheckCircle size={16} className="text-emerald-600 shrink-0" />
-                                            <span>Belum ada produk di bawah batas minimum.</span>
-                                        </div>
-                                    )}
+                                        )}
+                                    </div>
                                 </div>
                                 {lowStockAlerts.length > 3 && (
                                     <Link href={route('products.index')} className="mt-2 shrink-0 text-xs font-bold text-primary dark:text-yellow-400">
