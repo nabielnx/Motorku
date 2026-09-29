@@ -396,7 +396,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                 </div>
 
                 {/* Pesanan terbaru tampil sebelum grafik */}
-                <div className="col-span-12 xl:col-span-8 order-2 xl:order-1 bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-800 shadow-xs overflow-hidden transition-colors">
+                <div className="col-span-12 xl:col-span-8 order-2 xl:order-1 bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-800 shadow-xs overflow-hidden transition-colors xl:flex xl:flex-col xl:self-stretch">
                     <div className="flex items-center justify-between bg-primary px-4 py-3 sm:px-5">
                         <h3 className="font-bold text-white text-sm">Pesanan terbaru</h3>
                         <Link href={route('orders.index')} className="text-xs font-bold text-white hover:text-accentYellow flex items-center gap-1.5">
@@ -470,7 +470,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
 
                     {/* Table Pagination Footer */}
                     {totalPages > 1 && (
-                        <div className="p-3 bg-slate-50 dark:bg-slate-800/60 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs font-semibold text-slate-600 dark:text-slate-400">
+                        <div className="p-3 bg-slate-50 dark:bg-slate-800/60 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs font-semibold text-slate-600 dark:text-slate-400 xl:mt-auto">
                             <span>
                                 {((currentPage - 1) * perPage) + 1}–{Math.min(currentPage * perPage, totalOrdersCount)} dari {totalOrdersCount}
                             </span>
