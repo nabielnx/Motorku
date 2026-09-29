@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import DateRangePicker from '@/Components/DateRangePicker';
 import DashboardSkeleton from '@/Components/Skeletons/DashboardSkeleton';
 import { Head, Link, router } from '@inertiajs/react';
+import axios from 'axios';
 import { recentOrderStatus } from './recentOrderStatus';
 import { 
     FiTrendingUp, 
@@ -13,7 +14,9 @@ import {
     FiClock, 
     FiCheckCircle, 
     FiArrowRight,
-    FiChevronDown
+    FiChevronDown,
+    FiChevronLeft,
+    FiChevronRight
 } from 'react-icons/fi';
 
 export default function Dashboard({ stats = {}, filters = {} }) {
@@ -88,7 +91,36 @@ export default function Dashboard({ stats = {}, filters = {} }) {
         0
     ];
 
-    const recentOrders = stats.recent_orders || [];
+    const [ordersPaginator, setOrdersPaginator] = useState(stats.recent_orders);
+    const [isFetchingOrders, setIsFetchingOrders] = useState(false);
+    const mobileOrdersRef = useRef(null);
+    const desktopOrdersRef = useRef(null);
+
+    useEffect(() => {
+        setOrdersPaginator(stats.recent_orders);
+    }, [stats.recent_orders]);
+
+    const fetchOrdersPage = async (page) => {
+        if (page < 1 || page > (ordersPaginator?.last_page || 1)) return;
+        setIsFetchingOrders(true);
+        try {
+            const response = await axios.get('/api/dashboard/recent-orders', {
+                params: { page, per_page: 15, period: currentPeriod, start_date: startDate, end_date: endDate }
+            });
+            setOrdersPaginator(response.data);
+            if (mobileOrdersRef.current) mobileOrdersRef.current.scrollTop = 0;
+            if (desktopOrdersRef.current) desktopOrdersRef.current.scrollTop = 0;
+        } catch {
+            // Keep the current page if the request fails.
+        } finally {
+            setIsFetchingOrders(false);
+        }
+    };
+
+    const recentOrders = ordersPaginator?.data || [];
+    const currentPage = ordersPaginator?.current_page || 1;
+    const totalPages = ordersPaginator?.last_page || 1;
+    const totalOrdersCount = ordersPaginator?.total || 0;
 
     const formatRp = (val) => `Rp ${val.toLocaleString('id-ID')}`;
 
@@ -369,7 +401,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                         </Link>
                     </div>
 
-                    <div className="min-h-0 flex-1 divide-y divide-slate-100 overflow-y-auto dark:divide-slate-800 sm:hidden" role="region" aria-label={`Pesanan terbaru ${periodLabel}`} tabIndex={0}>
+                    <div ref={mobileOrdersRef} className="min-h-0 flex-1 divide-y divide-slate-100 overflow-y-auto dark:divide-slate-800 sm:hidden" role="region" aria-label={`Pesanan terbaru ${periodLabel}`} tabIndex={0}>
                         {recentOrders.length > 0 ? recentOrders.map((ord) => (
                             <div key={ord.id} className="flex items-start justify-between gap-3 px-4 py-3 text-xs">
                                 <div className="min-w-0">
@@ -386,7 +418,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                     </div>
 
                     {/* Table Container with Internal Scroll */}
-                    <div className="hidden min-h-0 flex-1 overflow-auto sm:block" role="region" aria-label={`Pesanan terbaru ${periodLabel}`} tabIndex={0}>
+                    <div ref={desktopOrdersRef} className="hidden min-h-0 flex-1 overflow-auto sm:block" role="region" aria-label={`Pesanan terbaru ${periodLabel}`} tabIndex={0}>
                         <table className="w-full min-w-[650px] text-left text-xs">
                             <thead className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-[10px] uppercase border-b border-slate-200 dark:border-slate-800 sticky top-0 z-10">
                                 <tr>
@@ -431,6 +463,21 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                             </tbody>
                         </table>
                     </div>
+
+                    {totalOrdersCount > 0 && (
+                        <div className="flex shrink-0 items-center justify-between gap-2 border-t border-slate-200 bg-slate-50 px-3 py-3 text-xs font-semibold text-slate-600 dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-400">
+                            <span>{(currentPage - 1) * 15 + 1}–{Math.min(currentPage * 15, totalOrdersCount)} dari {totalOrdersCount}</span>
+                            <div className="flex items-center gap-1.5">
+                                <button type="button" onClick={() => fetchOrdersPage(currentPage - 1)} disabled={currentPage === 1 || isFetchingOrders} aria-label="Halaman pesanan sebelumnya" className="flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-2 py-1 font-bold text-slate-700 disabled:opacity-40 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 sm:px-3">
+                                    <FiChevronLeft size={14} /><span className="hidden sm:inline">Sebelumnya</span>
+                                </button>
+                                <span className="rounded-lg border border-slate-300 bg-slate-200 px-2 py-1 font-bold text-slate-800 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 sm:px-3">{currentPage} / {totalPages}</span>
+                                <button type="button" onClick={() => fetchOrdersPage(currentPage + 1)} disabled={currentPage === totalPages || isFetchingOrders} aria-label="Halaman pesanan berikutnya" className="flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-2 py-1 font-bold text-slate-700 disabled:opacity-40 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 sm:px-3">
+                                    <span className="hidden sm:inline">Selanjutnya</span><FiChevronRight size={14} />
+                                </button>
+                            </div>
+                        </div>
+                    )}
 
                 </div>
 
