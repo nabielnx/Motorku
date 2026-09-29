@@ -51,5 +51,7 @@ jobs:
           php artisan key:generate
       - name: Build frontend
         run: npm run build
+      - name: Check dashboard order status
+        run: node --test tests/js/recentOrderStatus.test.js
       - name: Run tests
         run: composer test

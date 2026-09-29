@@ -6,6 +6,12 @@
 
         <title inertia>{{ config('app.name', 'Motorku') }}</title>
         <meta name="description" content="Motorku - Sistem POS Kasir & Katalog QR Sparepart Modern. Pesan online, ambil di toko tanpa antri.">
+        <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
+        @if (request()->routeIs('home', 'motor-saya'))
+            <link rel="canonical" href="{{ request()->routeIs('home') ? route('home') : route('motor-saya', ['slug' => data_get($page, 'props.initialPartsData.motorcycle.slug')]) }}">
+        @else
+            <meta name="robots" content="noindex, nofollow">
+        @endif
 
         <!-- Fonts (Non-blocking) -->
         <link rel="preconnect" href="https://fonts.googleapis.com">

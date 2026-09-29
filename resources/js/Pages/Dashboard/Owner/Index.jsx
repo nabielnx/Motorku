@@ -4,6 +4,7 @@ import DateRangePicker from '@/Components/DateRangePicker';
 import DashboardSkeleton from '@/Components/Skeletons/DashboardSkeleton';
 import { Head, Link, router } from '@inertiajs/react';
 import axios from 'axios';
+import { recentOrderStatus } from './recentOrderStatus';
 import { 
     FiTrendingUp, 
     FiShoppingBag, 
@@ -96,7 +97,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
             return rawOrders;
         }
         const list = Array.isArray(rawOrders) ? rawOrders : [];
-        return { data: list, current_page: 1, last_page: 1, total: list.length, per_page: 5 };
+        return { data: list, current_page: 1, last_page: 1, total: list.length, per_page: 7 };
     };
 
     const [ordersPaginator, setOrdersPaginator] = useState(() => extractPaginator(stats.recent_orders));
@@ -111,7 +112,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
         setIsFetchingOrders(true);
         try {
             const res = await axios.get('/api/dashboard/recent-orders', {
-                params: { page, per_page: 5, period: currentPeriod, start_date: startDate, end_date: endDate }
+                params: { page, per_page: 7, period: currentPeriod, start_date: startDate, end_date: endDate }
             });
             setOrdersPaginator(res.data);
         } catch {
@@ -125,7 +126,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
     const currentPage = ordersPaginator.current_page || 1;
     const totalPages = ordersPaginator.last_page || 1;
     const totalOrdersCount = ordersPaginator.total || paginatedOrders.length;
-    const perPage = ordersPaginator.per_page || 5;
+    const perPage = ordersPaginator.per_page || 7;
 
     const formatRp = (val) => `Rp ${val.toLocaleString('id-ID')}`;
 
@@ -149,7 +150,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                 <meta name="description" content="Ringkasan performa penjualan, total pendapatan, statistik pesanan, dan produk terlaris toko Motorku." />
             </Head>
 
-            {isNavigating ? <DashboardSkeleton /> : <div className="grid w-full grid-cols-12 items-start gap-3 sm:gap-4 xl:-mt-2">
+            {isNavigating ? <DashboardSkeleton /> : <div className="grid w-full grid-cols-12 items-start gap-3 sm:gap-4 xl:-mt-4">
                 
                 {/* Header Filter Periode */}
                 <div className="col-span-12 flex flex-col justify-between gap-2 sm:flex-row sm:items-center sm:gap-3">
@@ -362,7 +363,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                                 <h3 className="font-bold text-white text-sm">Stok perlu dicek</h3>
                             </div>
                             
-                            <div className="flex min-h-0 flex-1 flex-col p-4 sm:p-5">
+                            <div className="flex min-h-0 flex-1 flex-col p-4 sm:p-5 xl:py-3">
                                 <div className="min-h-0 flex-1 space-y-1.5 overflow-y-auto pr-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary" role="region" aria-label={`Stok perlu dicek, ${lowStockAlerts.length} produk`} tabIndex={0}>
                                     {lowStockAlerts.length > 0 ? (
                                         lowStockAlerts.map((stock, idx) => (
@@ -396,8 +397,8 @@ export default function Dashboard({ stats = {}, filters = {} }) {
 
                 {/* Pesanan terbaru tampil sebelum grafik */}
                 <div className="col-span-12 xl:col-span-8 order-2 xl:order-1 bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-800 shadow-xs overflow-hidden transition-colors">
-                    <div className="flex items-center justify-between bg-primary p-4">
-                        <h3 className="font-extrabold text-white text-sm sm:text-base">Pesanan terbaru</h3>
+                    <div className="flex items-center justify-between bg-primary px-4 py-3 sm:px-5">
+                        <h3 className="font-bold text-white text-sm">Pesanan terbaru</h3>
                         <Link href={route('orders.index')} className="text-xs font-bold text-white hover:text-accentYellow flex items-center gap-1.5">
                             <span>Lihat semua</span>
                             <FiArrowRight className="w-4 h-4" strokeWidth={2.5} />
@@ -414,7 +415,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                                 </div>
                                 <div className="shrink-0 text-right">
                                     <p className="font-bold text-slate-900 dark:text-white">{formatRp(Number(ord.total || 0))}</p>
-                                    <p className={`mt-1 text-[11px] font-semibold ${ord.payment_status === 'paid' ? 'text-primaryDark dark:text-blue-300' : ord.payment_status === 'refunded' ? 'text-slate-600 dark:text-slate-400' : 'text-amber-700 dark:text-amber-400'}`}>{ord.payment_status === 'paid' ? 'Lunas' : ord.payment_status === 'refunded' ? 'Dikembalikan' : 'Belum lunas'}</p>
+                                    <p className={`mt-1 text-[11px] font-semibold ${recentOrderStatus(ord).color}`}>{recentOrderStatus(ord).label}</p>
                                 </div>
                             </div>
                         )) : <p className="px-4 py-8 text-center text-xs font-semibold text-slate-500">Belum ada pesanan {periodLabel.toLowerCase()}.</p>}
@@ -429,7 +430,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                                     <th className="px-4 py-2">Pelanggan</th>
                                     <th className="px-4 py-2">Dibuat</th>
                                     <th className="px-4 py-2">Total</th>
-                                    <th className="px-4 py-2">Bayar</th>
+                                    <th className="px-4 py-2">Status</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-200 dark:divide-slate-800 font-semibold text-slate-700 dark:text-slate-300">
@@ -449,14 +450,8 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                                                 </td>
                                                 <td className="px-4 py-2 font-black text-slate-900 dark:text-white">{formatRp(Number(ord.total || 0))}</td>
                                                 <td className="px-4 py-2">
-                                                    <span className={`text-xs font-semibold ${
-                                                        ord.payment_status === 'paid'
-                                                            ? 'text-primaryDark dark:text-blue-300'
-                                                            : ord.payment_status === 'refunded'
-                                                                ? 'text-slate-600 dark:text-slate-400'
-                                                                : 'text-amber-700 dark:text-amber-400'
-                                                    }`}>
-                                                        {ord.payment_status === 'paid' ? 'Lunas' : ord.payment_status === 'refunded' ? 'Dikembalikan' : 'Belum lunas'}
+                                                    <span className={`text-xs font-semibold ${recentOrderStatus(ord).color}`}>
+                                                        {recentOrderStatus(ord).label}
                                                     </span>
                                                 </td>
                                             </tr>
