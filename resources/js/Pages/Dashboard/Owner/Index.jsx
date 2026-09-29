@@ -397,8 +397,8 @@ export default function Dashboard({ stats = {}, filters = {} }) {
 
                 {/* Pesanan terbaru tampil sebelum grafik */}
                 <div className="col-span-12 xl:col-span-8 order-2 xl:order-1 bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-800 shadow-xs overflow-hidden transition-colors">
-                    <div className="flex items-center justify-between bg-primary p-4">
-                        <h3 className="font-extrabold text-white text-sm sm:text-base">Pesanan terbaru</h3>
+                    <div className="flex items-center justify-between bg-primary px-4 py-3 sm:px-5">
+                        <h3 className="font-bold text-white text-sm">Pesanan terbaru</h3>
                         <Link href={route('orders.index')} className="text-xs font-bold text-white hover:text-accentYellow flex items-center gap-1.5">
                             <span>Lihat semua</span>
                             <FiArrowRight className="w-4 h-4" strokeWidth={2.5} />
