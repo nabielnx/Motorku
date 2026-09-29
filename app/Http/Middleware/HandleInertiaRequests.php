@@ -56,6 +56,7 @@ class HandleInertiaRequests extends Middleware
             ],
 
             'logo_url' => !empty($s['store.logo']) ? (str_starts_with($s['store.logo'], 'http') ? $s['store.logo'] : '/storage/' . ltrim($s['store.logo'], '/')) : null,
+            'login_image_url' => !empty($s['store.login_image']) ? (str_starts_with($s['store.login_image'], 'http') ? $s['store.login_image'] : '/storage/' . ltrim($s['store.login_image'], '/')) : null,
 
             'app_settings' => [
                 'timezone'           => $timezone,

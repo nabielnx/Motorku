@@ -52,6 +52,7 @@ class SettingController extends Controller implements HasMiddleware
             'initialSettings' => $settings,
             'logoUrl' => $imageUrl('logo'),
             'qrisUrl' => $imageUrl('qris_image'),
+            'loginImageUrl' => $imageUrl('login_image'),
             'bannerUrls' => collect(range(1, 3))->mapWithKeys(fn ($slot) => [
                 $slot => $imageUrl('promo_banner_'.$slot),
             ]),
@@ -250,6 +251,41 @@ class SettingController extends Controller implements HasMiddleware
         CacheService::flushSettings();
 
         return response()->json(['message' => 'Gambar QRIS berhasil dihapus!']);
+    }
+
+    public function uploadLoginImage(Request $request): JsonResponse
+    {
+        $request->validate([
+            'login_image' => ['required', 'image', 'mimes:jpeg,png,jpg,webp', 'max:4096'],
+        ]);
+
+        $old = Setting::where('group', 'store')->where('key', 'login_image')->value('value');
+        if ($old) {
+            Storage::disk('public')->delete($old);
+        }
+
+        $path = $request->file('login_image')->store('login-image', 'public');
+        $this->settingService->upsertSetting('store', 'login_image', $path);
+        CacheService::flushSettings();
+
+        return response()->json([
+            'message' => 'Gambar login berhasil diupload!',
+            'url' => Storage::url($path),
+        ]);
+    }
+
+    public function deleteLoginImage(): JsonResponse
+    {
+        $setting = Setting::where('group', 'store')->where('key', 'login_image')->first();
+        if ($setting) {
+            if ($setting->value) {
+                Storage::disk('public')->delete($setting->value);
+            }
+            $setting->update(['value' => null]);
+        }
+        CacheService::flushSettings();
+
+        return response()->json(['message' => 'Gambar login berhasil dihapus!']);
     }
 
     /**

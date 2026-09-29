@@ -97,6 +97,10 @@ export default function SettingIndex() {
   const [qrisPreview, setQrisPreview] = useState(null);
   const [qrisUrl, setQrisUrl] = useState(props.qrisUrl || null);
   const [uploadingQris, setUploadingQris] = useState(false);
+  const [loginImageFile, setLoginImageFile] = useState(null);
+  const [loginImagePreview, setLoginImagePreview] = useState(null);
+  const [loginImageUrl, setLoginImageUrl] = useState(props.loginImageUrl || null);
+  const [uploadingLoginImage, setUploadingLoginImage] = useState(false);
 
   // Reset transactions state
   const [showResetModal, setShowResetModal] = useState(false);
@@ -164,6 +168,21 @@ export default function SettingIndex() {
         toast.error('Gagal menghapus gambar QRIS: ' + (err.response?.data?.message || err.message));
       } finally {
         setUploadingQris(false);
+      }
+    } else if (deleteConfirm.type === 'login_image') {
+      setUploadingLoginImage(true);
+      try {
+        await axios.delete('/api/settings/login-image');
+        setLoginImageUrl(null);
+        setLoginImageFile(null);
+        setLoginImagePreview(null);
+        setSaved(true);
+        setTimeout(() => setSaved(false), 3000);
+        toast.success('Gambar login berhasil dihapus.');
+      } catch (err) {
+        toast.error('Gagal menghapus gambar login: ' + (err.response?.data?.message || err.message));
+      } finally {
+        setUploadingLoginImage(false);
       }
     } else {
       const slot = deleteConfirm.slot;
@@ -234,6 +253,26 @@ export default function SettingIndex() {
       toast.error('Gagal upload gambar QRIS: ' + (err.response?.data?.message || err.message));
     } finally {
       setUploadingQris(false);
+    }
+  };
+
+  const handleUploadLoginImage = async () => {
+    if (!loginImageFile) return;
+    setUploadingLoginImage(true);
+    try {
+      const fd = new FormData();
+      fd.append('login_image', loginImageFile);
+      const res = await axios.post('/api/settings/login-image', fd);
+      setLoginImageUrl(res.data?.url || null);
+      setLoginImageFile(null);
+      setLoginImagePreview(null);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+      toast.success('Gambar login berhasil disimpan.');
+    } catch (err) {
+      toast.error('Gagal upload gambar login: ' + (err.response?.data?.message || err.message));
+    } finally {
+      setUploadingLoginImage(false);
     }
   };
 
@@ -440,6 +479,46 @@ export default function SettingIndex() {
           </div>
         </div>
 
+        {/* LOGIN IMAGE SECTION */}
+        <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
+          <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
+            <FiUpload className="text-blue-600 dark:text-yellow-400" size={20} />
+            <h3 className="font-extrabold text-base text-slate-900 dark:text-white">Gambar Halaman Login</h3>
+          </div>
+          <p className="text-xs text-slate-500 dark:text-slate-400">Gambar ini ditampilkan di sisi kiri halaman login. Rekomendasi resolusi minimal 1200×800px.</p>
+          <div className="flex flex-wrap items-start gap-4">
+            <div className="w-48 h-32 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex items-center justify-center overflow-hidden">
+              {loginImagePreview || loginImageUrl ? (
+                <img src={loginImagePreview || loginImageUrl} alt="Login background" className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-xs text-slate-400">Belum ada gambar</span>
+              )}
+            </div>
+            <div className="space-y-2">
+              <label className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg cursor-pointer">
+                <FiUpload size={14} /> Pilih Gambar
+                <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  if (file) { setLoginImageFile(file); setLoginImagePreview(URL.createObjectURL(file)); }
+                }} className="hidden" />
+              </label>
+              <p className="text-[10px] text-slate-400">JPEG, PNG, WEBP. Maks 4MB.</p>
+              <div className="flex flex-wrap gap-2">
+                {loginImageFile && (
+                  <button type="button" onClick={handleUploadLoginImage} disabled={uploadingLoginImage} className="px-4 py-2 rounded-lg bg-slate-900 dark:bg-slate-800 text-white text-xs font-bold disabled:opacity-50">
+                    {uploadingLoginImage ? 'Menyimpan...' : 'Simpan Gambar'}
+                  </button>
+                )}
+                {loginImageUrl && (
+                  <button type="button" onClick={() => setDeleteConfirm({ type: 'login_image' })} disabled={uploadingLoginImage} className="px-4 py-2 rounded-lg border border-red-200 text-red-600 text-xs font-bold disabled:opacity-50 hover:bg-red-50">
+                    Hapus Gambar
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* PROMO BANNER SECTION */}
         <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4 transition-colors">
           <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
@@ -641,7 +720,7 @@ export default function SettingIndex() {
 
         <Modal show={!!deleteConfirm} onClose={() => setDeleteConfirm(null)} maxWidth="sm">
           <div className="p-6 space-y-4 bg-white dark:bg-slate-900 text-slate-900 dark:text-white">
-            <h3 className="font-bold">Hapus {deleteConfirm?.type === 'logo' ? 'logo toko' : deleteConfirm?.type === 'qris' ? 'gambar QRIS toko' : 'banner promo'}?</h3>
+            <h3 className="font-bold">Hapus {deleteConfirm?.type === 'logo' ? 'logo toko' : deleteConfirm?.type === 'qris' ? 'gambar QRIS toko' : deleteConfirm?.type === 'login_image' ? 'gambar background login' : 'banner promo'}?</h3>
             <p className="text-sm text-slate-500 dark:text-slate-400">Gambar yang sedang dipakai akan dihapus.</p>
             <div className="flex justify-end gap-2">
               <button type="button" onClick={() => setDeleteConfirm(null)} className="px-4 py-2 text-sm font-semibold">Batal</button>

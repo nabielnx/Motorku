@@ -24,6 +24,7 @@ class SettingsPageTest extends TestCase
             ['store', 'name', 'Toko Motor'],
             ['store', 'logo', 'logos/store.png'],
             ['store', 'qris_image', 'qris/store.png'],
+            ['store', 'login_image', 'login-image/bg.png'],
             ['store', 'promo_banner_1', 'banners/first.png'],
         ] as [$group, $key, $value]) {
             Setting::create(compact('group', 'key', 'value'));
@@ -34,9 +35,33 @@ class SettingsPageTest extends TestCase
             ->where('initialSettings.store_name', 'Toko Motor')
             ->where('logoUrl', Storage::url('logos/store.png'))
             ->where('qrisUrl', Storage::url('qris/store.png'))
+            ->where('loginImageUrl', Storage::url('login-image/bg.png'))
             ->where('bannerUrls.1', Storage::url('banners/first.png'))
             ->where('bannerUrls.2', null)
         );
+    }
+
+    public function test_owner_can_upload_and_delete_login_image(): void
+    {
+        Storage::fake('public');
+        $this->seed(RoleSeeder::class);
+        $owner = User::factory()->create();
+        $owner->assignRole('owner');
+
+        $response = $this->actingAs($owner)->postJson('/api/settings/login-image', [
+            'login_image' => UploadedFile::fake()->image('login_bg.png', 1200, 800),
+        ]);
+        $response->assertOk()->assertJsonStructure(['message', 'url']);
+
+        $path = Setting::where('group', 'store')->where('key', 'login_image')->value('value');
+        $this->assertNotNull($path);
+        Storage::disk('public')->assertExists($path);
+
+        $deleteResponse = $this->actingAs($owner)->deleteJson('/api/settings/login-image');
+        $deleteResponse->assertOk();
+
+        $this->assertNull(Setting::where('group', 'store')->where('key', 'login_image')->value('value'));
+        Storage::disk('public')->assertMissing($path);
     }
 
     public function test_deleted_qris_image_can_be_uploaded_again(): void
