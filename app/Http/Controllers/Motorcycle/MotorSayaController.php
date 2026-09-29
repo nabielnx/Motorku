@@ -43,11 +43,9 @@ class MotorSayaController extends Controller
             $motorcycle = Motorcycle::where('slug', $slug)
                 ->orWhere('id', $slug)
                 ->orWhere('slug', 'like', $slug . '%')
-                ->first();
+                ->firstOrFail();
 
-            if ($motorcycle) {
-                $initialPartsData = $this->buildMotorcyclePartsData($motorcycle);
-            }
+            $initialPartsData = $this->buildMotorcyclePartsData($motorcycle);
         }
 
         return Inertia::render('Motorcycle/MotorSaya', [

@@ -12,12 +12,16 @@ use App\Http\Controllers\User\UserController;
 use App\Http\Controllers\Setting\SettingController;
 use App\Http\Controllers\Motorcycle\MotorSayaController;
 use App\Http\Controllers\Motorcycle\MotorcycleController;
+use App\Models\Motorcycle;
 use Illuminate\Support\Facades\Route;
 
 use Inertia\Inertia;
 
 // Public QR Customer Menu (katalog sparepart)
 Route::get('/', [CustomerMenuController::class, 'index'])->name('home');
+Route::get('/sitemap.xml', fn () => response()
+    ->view('sitemap', ['motorcycleSlugs' => Motorcycle::whereNotNull('slug')->pluck('slug')])
+    ->header('Content-Type', 'application/xml; charset=UTF-8'))->name('sitemap');
 
 // Public Customer QR Flow
 Route::get('/sanctum/csrf-cookie', fn() => response()->noContent());
