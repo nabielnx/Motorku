@@ -12,6 +12,8 @@ Route::prefix('settings')->name('api.settings.')->group(function () {
     Route::get('/logo', [SettingController::class, 'getLogo'])->name('logo.get');
     Route::post('/qris-image', [SettingController::class, 'uploadQrisImage'])->name('qris-image');
     Route::delete('/qris-image', [SettingController::class, 'deleteQrisImage'])->name('qris-image.delete');
+    Route::post('/login-image', [SettingController::class, 'uploadLoginImage'])->name('login-image');
+    Route::delete('/login-image', [SettingController::class, 'deleteLoginImage'])->name('login-image.delete');
     Route::get('/banners', [SettingController::class, 'getPromoBanners'])->name('banners.get');
     Route::post('/banners', [SettingController::class, 'uploadPromoBanner'])->name('banners.upload');
     Route::delete('/banners/{slot}', [SettingController::class, 'deletePromoBanner'])->name('banners.delete');
