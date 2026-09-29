@@ -184,9 +184,9 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                         <div className="flex items-start justify-between gap-2">
                             <div>
                                 <p className="text-[10px] sm:text-[11px] font-bold text-white uppercase tracking-wider">Antrean saat ini</p>
-                                <h3 className="text-xl sm:text-[30px] font-heading font-extrabold text-accentYellow mt-1">{pendingOrders}</h3>
+                                <h3 className="text-xl sm:text-[30px] font-heading font-extrabold text-white mt-1">{pendingOrders}</h3>
                             </div>
-                            <FiClock className="hidden text-white shrink-0 sm:block" size={18} />
+                            <FiClock className="hidden text-accentYellow shrink-0 sm:block" size={18} />
                         </div>
                         <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-1.5 bg-accentYellow" />
                     </Link>
@@ -195,7 +195,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                         <div className="flex items-start justify-between gap-2">
                             <div>
                                 <p className="pr-8 text-[10px] sm:text-[11px] font-bold text-white uppercase tracking-wider">Penjualan bersih</p>
-                                <h3 className="text-base sm:text-[30px] font-heading font-extrabold text-accentYellow mt-1">{isRevenueVisible ? formatRp(revenueToday) : 'Rp ••••••'}</h3>
+                                <h3 className="text-base sm:text-[30px] font-heading font-extrabold text-white mt-1">{isRevenueVisible ? formatRp(revenueToday) : 'Rp ••••••'}</h3>
                             </div>
                             <button
                                 type="button"
@@ -214,9 +214,9 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                         <div className="flex items-start justify-between gap-2">
                             <div>
                                 <p className="text-[10px] sm:text-[11px] font-bold text-white uppercase tracking-wider">Transaksi lunas</p>
-                                <h3 className="text-xl sm:text-[30px] font-heading font-extrabold text-accentYellow mt-1">{ordersToday}</h3>
+                                <h3 className="text-xl sm:text-[30px] font-heading font-extrabold text-white mt-1">{ordersToday}</h3>
                             </div>
-                            <FiShoppingBag className="hidden text-white shrink-0 sm:block" size={18} />
+                            <FiShoppingBag className="hidden text-accentYellow shrink-0 sm:block" size={18} />
                         </div>
                         <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-1.5 bg-accentYellow" />
                     </div>
@@ -225,9 +225,9 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                         <div className="flex items-start justify-between gap-2">
                             <div>
                                 <p className="text-[10px] sm:text-[11px] font-bold text-white uppercase tracking-wider">Stok perlu dicek</p>
-                                <h3 className="text-xl sm:text-[30px] font-heading font-extrabold text-accentYellow mt-1">{stats.low_stock_count ?? lowStockAlerts.length}</h3>
+                                <h3 className="text-xl sm:text-[30px] font-heading font-extrabold text-white mt-1">{stats.low_stock_count ?? lowStockAlerts.length}</h3>
                             </div>
-                            <FiPackage className="hidden text-white shrink-0 sm:block" size={18} />
+                            <FiPackage className="hidden text-accentYellow shrink-0 sm:block" size={18} />
                         </div>
                         <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-1.5 bg-accentYellow" />
                     </Link>
