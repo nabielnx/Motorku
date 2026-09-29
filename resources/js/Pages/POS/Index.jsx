@@ -4,6 +4,7 @@ import Modal from '@/Components/Modal';
 import PosCardSkeleton from '@/Components/Skeletons/PosCardSkeleton';
 import { Head, router, usePage } from '@inertiajs/react';
 import { getProductImage } from '@/Utils/productImage';
+import { ProductPhoto } from '@/Components/Customer/Storefront';
 import { getVisibleCategoryIds } from '@/Utils/posCategoryFilter';
 import { fuzzyFilterProducts } from '@/Utils/fuzzySearch';
 import axios from 'axios';
@@ -30,21 +31,6 @@ import {
     FiArrowLeft
 } from 'react-icons/fi';
 
-function ProductPhoto({ src, name }) {
-    const [failed, setFailed] = useState(false);
-
-    useEffect(() => setFailed(false), [src]);
-
-    if (!src || failed) {
-        return (
-            <span className="flex h-full w-full items-center justify-center bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500">
-                <FiShoppingBag size={24} aria-hidden="true" />
-            </span>
-        );
-    }
-
-    return <img src={src} alt={name} onError={() => setFailed(true)} className="h-full w-full object-cover" />;
-}
 
 export default function POSIndex({ initialProducts = [], initialCategories = [], settings = {} }) {
     // Format Products from Database or Fallback
@@ -681,7 +667,7 @@ return (
                                         } ${isInCart ? 'border-l-[3px] !border-l-accentYellow' : ''}`}
                                     >
                                         <span className={`${viewMode === 'grid' ? 'aspect-square w-full' : 'h-14 w-14 shrink-0 rounded-lg border border-slate-200 dark:border-slate-700'} overflow-hidden bg-slate-100 dark:bg-slate-800 flex items-center justify-center`}>
-                                            <ProductPhoto src={item.image} name={item.name} />
+                                            <ProductPhoto src={item.image} name={item.name} category={item.category} className="h-full w-full" compact />
                                         </span>
                                         <span className={`block min-w-0 ${viewMode === 'grid' ? 'w-full p-2.5 flex-1' : 'flex-1'}`}>
                                             <span className={`flex gap-1 ${viewMode === 'grid' ? 'flex-col' : 'items-start justify-between gap-3'}`}>

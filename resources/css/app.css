@@ -14,6 +14,50 @@ html, body, #app {
         -ms-overflow-style: none;
         scrollbar-width: none;
     }
+
+    /* Premium thin custom scrollbar */
+    .custom-scrollbar {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(100, 116, 139, 0.25) transparent;
+    }
+    .custom-scrollbar:hover {
+        scrollbar-color: rgba(100, 116, 139, 0.4) transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+        margin: 4px 0;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: rgba(100, 116, 139, 0.25);
+        border-radius: 9999px;
+        transition: background 0.2s;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: rgba(100, 116, 139, 0.5);
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:active {
+        background: rgba(100, 116, 139, 0.6);
+    }
+
+    /* Dark mode variant */
+    .dark .custom-scrollbar {
+        scrollbar-color: rgba(148, 163, 184, 0.2) transparent;
+    }
+    .dark .custom-scrollbar:hover {
+        scrollbar-color: rgba(148, 163, 184, 0.35) transparent;
+    }
+    .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: rgba(148, 163, 184, 0.2);
+    }
+    .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: rgba(148, 163, 184, 0.4);
+    }
+    .dark .custom-scrollbar::-webkit-scrollbar-thumb:active {
+        background: rgba(148, 163, 184, 0.5);
+    }
 }
 
 @media print {

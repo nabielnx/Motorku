@@ -135,7 +135,7 @@ export default function DateRangePicker({ initialStart = '', initialEnd = '', on
                 onClick={() => setIsOpen(!isOpen)}
                 className="flex w-full items-center gap-2 rounded-xl border border-primary bg-primary px-3 py-2 text-xs font-bold text-white shadow-2xs transition hover:bg-primaryDark focus-visible:outline-2 focus-visible:outline-accentYellow sm:w-auto sm:px-3.5"
             >
-                <FiCalendar size={15} />
+                <FiCalendar size={15} className="text-accentYellow" />
                 <span className="truncate sm:hidden">{isCustomActive ? 'Rentang khusus' : 'Pilih tanggal'}</span>
                 <span className="hidden sm:inline">{activeLabel}</span>
             </button>
