@@ -879,15 +879,6 @@ export default function MenuManagement({
                                                     onClick={(e) => { e.stopPropagation(); setPreviewProduct(item); }}
                                                 >
                                                     <ProductPhoto src={item.image} name={item.name} category={item.category} className="absolute inset-0 w-full h-full" />
-
-                                                    {/* Badges on Image */}
-                                                    <div className="absolute top-2 left-2 flex flex-col gap-1.5 items-start z-10 pointer-events-none">
-                                                        {item.stock <= 0 ? (
-                                                            <span className="px-2 py-0.5 bg-red-600 text-white text-[10px] font-bold rounded-md shadow-xs whitespace-nowrap">Stok Habis</span>
-                                                        ) : item.stock <= (item.minimum_stock ?? 3) ? (
-                                                            <span className="px-2 py-0.5 bg-accentYellow text-primaryDark text-[10px] font-bold rounded-md shadow-xs whitespace-nowrap">Perlu Kulak ({item.stock})</span>
-                                                        ) : null}
-                                                    </div>
                                                 </div>
 
                                                 {/* Card Content */}
@@ -915,7 +906,19 @@ export default function MenuManagement({
                                                         <p className="font-black text-slate-900 dark:text-white text-xs md:text-base">
                                                             Rp {Number(item.price).toLocaleString('id-ID')}
                                                         </p>
-                                                        <p className="text-[10px] md:text-[11px] text-slate-500 dark:text-slate-400 mt-1">{item.stock} pcs · {item.status === 'Active' ? 'Aktif di POS' : 'Nonaktif'}</p>
+                                                        <p className="text-[10px] md:text-[11px] mt-1 truncate">
+                                                            <span className={`font-semibold ${
+                                                                item.stock <= 0 
+                                                                    ? 'text-red-600 dark:text-red-400 font-bold' 
+                                                                    : item.stock <= (item.minimum_stock ?? 3) 
+                                                                        ? 'text-amber-600 dark:text-yellow-400 font-bold' 
+                                                                        : 'text-slate-500 dark:text-slate-400'
+                                                            }`}>
+                                                                {item.stock <= 0 ? '0 pcs (Habis)' : item.stock <= (item.minimum_stock ?? 3) ? `${item.stock} pcs (Perlu Kulak)` : `${item.stock} pcs`}
+                                                            </span>
+                                                            <span className="text-slate-300 dark:text-slate-600 mx-1">·</span>
+                                                            <span className="text-slate-400 dark:text-slate-500">{item.status === 'Active' ? 'Aktif di POS' : 'Nonaktif'}</span>
+                                                        </p>
                                                     </div>
                                                 </div>
 

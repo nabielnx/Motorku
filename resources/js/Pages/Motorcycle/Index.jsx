@@ -3,6 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import MotorcycleSkeleton from '@/Components/Skeletons/MotorcycleSkeleton';
 import { Head, router } from '@inertiajs/react';
 import { getProductImage } from '@/Utils/productImage';
+import { ProductPhoto } from '@/Components/Customer/Storefront';
 import { toast } from 'sonner';
 import {
     FiPlus, FiEdit2, FiTrash2, FiLink, FiX, FiSearch,
@@ -23,18 +24,16 @@ function MotorIconPlaceholder({ size = 22, className = "" }) {
     );
 }
 
-function ProductThumbnail({ path, size = 'w-8 h-8' }) {
-    const [failed, setFailed] = useState(false);
-
-    useEffect(() => setFailed(false), [path]);
-
+function ProductThumbnail({ path, name = '', category = '', size = 'w-8 h-8' }) {
     return (
         <div className={`${size} rounded-md border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 overflow-hidden shrink-0 flex items-center justify-center`}>
-            {path && !failed ? (
-                <img src={getProductImage(path)} alt="" className="w-full h-full object-cover" onError={() => setFailed(true)} />
-            ) : (
-                <FiBox size={16} className="text-slate-400 dark:text-slate-500" aria-hidden="true" />
-            )}
+            <ProductPhoto
+                src={getProductImage(path)}
+                name={name}
+                category={category}
+                className="w-full h-full"
+                compact
+            />
         </div>
     );
 }
@@ -1221,14 +1220,12 @@ export default function MotorcycleIndex({
                                                                             className="w-10 h-10 rounded-md shrink-0 border-0 md:border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 overflow-hidden flex items-center justify-center cursor-pointer hover:border-slate-400 hover:shadow-xs transition group"
                                                                             title="Klik untuk melihat foto sparepart resolusi penuh"
                                                                         >
-                                                                            <img
-                                                                                src={getProductImage(part.product?.image_path, part.product?.category?.name)}
-                                                                                alt={part.product?.name || 'Sparepart'}
+                                                                            <ProductPhoto
+                                                                                src={getProductImage(part.product?.image_path)}
+                                                                                name={part.product?.name}
+                                                                                category={part.product?.category?.name || part.product?.category || categoryLabel}
                                                                                 className="w-full h-full object-cover group-hover:scale-105 transition duration-200"
-                                                                                onError={(e) => {
-                                                                                    e.target.onerror = null;
-                                                                                    e.target.src = getProductImage(null, part.product?.category?.name);
-                                                                                }}
+                                                                                compact
                                                                             />
                                                                         </div>
 
@@ -1510,7 +1507,7 @@ export default function MotorcycleIndex({
                                         return (
                                             <label key={product.id} className={'flex items-center gap-2.5 p-2 text-xs cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 ' + (selected ? 'bg-slate-100 dark:bg-slate-800 border-l-2 border-primary' : '')}>
                                                 <input type="checkbox" checked={selected} onChange={() => setBulkProductIds(prev => selected ? prev.filter(id => id !== product.id) : [...prev, product.id])} className="w-4 h-4 shrink-0 rounded text-blue-600 border-slate-300 dark:border-slate-600" />
-                                                <ProductThumbnail path={product.image_path} size="w-8 h-8" />
+                                                <ProductThumbnail path={product.image_path} name={product.name} category={product.category?.name || product.category} size="w-8 h-8" />
                                                 <div className="min-w-0">
                                                     <p className="font-bold text-slate-900 dark:text-white truncate">{product.name}</p>
                                                     <p className="text-slate-500 dark:text-slate-400 truncate">{product.sku || '-'} · {formatRp(product.price)}</p>
@@ -1860,14 +1857,12 @@ export default function MotorcycleIndex({
                                     >
                                         <div className="flex items-center gap-3 flex-1 min-w-0 pr-2">
                                             <div className="w-11 h-11 rounded-md shrink-0 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden flex items-center justify-center p-0.5 shadow-2xs">
-                                                <img
-                                                    src={getProductImage(p.image_path, p.category?.name)}
-                                                    alt={p.name}
+                                                <ProductPhoto
+                                                    src={getProductImage(p.image_path)}
+                                                    name={p.name}
+                                                    category={p.category?.name || p.category}
                                                     className="w-full h-full object-cover rounded"
-                                                    onError={(e) => {
-                                                        e.target.onerror = null;
-                                                        e.target.src = getProductImage(null, p.category?.name);
-                                                    }}
+                                                    compact
                                                 />
                                             </div>
                                             <div className="flex-1 min-w-0">
@@ -2135,11 +2130,20 @@ export default function MotorcycleIndex({
 
                         {/* Modal Body: Large Image Display */}
                         <div className="p-6 bg-slate-50/70 dark:bg-slate-950/50 flex items-center justify-center min-h-[260px] max-h-[60vh] overflow-hidden">
-                            <img
-                                src={previewPart.image_url}
-                                alt={previewPart.name}
-                                className="max-h-[50vh] w-auto max-w-full object-contain rounded-lg drop-shadow-md select-none"
-                            />
+                            {previewPart.image_url ? (
+                                <img
+                                    src={previewPart.image_url}
+                                    alt={previewPart.name}
+                                    className="max-h-[50vh] w-auto max-w-full object-contain rounded-lg drop-shadow-md select-none"
+                                />
+                            ) : (
+                                <ProductPhoto
+                                    src={null}
+                                    name={previewPart.name}
+                                    category={previewPart.categoryLabel || previewPart.category?.name || previewPart.category}
+                                    className="w-48 h-48 rounded-xl"
+                                />
+                            )}
                         </div>
 
                         {/* Modal Footer */}
