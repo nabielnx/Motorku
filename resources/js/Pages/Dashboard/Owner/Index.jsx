@@ -8,7 +8,8 @@ import { recentOrderStatus } from './recentOrderStatus';
 import { 
     FiTrendingUp, 
     FiShoppingBag, 
-    FiDollarSign, 
+    FiEye,
+    FiEyeOff,
     FiPackage, 
     FiClock, 
     FiCheckCircle, 
@@ -21,6 +22,7 @@ import {
 export default function Dashboard({ stats = {}, filters = {} }) {
 
     const [isNavigating, setIsNavigating] = useState(false);
+    const [isRevenueVisible, setIsRevenueVisible] = useState(true);
 
     useEffect(() => {
         const removeStart = router.on('start', (event) => {
@@ -184,44 +186,56 @@ export default function Dashboard({ stats = {}, filters = {} }) {
 
                 {/* Kondisi saat ini dan penjualan pada periode terpilih */}
                 <div className="col-span-12 grid grid-cols-2 gap-2 sm:gap-4 xl:grid-cols-4">
-                    <Link href={route('orders.index')} className="bg-white dark:bg-slate-900 p-3 sm:p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-primary transition-colors">
+                    <Link href={route('orders.index')} className="relative overflow-hidden bg-primary p-3 sm:p-4 rounded-xl hover:bg-primaryDark transition-colors">
                         <div className="flex items-start justify-between gap-2">
                             <div>
-                                <p className="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Antrean saat ini</p>
-                                <h3 className="text-xl sm:text-[30px] font-heading font-extrabold text-[#fceb2d] mt-1">{pendingOrders}</h3>
+                                <p className="text-[10px] sm:text-[11px] font-bold text-white uppercase tracking-wider">Antrean saat ini</p>
+                                <h3 className="text-xl sm:text-[30px] font-heading font-extrabold text-accentYellow mt-1">{pendingOrders}</h3>
                             </div>
-                            <FiClock className="hidden text-primary shrink-0 sm:block" size={18} />
+                            <FiClock className="hidden text-white shrink-0 sm:block" size={18} />
                         </div>
+                        <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-1.5 bg-accentYellow" />
                     </Link>
 
-                    <div className="bg-white dark:bg-slate-900 p-3 sm:p-4 rounded-xl border border-slate-200 dark:border-slate-800" title="Pembayaran pada periode terpilih setelah retur">
+                    <div className="relative overflow-hidden bg-primary p-3 sm:p-4 rounded-xl" title="Pembayaran pada periode terpilih setelah retur">
                         <div className="flex items-start justify-between gap-2">
                             <div>
-                                <p className="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Penjualan bersih</p>
-                                <h3 className="text-base sm:text-[30px] font-heading font-extrabold text-[#fceb2d] mt-1">{formatRp(revenueToday)}</h3>
+                                <p className="pr-8 text-[10px] sm:text-[11px] font-bold text-white uppercase tracking-wider">Penjualan bersih</p>
+                                <h3 className="text-base sm:text-[30px] font-heading font-extrabold text-accentYellow mt-1">{isRevenueVisible ? formatRp(revenueToday) : 'Rp ••••••'}</h3>
                             </div>
-                            <FiDollarSign className="hidden text-primary shrink-0 sm:block" size={18} />
+                            <button
+                                type="button"
+                                onClick={() => setIsRevenueVisible((visible) => !visible)}
+                                aria-label={isRevenueVisible ? 'Sembunyikan penjualan bersih' : 'Tampilkan penjualan bersih'}
+                                title={isRevenueVisible ? 'Sembunyikan nominal' : 'Tampilkan nominal'}
+                                className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-lg text-white hover:text-accentYellow focus-visible:outline focus-visible:outline-2 focus-visible:outline-accentYellow sm:right-3 sm:top-3"
+                            >
+                                {isRevenueVisible ? <FiEye size={18} /> : <FiEyeOff size={18} />}
+                            </button>
                         </div>
+                        <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-1.5 bg-accentYellow" />
                     </div>
 
-                    <div className="bg-white dark:bg-slate-900 p-3 sm:p-4 rounded-xl border border-slate-200 dark:border-slate-800">
+                    <div className="relative overflow-hidden bg-primary p-3 sm:p-4 rounded-xl">
                         <div className="flex items-start justify-between gap-2">
                             <div>
-                                <p className="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Transaksi lunas</p>
-                                <h3 className="text-xl sm:text-[30px] font-heading font-extrabold text-[#fceb2d] mt-1">{ordersToday}</h3>
+                                <p className="text-[10px] sm:text-[11px] font-bold text-white uppercase tracking-wider">Transaksi lunas</p>
+                                <h3 className="text-xl sm:text-[30px] font-heading font-extrabold text-accentYellow mt-1">{ordersToday}</h3>
                             </div>
-                            <FiShoppingBag className="hidden text-primary shrink-0 sm:block" size={18} />
+                            <FiShoppingBag className="hidden text-white shrink-0 sm:block" size={18} />
                         </div>
+                        <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-1.5 bg-accentYellow" />
                     </div>
 
-                    <Link href={route('products.index')} className="bg-white dark:bg-slate-900 p-3 sm:p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-primary transition-colors">
+                    <Link href={route('products.index')} className="relative overflow-hidden bg-primary p-3 sm:p-4 rounded-xl hover:bg-primaryDark transition-colors">
                         <div className="flex items-start justify-between gap-2">
                             <div>
-                                <p className="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Stok perlu dicek</p>
-                                <h3 className="text-xl sm:text-[30px] font-heading font-extrabold text-[#fceb2d] mt-1">{lowStockAlerts.length}</h3>
+                                <p className="text-[10px] sm:text-[11px] font-bold text-white uppercase tracking-wider">Stok perlu dicek</p>
+                                <h3 className="text-xl sm:text-[30px] font-heading font-extrabold text-accentYellow mt-1">{lowStockAlerts.length}</h3>
                             </div>
-                            <FiPackage className="hidden text-primary shrink-0 sm:block" size={18} />
+                            <FiPackage className="hidden text-white shrink-0 sm:block" size={18} />
                         </div>
+                        <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-1.5 bg-accentYellow" />
                     </Link>
                 </div>
 
@@ -316,15 +330,15 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                     <div className="contents">
                         
                         {/* Section A: Produk Terlaris */}
-                        <div className="col-span-12 xl:col-span-4 order-4 h-[280px] min-h-0 flex flex-col bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-xl border border-slate-300 dark:border-slate-800 shadow-xs">
-                            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2 mb-1.5 shrink-0">
-                                <h3 className="font-bold text-primaryDark dark:text-white text-sm flex items-center gap-2">
-                                    <FiTrendingUp className="text-primary dark:text-yellow-400" size={16} />
+                        <div className="col-span-12 xl:col-span-4 order-4 h-[280px] min-h-0 flex flex-col overflow-hidden bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-800 shadow-xs">
+                            <div className="flex shrink-0 items-center justify-between bg-primary px-4 py-3 sm:px-5">
+                                <h3 className="font-bold text-white text-sm flex items-center gap-2">
+                                    <FiTrendingUp className="text-white" size={16} />
                                     <span>Produk terlaris</span>
                                 </h3>
                             </div>
                             
-                            <div className="min-h-0 flex-1 overflow-y-auto pr-1 space-y-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600" role="region" aria-label={`Produk terlaris ${periodLabel}`} tabIndex={0}>
+                            <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-3 pt-1 sm:px-5 space-y-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600" role="region" aria-label={`Produk terlaris ${periodLabel}`} tabIndex={0}>
                                 {topSellingMenu.length > 0 ? (
                                     topSellingMenu.map((item, idx) => (
                                         <div key={idx} className="flex items-center justify-between gap-3 py-2 border-b border-slate-100 dark:border-slate-800 last:border-none">
@@ -344,36 +358,38 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                         </div>
 
                         {/* Section B: Peringatan Stok Minimum */}
-                        <div className="col-span-12 xl:col-span-4 order-1 xl:order-2 bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-xl border border-slate-300 dark:border-slate-800 shadow-xs">
-                            <div className="flex items-center justify-between gap-3 pb-2 border-b border-slate-100 dark:border-slate-800">
-                                <h3 className="font-bold text-primaryDark dark:text-white text-sm">Stok perlu dicek</h3>
+                        <div className="col-span-12 xl:col-span-4 order-1 xl:order-2 flex h-[280px] min-h-0 flex-col overflow-hidden bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-800 shadow-xs xl:h-auto xl:self-stretch">
+                            <div className="flex items-center justify-between gap-3 bg-primary px-4 py-3 sm:px-5">
+                                <h3 className="font-bold text-white text-sm">Stok perlu dicek</h3>
                             </div>
                             
-                            <div className="space-y-1.5">
-                                {lowStockAlerts.length > 0 ? (
-                                    lowStockAlerts.slice(0, 3).map((stock, idx) => (
-                                        <div key={idx} className="flex items-center justify-between gap-3 py-2 border-b border-slate-100 dark:border-slate-800 last:border-none text-xs">
-                                            <div className="min-w-0">
-                                                <span className="font-semibold text-slate-900 dark:text-slate-100 block truncate">{stock.name}</span>
-                                                {stock.status !== 'Critical' && <span className="text-xs text-slate-500 dark:text-slate-400">{stock.left}</span>}
+                            <div className="flex min-h-0 flex-1 flex-col p-4 sm:p-5">
+                                <div className="min-h-0 flex-1 space-y-1.5 overflow-y-auto pr-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary" role="region" aria-label={`Stok perlu dicek, ${lowStockAlerts.length} produk`} tabIndex={0}>
+                                    {lowStockAlerts.length > 0 ? (
+                                        lowStockAlerts.map((stock, idx) => (
+                                            <div key={idx} className="flex items-center justify-between gap-3 py-2 border-b border-slate-100 dark:border-slate-800 last:border-none text-xs">
+                                                <div className="min-w-0">
+                                                    <span className="font-semibold text-slate-900 dark:text-slate-100 block truncate">{stock.name}</span>
+                                                    {stock.status !== 'Critical' && <span className="text-xs text-slate-500 dark:text-slate-400">{stock.left}</span>}
+                                                </div>
+                                                <span className={`font-semibold shrink-0 ${stock.status === 'Critical' ? 'text-rose-700 dark:text-rose-400' : 'text-accentYellow'}`}>
+                                                    {stock.status === 'Critical' ? 'Habis' : 'Menipis'}
+                                                </span>
                                             </div>
-                                            <span className={`font-semibold shrink-0 ${stock.status === 'Critical' ? 'text-rose-700 dark:text-rose-400' : 'text-accentYellow'}`}>
-                                                {stock.status === 'Critical' ? 'Habis' : 'Menipis'}
-                                            </span>
+                                        ))
+                                    ) : (
+                                        <div className="text-xs text-slate-600 dark:text-slate-300 flex items-center gap-2">
+                                            <FiCheckCircle size={16} className="text-emerald-600 shrink-0" />
+                                            <span>Belum ada produk di bawah batas minimum.</span>
                                         </div>
-                                    ))
-                                ) : (
-                                    <div className="text-xs text-slate-600 dark:text-slate-300 flex items-center gap-2">
-                                        <FiCheckCircle size={16} className="text-emerald-600 shrink-0" />
-                                        <span>Belum ada produk di bawah batas minimum.</span>
-                                    </div>
+                                    )}
+                                </div>
+                                {lowStockAlerts.length > 3 && (
+                                    <Link href={route('products.index')} className="mt-2 shrink-0 text-xs font-bold text-primary dark:text-yellow-400">
+                                        Lihat produk <FiArrowRight className="inline" />
+                                    </Link>
                                 )}
                             </div>
-                            {lowStockAlerts.length > 3 && (
-                                <Link href={route('products.index')} className="inline-block mt-2 text-xs font-bold text-primary dark:text-yellow-400">
-                                    Lihat produk <FiArrowRight className="inline" />
-                                </Link>
-                            )}
                         </div>
 
                     </div>
@@ -381,9 +397,9 @@ export default function Dashboard({ stats = {}, filters = {} }) {
 
                 {/* Pesanan terbaru tampil sebelum grafik */}
                 <div className="col-span-12 xl:col-span-8 order-2 xl:order-1 bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-800 shadow-xs overflow-hidden transition-colors">
-                    <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/80 dark:bg-slate-800/50">
-                        <h3 className="font-extrabold text-primaryDark dark:text-white text-sm sm:text-base">Pesanan terbaru</h3>
-                        <Link href={route('orders.index')} className="text-xs font-bold text-primary dark:text-yellow-400 hover:text-primaryDark flex items-center gap-1.5">
+                    <div className="flex items-center justify-between bg-primary p-4">
+                        <h3 className="font-extrabold text-white text-sm sm:text-base">Pesanan terbaru</h3>
+                        <Link href={route('orders.index')} className="text-xs font-bold text-white hover:text-accentYellow flex items-center gap-1.5">
                             <span>Lihat semua</span>
                             <FiArrowRight className="w-4 h-4" strokeWidth={2.5} />
                         </Link>

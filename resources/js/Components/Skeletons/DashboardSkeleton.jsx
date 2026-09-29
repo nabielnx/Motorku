@@ -15,17 +15,18 @@ export default function DashboardSkeleton() {
 
             <div className="col-span-12 grid grid-cols-2 gap-2 sm:gap-4 xl:grid-cols-4">
                 {Array.from({ length: 4 }).map((_, i) => (
-                    <div key={i} className={`${panel} p-3 sm:p-4`}>
+                    <div key={i} className="relative overflow-hidden rounded-xl bg-primary p-3 sm:p-4">
                         <div className="flex items-start justify-between gap-2">
-                            <div className="min-w-0 space-y-2"><Skeleton className="h-3 w-24 sm:w-28" /><Skeleton className="h-6 w-16 sm:h-8 sm:w-32" /></div>
-                            <Skeleton className="hidden h-5 w-5 sm:block" />
+                            <div className="min-w-0 space-y-2"><Skeleton className="h-3 w-24 !bg-white sm:w-28" /><Skeleton className="h-6 w-16 !bg-accentYellow sm:h-8 sm:w-32" /></div>
+                            <Skeleton className="hidden h-5 w-5 !bg-white sm:block" />
                         </div>
+                        <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-1.5 bg-accentYellow" />
                     </div>
                 ))}
             </div>
 
             <div className={`${panel} col-span-12 order-2 overflow-hidden xl:order-1 xl:col-span-8`}>
-                <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-800"><Skeleton className="h-5 w-32" /><Skeleton className="h-4 w-20" /></div>
+                <div className="flex items-center justify-between bg-primary p-4"><Skeleton className="h-5 w-32 !bg-white" /><Skeleton className="h-4 w-20 !bg-white" /></div>
                 <div className="divide-y divide-slate-100 sm:hidden dark:divide-slate-800">
                     {Array.from({ length: 5 }).map((_, i) => <div key={i} className="flex justify-between gap-3 px-4 py-3"><div className="space-y-2"><Skeleton className="h-3 w-32" /><Skeleton className="h-3 w-24" /><Skeleton className="h-2.5 w-20" /></div><div className="space-y-2"><Skeleton className="ml-auto h-3 w-20" /><Skeleton className="ml-auto h-3 w-12" /></div></div>)}
                 </div>
@@ -37,10 +38,14 @@ export default function DashboardSkeleton() {
                 </div>
             </div>
 
-            <div className={`${panel} col-span-12 order-1 p-4 sm:p-5 xl:order-2 xl:col-span-4`}>
-                <Skeleton className="mb-3 h-4 w-32" />
-                {Array.from({ length: 3 }).map((_, i) => <div key={i} className="flex justify-between gap-3 border-t border-slate-100 py-2 dark:border-slate-800"><Skeleton className="h-3 w-3/4" /><Skeleton className="h-3 w-12" /></div>)}
-                <Skeleton className="mt-2 h-3 w-20" />
+            <div className={`${panel} col-span-12 order-1 flex h-[280px] min-h-0 flex-col overflow-hidden xl:order-2 xl:col-span-4 xl:h-auto xl:self-stretch`}>
+                <div className="bg-primary px-4 py-3 sm:px-5"><Skeleton className="h-4 w-32 !bg-white" /></div>
+                <div className="flex min-h-0 flex-1 flex-col p-4 sm:p-5">
+                    <div className="min-h-0 flex-1 overflow-hidden">
+                        {Array.from({ length: 5 }).map((_, i) => <div key={i} className="flex justify-between gap-3 border-t border-slate-100 py-2 dark:border-slate-800"><Skeleton className="h-3 w-3/4" /><Skeleton className="h-3 w-12" /></div>)}
+                    </div>
+                    <Skeleton className="mt-2 h-3 w-20 shrink-0" />
+                </div>
             </div>
 
             <div className={`${panel} col-span-12 order-3 flex h-[280px] flex-col p-5 sm:p-6 xl:col-span-8`}>
@@ -49,9 +54,11 @@ export default function DashboardSkeleton() {
                 <div className="flex justify-between gap-3 pl-10 pt-3">{Array.from({ length: 7 }).map((_, i) => <Skeleton key={i} className="h-2 w-8" />)}</div>
             </div>
 
-            <div className={`${panel} col-span-12 order-4 h-[280px] p-4 sm:p-5 xl:col-span-4`}>
-                <Skeleton className="mb-3 h-4 w-32" />
-                {Array.from({ length: 5 }).map((_, i) => <div key={i} className="flex items-center justify-between gap-3 border-t border-slate-100 py-2.5 dark:border-slate-800"><div className="flex flex-1 items-center gap-2"><Skeleton className="h-3 w-5" /><Skeleton className="h-3 w-3/4" /></div><Skeleton className="h-3 w-16" /></div>)}
+            <div className={`${panel} col-span-12 order-4 h-[280px] overflow-hidden xl:col-span-4`}>
+                <div className="bg-primary px-4 py-3 sm:px-5"><Skeleton className="h-4 w-32 !bg-white" /></div>
+                <div className="px-4 pb-3 pt-1 sm:px-5">
+                    {Array.from({ length: 5 }).map((_, i) => <div key={i} className="flex items-center justify-between gap-3 border-t border-slate-100 py-2.5 dark:border-slate-800"><div className="flex flex-1 items-center gap-2"><Skeleton className="h-3 w-5" /><Skeleton className="h-3 w-3/4" /></div><Skeleton className="h-3 w-16" /></div>)}
+                </div>
             </div>
         </SkeletonWrapper>
     );
