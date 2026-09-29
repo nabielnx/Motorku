@@ -3,7 +3,6 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import DateRangePicker from '@/Components/DateRangePicker';
 import DashboardSkeleton from '@/Components/Skeletons/DashboardSkeleton';
 import { Head, Link, router } from '@inertiajs/react';
-import axios from 'axios';
 import { recentOrderStatus } from './recentOrderStatus';
 import { 
     FiTrendingUp, 
@@ -14,9 +13,7 @@ import {
     FiClock, 
     FiCheckCircle, 
     FiArrowRight,
-    FiChevronDown,
-    FiChevronLeft,
-    FiChevronRight
+    FiChevronDown
 } from 'react-icons/fi';
 
 export default function Dashboard({ stats = {}, filters = {} }) {
@@ -91,42 +88,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
         0
     ];
 
-    // Server-side Paginator for Transaksi Terakhir
-    const extractPaginator = (rawOrders) => {
-        if (rawOrders && typeof rawOrders === 'object' && !Array.isArray(rawOrders) && Array.isArray(rawOrders.data)) {
-            return rawOrders;
-        }
-        const list = Array.isArray(rawOrders) ? rawOrders : [];
-        return { data: list, current_page: 1, last_page: 1, total: list.length, per_page: 7 };
-    };
-
-    const [ordersPaginator, setOrdersPaginator] = useState(() => extractPaginator(stats.recent_orders));
-    const [isFetchingOrders, setIsFetchingOrders] = useState(false);
-
-    useEffect(() => {
-        setOrdersPaginator(extractPaginator(stats.recent_orders));
-    }, [stats.recent_orders]);
-
-    const fetchOrdersPage = async (page) => {
-        if (page < 1 || page > (ordersPaginator.last_page || 1)) return;
-        setIsFetchingOrders(true);
-        try {
-            const res = await axios.get('/api/dashboard/recent-orders', {
-                params: { page, per_page: 7, period: currentPeriod, start_date: startDate, end_date: endDate }
-            });
-            setOrdersPaginator(res.data);
-        } catch {
-            /* silent fallback */
-        } finally {
-            setIsFetchingOrders(false);
-        }
-    };
-
-    const paginatedOrders = ordersPaginator.data || [];
-    const currentPage = ordersPaginator.current_page || 1;
-    const totalPages = ordersPaginator.last_page || 1;
-    const totalOrdersCount = ordersPaginator.total || paginatedOrders.length;
-    const perPage = ordersPaginator.per_page || 7;
+    const recentOrders = stats.recent_orders || [];
 
     const formatRp = (val) => `Rp ${val.toLocaleString('id-ID')}`;
 
@@ -231,7 +193,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                         <div className="flex items-start justify-between gap-2">
                             <div>
                                 <p className="text-[10px] sm:text-[11px] font-bold text-white uppercase tracking-wider">Stok perlu dicek</p>
-                                <h3 className="text-xl sm:text-[30px] font-heading font-extrabold text-accentYellow mt-1">{lowStockAlerts.length}</h3>
+                                <h3 className="text-xl sm:text-[30px] font-heading font-extrabold text-accentYellow mt-1">{stats.low_stock_count ?? lowStockAlerts.length}</h3>
                             </div>
                             <FiPackage className="hidden text-white shrink-0 sm:block" size={18} />
                         </div>
@@ -338,7 +300,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                                 </h3>
                             </div>
                             
-                            <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-3 pt-1 sm:px-5 space-y-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600" role="region" aria-label={`Produk terlaris ${periodLabel}`} tabIndex={0}>
+                            <div className="no-scrollbar min-h-0 flex-1 overflow-y-auto px-4 pb-3 pt-1 sm:px-5 space-y-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600" role="region" aria-label={`Produk terlaris ${periodLabel}`} tabIndex={0}>
                                 {topSellingMenu.length > 0 ? (
                                     topSellingMenu.map((item, idx) => (
                                         <div key={idx} className="flex items-center justify-between gap-3 py-2 border-b border-slate-100 dark:border-slate-800 last:border-none">
@@ -398,8 +360,8 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                 </div>
 
                 {/* Pesanan terbaru tampil sebelum grafik */}
-                <div className="col-span-12 xl:col-span-8 order-2 xl:order-1 bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-800 shadow-xs overflow-hidden transition-colors">
-                    <div className="flex items-center justify-between bg-primary px-4 py-3 sm:px-5">
+                <div className="col-span-12 xl:col-span-8 order-2 xl:order-1 flex h-[390px] min-h-0 flex-col bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-800 shadow-xs overflow-hidden transition-colors">
+                    <div className="flex shrink-0 items-center justify-between bg-primary px-4 py-3 sm:px-5">
                         <h3 className="font-bold text-white text-sm">Pesanan terbaru</h3>
                         <Link href={route('orders.index')} className="text-xs font-bold text-white hover:text-accentYellow flex items-center gap-1.5">
                             <span>Lihat semua</span>
@@ -407,8 +369,8 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                         </Link>
                     </div>
 
-                    <div className="divide-y divide-slate-100 dark:divide-slate-800 sm:hidden">
-                        {paginatedOrders.length > 0 ? paginatedOrders.map((ord) => (
+                    <div className="min-h-0 flex-1 divide-y divide-slate-100 overflow-y-auto dark:divide-slate-800 sm:hidden" role="region" aria-label={`Pesanan terbaru ${periodLabel}`} tabIndex={0}>
+                        {recentOrders.length > 0 ? recentOrders.map((ord) => (
                             <div key={ord.id} className="flex items-start justify-between gap-3 px-4 py-3 text-xs">
                                 <div className="min-w-0">
                                     <p className="truncate font-mono font-bold text-slate-900 dark:text-white">{formatInvoiceNumber(ord)}</p>
@@ -424,7 +386,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                     </div>
 
                     {/* Table Container with Internal Scroll */}
-                    <div className="hidden max-h-[320px] overflow-auto sm:block">
+                    <div className="hidden min-h-0 flex-1 overflow-auto sm:block" role="region" aria-label={`Pesanan terbaru ${periodLabel}`} tabIndex={0}>
                         <table className="w-full min-w-[650px] text-left text-xs">
                             <thead className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-[10px] uppercase border-b border-slate-200 dark:border-slate-800 sticky top-0 z-10">
                                 <tr>
@@ -436,8 +398,8 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-200 dark:divide-slate-800 font-semibold text-slate-700 dark:text-slate-300">
-                                {paginatedOrders.length > 0 ? (
-                                    paginatedOrders.map((ord) => {
+                                {recentOrders.length > 0 ? (
+                                    recentOrders.map((ord) => {
                                         const formattedInv = formatInvoiceNumber(ord);
                                         return (
                                             <tr key={ord.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
@@ -470,40 +432,6 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                         </table>
                     </div>
 
-                    {/* Table Pagination Footer */}
-                    {totalPages > 1 && (
-                        <div className="p-3 bg-slate-50 dark:bg-slate-800/60 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs font-semibold text-slate-600 dark:text-slate-400">
-                            <span>
-                                {((currentPage - 1) * perPage) + 1}–{Math.min(currentPage * perPage, totalOrdersCount)} dari {totalOrdersCount}
-                            </span>
-
-                            <div className="flex items-center space-x-1.5">
-                                <button
-                                    onClick={() => fetchOrdersPage(currentPage - 1)}
-                                    aria-label="Halaman pesanan sebelumnya"
-                                    disabled={currentPage === 1 || isFetchingOrders}
-                                    className="px-3 py-1 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 disabled:hover:bg-white border border-slate-300 dark:border-slate-700 rounded-lg font-bold text-slate-700 dark:text-slate-200 transition flex items-center gap-1 shadow-2xs"
-                                >
-                                    <FiChevronLeft size={14} strokeWidth={2.5} />
-                                    <span className="hidden sm:inline">Sebelumnya</span>
-                                </button>
-                                
-                                <span className="px-3 py-1 bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg font-bold text-slate-800 dark:text-slate-200 text-[11px]">
-                                    {currentPage} / {totalPages}
-                                </span>
-
-                                <button
-                                    onClick={() => fetchOrdersPage(currentPage + 1)}
-                                    aria-label="Halaman pesanan berikutnya"
-                                    disabled={currentPage === totalPages || isFetchingOrders}
-                                    className="px-3 py-1 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 disabled:hover:bg-white border border-slate-300 dark:border-slate-700 rounded-lg font-bold text-slate-700 dark:text-slate-200 transition flex items-center gap-1 shadow-2xs"
-                                >
-                                    <span className="hidden sm:inline">Selanjutnya</span>
-                                    <FiChevronRight size={14} strokeWidth={2.5} />
-                                </button>
-                            </div>
-                        </div>
-                    )}
                 </div>
 
             </div>}
