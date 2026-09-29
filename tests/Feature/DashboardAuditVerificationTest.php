@@ -151,26 +151,37 @@ class DashboardAuditVerificationTest extends TestCase
         $this->assertSame('Perlu Kulak', $alerts[0]['name']);
     }
 
-    public function test_dashboard_returns_all_best_selling_products_for_scrolling(): void
+    public function test_dashboard_limits_stock_list_to_fifteen_but_keeps_total_count(): void
+    {
+        $category = Category::factory()->create();
+        Product::factory()->count(16)->create(['category_id' => $category->id, 'stock' => 0, 'minimum_stock' => 5]);
+
+        $stats = app(DashboardService::class)->getDashboardStats();
+
+        $this->assertCount(15, $stats['low_stock']);
+        $this->assertSame(16, $stats['low_stock_count']);
+    }
+
+    public function test_dashboard_returns_fifteen_best_selling_products_for_scrolling(): void
     {
         $order = Order::factory()->create(['order_status' => 'completed', 'payment_status' => 'paid']);
         Payment::factory()->create(['order_id' => $order->id, 'paid_at' => now()]);
         $category = Category::factory()->create();
 
-        for ($rank = 1; $rank <= 11; $rank++) {
+        for ($rank = 1; $rank <= 16; $rank++) {
             $product = Product::factory()->create(['category_id' => $category->id, 'name' => "Produk $rank"]);
             OrderItem::factory()->create([
                 'order_id' => $order->id,
                 'product_id' => $product->id,
-                'quantity' => 12 - $rank,
+                'quantity' => 17 - $rank,
             ]);
         }
 
         $topSelling = app(DashboardService::class)->getDashboardStats()['top_selling'];
 
-        $this->assertCount(11, $topSelling);
+        $this->assertCount(15, $topSelling);
         $this->assertSame('Produk 1', $topSelling[0]['name']);
-        $this->assertSame('Produk 11', $topSelling[10]['name']);
+        $this->assertSame('Produk 15', $topSelling[14]['name']);
     }
 
     public function test_daily_chart_marks_only_the_current_day(): void
