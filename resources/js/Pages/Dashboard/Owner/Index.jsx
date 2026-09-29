@@ -363,7 +363,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                                 <h3 className="font-bold text-white text-sm">Stok perlu dicek</h3>
                             </div>
                             
-                            <div className="flex min-h-0 flex-1 flex-col p-4 sm:p-5">
+                            <div className="flex min-h-0 flex-1 flex-col p-4 sm:p-5 xl:py-3">
                                 <div className="min-h-0 flex-1 space-y-1.5 overflow-y-auto pr-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary" role="region" aria-label={`Stok perlu dicek, ${lowStockAlerts.length} produk`} tabIndex={0}>
                                     {lowStockAlerts.length > 0 ? (
                                         lowStockAlerts.map((stock, idx) => (
@@ -396,7 +396,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                 </div>
 
                 {/* Pesanan terbaru tampil sebelum grafik */}
-                <div className="col-span-12 xl:col-span-8 order-2 xl:order-1 bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-800 shadow-xs overflow-hidden transition-colors xl:flex xl:flex-col xl:self-stretch">
+                <div className="col-span-12 xl:col-span-8 order-2 xl:order-1 bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-800 shadow-xs overflow-hidden transition-colors">
                     <div className="flex items-center justify-between bg-primary px-4 py-3 sm:px-5">
                         <h3 className="font-bold text-white text-sm">Pesanan terbaru</h3>
                         <Link href={route('orders.index')} className="text-xs font-bold text-white hover:text-accentYellow flex items-center gap-1.5">
@@ -470,7 +470,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
 
                     {/* Table Pagination Footer */}
                     {totalPages > 1 && (
-                        <div className="p-3 bg-slate-50 dark:bg-slate-800/60 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs font-semibold text-slate-600 dark:text-slate-400 xl:mt-auto">
+                        <div className="p-3 bg-slate-50 dark:bg-slate-800/60 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs font-semibold text-slate-600 dark:text-slate-400">
                             <span>
                                 {((currentPage - 1) * perPage) + 1}–{Math.min(currentPage * perPage, totalOrdersCount)} dari {totalOrdersCount}
                             </span>

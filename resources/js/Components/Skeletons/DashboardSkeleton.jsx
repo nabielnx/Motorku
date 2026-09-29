@@ -25,7 +25,7 @@ export default function DashboardSkeleton() {
                 ))}
             </div>
 
-            <div className={`${panel} col-span-12 order-2 overflow-hidden xl:order-1 xl:col-span-8 xl:flex xl:flex-col xl:self-stretch`}>
+            <div className={`${panel} col-span-12 order-2 overflow-hidden xl:order-1 xl:col-span-8`}>
                 <div className="flex items-center justify-between bg-primary px-4 py-3 sm:px-5"><Skeleton className="h-5 w-32 !bg-white" /><Skeleton className="h-4 w-20 !bg-white" /></div>
                 <div className="divide-y divide-slate-100 sm:hidden dark:divide-slate-800">
                     {Array.from({ length: 7 }).map((_, i) => <div key={i} className="flex justify-between gap-3 px-4 py-3"><div className="space-y-2"><Skeleton className="h-3 w-32" /><Skeleton className="h-3 w-24" /><Skeleton className="h-2.5 w-20" /></div><div className="space-y-2"><Skeleton className="ml-auto h-3 w-20" /><Skeleton className="ml-auto h-3 w-12" /></div></div>)}
@@ -40,7 +40,7 @@ export default function DashboardSkeleton() {
 
             <div className={`${panel} col-span-12 order-1 flex h-[280px] min-h-0 flex-col overflow-hidden xl:order-2 xl:col-span-4 xl:h-auto xl:self-stretch`}>
                 <div className="bg-primary px-4 py-3 sm:px-5"><Skeleton className="h-4 w-32 !bg-white" /></div>
-                <div className="flex min-h-0 flex-1 flex-col p-4 sm:p-5">
+                <div className="flex min-h-0 flex-1 flex-col p-4 sm:p-5 xl:py-3">
                     <div className="min-h-0 flex-1 overflow-hidden">
                         {Array.from({ length: 5 }).map((_, i) => <div key={i} className="flex justify-between gap-3 border-t border-slate-100 py-2 dark:border-slate-800"><Skeleton className="h-3 w-3/4" /><Skeleton className="h-3 w-12" /></div>)}
                     </div>
