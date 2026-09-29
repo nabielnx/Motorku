@@ -150,7 +150,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                 <meta name="description" content="Ringkasan performa penjualan, total pendapatan, statistik pesanan, dan produk terlaris toko Motorku." />
             </Head>
 
-            {isNavigating ? <DashboardSkeleton /> : <div className="grid w-full grid-cols-12 items-start gap-3 sm:gap-4 xl:-mt-2">
+            {isNavigating ? <DashboardSkeleton /> : <div className="grid w-full grid-cols-12 items-start gap-3 sm:gap-4 xl:-mt-4">
                 
                 {/* Header Filter Periode */}
                 <div className="col-span-12 flex flex-col justify-between gap-2 sm:flex-row sm:items-center sm:gap-3">
