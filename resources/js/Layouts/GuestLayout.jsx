@@ -1,14 +1,16 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 
 export default function Guest({ children }) {
+    const { login_image_url } = usePage().props;
+
     return (
         <div className="min-h-screen flex bg-white font-sans overflow-hidden">
             
-            {/* KIRI: Area Gambar Sparepart Workshop */}
+            {/* KIRI: Area Gambar Sparepart Workshop / Custom Login Background */}
             <div className="hidden lg:block lg:w-1/2 relative bg-gray-900 overflow-hidden h-screen">
                 <img 
-                    src="https://images.unsplash.com/photo-1486006920555-c77dce18193b?q=80&w=1200&auto=format&fit=crop" 
+                    src={login_image_url || "https://images.unsplash.com/photo-1486006920555-c77dce18193b?q=80&w=1200&auto=format&fit=crop"} 
                     alt="Motorku"
                     className="absolute inset-0 w-full h-full object-cover opacity-80"
                 />
