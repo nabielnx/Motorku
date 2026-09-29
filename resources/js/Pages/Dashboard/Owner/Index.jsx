@@ -357,12 +357,12 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                                 <h3 className="font-bold text-white text-sm">Stok perlu dicek</h3>
                             </div>
                             
-                            <div className="flex min-h-0 flex-1 flex-col p-4 sm:p-5 xl:py-3">
+                            <div className="flex min-h-0 flex-1 flex-col py-4 sm:py-5 xl:py-3 pl-4 sm:pl-5">
                                 <div className="relative min-h-0 flex-1">
                                     <div className="custom-scrollbar absolute inset-0 space-y-1.5 overflow-y-auto pr-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary" role="region" aria-label={`Stok perlu dicek, ${lowStockAlerts.length} produk`} tabIndex={0}>
                                         {lowStockAlerts.length > 0 ? (
                                             lowStockAlerts.map((stock, idx) => (
-                                                <div key={idx} className="flex items-center justify-between gap-3 py-2 border-b border-slate-100 dark:border-slate-800 last:border-none text-xs">
+                                                <div key={idx} className="flex items-center justify-between gap-3 py-2 pr-3 border-b border-slate-100 dark:border-slate-800 last:border-none text-xs">
                                                     <div className="min-w-0">
                                                         <span className="font-semibold text-slate-900 dark:text-slate-100 block truncate">{stock.name}</span>
                                                         {stock.status !== 'Critical' && <span className="text-xs text-slate-500 dark:text-slate-400">{stock.left}</span>}
@@ -373,7 +373,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                                                 </div>
                                             ))
                                         ) : (
-                                            <div className="text-xs text-slate-600 dark:text-slate-300 flex items-center gap-2">
+                                            <div className="text-xs text-slate-600 dark:text-slate-300 flex items-center gap-2 pr-3">
                                                 <FiCheckCircle size={16} className="text-emerald-600 shrink-0" />
                                                 <span>Belum ada produk di bawah batas minimum.</span>
                                             </div>
@@ -381,7 +381,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                                     </div>
                                 </div>
                                 {lowStockAlerts.length > 3 && (
-                                    <Link href={route('products.index')} className="mt-2 shrink-0 text-xs font-bold text-primary dark:text-yellow-400">
+                                    <Link href={route('products.index')} className="mt-2 shrink-0 text-xs font-bold text-primary dark:text-yellow-400 pr-4 sm:pr-5">
                                         Lihat produk <FiArrowRight className="inline" />
                                     </Link>
                                 )}
