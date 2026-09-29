@@ -3,6 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import ProductTableSkeleton from '@/Components/Skeletons/ProductTableSkeleton';
 import { Head, router, usePage } from '@inertiajs/react';
 import { getProductImage } from '@/Utils/productImage';
+import { ProductPhoto } from '@/Components/Customer/Storefront';
 import { getTranslation } from '@/i18n/translations';
 import axios from 'axios';
 import { toast } from 'sonner';
@@ -828,10 +829,10 @@ export default function MenuManagement({
                                                         <button
                                                             type="button"
                                                             onClick={() => setPreviewProduct(item)}
-                                                            className="w-11 h-11 shrink-0 rounded-md bg-slate-50 dark:bg-slate-800 overflow-hidden flex items-center justify-center text-slate-300 dark:text-slate-600"
+                                                            className="w-11 h-11 shrink-0 rounded-md overflow-hidden"
                                                             aria-label={`Lihat foto ${item.name}`}
                                                         >
-                                                            {item.image ? <img src={item.image} alt="" className="w-full h-full object-contain" /> : <FiPackage size={18} />}
+                                                            <ProductPhoto src={item.image} name={item.name} category={item.category} className="w-full h-full" compact />
                                                         </button>
                                                         <button type="button" onClick={() => toggleRowExpand(item.id)} className="min-w-0 flex-1 text-left" aria-expanded={isExpanded}>
                                                             <span className="block line-clamp-2 text-xs font-bold leading-snug text-slate-900 dark:text-white">{item.name}</span>
@@ -874,17 +875,10 @@ export default function MenuManagement({
                                             <div key={item.id} className="bg-white dark:bg-slate-800 rounded-md md:rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden md:shadow-xs hover:shadow-md hover:border-slate-400 dark:hover:border-slate-500 transition-all flex flex-col relative group">
                                                 {/* Image Container */}
                                                 <div
-                                                    className={`relative w-full bg-slate-50 dark:bg-slate-900 cursor-pointer overflow-hidden border-b border-slate-100 dark:border-slate-700 ${item.image ? 'aspect-[4/3]' : 'h-28 sm:h-32'}`}
+                                                    className="relative w-full aspect-[4/3] bg-slate-50 dark:bg-slate-900 cursor-pointer overflow-hidden border-b border-slate-100 dark:border-slate-700"
                                                     onClick={(e) => { e.stopPropagation(); setPreviewProduct(item); }}
                                                 >
-                                                    {item.image ? (
-                                                        <img src={item.image} alt={item.name} loading="lazy" className="absolute inset-0 w-full h-full object-cover" />
-                                                    ) : (
-                                                        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-slate-400 dark:text-slate-500">
-                                                            <FiPackage size={28} aria-hidden="true" />
-                                                            <span className="text-[10px] font-semibold">Foto belum ada</span>
-                                                        </div>
-                                                    )}
+                                                    <ProductPhoto src={item.image} name={item.name} category={item.category} className="absolute inset-0 w-full h-full" />
 
                                                     {/* Badges on Image */}
                                                     <div className="absolute top-2 left-2 flex flex-col gap-1.5 items-start z-10 pointer-events-none">
@@ -1017,14 +1011,10 @@ export default function MenuManagement({
                                                                     {/* Product Image Thumbnail - Clickable for Lightbox */}
                                                                     <button type="button"
                                                                         onClick={(e) => { e.stopPropagation(); setPreviewProduct(item); }}
-                                                                        className="w-10 h-10 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 overflow-hidden shrink-0 cursor-pointer hover:border-slate-400 transition flex items-center justify-center text-slate-300 dark:text-slate-600"
+                                                                        className="w-10 h-10 rounded-md border border-slate-200 dark:border-slate-700 overflow-hidden shrink-0 cursor-pointer hover:border-slate-400 transition"
                                                                         title={item.image ? 'Lihat foto produk' : 'Foto belum ada'}
                                                                     >
-                                                                        {item.image ? (
-                                                                            <img src={item.image} alt={item.name} className="w-full h-full object-contain p-0.5" />
-                                                                        ) : (
-                                                                            <FiPackage size={17} className="opacity-50" />
-                                                                        )}
+                                                                        <ProductPhoto src={item.image} name={item.name} category={item.category} className="w-full h-full" compact />
                                                                     </button>
 
                                                                     {/* Name and subtitle */}
@@ -1121,14 +1111,10 @@ export default function MenuManagement({
                                                                         {/* Product Image in Accordion */}
                                                                         <div 
                                                                             onClick={() => setPreviewProduct(item)}
-                                                                            className="w-24 h-24 rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 overflow-hidden flex items-center justify-center cursor-pointer hover:border-slate-400 transition shrink-0 shadow-2xs text-slate-300 dark:text-slate-600"
+                                                                            className="w-24 h-24 rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden cursor-pointer hover:border-slate-400 transition shrink-0 shadow-2xs"
                                                                             title="Klik untuk melihat foto resolusi penuh"
                                                                         >
-                                                                            {item.image ? (
-                                                                                <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
-                                                                            ) : (
-                                                                                <FiPackage size={36} className="opacity-50" />
-                                                                            )}
+                                                                            <ProductPhoto src={item.image} name={item.name} category={item.category} className="w-full h-full" />
                                                                         </div>
 
                                                                         {/* Details Grid */}
