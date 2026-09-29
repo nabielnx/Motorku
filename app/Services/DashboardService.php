@@ -69,7 +69,6 @@ class DashboardService
             ->whereHas('order', fn ($query) => $query->paidWithinRange($startDate, $endDate))
             ->groupBy('order_items.product_id')
             ->orderByDesc('total_qty')
-            ->take(5)
             ->with('product')
             ->get()
             ->map(function ($item, $index) {
