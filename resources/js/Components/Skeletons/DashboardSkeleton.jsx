@@ -15,10 +15,10 @@ export default function DashboardSkeleton() {
 
             <div className="col-span-12 grid grid-cols-2 gap-2 sm:gap-4 xl:grid-cols-4">
                 {Array.from({ length: 4 }).map((_, i) => (
-                    <div key={i} className="relative overflow-hidden rounded-xl bg-primary p-3 sm:p-4">
+                    <div key={i} className="relative overflow-hidden rounded-xl bg-primary px-3 pb-3 pt-2 sm:px-4 sm:pb-4 sm:pt-2.5">
                         <div className="flex items-start justify-between gap-2">
                             <div className="min-w-0 space-y-2"><Skeleton className="h-3 w-24 !bg-white sm:w-28" /><Skeleton className="h-6 w-16 !bg-accentYellow sm:h-8 sm:w-32" /></div>
-                            <Skeleton className="hidden h-5 w-5 !bg-white sm:block" />
+                            <Skeleton className="hidden h-5 w-5 !bg-accentYellow sm:block" />
                         </div>
                         <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-1.5 bg-accentYellow" />
                     </div>

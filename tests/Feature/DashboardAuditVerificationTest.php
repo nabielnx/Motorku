@@ -205,6 +205,7 @@ class DashboardAuditVerificationTest extends TestCase
         $response->assertStatus(200);
         $response->assertInertia(fn ($page) => 
             $page->component('Dashboard/Owner/Index')
+                 ->where('filters.period', 'today')
                  ->has('stats.pending_orders')
         );
     }

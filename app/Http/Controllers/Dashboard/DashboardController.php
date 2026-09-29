@@ -32,7 +32,7 @@ class DashboardController extends Controller implements HasMiddleware
     public function index(Request $request): Response
     {
         $this->validateFilters($request);
-        $period = $request->query('period', '7_days');
+        $period = $request->query('period', 'today');
         $startDate = $request->query('start_date');
         $endDate = $request->query('end_date');
 
@@ -51,7 +51,7 @@ class DashboardController extends Controller implements HasMiddleware
     public function stats(Request $request): JsonResponse
     {
         $this->validateFilters($request);
-        $period = $request->query('period', '7_days');
+        $period = $request->query('period', 'today');
         $startDate = $request->query('start_date');
         $endDate = $request->query('end_date');
 

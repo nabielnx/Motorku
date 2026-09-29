@@ -16,13 +16,14 @@ import {
     FiArrowRight,
     FiChevronDown,
     FiChevronLeft,
-    FiChevronRight
+    FiChevronRight,
+    FiCalendar
 } from 'react-icons/fi';
 
 export default function Dashboard({ stats = {}, filters = {} }) {
 
     const [isNavigating, setIsNavigating] = useState(false);
-    const [isRevenueVisible, setIsRevenueVisible] = useState(true);
+    const [isRevenueVisible, setIsRevenueVisible] = useState(false);
 
     useEffect(() => {
         const removeStart = router.on('start', (event) => {
@@ -41,7 +42,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
         return () => { removeStart(); removeFinish(); };
     }, []);
 
-    const currentPeriod = filters.period || '7_days';
+    const currentPeriod = filters.period || 'today';
     const [startDate, setStartDate] = useState(filters.start_date || '');
     const [endDate, setEndDate] = useState(filters.end_date || '');
 
@@ -152,11 +153,12 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                     <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
                         {/* Preset Select Dropdown */}
                         <div className="relative min-w-0 w-full sm:w-auto">
+                            <FiCalendar aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-accentYellow" size={15} />
                             <select
                                 value={currentPeriod === 'custom' ? '' : currentPeriod}
                                 onChange={handlePeriodChange}
                                 aria-label="Pilih periode dashboard"
-                                className="w-full appearance-none rounded-xl border border-primary bg-primary py-2 pl-3 pr-8 text-xs font-bold text-white shadow-2xs cursor-pointer transition hover:bg-primaryDark focus:outline-none focus:ring-0 focus:border-primaryDark sm:pl-4"
+                                className="w-full appearance-none rounded-xl border border-primary bg-primary py-2 pl-9 pr-8 text-xs font-bold text-white shadow-2xs cursor-pointer transition hover:bg-primaryDark focus:outline-none focus:ring-0 focus:border-primaryDark"
                             >
                                 <option className="bg-white text-slate-900" value="" disabled hidden>Pilihan Cepat...</option>
                                 <option className="bg-white text-slate-900" value="today">Hari Ini</option>
@@ -180,29 +182,29 @@ export default function Dashboard({ stats = {}, filters = {} }) {
 
                 {/* Kondisi saat ini dan penjualan pada periode terpilih */}
                 <div className="col-span-12 grid grid-cols-2 gap-2 sm:gap-4 xl:grid-cols-4">
-                    <Link href={route('orders.index')} className="relative overflow-hidden bg-primary p-3 sm:p-4 rounded-xl hover:bg-primaryDark transition-colors">
+                    <Link href={route('orders.index')} className="relative overflow-hidden bg-primary px-3 pb-3 pt-2 sm:px-4 sm:pb-4 sm:pt-2.5 rounded-xl hover:bg-primaryDark transition-colors">
                         <div className="flex items-start justify-between gap-2">
                             <div>
                                 <p className="text-[10px] sm:text-[11px] font-bold text-white uppercase tracking-wider">Antrean saat ini</p>
-                                <h3 className="text-xl sm:text-[30px] font-heading font-extrabold text-white mt-1">{pendingOrders}</h3>
+                                <h3 className="text-xl sm:text-[30px] font-heading font-extrabold text-white mt-2">{pendingOrders}</h3>
                             </div>
                             <FiClock className="hidden text-accentYellow shrink-0 sm:block" size={18} />
                         </div>
                         <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-1.5 bg-accentYellow" />
                     </Link>
 
-                    <div className="relative overflow-hidden bg-primary p-3 sm:p-4 rounded-xl" title="Pembayaran pada periode terpilih setelah retur">
+                    <div className="relative overflow-hidden bg-primary px-3 pb-3 pt-2 sm:px-4 sm:pb-4 sm:pt-2.5 rounded-xl" title="Pembayaran pada periode terpilih setelah retur">
                         <div className="flex items-start justify-between gap-2">
                             <div>
                                 <p className="pr-8 text-[10px] sm:text-[11px] font-bold text-white uppercase tracking-wider">Penjualan bersih</p>
-                                <h3 className="text-base sm:text-[30px] font-heading font-extrabold text-white mt-1">{isRevenueVisible ? formatRp(revenueToday) : 'Rp ••••••'}</h3>
+                                <h3 className="text-base sm:text-[30px] font-heading font-extrabold text-white mt-2">{isRevenueVisible ? formatRp(revenueToday) : 'Rp ••••••'}</h3>
                             </div>
                             <button
                                 type="button"
                                 onClick={() => setIsRevenueVisible((visible) => !visible)}
                                 aria-label={isRevenueVisible ? 'Sembunyikan penjualan bersih' : 'Tampilkan penjualan bersih'}
                                 title={isRevenueVisible ? 'Sembunyikan nominal' : 'Tampilkan nominal'}
-                                className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-lg text-white hover:text-accentYellow focus-visible:outline focus-visible:outline-2 focus-visible:outline-accentYellow sm:right-3 sm:top-3"
+                                className="absolute right-2 top-0 flex h-8 w-8 items-center justify-center rounded-lg text-accentYellow hover:bg-primaryDark focus-visible:outline focus-visible:outline-2 focus-visible:outline-accentYellow sm:right-3 sm:top-0.5"
                             >
                                 {isRevenueVisible ? <FiEye size={18} /> : <FiEyeOff size={18} />}
                             </button>
@@ -210,22 +212,22 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                         <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-1.5 bg-accentYellow" />
                     </div>
 
-                    <div className="relative overflow-hidden bg-primary p-3 sm:p-4 rounded-xl">
+                    <div className="relative overflow-hidden bg-primary px-3 pb-3 pt-2 sm:px-4 sm:pb-4 sm:pt-2.5 rounded-xl">
                         <div className="flex items-start justify-between gap-2">
                             <div>
                                 <p className="text-[10px] sm:text-[11px] font-bold text-white uppercase tracking-wider">Transaksi lunas</p>
-                                <h3 className="text-xl sm:text-[30px] font-heading font-extrabold text-white mt-1">{ordersToday}</h3>
+                                <h3 className="text-xl sm:text-[30px] font-heading font-extrabold text-white mt-2">{ordersToday}</h3>
                             </div>
                             <FiShoppingBag className="hidden text-accentYellow shrink-0 sm:block" size={18} />
                         </div>
                         <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-1.5 bg-accentYellow" />
                     </div>
 
-                    <Link href={route('products.index')} className="relative overflow-hidden bg-primary p-3 sm:p-4 rounded-xl hover:bg-primaryDark transition-colors">
+                    <Link href={route('products.index')} className="relative overflow-hidden bg-primary px-3 pb-3 pt-2 sm:px-4 sm:pb-4 sm:pt-2.5 rounded-xl hover:bg-primaryDark transition-colors">
                         <div className="flex items-start justify-between gap-2">
                             <div>
                                 <p className="text-[10px] sm:text-[11px] font-bold text-white uppercase tracking-wider">Stok perlu dicek</p>
-                                <h3 className="text-xl sm:text-[30px] font-heading font-extrabold text-white mt-1">{stats.low_stock_count ?? lowStockAlerts.length}</h3>
+                                <h3 className="text-xl sm:text-[30px] font-heading font-extrabold text-white mt-2">{stats.low_stock_count ?? lowStockAlerts.length}</h3>
                             </div>
                             <FiPackage className="hidden text-accentYellow shrink-0 sm:block" size={18} />
                         </div>
