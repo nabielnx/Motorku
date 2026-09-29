@@ -395,7 +395,7 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                                             onClick={() => setIsSidebarOpen(false)}
                                             className={`flex items-center gap-3 -mx-3 px-6 py-2.5 transition-colors font-semibold text-[13px] ${
                                                 item.active 
-                                                    ? 'bg-primary text-[#FFF200] border-l-4 border-[#FFF200] font-bold'
+                                                    ? 'bg-primary text-white border-l-4 border-[#FFF200] font-bold'
                                                     : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white border-l-4 border-transparent'
                                             }`}
                                         >
