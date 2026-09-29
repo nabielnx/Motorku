@@ -25,12 +25,12 @@ export default function DashboardSkeleton() {
                 ))}
             </div>
 
-            <div className={`${panel} col-span-12 order-2 overflow-hidden xl:order-1 xl:col-span-8`}>
-                <div className="flex items-center justify-between bg-primary px-4 py-3 sm:px-5"><Skeleton className="h-5 w-32 !bg-white" /><Skeleton className="h-4 w-20 !bg-white" /></div>
-                <div className="divide-y divide-slate-100 sm:hidden dark:divide-slate-800">
+            <div className={`${panel} col-span-12 order-2 flex h-[390px] min-h-0 flex-col overflow-hidden xl:order-1 xl:col-span-8`}>
+                <div className="flex shrink-0 items-center justify-between bg-primary px-4 py-3 sm:px-5"><Skeleton className="h-5 w-32 !bg-white" /><Skeleton className="h-4 w-20 !bg-white" /></div>
+                <div className="min-h-0 flex-1 divide-y divide-slate-100 overflow-hidden sm:hidden dark:divide-slate-800">
                     {Array.from({ length: 7 }).map((_, i) => <div key={i} className="flex justify-between gap-3 px-4 py-3"><div className="space-y-2"><Skeleton className="h-3 w-32" /><Skeleton className="h-3 w-24" /><Skeleton className="h-2.5 w-20" /></div><div className="space-y-2"><Skeleton className="ml-auto h-3 w-20" /><Skeleton className="ml-auto h-3 w-12" /></div></div>)}
                 </div>
-                <div className="hidden max-h-[320px] overflow-auto sm:block">
+                <div className="hidden min-h-0 flex-1 overflow-hidden sm:block">
                     <table className="w-full min-w-[650px] text-left text-xs">
                         <thead className="border-b border-slate-200 bg-slate-100 dark:border-slate-800 dark:bg-slate-800"><tr>{Array.from({ length: 5 }).map((_, i) => <th key={i} className="px-4 py-2"><Skeleton className="h-3 w-20" /></th>)}</tr></thead>
                         <tbody className="divide-y divide-slate-200 dark:divide-slate-800">{Array.from({ length: 7 }).map((_, i) => <tr key={i}>{Array.from({ length: 5 }).map((_, j) => <td key={j} className="px-4 py-2"><Skeleton className="h-3.5 w-20" /></td>)}</tr>)}</tbody>

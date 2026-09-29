@@ -63,12 +63,14 @@ class DashboardService
         $recentOrders = Order::with('cashier')
             ->whereBetween('created_at', [$startDate, $endDate])
             ->latest()
-            ->paginate(7);
+            ->limit(15)
+            ->get();
 
         $topSelling = OrderItem::select('order_items.product_id', DB::raw('SUM(order_items.quantity) as total_qty'))
             ->whereHas('order', fn ($query) => $query->paidWithinRange($startDate, $endDate))
             ->groupBy('order_items.product_id')
             ->orderByDesc('total_qty')
+            ->limit(15)
             ->with('product')
             ->get()
             ->map(function ($item, $index) {
@@ -79,8 +81,11 @@ class DashboardService
                 ];
             });
 
-        $lowStock = Product::whereColumn('stock', '<=', 'minimum_stock')
+        $lowStockQuery = Product::whereColumn('stock', '<=', 'minimum_stock');
+        $lowStockCount = (clone $lowStockQuery)->count();
+        $lowStock = $lowStockQuery
             ->orderBy('stock', 'asc')
+            ->limit(15)
             ->get()
             ->map(function ($p) {
                 return [
@@ -157,6 +162,7 @@ class DashboardService
             'recent_orders' => $recentOrders,
             'top_selling' => $topSelling,
             'low_stock' => $lowStock,
+            'low_stock_count' => $lowStockCount,
             'sales_data' => $salesData->values()->toArray(),
         ];
     }
