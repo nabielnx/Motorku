@@ -97,7 +97,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
             return rawOrders;
         }
         const list = Array.isArray(rawOrders) ? rawOrders : [];
-        return { data: list, current_page: 1, last_page: 1, total: list.length, per_page: 5 };
+        return { data: list, current_page: 1, last_page: 1, total: list.length, per_page: 7 };
     };
 
     const [ordersPaginator, setOrdersPaginator] = useState(() => extractPaginator(stats.recent_orders));
@@ -112,7 +112,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
         setIsFetchingOrders(true);
         try {
             const res = await axios.get('/api/dashboard/recent-orders', {
-                params: { page, per_page: 5, period: currentPeriod, start_date: startDate, end_date: endDate }
+                params: { page, per_page: 7, period: currentPeriod, start_date: startDate, end_date: endDate }
             });
             setOrdersPaginator(res.data);
         } catch {
@@ -126,7 +126,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
     const currentPage = ordersPaginator.current_page || 1;
     const totalPages = ordersPaginator.last_page || 1;
     const totalOrdersCount = ordersPaginator.total || paginatedOrders.length;
-    const perPage = ordersPaginator.per_page || 5;
+    const perPage = ordersPaginator.per_page || 7;
 
     const formatRp = (val) => `Rp ${val.toLocaleString('id-ID')}`;
 

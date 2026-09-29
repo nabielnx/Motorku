@@ -40,6 +40,25 @@ class PaginationTest extends TestCase
     }
 
     #[Test]
+    public function dashboard_recent_orders_default_to_seven_per_page(): void
+    {
+        Order::factory()->count(12)->create();
+
+        $dashboard = $this->actingAs($this->owner)->get('/dashboard');
+        $dashboard->assertOk();
+        $recentOrders = $dashboard->viewData('page')['props']['stats']['recent_orders'];
+
+        $this->assertEquals(7, $recentOrders['per_page']);
+        $this->assertCount(7, $recentOrders['data']);
+
+        $this->getJson('/api/dashboard/recent-orders?page=2')
+            ->assertOk()
+            ->assertJsonPath('per_page', 7)
+            ->assertJsonPath('current_page', 2)
+            ->assertJsonCount(5, 'data');
+    }
+
+    #[Test]
     public function orders_web_index_returns_paginated_inertia_prop(): void
     {
         Order::factory()->count(15)->create();
