@@ -36,6 +36,7 @@ export default function DashboardSkeleton() {
                         <tbody className="divide-y divide-slate-200 dark:divide-slate-800">{Array.from({ length: 7 }).map((_, i) => <tr key={i}>{Array.from({ length: 5 }).map((_, j) => <td key={j} className="px-4 py-2"><Skeleton className="h-3.5 w-20" /></td>)}</tr>)}</tbody>
                     </table>
                 </div>
+                <div className="flex shrink-0 items-center justify-between border-t border-slate-200 bg-slate-50 px-3 py-3 dark:border-slate-800 dark:bg-slate-800/60"><Skeleton className="h-3 w-20" /><Skeleton className="h-6 w-44" /></div>
             </div>
 
             <div className={`${panel} col-span-12 order-1 flex h-[280px] min-h-0 flex-col overflow-hidden xl:order-2 xl:col-span-4 xl:h-auto xl:self-stretch`}>

@@ -63,8 +63,7 @@ class DashboardService
         $recentOrders = Order::with('cashier')
             ->whereBetween('created_at', [$startDate, $endDate])
             ->latest()
-            ->limit(15)
-            ->get();
+            ->paginate(15);
 
         $topSelling = OrderItem::select('order_items.product_id', DB::raw('SUM(order_items.quantity) as total_qty'))
             ->whereHas('order', fn ($query) => $query->paidWithinRange($startDate, $endDate))

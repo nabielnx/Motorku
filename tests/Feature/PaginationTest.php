@@ -40,7 +40,7 @@ class PaginationTest extends TestCase
     }
 
     #[Test]
-    public function dashboard_recent_orders_show_at_most_fifteen_while_api_keeps_its_default_page_size(): void
+    public function dashboard_recent_orders_paginate_fifteen_with_more_orders_available(): void
     {
         Order::factory()->count(18)->create();
 
@@ -48,13 +48,16 @@ class PaginationTest extends TestCase
         $dashboard->assertOk();
         $recentOrders = $dashboard->viewData('page')['props']['stats']['recent_orders'];
 
-        $this->assertCount(15, $recentOrders);
+        $this->assertSame(15, $recentOrders['per_page']);
+        $this->assertSame(18, $recentOrders['total']);
+        $this->assertSame(2, $recentOrders['last_page']);
+        $this->assertCount(15, $recentOrders['data']);
 
-        $this->getJson('/api/dashboard/recent-orders?page=2')
+        $this->getJson('/api/dashboard/recent-orders?page=2&per_page=15')
             ->assertOk()
-            ->assertJsonPath('per_page', 7)
+            ->assertJsonPath('per_page', 15)
             ->assertJsonPath('current_page', 2)
-            ->assertJsonCount(7, 'data');
+            ->assertJsonCount(3, 'data');
     }
 
     #[Test]
