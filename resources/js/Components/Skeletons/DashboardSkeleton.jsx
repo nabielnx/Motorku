@@ -4,7 +4,7 @@ const panel = 'rounded-xl border border-slate-300 bg-white dark:border-slate-800
 
 export default function DashboardSkeleton() {
     return (
-        <SkeletonWrapper className="grid w-full grid-cols-12 items-start gap-3 sm:gap-4 xl:-mt-2">
+        <SkeletonWrapper className="grid w-full grid-cols-12 items-start gap-3 sm:gap-4 xl:-mt-4">
             <div className="col-span-12 flex flex-col justify-between gap-2 sm:flex-row sm:items-center sm:gap-3">
                 <Skeleton className="h-6 w-40" />
                 <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto">
