@@ -363,7 +363,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                                 <h3 className="font-bold text-white text-sm">Stok perlu dicek</h3>
                             </div>
                             
-                            <div className="flex min-h-0 flex-1 flex-col p-4 sm:p-5">
+                            <div className="flex min-h-0 flex-1 flex-col p-4 sm:p-5 xl:py-3">
                                 <div className="min-h-0 flex-1 space-y-1.5 overflow-y-auto pr-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary" role="region" aria-label={`Stok perlu dicek, ${lowStockAlerts.length} produk`} tabIndex={0}>
                                     {lowStockAlerts.length > 0 ? (
                                         lowStockAlerts.map((stock, idx) => (

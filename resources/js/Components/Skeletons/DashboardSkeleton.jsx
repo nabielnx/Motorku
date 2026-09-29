@@ -40,7 +40,7 @@ export default function DashboardSkeleton() {
 
             <div className={`${panel} col-span-12 order-1 flex h-[280px] min-h-0 flex-col overflow-hidden xl:order-2 xl:col-span-4 xl:h-auto xl:self-stretch`}>
                 <div className="bg-primary px-4 py-3 sm:px-5"><Skeleton className="h-4 w-32 !bg-white" /></div>
-                <div className="flex min-h-0 flex-1 flex-col p-4 sm:p-5">
+                <div className="flex min-h-0 flex-1 flex-col p-4 sm:p-5 xl:py-3">
                     <div className="min-h-0 flex-1 overflow-hidden">
                         {Array.from({ length: 5 }).map((_, i) => <div key={i} className="flex justify-between gap-3 border-t border-slate-100 py-2 dark:border-slate-800"><Skeleton className="h-3 w-3/4" /><Skeleton className="h-3 w-12" /></div>)}
                     </div>
