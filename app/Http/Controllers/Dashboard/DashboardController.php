@@ -62,7 +62,7 @@ class DashboardController extends Controller implements HasMiddleware
 
     public function recentOrders(Request $request): JsonResponse
     {
-        $perPage = $request->integer('per_page', 5);
+        $perPage = $request->integer('per_page', 7);
         $period = $request->query('period');
         $startDate = $request->query('start_date');
         $endDate = $request->query('end_date');
