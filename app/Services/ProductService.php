@@ -50,7 +50,7 @@ class ProductService
             default => $query->latest(),
         };
 
-        return $query->paginate(16)->withQueryString();
+        return $query->paginate(24)->withQueryString();
     }
 
     public function getAllProducts($perPage = null, $search = null, $stockStatus = null)

@@ -837,8 +837,7 @@ export default function MenuManagement({
                                                             <ProductPhoto src={item.image} name={item.name} category={item.category} className="w-full h-full" compact />
                                                         </button>
                                                         <button type="button" onClick={() => toggleRowExpand(item.id)} className="min-w-0 flex-1 text-left" aria-expanded={isExpanded}>
-                                                            <span className="block line-clamp-2 text-xs font-bold leading-snug text-slate-900 dark:text-white">{item.name}</span>
-                                                            {item.sku && <span className="mt-0.5 block truncate text-[11px] text-slate-500 dark:text-slate-400">{item.sku}</span>}
+                                                            <span className="block line-clamp-2 text-[11px] font-bold leading-snug text-slate-900 dark:text-white">{item.name}</span>
                                                         </button>
                                                         <button type="button" onClick={() => toggleRowExpand(item.id)} className="shrink-0 p-1 text-slate-400" aria-label={`Detail ${item.name}`} aria-expanded={isExpanded}>
                                                             {isExpanded ? <FiChevronDown size={16} /> : <FiChevronRight size={16} />}
@@ -872,12 +871,12 @@ export default function MenuManagement({
                                     </div>}
                                     {viewMode === 'grid' ? (
                                     /* GRID VIEW */
-                                    <div className="grid grid-cols-2 gap-2 p-2 md:grid-cols-4 md:gap-3 md:p-4 min-[1700px]:grid-cols-8">
+                                    <div className="grid grid-cols-2 gap-2 p-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 min-[1700px]:grid-cols-6 md:gap-3 md:p-4">
                                         {filteredItems.map(item => (
                                             <div key={item.id} className="bg-white dark:bg-slate-800 rounded-md md:rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden md:shadow-xs hover:shadow-md hover:border-slate-400 dark:hover:border-slate-500 transition-all flex flex-col relative group">
                                                 {/* Image Container */}
                                                 <div
-                                                    className="relative w-full aspect-[4/3] bg-slate-50 dark:bg-slate-900 cursor-pointer overflow-hidden border-b border-slate-100 dark:border-slate-700"
+                                                    className="relative w-full aspect-square bg-slate-50 dark:bg-slate-900 cursor-pointer overflow-hidden border-b border-slate-100 dark:border-slate-700"
                                                     onClick={(e) => { e.stopPropagation(); setPreviewProduct(item); }}
                                                 >
                                                     <ProductPhoto src={item.image} name={item.name} category={item.category} className="absolute inset-0 w-full h-full" />
@@ -892,17 +891,12 @@ export default function MenuManagement({
                                                     </div>
                                                     <div className="min-w-0 mb-2">
                                                         <h3
-                                                            className="font-bold text-slate-900 dark:text-white text-xs md:text-sm leading-snug line-clamp-2 hover:underline cursor-pointer transition"
+                                                            className="font-bold text-slate-900 dark:text-white text-[11px] md:text-xs leading-snug line-clamp-2 hover:underline cursor-pointer transition"
                                                             title={item.name}
                                                             onClick={() => openEditProductModal(item)}
                                                         >
                                                             {item.name}
                                                         </h3>
-                                                        {item.sku && (
-                                                            <p className="text-[11px] font-mono text-slate-500 dark:text-slate-400 mt-0.5 truncate">
-                                                                {item.sku}
-                                                            </p>
-                                                        )}
                                                     </div>
                                                     <div className="mt-auto">
                                                         <p className="font-black text-slate-900 dark:text-white text-xs md:text-base">
@@ -918,8 +912,6 @@ export default function MenuManagement({
                                                             }`}>
                                                                 {item.stock <= 0 ? '0 pcs (Habis)' : item.stock <= (item.minimum_stock ?? 3) ? `${item.stock} pcs (Perlu Kulak)` : `${item.stock} pcs`}
                                                             </span>
-                                                            <span className="text-slate-300 dark:text-slate-600 mx-1">·</span>
-                                                            <span className="text-slate-400 dark:text-slate-500">{item.status === 'Active' ? 'Aktif di POS' : 'Nonaktif'}</span>
                                                         </p>
                                                     </div>
                                                 </div>
@@ -1026,12 +1018,11 @@ export default function MenuManagement({
                                                                     <div className="min-w-0">
                                                                         <button type="button"
                                                                             onClick={() => toggleRowExpand(item.id)}
-                                                                            className="font-semibold text-left text-slate-900 dark:text-white text-xs sm:text-sm block line-clamp-2 hover:underline transition cursor-pointer"
+                                                                            className="font-semibold text-left text-slate-900 dark:text-white text-xs block line-clamp-2 hover:underline transition cursor-pointer"
                                                                             title={item.name}
                                                                         >
                                                                             {item.name}
                                                                         </button>
-                                                                        <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400 block mt-0.5">{item.sku || 'Tanpa SKU'}</span>
                                                                     </div>
                                                                 </div>
                                                             </td>
