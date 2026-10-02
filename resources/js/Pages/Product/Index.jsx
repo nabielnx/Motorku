@@ -596,24 +596,7 @@ export default function MenuManagement({
                             </div>
                         </div>
 
-                        {/* Low Stock Alert Banner */}
-                        {(lowStockCount > 0 || outOfStockCount > 0) && activeTab === 'products' && (
-                            <div className={`flex items-center justify-between gap-2 border-l-2 pl-2 text-[11px] sm:text-xs ${outOfStockCount > 0 ? 'border-red-500' : 'border-accentYellow'}`}>
-                                <div className={`flex min-w-0 items-center gap-1.5 font-semibold ${outOfStockCount > 0 ? 'text-red-600 dark:text-red-400' : 'text-primaryDark dark:text-accentYellow'}`}>
-                                    <FiAlertTriangle className="shrink-0" size={14} />
-                                    <span>
-                                        {[lowStockCount > 0 && `${lowStockCount} perlu kulak`, outOfStockCount > 0 && `${outOfStockCount} stok habis`].filter(Boolean).join(' · ')}
-                                    </span>
-                                </div>
-                                <button
-                                    type="button"
-                                    onClick={() => handleStockFilterChange(selectedStockFilter === stockAlertFilter ? 'all' : stockAlertFilter)}
-                                    className={`shrink-0 font-bold hover:underline cursor-pointer ${outOfStockCount > 0 ? 'text-red-600 dark:text-red-400' : 'text-primaryDark dark:text-accentYellow'}`}
-                                >
-                                    {selectedStockFilter === stockAlertFilter ? 'Semua' : 'Lihat'}
-                                </button>
-                            </div>
-                        )}
+
 
                         {/* Filter Bar (Search + Dropdown Kategori + Dropdown Status Stok + Status Segmented Button) */}
                         {activeTab === 'products' && (
@@ -699,6 +682,23 @@ export default function MenuManagement({
                                          <FiChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 dark:text-slate-500" size={14} />
                                      </div>
 
+                                     {/* Low Stock Alert — tepat di sebelah dropdown stok */}
+                                     {(lowStockCount > 0 || outOfStockCount > 0) && (
+                                         <button
+                                             type="button"
+                                             onClick={() => handleStockFilterChange(selectedStockFilter === stockAlertFilter ? 'all' : stockAlertFilter)}
+                                             title={[lowStockCount > 0 && `${lowStockCount} perlu kulak`, outOfStockCount > 0 && `${outOfStockCount} stok habis`].filter(Boolean).join(' · ')}
+                                             className={`hidden sm:inline-flex items-center gap-1.5 px-2 py-1.5 rounded-lg border text-[11px] font-bold transition cursor-pointer ${
+                                                 outOfStockCount > 0
+                                                     ? 'border-red-500 bg-red-500 text-white hover:bg-red-600 hover:border-red-600'
+                                                     : 'border-amber-400 bg-amber-400 text-amber-900 hover:bg-amber-500 hover:border-amber-500'
+                                             }`}
+                                         >
+                                             <FiAlertTriangle size={13} className="shrink-0" />
+                                             <span>{outOfStockCount > 0 ? `${outOfStockCount} stok habis` : `${lowStockCount} perlu kulak`}</span>
+                                         </button>
+                                     )}
+
                                      {showMobileFilters && (
                                          <>
                                              <select
@@ -756,6 +756,8 @@ export default function MenuManagement({
                                              <FiList size={16} />
                                          </button>
                                      </div>
+
+
 
                                      <label className="sr-only" htmlFor="product-availability">Status di POS</label>
                                      <div className="relative shrink-0">
