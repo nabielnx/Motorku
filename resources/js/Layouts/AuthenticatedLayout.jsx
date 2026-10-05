@@ -293,7 +293,7 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                 },
                 ...[
                     ['automotive', 'Otomotif'],
-                    ['electronics', 'Elektronik & Rumah Tangga'],
+                    ['electronics', 'Elektronik'],
                     ['hardware', 'Alat Bangunan'],
                     ['bicycle', 'Sepeda'],
                 ].map(([group, name]) => ({
