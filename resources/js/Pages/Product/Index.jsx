@@ -889,7 +889,7 @@ export default function MenuManagement({
                                     </div>}
                                     {viewMode === 'grid' ? (
                                     /* GRID VIEW */
-                                    <div className="grid grid-cols-2 gap-2 p-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 min-[1700px]:grid-cols-6 md:gap-3 md:p-4">
+                                    <div className="grid grid-cols-2 gap-2 p-2 md:grid-cols-4 min-[1700px]:grid-cols-8 md:gap-3 md:p-4">
                                         {filteredItems.map(item => (
                                             <div key={item.id} className="bg-white dark:bg-slate-800 rounded-md md:rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden md:shadow-xs hover:shadow-md hover:border-slate-400 dark:hover:border-slate-500 transition-all flex flex-col relative group">
                                                 {/* Image Container */}
