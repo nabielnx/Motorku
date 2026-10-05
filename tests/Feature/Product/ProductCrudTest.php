@@ -129,7 +129,7 @@ class ProductCrudTest extends TestCase
             ->deleteJson("/api/products/{$product->id}");
 
         $response->assertStatus(200);
-        $this->assertSoftDeleted('products', ['id' => $product->id]);
+        $this->assertDatabaseMissing('products', ['id' => $product->id]);
     }
 
     public function test_owner_can_create_product_with_custom_stock_and_minimum_stock(): void

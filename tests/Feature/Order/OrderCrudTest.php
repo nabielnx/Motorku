@@ -6,6 +6,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\User;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -14,12 +15,13 @@ class OrderCrudTest extends TestCase
     use RefreshDatabase;
 
     private User $cashier;
+
     private User $owner;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $this->seed(RoleSeeder::class);
 
         $this->owner = User::factory()->create();
         $this->owner->assignRole('owner');
@@ -60,14 +62,14 @@ class OrderCrudTest extends TestCase
         $product = Product::factory()->create();
         $response = $this->actingAs($this->cashier)->postJson('/api/orders', [
             'customer_name' => 'Pelanggan Test',
-            'items'      => [['product_id' => $product->id, 'quantity' => 1]],
+            'items' => [['product_id' => $product->id, 'quantity' => 1]],
         ]);
 
         $response->assertStatus(201)
             ->assertJsonPath('message', 'Pesanan berhasil dibuat!');
     }
 
-    public function test_next_order_number_skips_soft_deleted_order(): void
+    public function test_next_order_number_skips_deleted_order(): void
     {
         $product = Product::factory()->create(['stock' => 10]);
         $first = $this->actingAs($this->cashier)->postJson('/api/orders', [
@@ -120,7 +122,7 @@ class OrderCrudTest extends TestCase
             ->deleteJson("/api/orders/{$order->id}")
             ->assertForbidden();
 
-        $this->assertDatabaseHas('orders', ['id' => $order->id, 'deleted_at' => null]);
+        $this->assertDatabaseHas('orders', ['id' => $order->id]);
     }
 
     public function test_cannot_cancel_order_not_in_pending_status(): void
@@ -144,7 +146,7 @@ class OrderCrudTest extends TestCase
 
     public function test_cashier_can_update_order_status(): void
     {
-        $order    = Order::factory()->create(['order_status' => 'pending', 'payment_status' => 'paid']);
+        $order = Order::factory()->create(['order_status' => 'pending', 'payment_status' => 'paid']);
         $response = $this->actingAs($this->cashier)
             ->putJson("/api/orders/{$order->id}", [
                 'order_status' => 'preparing',
@@ -152,7 +154,7 @@ class OrderCrudTest extends TestCase
 
         $response->assertStatus(200);
         $this->assertDatabaseHas('orders', [
-            'id'           => $order->id,
+            'id' => $order->id,
             'order_status' => 'preparing',
         ]);
     }
@@ -168,7 +170,7 @@ class OrderCrudTest extends TestCase
         }
 
         $this->assertDatabaseHas('orders', [
-            'id'           => $order->id,
+            'id' => $order->id,
             'order_status' => 'completed',
         ]);
     }

@@ -56,15 +56,12 @@ class CustomerMenuController extends Controller
         // Single query for both totalSoldMap AND bestSellerProductIds (was 2 separate queries)
         $salesData = DB::table('order_items')
             ->join('orders', 'order_items.order_id', '=', 'orders.id')
-            ->whereNull('orders.deleted_at')
-            ->whereNull('order_items.deleted_at')
             ->where('orders.order_status', '!=', 'cancelled')
             ->whereExists(function ($query) {
                 $query->selectRaw('1')
                     ->from('payments')
                     ->whereColumn('payments.order_id', 'orders.id')
-                    ->where('payments.status', 'paid')
-                    ->whereNull('payments.deleted_at');
+                    ->where('payments.status', 'paid');
             })
             ->select('order_items.product_id', DB::raw('SUM(order_items.quantity) as total_sold'))
             ->groupBy('order_items.product_id')
@@ -76,7 +73,6 @@ class CustomerMenuController extends Controller
 
         $recommendedProductIds = DB::table('motorcycle_parts')
             ->where('is_recommended', true)
-            ->whereNull('deleted_at')
             ->pluck('product_id')
             ->unique()
             ->flip()

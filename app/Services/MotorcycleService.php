@@ -174,7 +174,7 @@ class MotorcycleService
 
                     if (strlen($cleanSearch) >= 2) {
                         $pq->orWhereRaw("REPLACE(REPLACE(REPLACE(REPLACE(name, ' ', ''), '-', ''), '.', ''), '/', '') LIKE ?", ["%{$cleanSearch}%"])
-                           ->orWhereRaw("REPLACE(REPLACE(REPLACE(REPLACE(sku, ' ', ''), '-', ''), '.', ''), '/', '') LIKE ?", ["%{$cleanSearch}%"]);
+                            ->orWhereRaw("REPLACE(REPLACE(REPLACE(REPLACE(sku, ' ', ''), '-', ''), '.', ''), '/', '') LIKE ?", ["%{$cleanSearch}%"]);
                     }
                 })->orWhere('notes', 'like', "%{$search}%");
             });
@@ -245,24 +245,13 @@ class MotorcycleService
     {
         Motorcycle::findOrFail($motorcycleId);
 
-        $existing = MotorcyclePart::withTrashed()
+        $existing = MotorcyclePart::query()
             ->where('motorcycle_id', $motorcycleId)
             ->where('product_id', $data['product_id'])
             ->first();
 
         if ($existing) {
-            if (! $existing->trashed()) {
-                throw new \InvalidArgumentException('Produk ini sudah di-mapping ke motor ini.');
-            }
-            // If previously soft-deleted, restore and update with new attributes
-            $existing->restore();
-            $existing->update([
-                'part_category' => $data['part_category'],
-                'notes' => $data['notes'] ?? null,
-                'is_recommended' => (bool) ($data['is_recommended'] ?? false),
-            ]);
-
-            return $existing->load('product.category');
+            throw new \InvalidArgumentException('Produk ini sudah di-mapping ke motor ini.');
         }
 
         $data['motorcycle_id'] = $motorcycleId;
@@ -280,7 +269,7 @@ class MotorcycleService
      * - many motorcycles -> many products
      *
      * Automatically skips existing mappings without failing the whole batch,
-     * and automatically restores soft-deleted records if re-mapped.
+     * and creates fresh records when a removed mapping is added again.
      */
     public function bulkAttachParts(array $data): array
     {
@@ -312,12 +301,12 @@ class MotorcycleService
 
         foreach ($motorcycleIds as $motorId) {
             foreach ($productIds as $prodId) {
-                $existing = MotorcyclePart::withTrashed()
+                $existing = MotorcyclePart::query()
                     ->where('motorcycle_id', $motorId)
                     ->where('product_id', $prodId)
                     ->first();
 
-                if ($existing && ! $existing->trashed()) {
+                if ($existing) {
                     $skipped++;
 
                     continue;
@@ -333,24 +322,14 @@ class MotorcycleService
                         ?? (isset($productsKeyed[$prodId]) ? MotorcyclePart::guessCategoryForProduct($productsKeyed[$prodId]) : 'lainnya');
                 }
 
-                if ($existing && $existing->trashed()) {
-                    $existing->restore();
-                    $existing->update([
-                        'part_category' => $itemCategory,
-                        'notes' => $notes,
-                        'is_recommended' => $isRecommended,
-                    ]);
-                    $createdParts[] = $existing;
-                } else {
-                    $part = MotorcyclePart::create([
-                        'motorcycle_id' => $motorId,
-                        'product_id' => $prodId,
-                        'part_category' => $itemCategory,
-                        'notes' => $notes,
-                        'is_recommended' => $isRecommended,
-                    ]);
-                    $createdParts[] = $part;
-                }
+                $part = MotorcyclePart::create([
+                    'motorcycle_id' => $motorId,
+                    'product_id' => $prodId,
+                    'part_category' => $itemCategory,
+                    'notes' => $notes,
+                    'is_recommended' => $isRecommended,
+                ]);
+                $createdParts[] = $part;
 
                 $attached++;
             }

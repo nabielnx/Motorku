@@ -56,6 +56,10 @@ class OrderReturnService
                     ? (int) round($totalCents * $lineCents / $subtotalCents * $quantity / $item->quantity)
                     : 0);
 
+            if ($data['restock'] && ! $item->product_id) {
+                throw ValidationException::withMessages(['restock' => 'Produk sudah dihapus. Retur uang tetap tersedia tanpa pengembalian stok.']);
+            }
+
             $return = OrderReturn::create([
                 'request_id' => $data['request_id'],
                 'order_id' => $order->id,

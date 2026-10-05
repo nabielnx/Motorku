@@ -65,9 +65,9 @@ class DashboardService
             ->latest()
             ->paginate(15);
 
-        $topSelling = OrderItem::select('order_items.product_id', DB::raw('SUM(order_items.quantity) as total_qty'))
+        $topSelling = OrderItem::select('order_items.product_id', DB::raw('MAX(order_items.product_name) as product_name'), DB::raw('SUM(order_items.quantity) as total_qty'))
             ->whereHas('order', fn ($query) => $query->paidWithinRange($startDate, $endDate))
-            ->groupBy('order_items.product_id')
+            ->groupBy('order_items.product_id', DB::raw('CASE WHEN order_items.product_id IS NULL THEN COALESCE(order_items.product_sku, order_items.product_name) END'))
             ->orderByDesc('total_qty')
             ->limit(15)
             ->with('product')
@@ -75,7 +75,7 @@ class DashboardService
             ->map(function ($item, $index) {
                 return [
                     'rank' => $index + 1,
-                    'name' => $item->product ? $item->product->name : 'Produk',
+                    'name' => $item->product ? $item->product->name : ($item->product_name ?? 'Produk'),
                     'count' => (int) $item->total_qty,
                 ];
             });
@@ -192,8 +192,6 @@ class DashboardService
 
         $sales = DB::table('orders')
             ->join('payments', 'payments.order_id', '=', 'orders.id')
-            ->whereNull('orders.deleted_at')
-            ->whereNull('payments.deleted_at')
             ->where('orders.order_status', '!=', 'cancelled')
             ->where('payments.status', 'paid')
             ->whereBetween('payments.paid_at', [$start, $end])

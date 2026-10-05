@@ -3,8 +3,10 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class ProfileTest extends TestCase
@@ -77,12 +79,12 @@ class ProfileTest extends TestCase
             ->assertRedirect('/');
 
         $this->assertGuest();
-        $this->assertSoftDeleted('users', ['id' => $user->id]);
+        $this->assertDatabaseMissing('users', ['id' => $user->id]);
     }
 
     public function test_last_owner_cannot_delete_account_from_profile(): void
     {
-        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $this->seed(RoleSeeder::class);
         $owner = User::factory()->create();
         $owner->assignRole('owner');
 
@@ -113,7 +115,7 @@ class ProfileTest extends TestCase
 
     public function test_user_can_upload_avatar(): void
     {
-        \Illuminate\Support\Facades\Storage::fake('public');
+        Storage::fake('public');
         $user = User::factory()->create();
         $file = UploadedFile::fake()->image('avatar.jpg', 200, 200);
 
@@ -128,7 +130,7 @@ class ProfileTest extends TestCase
 
     public function test_avatar_rejects_invalid_file_type(): void
     {
-        \Illuminate\Support\Facades\Storage::fake('public');
+        Storage::fake('public');
         $user = User::factory()->create();
         $file = UploadedFile::fake()->create('document.pdf', 100);
 
@@ -141,7 +143,7 @@ class ProfileTest extends TestCase
 
     public function test_avatar_requires_authentication(): void
     {
-        \Illuminate\Support\Facades\Storage::fake('public');
+        Storage::fake('public');
         $file = UploadedFile::fake()->image('avatar.jpg');
 
         $response = $this->postJson('/profile/avatar', [
@@ -153,14 +155,14 @@ class ProfileTest extends TestCase
 
     public function test_user_can_delete_avatar(): void
     {
-        \Illuminate\Support\Facades\Storage::fake('public');
+        Storage::fake('public');
         $user = User::factory()->create(['avatar' => 'avatars/test.jpg']);
-        \Illuminate\Support\Facades\Storage::disk('public')->put('avatars/test.jpg', 'fake content');
+        Storage::disk('public')->put('avatars/test.jpg', 'fake content');
 
         $response = $this->actingAs($user)->deleteJson('/profile/avatar');
 
         $response->assertStatus(200);
         $this->assertNull($user->fresh()->avatar);
-        \Illuminate\Support\Facades\Storage::disk('public')->assertMissing('avatars/test.jpg');
+        Storage::disk('public')->assertMissing('avatars/test.jpg');
     }
 }

@@ -81,7 +81,7 @@ class SettingsPageTest extends TestCase
         ])->assertOk();
 
         $this->assertSame(1, Setting::where('group', 'store')->where('key', 'qris_image')->count());
-        $this->assertSame(1, Setting::withTrashed()->where('group', 'store')->where('key', 'qris_image')->count());
+        $this->assertSame(1, Setting::query()->where('group', 'store')->where('key', 'qris_image')->count());
         $this->assertNotNull(Setting::where('group', 'store')->where('key', 'qris_image')->value('value'));
     }
 }

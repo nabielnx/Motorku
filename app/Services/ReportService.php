@@ -30,7 +30,7 @@ class ReportService
         ];
     }
 
-    public function getReportStats(Carbon $startDate = null, Carbon $endDate = null): array
+    public function getReportStats(?Carbon $startDate = null, ?Carbon $endDate = null): array
     {
         $start = $startDate ?? Carbon::now()->startOfMonth();
         $end = $endDate ?? Carbon::now()->endOfDay();
@@ -47,9 +47,9 @@ class ReportService
         $avgOrderValue = $totalOrders > 0 ? round($totalRevenue / $totalOrders) : 0;
 
         // Top selling products within the date range
-        $topSelling = OrderItem::select('product_id', DB::raw('SUM(quantity) as total_qty'), DB::raw('SUM(subtotal) as total_revenue'))
+        $topSelling = OrderItem::select('product_id', DB::raw('MAX(product_name) as product_name'), DB::raw('SUM(quantity) as total_qty'), DB::raw('SUM(subtotal) as total_revenue'))
             ->whereHas('order', fn ($query) => $query->paidWithinRange($start, $end))
-            ->groupBy('product_id')
+            ->groupBy('product_id', DB::raw('CASE WHEN product_id IS NULL THEN COALESCE(product_sku, product_name) END'))
             ->orderByDesc('total_qty')
             ->take(5)
             ->with('product.category')
@@ -57,9 +57,9 @@ class ReportService
 
         // Category breakdown within the date range
         $categoryRaw = OrderItem::select(
-                DB::raw('COALESCE(categories.name, \'Lainnya\') as category_name'),
-                DB::raw('SUM(order_items.subtotal) as total_revenue')
-            )
+            DB::raw('COALESCE(categories.name, \'Lainnya\') as category_name'),
+            DB::raw('SUM(order_items.subtotal) as total_revenue')
+        )
             ->leftJoin('products', 'order_items.product_id', '=', 'products.id')
             ->leftJoin('categories', 'products.category_id', '=', 'categories.id')
             ->whereHas('order', fn ($q) => $q->paidWithinRange($start, $end))
@@ -107,9 +107,9 @@ class ReportService
 
     public function getSalesByDateRange(Carbon $startDate, Carbon $endDate)
     {
-        return OrderItem::select('product_id', DB::raw('SUM(quantity) as total_qty'), DB::raw('SUM(subtotal) as total_revenue'))
+        return OrderItem::select('product_id', DB::raw('MAX(product_name) as product_name'), DB::raw('SUM(quantity) as total_qty'), DB::raw('SUM(subtotal) as total_revenue'))
             ->whereHas('order', fn ($query) => $query->paidWithinRange($startDate, $endDate))
-            ->groupBy('product_id')
+            ->groupBy('product_id', DB::raw('CASE WHEN product_id IS NULL THEN COALESCE(product_sku, product_name) END'))
             ->orderByDesc('total_qty')
             ->with('product')
             ->get();

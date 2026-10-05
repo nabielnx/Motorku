@@ -391,16 +391,16 @@ class SettingController extends Controller implements HasMiddleware
             OrderReturn::query()->delete();
             CashClosing::query()->delete();
             // Delete order items
-            OrderItem::withTrashed()->forceDelete();
+            OrderItem::query()->delete();
 
             // Delete payments
-            Payment::withTrashed()->forceDelete();
+            Payment::query()->delete();
 
-            // Delete orders (force delete including soft deleted if any)
-            Order::withTrashed()->forceDelete();
+            // Delete orders
+            Order::query()->delete();
 
             // Delete inventory logs
-            InventoryLog::withTrashed()->forceDelete();
+            InventoryLog::query()->delete();
             DB::table('document_sequences')->delete();
             DB::table('cash_day_locks')->delete();
         });

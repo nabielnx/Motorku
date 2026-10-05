@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Models\OrderItem;
 use App\Models\Product;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Intervention\Image\ImageManager;
 use RuntimeException;
 
@@ -125,9 +128,16 @@ class ProductService
 
     public function deleteProduct($id)
     {
-        $product = Product::findOrFail($id);
+        return DB::transaction(function () use ($id) {
+            $product = Product::whereKey($id)->lockForUpdate()->firstOrFail();
+            if (OrderItem::where('product_id', $product->id)
+                ->whereHas('order', fn ($query) => $query->whereIn('order_status', ['pending', 'preparing', 'ready']))
+                ->exists()) {
+                throw ValidationException::withMessages(['product' => 'Selesaikan atau batalkan pesanan aktif yang memakai produk ini sebelum menghapusnya.']);
+            }
 
-        return $product->delete();
+            return $product->delete();
+        });
     }
 
     /**
