@@ -16,9 +16,9 @@ use RuntimeException;
 
 class ProductService
 {
-    public function getProductsForWeb(?string $search = null, ?string $category = null, ?string $stockStatus = null, ?string $availability = null, ?string $sort = null)
+    public function getProductsForWeb(?string $search = null, ?string $category = null, ?string $stockStatus = null, ?string $availability = null, ?string $sort = null, ?string $group = null)
     {
-        $query = Product::with('category');
+        $query = Product::with('category')->inCatalogGroup($group);
 
         if ($search) {
             $this->applyFuzzySearch($query, $search);

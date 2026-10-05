@@ -119,6 +119,10 @@ public function product(): BelongsTo
    - Menggunakan kolom pivot `is_recommended` dan `notes`, sistem dapat memberikan rekomendasi part terbaik (*OEM / Racing*) serta catatan pemasangan (*misal: Khusus Varian Non-ABS*).
 
 
+## Kelompok katalog toko campuran
+
+Kategori induk memiliki `catalog_group`: `automotive`, `electronics`, `hardware`, atau `bicycle`. Subkategori mengikuti kelompok induknya. Produk, harga, stok, dan transaksi tetap menggunakan katalog `products` yang sama. Menu kelompok memakai `/products?group=...`; kategori lama masuk Otomotif secara default. Kelompok dapat dipindahkan melalui edit kategori. `motorcycle_parts` tetap khusus untuk kecocokan motor.
+
 ## Permanent deletion
 
 Core models use hard deletes. Motorcycle deletion cascades to its part mappings; deleting a product also removes its mappings. Invoice line snapshots and inventory log product names remain available after product deletion. Historical inventory logs, returns, and cash closings retain their values when a related product or staff account is deleted. Categories containing products and products in active orders must be resolved before deletion. Paid orders remain protected from deletion.

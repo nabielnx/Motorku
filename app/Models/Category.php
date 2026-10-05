@@ -10,9 +10,17 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Category extends Model
 {
+    public const CATALOG_GROUPS = [
+        'automotive' => 'Otomotif',
+        'electronics' => 'Elektronik & Rumah Tangga',
+        'hardware' => 'Alat Bangunan',
+        'bicycle' => 'Sepeda',
+    ];
+
     use HasFactory, HasUuids;
 
     protected $fillable = [
+        'catalog_group',
         'name',
         'parent_id',
         'description',

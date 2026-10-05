@@ -45,22 +45,26 @@ class ProductController extends Controller implements HasMiddleware
         $stockStatus = $request->string('stock_status')->value();
         $availability = $request->string('availability')->value();
         $sort = $request->string('sort')->value();
+        $group = $request->string('group')->value();
+        abort_if($group && !array_key_exists($group, Category::CATALOG_GROUPS), 422, 'Kelompok produk tidak valid.');
 
-        $products = $this->productService->getProductsForWeb($search, $category, $stockStatus, $availability, $sort);
+        $products = $this->productService->getProductsForWeb($search, $category, $stockStatus, $availability, $sort, $group ?: null);
 
         if ($products->currentPage() > $products->lastPage()) {
             return redirect()->route('products.index', $request->except('page'));
         }
 
-        $lowStockCount = Product::where('stock', '>', 0)->whereColumn('stock', '<=', 'minimum_stock')->count();
-        $outOfStockCount = Product::where('stock', '<=', 0)->count();
+        $lowStockCount = Product::inCatalogGroup($group ?: null)->where('stock', '>', 0)->whereColumn('stock', '<=', 'minimum_stock')->count();
+        $outOfStockCount = Product::inCatalogGroup($group ?: null)->where('stock', '<=', 0)->count();
 
         return Inertia::render('Product/Index', [
+            'catalogGroups' => Category::CATALOG_GROUPS,
             'initialProducts' => $products,
             'initialCategories' => Category::with(['children' => function ($q) {
                 $q->withCount('products');
-            }])->whereNull('parent_id')->withCount('products')->get(),
+            }])->whereNull('parent_id')->when($group, fn ($query) => $query->where('catalog_group', $group))->withCount('products')->get(),
             'filters' => [
+                'group' => $group ?: '',
                 'search' => $search ?: '',
                 'category' => $category ?: 'All',
                 'stock_status' => $stockStatus ?: 'all',

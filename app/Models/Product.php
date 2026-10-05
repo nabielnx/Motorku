@@ -44,6 +44,15 @@ class Product extends Model
         return $this->belongsTo(Category::class);
     }
 
+    public function scopeInCatalogGroup($query, ?string $group)
+    {
+        return $query->when($group, fn ($query) => $query->whereHas('category', function ($category) use ($group) {
+            $category->where(function ($root) use ($group) {
+                $root->whereNull('parent_id')->where('catalog_group', $group);
+            })->orWhereHas('parent', fn ($parent) => $parent->where('catalog_group', $group));
+        }));
+    }
+
     public function motorcycles(): BelongsToMany
     {
         return $this->belongsToMany(Motorcycle::class, 'motorcycle_parts')
