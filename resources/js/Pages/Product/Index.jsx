@@ -30,12 +30,15 @@ import {
 export default function MenuManagement({ 
     initialProducts = [], 
     initialCategories = [], 
-    filters = {}, 
+    filters = {},
+    catalogGroups = {},
     lowStockCount = 0, 
     outOfStockCount = 0 
 }) {
     const { props } = usePage();
     const locale = props.app_settings?.locale || 'id';
+    const selectedGroup = filters.group || '';
+    const groupName = catalogGroups[selectedGroup];
     const [activeTab, setActiveTab] = useState('products'); // 'products' | 'categories'
     const [isNavigating, setIsNavigating] = useState(false);
     const skeletonParam = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('skeleton') : null;
@@ -103,6 +106,7 @@ export default function MenuManagement({
             const subDesc = childrenFormatted.length > 0 ? childrenFormatted.map(ch => ch.name).join(', ') : '';
 
             return {
+                catalog_group: c.catalog_group,
                 id: c.id,
                 name: c.name,
                 description: c.description || subDesc,
@@ -164,6 +168,7 @@ export default function MenuManagement({
     const changeProductPage = (newPage) => {
         if (newPage < 1 || newPage > totalPages) return;
         router.get('/products', {
+            group: selectedGroup || undefined,
             page: newPage,
             category: selectedCategoryFilter === 'All' ? undefined : selectedCategoryFilter,
             search: searchQuery || undefined,
@@ -176,6 +181,7 @@ export default function MenuManagement({
     const handleCategoryFilterChange = (cat) => {
         setSelectedCategoryFilter(cat);
         router.get('/products', {
+            group: selectedGroup || undefined,
             page: 1,
             category: cat === 'All' ? undefined : cat,
             search: searchQuery || undefined,
@@ -188,6 +194,7 @@ export default function MenuManagement({
     const handleStockFilterChange = (status) => {
         setSelectedStockFilter(status);
         router.get('/products', {
+            group: selectedGroup || undefined,
             page: 1,
             category: selectedCategoryFilter === 'All' ? undefined : selectedCategoryFilter,
             search: searchQuery || undefined,
@@ -200,6 +207,7 @@ export default function MenuManagement({
     const handleStatusFilterChange = (status) => {
         setStatusFilter(status);
         router.get('/products', {
+            group: selectedGroup || undefined,
             page: 1,
             category: selectedCategoryFilter === 'All' ? undefined : selectedCategoryFilter,
             search: searchQuery || undefined,
@@ -212,6 +220,7 @@ export default function MenuManagement({
     const handleSortValueChange = (nextSort) => {
         setSelectedSort(nextSort);
         router.get('/products', {
+            group: selectedGroup || undefined,
             page: 1,
             category: selectedCategoryFilter === 'All' ? undefined : selectedCategoryFilter,
             search: searchQuery || undefined,
@@ -240,6 +249,7 @@ export default function MenuManagement({
         }
         const t = setTimeout(() => {
             router.get('/products', {
+                group: selectedGroup || undefined,
                 page: 1,
                 category: categoryFilterRef.current === 'All' ? undefined : categoryFilterRef.current,
                 search: searchQuery || undefined,
@@ -356,10 +366,16 @@ export default function MenuManagement({
     // Category Modal State
     const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
     const [editingCategory, setEditingCategory] = useState(null);
-    const [categoryFormData, setCategoryFormData] = useState({ name: '', description: '', sub_categories: [] });
+    const [categoryFormData, setCategoryFormData] = useState({ name: '', description: '', catalog_group: selectedGroup || 'automotive', sub_categories: [] });
 
     // Handlers for Products
     const openAddProductModal = () => {
+        if (!categories.length) {
+            setActiveTab('categories');
+            toast.info('Buat kategori untuk kelompok ini sebelum menambahkan produk.');
+            openAddCategoryModal();
+            return;
+        }
         setEditingItem(null);
         setProductFormData({
             sku: 'SKU' + Date.now().toString().slice(-6),
@@ -446,13 +462,14 @@ export default function MenuManagement({
     // Handlers for Categories
     const openAddCategoryModal = () => {
         setEditingCategory(null);
-        setCategoryFormData({ name: '', description: '', sub_categories: [] });
+        setCategoryFormData({ name: '', description: '', catalog_group: selectedGroup || 'automotive', sub_categories: [] });
         setIsCategoryModalOpen(true);
     };
 
     const openEditCategoryModal = (cat) => {
         setEditingCategory(cat);
         setCategoryFormData({
+            catalog_group: cat.catalog_group || 'automotive',
             name: cat.name,
             description: cat.description || '',
             sub_categories: (cat.children || []).map(ch => ({ id: ch.id, name: ch.name }))
@@ -465,6 +482,7 @@ export default function MenuManagement({
         setIsLoading(true);
 
         const payload = {
+            catalog_group: categoryFormData.catalog_group,
             name: categoryFormData.name,
             description: categoryFormData.description,
             sub_categories: (categoryFormData.sub_categories || [])
@@ -523,7 +541,7 @@ export default function MenuManagement({
     const stockAlertFilter = outOfStockCount > 0 ? 'out' : 'low';
 
     return (
-        <AuthenticatedLayout pageTitle={getTranslation(locale, 'menu_produk', 'Menu & Produk')} noPadding={true}>
+        <AuthenticatedLayout pageTitle={groupName || 'Produk'} noPadding={true}>
             <Head title={`${locale === 'en' ? 'Products & Stock' : 'Produk & Stok'}`}>
                 <meta name="description" content="Kelola katalog produk sparepart, oli, aki, ban, harga, dan ketersediaan stok Motorku." />
             </Head>
@@ -538,7 +556,7 @@ export default function MenuManagement({
                             {/* Left: Title + Badge + Tabs */}
                             <div className="flex items-center gap-2">
                                 <h1 className="text-base sm:text-lg font-bold text-primaryDark dark:text-white tracking-tight shrink-0">
-                                    {activeTab === 'products' ? 'Daftar Produk' : 'Kategori Produk'}
+                                    {activeTab === 'products' ? (groupName || 'Daftar Produk') : 'Kategori Produk'}
                                 </h1>
                                 <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 shrink-0">
                                     {activeTab === 'products' ? totalProducts : categories.length}
@@ -596,24 +614,7 @@ export default function MenuManagement({
                             </div>
                         </div>
 
-                        {/* Low Stock Alert Banner */}
-                        {(lowStockCount > 0 || outOfStockCount > 0) && activeTab === 'products' && (
-                            <div className={`flex items-center justify-between gap-2 border-l-2 pl-2 text-[11px] sm:text-xs ${outOfStockCount > 0 ? 'border-red-500' : 'border-accentYellow'}`}>
-                                <div className={`flex min-w-0 items-center gap-1.5 font-semibold ${outOfStockCount > 0 ? 'text-red-600 dark:text-red-400' : 'text-primaryDark dark:text-accentYellow'}`}>
-                                    <FiAlertTriangle className="shrink-0" size={14} />
-                                    <span>
-                                        {[lowStockCount > 0 && `${lowStockCount} perlu kulak`, outOfStockCount > 0 && `${outOfStockCount} stok habis`].filter(Boolean).join(' · ')}
-                                    </span>
-                                </div>
-                                <button
-                                    type="button"
-                                    onClick={() => handleStockFilterChange(selectedStockFilter === stockAlertFilter ? 'all' : stockAlertFilter)}
-                                    className={`shrink-0 font-bold hover:underline cursor-pointer ${outOfStockCount > 0 ? 'text-red-600 dark:text-red-400' : 'text-primaryDark dark:text-accentYellow'}`}
-                                >
-                                    {selectedStockFilter === stockAlertFilter ? 'Semua' : 'Lihat'}
-                                </button>
-                            </div>
-                        )}
+
 
                         {/* Filter Bar (Search + Dropdown Kategori + Dropdown Status Stok + Status Segmented Button) */}
                         {activeTab === 'products' && (
@@ -699,6 +700,23 @@ export default function MenuManagement({
                                          <FiChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 dark:text-slate-500" size={14} />
                                      </div>
 
+                                     {/* Low Stock Alert — tepat di sebelah dropdown stok */}
+                                     {(lowStockCount > 0 || outOfStockCount > 0) && (
+                                         <button
+                                             type="button"
+                                             onClick={() => handleStockFilterChange(selectedStockFilter === stockAlertFilter ? 'all' : stockAlertFilter)}
+                                             title={[lowStockCount > 0 && `${lowStockCount} perlu kulak`, outOfStockCount > 0 && `${outOfStockCount} stok habis`].filter(Boolean).join(' · ')}
+                                             className={`hidden sm:inline-flex items-center gap-1.5 px-2 py-1.5 rounded-lg border text-[11px] font-bold transition cursor-pointer ${
+                                                 outOfStockCount > 0
+                                                     ? 'border-red-500 bg-red-500 text-white hover:bg-red-600 hover:border-red-600'
+                                                     : 'border-amber-400 bg-amber-400 text-amber-900 hover:bg-amber-500 hover:border-amber-500'
+                                             }`}
+                                         >
+                                             <FiAlertTriangle size={13} className="shrink-0" />
+                                             <span>{outOfStockCount > 0 ? `${outOfStockCount} stok habis` : `${lowStockCount} perlu kulak`}</span>
+                                         </button>
+                                     )}
+
                                      {showMobileFilters && (
                                          <>
                                              <select
@@ -756,6 +774,8 @@ export default function MenuManagement({
                                              <FiList size={16} />
                                          </button>
                                      </div>
+
+
 
                                      <label className="sr-only" htmlFor="product-availability">Status di POS</label>
                                      <div className="relative shrink-0">
@@ -835,8 +855,7 @@ export default function MenuManagement({
                                                             <ProductPhoto src={item.image} name={item.name} category={item.category} className="w-full h-full" compact />
                                                         </button>
                                                         <button type="button" onClick={() => toggleRowExpand(item.id)} className="min-w-0 flex-1 text-left" aria-expanded={isExpanded}>
-                                                            <span className="block line-clamp-2 text-xs font-bold leading-snug text-slate-900 dark:text-white">{item.name}</span>
-                                                            {item.sku && <span className="mt-0.5 block truncate text-[11px] text-slate-500 dark:text-slate-400">{item.sku}</span>}
+                                                            <span className="block line-clamp-2 text-[11px] font-bold leading-snug text-slate-900 dark:text-white">{item.name}</span>
                                                         </button>
                                                         <button type="button" onClick={() => toggleRowExpand(item.id)} className="shrink-0 p-1 text-slate-400" aria-label={`Detail ${item.name}`} aria-expanded={isExpanded}>
                                                             {isExpanded ? <FiChevronDown size={16} /> : <FiChevronRight size={16} />}
@@ -870,12 +889,12 @@ export default function MenuManagement({
                                     </div>}
                                     {viewMode === 'grid' ? (
                                     /* GRID VIEW */
-                                    <div className="grid grid-cols-2 gap-2 p-2 md:grid-cols-4 md:gap-3 md:p-4 min-[1700px]:grid-cols-8">
+                                    <div className="grid grid-cols-2 gap-2 p-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 min-[1700px]:grid-cols-6 md:gap-3 md:p-4">
                                         {filteredItems.map(item => (
                                             <div key={item.id} className="bg-white dark:bg-slate-800 rounded-md md:rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden md:shadow-xs hover:shadow-md hover:border-slate-400 dark:hover:border-slate-500 transition-all flex flex-col relative group">
                                                 {/* Image Container */}
                                                 <div
-                                                    className="relative w-full aspect-[4/3] bg-slate-50 dark:bg-slate-900 cursor-pointer overflow-hidden border-b border-slate-100 dark:border-slate-700"
+                                                    className="relative w-full aspect-square bg-slate-50 dark:bg-slate-900 cursor-pointer overflow-hidden border-b border-slate-100 dark:border-slate-700"
                                                     onClick={(e) => { e.stopPropagation(); setPreviewProduct(item); }}
                                                 >
                                                     <ProductPhoto src={item.image} name={item.name} category={item.category} className="absolute inset-0 w-full h-full" />
@@ -890,17 +909,12 @@ export default function MenuManagement({
                                                     </div>
                                                     <div className="min-w-0 mb-2">
                                                         <h3
-                                                            className="font-bold text-slate-900 dark:text-white text-xs md:text-sm leading-snug line-clamp-2 hover:underline cursor-pointer transition"
+                                                            className="font-bold text-slate-900 dark:text-white text-[11px] md:text-xs leading-snug line-clamp-2 hover:underline cursor-pointer transition"
                                                             title={item.name}
                                                             onClick={() => openEditProductModal(item)}
                                                         >
                                                             {item.name}
                                                         </h3>
-                                                        {item.sku && (
-                                                            <p className="text-[11px] font-mono text-slate-500 dark:text-slate-400 mt-0.5 truncate">
-                                                                {item.sku}
-                                                            </p>
-                                                        )}
                                                     </div>
                                                     <div className="mt-auto">
                                                         <p className="font-black text-slate-900 dark:text-white text-xs md:text-base">
@@ -916,8 +930,6 @@ export default function MenuManagement({
                                                             }`}>
                                                                 {item.stock <= 0 ? '0 pcs (Habis)' : item.stock <= (item.minimum_stock ?? 3) ? `${item.stock} pcs (Perlu Kulak)` : `${item.stock} pcs`}
                                                             </span>
-                                                            <span className="text-slate-300 dark:text-slate-600 mx-1">·</span>
-                                                            <span className="text-slate-400 dark:text-slate-500">{item.status === 'Active' ? 'Aktif di POS' : 'Nonaktif'}</span>
                                                         </p>
                                                     </div>
                                                 </div>
@@ -1024,12 +1036,11 @@ export default function MenuManagement({
                                                                     <div className="min-w-0">
                                                                         <button type="button"
                                                                             onClick={() => toggleRowExpand(item.id)}
-                                                                            className="font-semibold text-left text-slate-900 dark:text-white text-xs sm:text-sm block line-clamp-2 hover:underline transition cursor-pointer"
+                                                                            className="font-semibold text-left text-slate-900 dark:text-white text-xs block line-clamp-2 hover:underline transition cursor-pointer"
                                                                             title={item.name}
                                                                         >
                                                                             {item.name}
                                                                         </button>
-                                                                        <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400 block mt-0.5">{item.sku || 'Tanpa SKU'}</span>
                                                                     </div>
                                                                 </div>
                                                             </td>
@@ -1538,6 +1549,11 @@ export default function MenuManagement({
                         <form onSubmit={handleSaveCategory} className="min-h-0 flex flex-1 flex-col">
                             <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:p-6 space-y-5">
                                 <div>
+                                    <label htmlFor="category-group" className="block text-xs font-bold text-primaryDark mb-1">Kelompok barang</label>
+                                    <select id="category-group" value={categoryFormData.catalog_group} onChange={(e) => setCategoryFormData({ ...categoryFormData, catalog_group: e.target.value })} className="mb-2 w-full rounded-lg border-slate-300 text-sm text-primaryDark">
+                                        {Object.entries(catalogGroups).map(([key, name]) => <option key={key} value={key}>{name}</option>)}
+                                    </select>
+                                    <p className="mb-3 text-xs text-slate-500">Produk dan subkategori mengikuti kelompok ini.</p>
                                     <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Nama kategori *</label>
                                     <input
                                         type="text"

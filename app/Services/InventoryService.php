@@ -54,6 +54,7 @@ class InventoryService
 
             return InventoryLog::create([
                 'product_id' => $data['product_id'],
+                'product_name' => $product->name,
                 'user_id' => $userId ?? auth()->id(),
                 'type' => $type,
                 'quantity' => $quantity,

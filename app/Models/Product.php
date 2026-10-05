@@ -2,17 +2,16 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Product extends Model
 {
-    use HasFactory, HasUuids, SoftDeletes;
+    use HasFactory, HasUuids;
 
     protected $fillable = [
         'category_id',
@@ -29,20 +28,29 @@ class Product extends Model
         'rack_location',
         'image_path',
         'is_available',
-        'sync_version'
+        'sync_version',
     ];
 
     protected $casts = [
-        'price'        => 'decimal:2',
-        'cost_price'   => 'decimal:2',
-        'stock'        => 'integer',
-        'minimum_stock'=> 'integer',
+        'price' => 'decimal:2',
+        'cost_price' => 'decimal:2',
+        'stock' => 'integer',
+        'minimum_stock' => 'integer',
         'is_available' => 'boolean',
     ];
 
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
+    }
+
+    public function scopeInCatalogGroup($query, ?string $group)
+    {
+        return $query->when($group, fn ($query) => $query->whereHas('category', function ($category) use ($group) {
+            $category->where(function ($root) use ($group) {
+                $root->whereNull('parent_id')->where('catalog_group', $group);
+            })->orWhereHas('parent', fn ($parent) => $parent->where('catalog_group', $group));
+        }));
     }
 
     public function motorcycles(): BelongsToMany
@@ -62,6 +70,7 @@ class Product extends Model
         if (is_null($this->cost_price)) {
             return 0;
         }
+
         return max(0, $this->price - $this->cost_price);
     }
 
@@ -73,6 +82,7 @@ class Product extends Model
         if ($this->stock <= $this->minimum_stock) {
             return 'Perlu Kulak';
         }
+
         return 'Tersedia';
     }
 }

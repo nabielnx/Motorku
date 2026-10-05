@@ -2,8 +2,8 @@
 
 namespace Tests\Feature\Setting;
 
-use App\Models\Category;
 use App\Models\CashClosing;
+use App\Models\Category;
 use App\Models\InventoryLog;
 use App\Models\Order;
 use App\Models\OrderItem;
@@ -21,7 +21,9 @@ class ResetTransactionsTest extends TestCase
     use RefreshDatabase;
 
     protected User $owner;
+
     protected User $cashier;
+
     protected Product $product;
 
     protected function setUp(): void
@@ -155,7 +157,7 @@ class ResetTransactionsTest extends TestCase
             ]);
 
         // Assert transaction data is completely cleared
-        $this->assertEquals(0, Order::withTrashed()->count());
+        $this->assertEquals(0, Order::query()->count());
         $this->assertSame(0, OrderReturn::count());
         $this->assertSame(0, CashClosing::count());
         $this->assertEquals(0, OrderItem::count());

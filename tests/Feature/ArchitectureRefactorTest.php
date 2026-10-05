@@ -14,8 +14,8 @@ use App\Models\Product;
 use App\Models\User;
 use App\Services\InventoryService;
 use App\Services\OrderService;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Artisan;
 use Tests\TestCase;
 
 class ArchitectureRefactorTest extends TestCase
@@ -23,12 +23,13 @@ class ArchitectureRefactorTest extends TestCase
     use RefreshDatabase;
 
     protected User $owner;
+
     protected User $cashier;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $this->seed(RoleSeeder::class);
 
         $this->owner = User::factory()->create();
         $this->owner->assignRole('owner');
@@ -86,22 +87,22 @@ class ArchitectureRefactorTest extends TestCase
 
         // Create an expired stale order (pending + unpaid + past expires_at)
         $order = Order::factory()->create([
-            'order_status'   => OrderStatus::Pending,
+            'order_status' => OrderStatus::Pending,
             'payment_status' => PaymentStatus::Unpaid,
-            'expires_at'     => now()->subMinutes(10),
+            'expires_at' => now()->subMinutes(10),
         ]);
 
         OrderItem::factory()->create([
-            'order_id'   => $order->id,
+            'order_id' => $order->id,
             'product_id' => $product->id,
-            'quantity'   => 2,
+            'quantity' => 2,
         ]);
 
         // Create an active (not yet expired) order that should NOT be affected
         $activeOrder = Order::factory()->create([
-            'order_status'   => OrderStatus::Pending,
+            'order_status' => OrderStatus::Pending,
             'payment_status' => PaymentStatus::Unpaid,
-            'expires_at'     => now()->addMinutes(30),
+            'expires_at' => now()->addMinutes(30),
         ]);
 
         // Run dry-run first
@@ -124,37 +125,31 @@ class ArchitectureRefactorTest extends TestCase
         $this->assertEquals(7, $product->fresh()->stock);
     }
 
-    public function test_motorcycle_soft_delete_and_restore_cascade_to_parts(): void
+    public function test_motorcycle_delete_cascades_to_parts_and_preserves_product(): void
     {
         $motor = Motorcycle::create([
-            'brand'       => 'Yamaha',
-            'model'       => 'NMAX 155',
-            'slug'        => 'yamaha-nmax-155-2020',
-            'year_start'  => 2020,
-            'engine_cc'   => 155,
+            'brand' => 'Yamaha',
+            'model' => 'NMAX 155',
+            'slug' => 'yamaha-nmax-155-2020',
+            'year_start' => 2020,
+            'engine_cc' => 155,
             'engine_type' => 'matic',
         ]);
         $product = Product::factory()->create();
 
         $part = MotorcyclePart::create([
-            'motorcycle_id'  => $motor->id,
-            'product_id'     => $product->id,
-            'part_category'  => 'oli_mesin',
+            'motorcycle_id' => $motor->id,
+            'product_id' => $product->id,
+            'part_category' => 'oli_mesin',
             'is_recommended' => true,
         ]);
 
-        $this->assertDatabaseHas('motorcycle_parts', ['id' => $part->id, 'deleted_at' => null]);
+        $this->assertDatabaseHas('motorcycle_parts', ['id' => $part->id]);
 
-        // Soft delete motorcycle
         $motor->delete();
 
-        // Part should now be soft deleted
-        $this->assertSoftDeleted('motorcycle_parts', ['id' => $part->id]);
-
-        // Restore motorcycle
-        $motor->restore();
-
-        // Part should now be restored
-        $this->assertDatabaseHas('motorcycle_parts', ['id' => $part->id, 'deleted_at' => null]);
+        $this->assertDatabaseMissing('motorcycles', ['id' => $motor->id]);
+        $this->assertDatabaseMissing('motorcycle_parts', ['id' => $part->id]);
+        $this->assertDatabaseHas('products', ['id' => $product->id]);
     }
 }

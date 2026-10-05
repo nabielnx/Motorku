@@ -5,6 +5,7 @@ namespace Tests\Feature\Category;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\User;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -13,12 +14,13 @@ class CategoryTest extends TestCase
     use RefreshDatabase;
 
     private User $owner;
+
     private User $cashier;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $this->seed(RoleSeeder::class);
 
         $this->owner = User::factory()->create();
         $this->owner->assignRole('owner');
@@ -112,6 +114,6 @@ class CategoryTest extends TestCase
         $response->assertStatus(200)
             ->assertJsonPath('message', 'Kategori berhasil dihapus!');
 
-        $this->assertSoftDeleted('categories', ['id' => $category->id]);
+        $this->assertDatabaseMissing('categories', ['id' => $category->id]);
     }
 }

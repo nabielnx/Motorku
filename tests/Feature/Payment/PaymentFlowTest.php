@@ -62,7 +62,7 @@ class PaymentFlowTest extends TestCase
     }
 
     #[Test]
-    public function invoice_number_does_not_reuse_a_soft_deleted_number(): void
+    public function invoice_number_does_not_reuse_a_deleted_number(): void
     {
         $this->seed(RoleSeeder::class);
         $cashier = User::factory()->create();

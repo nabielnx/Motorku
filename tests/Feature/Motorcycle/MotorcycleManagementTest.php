@@ -436,10 +436,10 @@ class MotorcycleManagementTest extends TestCase
         // Detach mapping
         $deleteRes = $this->actingAs($this->user)->deleteJson("/motorcycles/{$motor->id}/parts/{$part->id}");
         $deleteRes->assertStatus(200);
-        $this->assertSoftDeleted('motorcycle_parts', ['id' => $part->id]);
+        $this->assertDatabaseMissing('motorcycle_parts', ['id' => $part->id]);
     }
 
-    public function test_can_reattach_soft_deleted_part_without_duplicate_error(): void
+    public function test_can_reattach_deleted_part_as_a_new_mapping(): void
     {
         $motor = Motorcycle::create([
             'brand'       => 'Yamaha',
@@ -466,30 +466,32 @@ class MotorcycleManagementTest extends TestCase
         $attachRes->assertStatus(201);
         $partId = $attachRes->json('data.id');
 
-        // 2. Soft delete it
+        // 2. Delete it permanently
         $this->actingAs($this->user)->deleteJson("/motorcycles/{$motor->id}/parts/{$partId}")
             ->assertStatus(200);
-        $this->assertSoftDeleted('motorcycle_parts', ['id' => $partId]);
+        $this->assertDatabaseMissing('motorcycle_parts', ['id' => $partId]);
 
-        // 3. Re-attach via single attach endpoint -> should restore and NOT throw 1062 duplicate entry
+        // 3. Re-attach creates a fresh mapping without a duplicate key error
         $reattachRes = $this->actingAs($this->user)->postJson("/motorcycles/{$motor->id}/parts", [
             'product_id'     => $product->id,
             'part_category'  => 'oli_mesin',
-            'notes'          => 'Updated note after restore',
+            'notes'          => 'Updated note after reattach',
             'is_recommended' => true,
         ]);
         $reattachRes->assertStatus(201);
         $this->assertDatabaseHas('motorcycle_parts', [
-            'id'             => $partId,
-            'deleted_at'     => null,
-            'notes'          => 'Updated note after restore',
+            'id'             => $reattachRes->json('data.id'),
+            'notes'          => 'Updated note after reattach',
             'is_recommended' => true,
         ]);
 
-        // 4. Soft delete again and test bulk-attach restore
+        $this->assertNotSame($partId, $reattachRes->json('data.id'));
+        $partId = $reattachRes->json('data.id');
+
+        // 4. Delete again and create a fresh mapping via bulk attach
         $this->actingAs($this->user)->deleteJson("/motorcycles/{$motor->id}/parts/{$partId}")
             ->assertStatus(200);
-        $this->assertSoftDeleted('motorcycle_parts', ['id' => $partId]);
+        $this->assertDatabaseMissing('motorcycle_parts', ['id' => $partId]);
 
         $bulkRes = $this->actingAs($this->user)->postJson('/motorcycles/bulk-attach', [
             'motorcycle_ids' => [$motor->id],
@@ -506,9 +508,7 @@ class MotorcycleManagementTest extends TestCase
                 ],
             ]);
 
-        $this->assertDatabaseHas('motorcycle_parts', [
-            'id'         => $partId,
-            'deleted_at' => null,
-        ]);
+        $this->assertDatabaseMissing('motorcycle_parts', ['id' => $partId]);
+        $this->assertDatabaseHas('motorcycle_parts', ['motorcycle_id' => $motor->id, 'product_id' => $product->id]);
     }
 }

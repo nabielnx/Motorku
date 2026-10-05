@@ -243,6 +243,7 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
     const homeHref = hasRole('cashier') ? '/pos' : '/dashboard';
     const destInfo = getDestinationInfo(navigatingDestination, locale);
     const activePath = navigatingDestination || url;
+    const activeCatalogGroup = new URL(activePath, 'http://localhost').searchParams.get('group');
 
     const isItemActive = (itemHref) => {
         if (!itemHref) return false;
@@ -287,9 +288,22 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                     name: getTranslation(locale, 'menu_produk', 'Produk'),
                     icon: FiPackage,
                     href: safeRoute('products.index', '/products'),
-                    active: isItemActive('/products') || activePath.startsWith('/categories'),
+                    active: (isItemActive('/products') && !activeCatalogGroup) || activePath.startsWith('/categories'),
                     roles: ['owner']
                 },
+                ...[
+                    ['automotive', 'Otomotif'],
+                    ['electronics', 'Elektronik'],
+                    ['hardware', 'Alat Bangunan'],
+                    ['bicycle', 'Sepeda'],
+                ].map(([group, name]) => ({
+                    name,
+                    icon: FiPackage,
+                    href: `${safeRoute('products.index', '/products')}?group=${group}`,
+                    active: isItemActive('/products') && activeCatalogGroup === group,
+                    roles: ['owner'],
+                    nested: true,
+                })),
                 {
                     name: 'Data Motor',
                     icon: FiMonitor,
@@ -393,7 +407,7 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                                             key={iIndex}
                                             href={item.href}
                                             onClick={() => setIsSidebarOpen(false)}
-                                            className={`flex items-center gap-3 -mx-3 px-6 py-2.5 transition-colors font-semibold text-[13px] ${
+                                            className={`flex items-center gap-3 -mx-3 ${item.nested ? 'pl-10 pr-4 py-2 text-xs' : 'px-6 py-2.5'} transition-colors font-semibold text-[13px] ${
                                                 item.active 
                                                     ? 'bg-primary text-white border-l-4 border-[#FFF200] font-bold'
                                                     : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white border-l-4 border-transparent'

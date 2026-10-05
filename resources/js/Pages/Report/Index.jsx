@@ -72,7 +72,7 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
 
     const topSelling = (reportStats.top_selling || []).map((item, idx) => ({
         rank: idx + 1,
-        name: item.product?.name ?? 'Produk',
+        name: item.product?.name ?? item.product_name ?? 'Produk',
         category: item.product?.category?.name ?? '-',
         sold: Number(item.total_qty || 0),
         revenue: Number(item.total_revenue || 0),

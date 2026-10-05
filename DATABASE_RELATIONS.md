@@ -40,7 +40,7 @@ Tabel `motorcycle_parts` berfungsi sebagai *rich intermediate entity* (memiliki 
 - `part_category` (Enum string, e.g., `oli_mesin`, `ban_depan`, `kampas_rem_depan`, `roller`, dsb.)
 - `notes` (Nullable string, catatan kompatibilitas spesifik)
 - `is_recommended` (Boolean, penanda part OEM / rekomendasi utama)
-- `created_at`, `updated_at`, `deleted_at` (SoftDeletes)
+- `created_at`, `updated_at` (permanent deletes)
 
 ### Definisi di Eloquent Model:
 
@@ -117,3 +117,14 @@ public function product(): BelongsTo
      `$motorcycle->products()->wherePivot('part_category', 'oli_mesin')->get();`
 3. **Fleksibilitas Rekomendasi & Catatan Khusus**:
    - Menggunakan kolom pivot `is_recommended` dan `notes`, sistem dapat memberikan rekomendasi part terbaik (*OEM / Racing*) serta catatan pemasangan (*misal: Khusus Varian Non-ABS*).
+
+
+## Kelompok katalog toko campuran
+
+Kategori induk memiliki `catalog_group`: `automotive`, `electronics`, `hardware`, atau `bicycle`. Subkategori mengikuti kelompok induknya. Produk, harga, stok, dan transaksi tetap menggunakan katalog `products` yang sama. Menu kelompok memakai `/products?group=...`; kategori lama masuk Otomotif secara default. Kelompok dapat dipindahkan melalui edit kategori. `motorcycle_parts` tetap khusus untuk kecocokan motor.
+
+## Permanent deletion
+
+Core models use hard deletes. Motorcycle deletion cascades to its part mappings; deleting a product also removes its mappings. Invoice line snapshots and inventory log product names remain available after product deletion. Historical inventory logs, returns, and cash closings retain their values when a related product or staff account is deleted. Categories containing products and products in active orders must be resolved before deletion. Paid orders remain protected from deletion.
+
+Migration `2026_10_05_000001_use_permanent_deletes` permanently removes legacy rows marked with `deleted_at`, then removes the soft-delete columns. Back up the target database before applying it. Preflight rejects deleted categories containing active products, deleted products in active orders, or deleted orders/items with returns. Rollback requires restoring a database backup; schema rollback cannot recover deleted rows. Apply the application code and migration together in maintenance mode.

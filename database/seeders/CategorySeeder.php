@@ -17,7 +17,7 @@ class CategorySeeder extends Seeder
                 'Oli Shockbreaker',
                 'Minyak Rem',
                 'Air Radiator (Coolant)',
-                'Cairan Kimia & Perawatan' // Carb Cleaner, Chain Lube, Grease/Gemuk
+                'Cairan Kimia & Perawatan', // Carb Cleaner, Chain Lube, Grease/Gemuk
             ],
             'Ban & Kaki-kaki' => [
                 'Ban Luar Tubeless',
@@ -27,7 +27,7 @@ class CategorySeeder extends Seeder
                 'Shockbreaker',
                 'Seal Shock Depan',
                 'Bearing / Laher',
-                'Bushing & Karet Tromol'
+                'Bushing & Karet Tromol',
             ],
             'Penggerak & CVT' => [
                 'V-Belt',
@@ -36,14 +36,14 @@ class CategorySeeder extends Seeder
                 'Rumah Roller & Pulley Set',
                 'Per CVT & Kampas',
                 'Kampas Kopling Manual (Bebek/Sport)',
-                'Gear Set & Rantai'
+                'Gear Set & Rantai',
             ],
             'Pengereman' => [
                 'Kampas Rem Cakram (Brake Pad)',
                 'Kampas Rem Tromol (Brake Shoe)',
                 'Piringan Cakram (Disc)',
                 'Master Rem & Kaliper (Kit Seal)',
-                'Kabel & Selang Rem'
+                'Kabel & Selang Rem',
             ],
             'Kelistrikan & Pengapian' => [
                 'Aki / Baterai',
@@ -52,7 +52,7 @@ class CategorySeeder extends Seeder
                 'Kiprok / Regulator',
                 'Koil & Spul',
                 'CDI / ECU',
-                'Sekring (Fuse), Relay & Flasher'
+                'Sekring (Fuse), Relay & Flasher',
             ],
             'Mesin & Bahan Bakar' => [
                 'Filter Udara',
@@ -62,40 +62,34 @@ class CategorySeeder extends Seeder
                 'Rantai Keteng & Tensioner',
                 'Paking / Gasket Set',
                 'Karburator / Throttle Body & Injektor',
-                'Fuel Pump & Dinamo Starter'
+                'Fuel Pump & Dinamo Starter',
             ],
             'Kemudi, Bodi & Aksesoris' => [
                 'Spion',
                 'Handgrip & Jalu',
                 'Kabel Gas & Kopling',
                 'Baut, Mur & Klip Bodi',
-                'Plastik Bodi & Kaca Lampu'
-            ]
+                'Plastik Bodi & Kaca Lampu',
+            ],
         ];
 
         foreach ($hierarkiKategori as $parentName => $subCategories) {
-            $parent = Category::withTrashed()->where('name', $parentName)->first();
+            $parent = Category::query()->where('name', $parentName)->first();
             $desc = implode(', ', $subCategories);
-            if (!$parent) {
+            if (! $parent) {
                 $parent = Category::create(['name' => $parentName, 'description' => $desc]);
             } else {
-                if ($parent->trashed()) {
-                    $parent->restore();
-                }
                 $parent->update(['description' => $desc]);
             }
 
             foreach ($subCategories as $subCategoryName) {
-                $sub = Category::withTrashed()->where('name', $subCategoryName)->first();
-                if (!$sub) {
+                $sub = Category::query()->where('name', $subCategoryName)->first();
+                if (! $sub) {
                     $sub = Category::create([
                         'name' => $subCategoryName,
-                        'parent_id' => $parent->id
+                        'parent_id' => $parent->id,
                     ]);
                 } else {
-                    if ($sub->trashed()) {
-                        $sub->restore();
-                    }
                     $sub->update(['parent_id' => $parent->id]);
                 }
             }
