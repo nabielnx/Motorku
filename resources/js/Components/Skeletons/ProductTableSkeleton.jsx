@@ -68,7 +68,7 @@ export default function ProductTableSkeleton({ rows = 16, fullPage = false, view
     // ─── 1. Grid Skeleton View (Kotak-kotak) ───
     const gridContent = (
         <div className="flex-1 min-h-0 overflow-y-auto overflow-x-auto flex flex-col justify-between">
-            <div className="grid grid-cols-2 gap-2 p-2 md:grid-cols-4 md:gap-3 md:p-4 min-[1700px]:grid-cols-8">
+            <div className="grid grid-cols-2 gap-2 p-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 min-[1700px]:grid-cols-6 md:gap-3 md:p-4">
                 {Array.from({ length: rows }).map((_, i) => (
                     <ProductGridCardSkeleton key={i} />
                 ))}

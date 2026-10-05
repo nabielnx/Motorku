@@ -165,9 +165,24 @@ export default function MenuManagement({
         } catch {}
     };
 
+    useEffect(() => {
+        const syncPageSize = () => {
+            const columns = window.innerWidth >= 1700 ? 6 : window.innerWidth >= 1280 ? 5 : window.innerWidth >= 1024 ? 4 : window.innerWidth >= 640 ? 3 : 2;
+            const nextSize = viewMode === 'grid' ? Math.ceil(16 / columns) * columns : 16;
+            if (nextSize === perPage) return;
+            const params = Object.fromEntries(new URLSearchParams(window.location.search));
+            router.get('/products', { ...params, page: 1, per_page: nextSize }, { preserveState: true, preserveScroll: true, replace: true });
+        };
+        syncPageSize();
+        const breakpoints = [640, 1024, 1280, 1700].map(width => window.matchMedia(`(min-width: ${width}px)`));
+        breakpoints.forEach(query => query.addEventListener('change', syncPageSize));
+        return () => breakpoints.forEach(query => query.removeEventListener('change', syncPageSize));
+    }, [viewMode, perPage]);
+
     const changeProductPage = (newPage) => {
         if (newPage < 1 || newPage > totalPages) return;
         router.get('/products', {
+            per_page: perPage,
             group: selectedGroup || undefined,
             page: newPage,
             category: selectedCategoryFilter === 'All' ? undefined : selectedCategoryFilter,
@@ -181,6 +196,7 @@ export default function MenuManagement({
     const handleCategoryFilterChange = (cat) => {
         setSelectedCategoryFilter(cat);
         router.get('/products', {
+            per_page: perPage,
             group: selectedGroup || undefined,
             page: 1,
             category: cat === 'All' ? undefined : cat,
@@ -194,6 +210,7 @@ export default function MenuManagement({
     const handleStockFilterChange = (status) => {
         setSelectedStockFilter(status);
         router.get('/products', {
+            per_page: perPage,
             group: selectedGroup || undefined,
             page: 1,
             category: selectedCategoryFilter === 'All' ? undefined : selectedCategoryFilter,
@@ -207,6 +224,7 @@ export default function MenuManagement({
     const handleStatusFilterChange = (status) => {
         setStatusFilter(status);
         router.get('/products', {
+            per_page: perPage,
             group: selectedGroup || undefined,
             page: 1,
             category: selectedCategoryFilter === 'All' ? undefined : selectedCategoryFilter,
@@ -220,6 +238,7 @@ export default function MenuManagement({
     const handleSortValueChange = (nextSort) => {
         setSelectedSort(nextSort);
         router.get('/products', {
+            per_page: perPage,
             group: selectedGroup || undefined,
             page: 1,
             category: selectedCategoryFilter === 'All' ? undefined : selectedCategoryFilter,
@@ -249,6 +268,7 @@ export default function MenuManagement({
         }
         const t = setTimeout(() => {
             router.get('/products', {
+                per_page: perPage,
                 group: selectedGroup || undefined,
                 page: 1,
                 category: categoryFilterRef.current === 'All' ? undefined : categoryFilterRef.current,
@@ -828,7 +848,7 @@ export default function MenuManagement({
                     {/* TAB 1: PRODUCTS TABLE WITH ACCORDION & IMAGES */}
                     {activeTab === 'products' && (
                         (isNavigating || skeletonParam) ? (
-                            <ProductTableSkeleton viewMode={skeletonParam === 'grid' ? 'grid' : (skeletonParam === 'list' ? 'list' : viewMode)} />
+                            <ProductTableSkeleton rows={perPage} viewMode={skeletonParam === 'grid' ? 'grid' : (skeletonParam === 'list' ? 'list' : viewMode)} />
                         ) : (
                         <>
                             <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden md:overflow-x-auto">
@@ -889,7 +909,7 @@ export default function MenuManagement({
                                     </div>}
                                     {viewMode === 'grid' ? (
                                     /* GRID VIEW */
-                                    <div className="grid grid-cols-2 gap-2 p-2 md:grid-cols-4 min-[1700px]:grid-cols-8 md:gap-3 md:p-4">
+                                    <div className="grid grid-cols-2 gap-2 p-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 min-[1700px]:grid-cols-6 md:gap-3 md:p-4">
                                         {filteredItems.map(item => (
                                             <div key={item.id} className="bg-white dark:bg-slate-800 rounded-md md:rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden md:shadow-xs hover:shadow-md hover:border-slate-400 dark:hover:border-slate-500 transition-all flex flex-col relative group">
                                                 {/* Image Container */}

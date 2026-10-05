@@ -16,7 +16,7 @@ use RuntimeException;
 
 class ProductService
 {
-    public function getProductsForWeb(?string $search = null, ?string $category = null, ?string $stockStatus = null, ?string $availability = null, ?string $sort = null, ?string $group = null)
+    public function getProductsForWeb(?string $search = null, ?string $category = null, ?string $stockStatus = null, ?string $availability = null, ?string $sort = null, ?string $group = null, int $perPage = 16)
     {
         $query = Product::with('category')->inCatalogGroup($group);
 
@@ -53,7 +53,7 @@ class ProductService
             default => $query->latest(),
         };
 
-        return $query->paginate(16)->withQueryString();
+        return $query->paginate(in_array($perPage, [16, 18, 20], true) ? $perPage : 16)->withQueryString();
     }
 
     public function getAllProducts($perPage = null, $search = null, $stockStatus = null)

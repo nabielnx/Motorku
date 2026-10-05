@@ -48,7 +48,7 @@ class ProductController extends Controller implements HasMiddleware
         $group = $request->string('group')->value();
         abort_if($group && !array_key_exists($group, Category::CATALOG_GROUPS), 422, 'Kelompok produk tidak valid.');
 
-        $products = $this->productService->getProductsForWeb($search, $category, $stockStatus, $availability, $sort, $group ?: null);
+        $products = $this->productService->getProductsForWeb($search, $category, $stockStatus, $availability, $sort, $group ?: null, $request->integer('per_page', 16));
 
         if ($products->currentPage() > $products->lastPage()) {
             return redirect()->route('products.index', $request->except('page'));
