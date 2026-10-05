@@ -30,12 +30,15 @@ import {
 export default function MenuManagement({ 
     initialProducts = [], 
     initialCategories = [], 
-    filters = {}, 
+    filters = {},
+    catalogGroups = {},
     lowStockCount = 0, 
     outOfStockCount = 0 
 }) {
     const { props } = usePage();
     const locale = props.app_settings?.locale || 'id';
+    const selectedGroup = filters.group || '';
+    const groupName = catalogGroups[selectedGroup];
     const [activeTab, setActiveTab] = useState('products'); // 'products' | 'categories'
     const [isNavigating, setIsNavigating] = useState(false);
     const skeletonParam = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('skeleton') : null;
@@ -103,6 +106,7 @@ export default function MenuManagement({
             const subDesc = childrenFormatted.length > 0 ? childrenFormatted.map(ch => ch.name).join(', ') : '';
 
             return {
+                catalog_group: c.catalog_group,
                 id: c.id,
                 name: c.name,
                 description: c.description || subDesc,
@@ -164,6 +168,7 @@ export default function MenuManagement({
     const changeProductPage = (newPage) => {
         if (newPage < 1 || newPage > totalPages) return;
         router.get('/products', {
+            group: selectedGroup || undefined,
             page: newPage,
             category: selectedCategoryFilter === 'All' ? undefined : selectedCategoryFilter,
             search: searchQuery || undefined,
@@ -176,6 +181,7 @@ export default function MenuManagement({
     const handleCategoryFilterChange = (cat) => {
         setSelectedCategoryFilter(cat);
         router.get('/products', {
+            group: selectedGroup || undefined,
             page: 1,
             category: cat === 'All' ? undefined : cat,
             search: searchQuery || undefined,
@@ -188,6 +194,7 @@ export default function MenuManagement({
     const handleStockFilterChange = (status) => {
         setSelectedStockFilter(status);
         router.get('/products', {
+            group: selectedGroup || undefined,
             page: 1,
             category: selectedCategoryFilter === 'All' ? undefined : selectedCategoryFilter,
             search: searchQuery || undefined,
@@ -200,6 +207,7 @@ export default function MenuManagement({
     const handleStatusFilterChange = (status) => {
         setStatusFilter(status);
         router.get('/products', {
+            group: selectedGroup || undefined,
             page: 1,
             category: selectedCategoryFilter === 'All' ? undefined : selectedCategoryFilter,
             search: searchQuery || undefined,
@@ -212,6 +220,7 @@ export default function MenuManagement({
     const handleSortValueChange = (nextSort) => {
         setSelectedSort(nextSort);
         router.get('/products', {
+            group: selectedGroup || undefined,
             page: 1,
             category: selectedCategoryFilter === 'All' ? undefined : selectedCategoryFilter,
             search: searchQuery || undefined,
@@ -240,6 +249,7 @@ export default function MenuManagement({
         }
         const t = setTimeout(() => {
             router.get('/products', {
+                group: selectedGroup || undefined,
                 page: 1,
                 category: categoryFilterRef.current === 'All' ? undefined : categoryFilterRef.current,
                 search: searchQuery || undefined,
@@ -356,10 +366,16 @@ export default function MenuManagement({
     // Category Modal State
     const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
     const [editingCategory, setEditingCategory] = useState(null);
-    const [categoryFormData, setCategoryFormData] = useState({ name: '', description: '', sub_categories: [] });
+    const [categoryFormData, setCategoryFormData] = useState({ name: '', description: '', catalog_group: selectedGroup || 'automotive', sub_categories: [] });
 
     // Handlers for Products
     const openAddProductModal = () => {
+        if (!categories.length) {
+            setActiveTab('categories');
+            toast.info('Buat kategori untuk kelompok ini sebelum menambahkan produk.');
+            openAddCategoryModal();
+            return;
+        }
         setEditingItem(null);
         setProductFormData({
             sku: 'SKU' + Date.now().toString().slice(-6),
@@ -446,13 +462,14 @@ export default function MenuManagement({
     // Handlers for Categories
     const openAddCategoryModal = () => {
         setEditingCategory(null);
-        setCategoryFormData({ name: '', description: '', sub_categories: [] });
+        setCategoryFormData({ name: '', description: '', catalog_group: selectedGroup || 'automotive', sub_categories: [] });
         setIsCategoryModalOpen(true);
     };
 
     const openEditCategoryModal = (cat) => {
         setEditingCategory(cat);
         setCategoryFormData({
+            catalog_group: cat.catalog_group || 'automotive',
             name: cat.name,
             description: cat.description || '',
             sub_categories: (cat.children || []).map(ch => ({ id: ch.id, name: ch.name }))
@@ -465,6 +482,7 @@ export default function MenuManagement({
         setIsLoading(true);
 
         const payload = {
+            catalog_group: categoryFormData.catalog_group,
             name: categoryFormData.name,
             description: categoryFormData.description,
             sub_categories: (categoryFormData.sub_categories || [])
@@ -523,7 +541,7 @@ export default function MenuManagement({
     const stockAlertFilter = outOfStockCount > 0 ? 'out' : 'low';
 
     return (
-        <AuthenticatedLayout pageTitle={getTranslation(locale, 'menu_produk', 'Menu & Produk')} noPadding={true}>
+        <AuthenticatedLayout pageTitle={groupName || 'Produk'} noPadding={true}>
             <Head title={`${locale === 'en' ? 'Products & Stock' : 'Produk & Stok'}`}>
                 <meta name="description" content="Kelola katalog produk sparepart, oli, aki, ban, harga, dan ketersediaan stok Motorku." />
             </Head>
@@ -538,7 +556,7 @@ export default function MenuManagement({
                             {/* Left: Title + Badge + Tabs */}
                             <div className="flex items-center gap-2">
                                 <h1 className="text-base sm:text-lg font-bold text-primaryDark dark:text-white tracking-tight shrink-0">
-                                    {activeTab === 'products' ? 'Daftar Produk' : 'Kategori Produk'}
+                                    {activeTab === 'products' ? (groupName || 'Daftar Produk') : 'Kategori Produk'}
                                 </h1>
                                 <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 shrink-0">
                                     {activeTab === 'products' ? totalProducts : categories.length}
@@ -1531,6 +1549,11 @@ export default function MenuManagement({
                         <form onSubmit={handleSaveCategory} className="min-h-0 flex flex-1 flex-col">
                             <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:p-6 space-y-5">
                                 <div>
+                                    <label htmlFor="category-group" className="block text-xs font-bold text-primaryDark mb-1">Kelompok barang</label>
+                                    <select id="category-group" value={categoryFormData.catalog_group} onChange={(e) => setCategoryFormData({ ...categoryFormData, catalog_group: e.target.value })} className="mb-2 w-full rounded-lg border-slate-300 text-sm text-primaryDark">
+                                        {Object.entries(catalogGroups).map(([key, name]) => <option key={key} value={key}>{name}</option>)}
+                                    </select>
+                                    <p className="mb-3 text-xs text-slate-500">Produk dan subkategori mengikuti kelompok ini.</p>
                                     <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Nama kategori *</label>
                                     <input
                                         type="text"
