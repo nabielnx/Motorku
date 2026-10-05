@@ -2,10 +2,12 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Setting;
+use App\Services\CacheService;
 use Closure;
 use Illuminate\Http\Request;
-use App\Models\Setting;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Cache;
 use Symfony\Component\HttpFoundation\Response;
 
 class ApplySystemSettings
@@ -13,7 +15,9 @@ class ApplySystemSettings
     public function handle(Request $request, Closure $next): Response
     {
         try {
-            $settings = Setting::where('group', 'system')->get()->pluck('value', 'key');
+            $shared = Cache::remember(CacheService::SETTINGS_SHARED, CacheService::TTL_SETTINGS, fn () => Setting::whereIn('group', ['store', 'system', 'printer', 'catalog'])->get()
+                ->mapWithKeys(fn ($row) => ["{$row->group}.{$row->key}" => $row->value])->all());
+            $settings = ['timezone' => $shared['system.timezone'] ?? config('app.timezone'), 'locale' => $shared['system.locale'] ?? config('app.locale')];
 
             if (isset($settings['timezone'])) {
                 date_default_timezone_set($settings['timezone']);

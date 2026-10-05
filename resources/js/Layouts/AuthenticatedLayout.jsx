@@ -20,7 +20,7 @@ import {
     FiBarChart2, 
     FiSettings, 
     FiMenu, 
-    FiHelpCircle, 
+
     FiLogOut, 
     FiClipboard,
     FiLayers,
@@ -127,6 +127,9 @@ function getDestinationInfo(path, locale = 'id') {
     return null;
 }
 
+let cachedActiveCount = 0;
+let activeCountFetchedAt = 0;
+
 export default function AuthenticatedLayout({ header, pageTitle, noPadding = false, children }) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [navigatingDestination, setNavigatingDestination] = useState(null);
@@ -164,6 +167,8 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
             removeFinish();
         };
     }, []);
+    useEffect(() => setNavigatingDestination(null), [url]);
+
     const user = props.auth?.user || { name: 'Admin', email: 'admin@tokosparepart.com' };
     const primaryRole = props.auth?.roles?.[0] ?? null;
     const userRoles = props.auth?.roles ?? (primaryRole ? [primaryRole] : []);
@@ -195,27 +200,26 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
     };
 
     // ── Pesanan yang masih perlu ditangani ──
-    const [activeOrderCount, setActiveOrderCount] = useState(0);
+    const [activeOrderCount, setActiveOrderCount] = useState(cachedActiveCount);
 
     useEffect(() => {
-        let cancelled = false;
-        let timer;
-
+        const controller = new AbortController();
+        let fetching = false;
         const fetchCount = async () => {
+            if (document.hidden || fetching || Date.now() - activeCountFetchedAt < 10000) return;
+            fetching = true;
             try {
-                const res = await window.axios.get('/api/orders/active-count');
-                if (!cancelled) setActiveOrderCount(Number(res.data?.count ?? 0));
-            } catch {
-                // Jangan ganggu UI kalau fetch gagal; biarkan nilai lama.
-            }
+                const res = await window.axios.get('/api/orders/active-count', { signal: controller.signal });
+                if (controller.signal.aborted) return;
+                cachedActiveCount = Number(res.data?.count ?? 0);
+                activeCountFetchedAt = Date.now();
+                setActiveOrderCount(cachedActiveCount);
+            } catch { /* Keep the previous badge on temporary errors. */ }
+            finally { fetching = false; }
         };
-
         fetchCount();
-        timer = setInterval(fetchCount, 10000);
-        return () => {
-            cancelled = true;
-            clearInterval(timer);
-        };
+        const timer = setInterval(fetchCount, 10000);
+        return () => { controller.abort(); clearInterval(timer); };
     }, []);
 
 
@@ -356,7 +360,7 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
 
     return (
         <div className="h-[100dvh] w-screen overflow-hidden bg-slate-50 dark:bg-slate-950 flex font-sans antialiased text-slate-800 dark:text-slate-100 transition-colors duration-200">
-            
+
             {/* OVERLAY MOBILE */}
             {isSidebarOpen && (
                 <div 
@@ -367,7 +371,7 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
 
             {/* SIDEBAR NAVIGATION */}
             <aside className={`fixed inset-y-0 left-0 bg-white dark:bg-slate-900 w-64 border-r border-slate-200 dark:border-slate-800 z-50 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:sticky lg:top-0 lg:h-full lg:inset-auto flex flex-col ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-                
+
                 {/* Brand Logo */}
                 <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between shrink-0">
                     <Link href={homeHref} className="flex items-center gap-3">
@@ -376,7 +380,7 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                             <h1 className="text-lg font-heading font-black text-primaryDark dark:text-white tracking-tight leading-none">
                                 {props.app_settings?.store_name || 'Motorku'}
                             </h1>
-                            <p className="text-[10px] font-bold text-primary dark:text-accentYellow uppercase tracking-widest mt-1">POS & Order</p>
+                            <p className="text-[10px] font-bold text-primary dark:text-accentYellow uppercase tracking-widest mt-1 max-w-[160px] truncate" title={props.app_settings?.store_tagline ?? 'POS & ORDER'}>{props.app_settings?.store_tagline ?? 'POS & ORDER'}</p>
                         </div>
                     </Link>
 
@@ -425,13 +429,6 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
 
                 {/* Sidebar Bottom — Support, Logout & Copyright */}
                 <div className="p-3 border-t border-slate-100 dark:border-slate-800 space-y-0.5 shrink-0">
-                    <a
-                        href="#support"
-                        className="flex items-center gap-3 -mx-3 px-6 py-2 text-[13px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors"
-                    >
-                        <FiHelpCircle size={17} className="text-slate-400 dark:text-slate-500" />
-                        <span>{locale === 'en' ? 'Help & Support' : 'Bantuan & Dukungan'}</span>
-                    </a>
 
                     <Link
                         href={safeRoute('logout', '/logout')}
@@ -456,7 +453,7 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
 
             {/* MAIN CONTENT AREA */}
             <div className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden">
-                
+
                 {/* TOP HEADER */}
                 <header className="h-14 sm:h-16 bg-white dark:bg-slate-900 border-b border-slate-300 dark:border-slate-800 flex items-center justify-between px-4 sm:px-6 lg:px-8 shrink-0 z-20 transition-colors duration-200">
                     <div className="flex items-center gap-3">
@@ -466,7 +463,7 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                         >
                             <FiMenu size={22} strokeWidth={2.5} />
                         </button>
-                        
+
                         <h2 className="text-lg sm:text-xl font-heading font-black text-primaryDark dark:text-white tracking-tight">
                             {destInfo?.title || pageTitle || header || getTranslation(locale, 'dashboard', 'Dashboard')}
                         </h2>

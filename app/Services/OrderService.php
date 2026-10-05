@@ -50,7 +50,7 @@ class OrderService
 
     public function getOrdersForWeb(?string $status = null, ?string $search = null, ?string $date = null)
     {
-        $query = Order::with(['items', 'cashier', 'payments'])->withSum('returns', 'amount')->latest();
+        $query = Order::with(['items', 'cashier', 'payments'])->withSum('returns', 'amount')->latest()->orderByDesc('id');
 
         if ($status === 'action') {
             $query->whereIn('order_status', self::ACTIVE_STATUSES);
@@ -59,9 +59,9 @@ class OrderService
         }
 
         if ($date === 'today') {
-            $query->where('created_at', '>=', now()->startOfDay());
+            $query->whereBetween('created_at', [now()->startOfDay(), now()->endOfDay()]);
         } elseif ($date === 'week') {
-            $query->where('created_at', '>=', now()->subDays(6)->startOfDay());
+            $query->whereBetween('created_at', [now()->subDays(6)->startOfDay(), now()->endOfDay()]);
         }
 
         if ($search) {
@@ -90,8 +90,7 @@ class OrderService
                         'name' => $item->product_name,
                         'quantity' => (int) $item->quantity,
                     ])->values()->all(),
-                    'matching_item' => $search ? $order->items->first(fn ($item) =>
-                        stripos((string) $item->product_name, $search) !== false ||
+                    'matching_item' => $search ? $order->items->first(fn ($item) => stripos((string) $item->product_name, $search) !== false ||
                         stripos((string) $item->product_sku, $search) !== false
                     )?->product_name : null,
                     'total' => (float) $order->total,
@@ -103,8 +102,8 @@ class OrderService
                         ->sortByDesc('paid_at')
                         ->first()?->paid_at?->toIso8601String(),
                     'created_at' => $order->created_at?->toIso8601String(),
-                    'time' => $order->created_at ? $order->created_at->timezone('Asia/Jakarta')->format('H:i') : '-',
-                    'date' => $order->created_at ? $order->created_at->timezone('Asia/Jakarta')->format('d M Y') : '-',
+                    'time' => $order->created_at ? $order->created_at->timezone(config('app.timezone'))->format('H:i') : '-',
+                    'date' => $order->created_at ? $order->created_at->timezone(config('app.timezone'))->format('d M Y') : '-',
                 ];
             });
     }
@@ -223,7 +222,7 @@ class OrderService
                         'product_id' => $deduction['product_id'],
                         'type' => InventoryLogType::StockOut,
                         'quantity' => $deduction['quantity'],
-                        'reference_type' => \App\Models\Order::class,
+                        'reference_type' => Order::class,
                         'reference_id' => $order->id,
                     ],
                     $userId,
@@ -365,7 +364,7 @@ class OrderService
                     'product_id' => $item->product_id,
                     'type' => InventoryLogType::StockReturn,
                     'quantity' => $item->quantity,
-                    'reference_type' => \App\Models\Order::class,
+                    'reference_type' => Order::class,
                     'reference_id' => $order->id,
                 ],
                 auth()->id(),

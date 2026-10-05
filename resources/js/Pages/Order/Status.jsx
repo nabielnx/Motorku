@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import useForceLightTheme from '@/Utils/useForceLightTheme';
 import OrderStatusSkeleton from '@/Components/Skeletons/OrderStatusSkeleton';
 import axios from 'axios';
+import { mergeOrderUpdates } from '@/Utils/orderHistory';
 import {
     FiCheck,
     FiClock,
@@ -393,6 +394,8 @@ function OrderCard({ order, onCancel, isCancelling, formatRp }) {
 export default function OrderStatus() {
     useForceLightTheme();
     const [ordersList, setOrdersList] = useState([]);
+    const ordersRef = useRef(ordersList);
+    ordersRef.current = ordersList;
     const [isLoaded, setIsLoaded] = useState(false);
     const [isCancelling, setIsCancelling] = useState(false);
     const [cancelError, setCancelError] = useState(null);
@@ -417,9 +420,10 @@ export default function OrderStatus() {
                 customer_token: targetOrderToCancel.customer_token,
             });
 
-            const updatedStatus = res.data?.data?.order_status || 'cancelled';
+            const updatedStatus = (res.data?.data ?? res.data)?.order_status || 'cancelled';
 
-            const updatedList = ordersList.map(o => o.order_id === targetOrderToCancel.order_id ? { ...o, order_status: updatedStatus } : o);
+            const updatedList = ordersRef.current.map(o => o.order_id === targetOrderToCancel.order_id ? { ...o, order_status: updatedStatus } : o);
+            ordersRef.current = updatedList;
             setOrdersList(updatedList);
             try {
                 localStorage.setItem(HISTORY_KEY, JSON.stringify(updatedList));
@@ -455,88 +459,55 @@ export default function OrderStatus() {
             } catch {}
         }
 
+        list = list.filter(o => o?.order_id).map(({ unavailable, ...order }) => order);
         setOrdersList(list);
         setIsLoaded(true);
     }, []);
 
-    // Polling
+    // Keep browser history on temporary/auth errors; polling never deletes it.
     useEffect(() => {
-        if (ordersList.length === 0) return;
-        let pollInterval = null;
-
-        const pollAllOrders = async () => {
+        if (!isLoaded) return;
+        const controller = new AbortController();
+        let busy = false;
+        const pollAllOrders = async (includeTerminal = false) => {
+            if (busy || document.hidden) return;
+            const active = ordersRef.current.filter(o => o?.order_id && o.customer_token &&
+                (includeTerminal || !['completed', 'cancelled'].includes(o.order_status)) && !o.unavailable);
+            if (!active.length) return;
+            busy = true;
             setIsPolling(true);
-            let updatedList = [...ordersList];
-            let hasChanges = false;
-
-            for (let i = 0; i < updatedList.length; i++) {
-                const ord = updatedList[i];
-                if (!ord || ord.order_status === 'completed' || ord.order_status === 'cancelled') continue;
-
-                try {
-                    const res = await axios.get(`/api/customer/order/${ord.order_id}/status`, {
-                        params: { customer_token: ord.customer_token, t: Date.now() }
-                    });
-                    const latest = res.data?.data;
-                    if (!latest?.order_status) continue;
-
-                    const nextInfo = {
-                        ...ord,
-                        order_status: latest.order_status,
-                        payment_status: latest.payment_status,
-                        total: latest.total,
-                        subtotal: latest.subtotal,
-                        tax_amount: latest.tax_amount,
-                        discount_amount: latest.discount_amount,
-                        items: latest.items,
-                        customer_name: latest.customer_name || ord.customer_name,
-                        pickup_label: 'Ambil di Toko',
-                        ordered_at: latest.ordered_at || ord.ordered_at,
-                    };
-
-                    updatedList[i] = nextInfo;
-                    hasChanges = true;
-                } catch (err) {
-                    if (err.response?.status === 404 || err.response?.status === 401) {
-                        updatedList.splice(i, 1);
-                        i--;
-                        hasChanges = true;
+            try {
+                const updates = await Promise.all(active.map(async ord => {
+                    try {
+                        const res = await axios.get(`/api/customer/order/${ord.order_id}/status`, {
+                            params: { customer_token: ord.customer_token }, signal: controller.signal,
+                        });
+                        const latest = res.data?.data ?? res.data;
+                        return latest?.order_status ? { ...ord, ...latest, order_id: ord.order_id, customer_token: ord.customer_token } : null;
+                    } catch (error) {
+                        return [401, 404].includes(error.response?.status) ? { ...ord, unavailable: true } : null;
                     }
-                }
+                }));
+                if (controller.signal.aborted) return;
+                const updated = mergeOrderUpdates(ordersRef.current, updates);
+                setOrdersList(updated);
+                ordersRef.current = updated;
+                try { localStorage.setItem(HISTORY_KEY, JSON.stringify(updated)); } catch {}
+            } finally {
+                busy = false;
+                if (!controller.signal.aborted) setIsPolling(false);
             }
-
-            if (updatedList.length === 0) {
-                try {
-                    localStorage.removeItem(HISTORY_KEY);
-                    localStorage.removeItem(PAYMENT_KEY);
-                    localStorage.removeItem(ORDER_KEY);
-                    localStorage.removeItem('motorku_order_for_payment');
-                } catch {}
-                router.visit('/');
-                return;
-            }
-
-            if (hasChanges) {
-                setOrdersList(updatedList);
-                try {
-                    localStorage.setItem(HISTORY_KEY, JSON.stringify(updatedList));
-                } catch {}
-            }
-
-            setTimeout(() => setIsPolling(false), 600);
         };
-
-        pollAllOrders();
-        pollInterval = setInterval(pollAllOrders, POLL_INTERVAL);
-
-        return () => {
-            if (pollInterval) clearInterval(pollInterval);
-        };
-    }, [ordersList.length]);
+        pollAllOrders(true);
+        const timer = setInterval(() => pollAllOrders(), POLL_INTERVAL);
+        return () => { controller.abort(); clearInterval(timer); };
+    }, [isLoaded]);
 
     const formatRp = (val) => `Rp ${Number(val || 0).toLocaleString('id-ID')}`;
 
     // ── Sort: active orders first (pending/preparing/ready), then completed, then cancelled ──
+    const historyUnavailable = ordersList.some(o => o.unavailable);
+
     const sortedOrders = [...ordersList].sort((a, b) => {
         const priority = { ready: 0, preparing: 1, pending: 2, completed: 3, cancelled: 4 };
         const pa = priority[a.order_status] ?? 2;
@@ -603,6 +574,7 @@ export default function OrderStatus() {
 
             <div className="w-full max-w-md bg-white min-h-full shadow-2xl flex flex-col">
 
+                {historyUnavailable && <p role="status" className="p-4 text-xs text-slate-600 bg-white">Sebagian status tidak dapat diperbarui. Riwayat tersimpan tetap ditampilkan; hubungi kasir untuk memeriksa pesanan.</p>}
                 {/* ═══ STICKY HEADER ═══ */}
                 <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-xs">
                     <div className="px-4 py-3.5 flex items-center justify-between">

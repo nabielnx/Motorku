@@ -1,3 +1,4 @@
+import MoneyInput from '@/Components/MoneyInput';
 import React, { useState, useEffect, useRef } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import Modal from '@/Components/Modal';
@@ -721,7 +722,7 @@ return (
 
                 {/* RIGHT SIDE: Cart & Checkout Panel */}
                 <div className={`${isMobileCartOpen ? 'flex' : 'hidden'} md:flex w-full md:w-96 lg:w-[410px] bg-white dark:bg-slate-900 border-l border-slate-300 dark:border-slate-800 flex-col min-h-0 flex-1 md:flex-none h-full overflow-hidden shrink-0 transition-colors`}>
-                    
+
                     {/* Customer & Order Settings */}
                     <div className="p-3.5 border-b border-slate-300 dark:border-slate-800 space-y-2 bg-slate-50 dark:bg-slate-800 shrink-0">
                         <div className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 font-semibold flex items-center justify-between gap-2">
@@ -972,9 +973,9 @@ return (
                                                     <span className="absolute left-3.5 text-slate-400 dark:text-slate-500 font-bold text-base select-none pointer-events-none">
                                                         Rp
                                                     </span>
-                                                    <input
+                                                    <MoneyInput
                                                         ref={cashInputRef}
-                                                        type="number"
+
                                                         placeholder="0"
                                                         value={cashReceived}
                                                         onChange={(e) => setCashReceived(e.target.value)}

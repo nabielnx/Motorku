@@ -6,7 +6,6 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('settings')->name('api.settings.')->group(function () {
     Route::get('/', [SettingController::class, 'index'])->name('index');
     Route::post('/', [SettingController::class, 'saveAll'])->name('saveAll');
-    Route::post('/reset-transactions', [SettingController::class, 'resetTransactions'])->name('reset-transactions');
     Route::post('/logo', [SettingController::class, 'uploadLogo'])->name('logo');
     Route::delete('/logo', [SettingController::class, 'deleteLogo'])->name('logo.delete');
     Route::get('/logo', [SettingController::class, 'getLogo'])->name('logo.get');

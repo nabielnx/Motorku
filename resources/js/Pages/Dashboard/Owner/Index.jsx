@@ -94,27 +94,35 @@ export default function Dashboard({ stats = {}, filters = {} }) {
 
     const [ordersPaginator, setOrdersPaginator] = useState(stats.recent_orders);
     const [isFetchingOrders, setIsFetchingOrders] = useState(false);
+    const ordersRequest = useRef(null);
+    useEffect(() => () => ordersRequest.current?.abort(), []);
     const mobileOrdersRef = useRef(null);
     const desktopOrdersRef = useRef(null);
 
     useEffect(() => {
+        ordersRequest.current?.abort();
+        setIsFetchingOrders(false);
         setOrdersPaginator(stats.recent_orders);
     }, [stats.recent_orders]);
 
     const fetchOrdersPage = async (page) => {
         if (page < 1 || page > (ordersPaginator?.last_page || 1)) return;
+        ordersRequest.current?.abort();
+        const controller = new AbortController();
+        ordersRequest.current = controller;
         setIsFetchingOrders(true);
         try {
             const response = await axios.get('/api/dashboard/recent-orders', {
-                params: { page, per_page: 15, period: currentPeriod, start_date: startDate, end_date: endDate }
+                params: { page, per_page: 15, period: currentPeriod, start_date: startDate, end_date: endDate }, signal: controller.signal
             });
+            if (controller.signal.aborted) return;
             setOrdersPaginator(response.data);
             if (mobileOrdersRef.current) mobileOrdersRef.current.scrollTop = 0;
             if (desktopOrdersRef.current) desktopOrdersRef.current.scrollTop = 0;
         } catch {
             // Keep the current page if the request fails.
         } finally {
-            setIsFetchingOrders(false);
+            if (!controller.signal.aborted) setIsFetchingOrders(false);
         }
     };
 

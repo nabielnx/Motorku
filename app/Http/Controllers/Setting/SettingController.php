@@ -3,23 +3,16 @@
 namespace App\Http\Controllers\Setting;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ImageUploadRequest;
 use App\Http\Requests\Setting\UpdateSettingRequest;
-use App\Models\CashClosing;
-use App\Models\InventoryLog;
-use App\Models\Order;
-use App\Models\OrderItem;
-use App\Models\OrderReturn;
-use App\Models\Payment;
 use App\Models\Setting;
 use App\Services\CacheService;
+use App\Services\ImageUploadService;
 use App\Services\SettingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
@@ -99,6 +92,7 @@ class SettingController extends Controller implements HasMiddleware
     {
         // Per-field validation rules keyed by "group.key"
         $fieldRules = [
+            'store.tagline' => ['nullable', 'string', 'max:120'],
             'store.name' => ['required', 'string', 'max:100'],
             'store.phone' => ['required', 'string', 'regex:/^[0-9+\-\s()]{8,20}$/'],
             'store.email' => ['required', 'email', 'max:100'],
@@ -123,6 +117,7 @@ class SettingController extends Controller implements HasMiddleware
         $fieldMessages = [
             'store.phone' => 'Nomor telepon hanya boleh berisi angka, +, -, spasi, dan tanda kurung (8-20 karakter).',
             'store.email' => 'Format email tidak valid.',
+            'store.tagline' => ['nullable', 'string', 'max:120'],
             'store.name' => 'Nama toko wajib diisi (maks 100 karakter).',
             'store.address' => 'Alamat toko wajib diisi (maks 500 karakter).',
             'tax.percentage' => 'Persentase pajak harus angka antara 0-100.',
@@ -162,20 +157,15 @@ class SettingController extends Controller implements HasMiddleware
         return response()->json(['message' => 'Pengaturan berhasil disimpan!']);
     }
 
-    public function uploadLogo(Request $request): JsonResponse
+    public function uploadLogo(ImageUploadRequest $request): JsonResponse
     {
-        $request->validate([
-            'logo' => ['required', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
-        ]);
-
         $old = Setting::where('group', 'store')->where('key', 'logo')->value('value');
-        if ($old) {
-            Storage::disk('public')->delete($old);
-        }
+        $path = app(ImageUploadService::class)->replace($request->file('logo'), 'logo', $old,
+            function ($path) {
+                $this->settingService->upsertSetting('store', 'logo', $path);
 
-        $path = $request->file('logo')->store('logo', 'public');
-
-        $this->settingService->upsertSetting('store', 'logo', $path);
+                return $path;
+            }, 'logo');
 
         CacheService::flushSettings();
 
@@ -198,10 +188,11 @@ class SettingController extends Controller implements HasMiddleware
     {
         $setting = Setting::where('group', 'store')->where('key', 'logo')->first();
         if ($setting) {
-            if ($setting->value) {
-                Storage::disk('public')->delete($setting->value);
-            }
+            $old = $setting->value;
             $setting->update(['value' => null]);
+            if ($old) {
+                Storage::disk('public')->delete($old);
+            }
         }
 
         CacheService::flushSettings();
@@ -211,19 +202,15 @@ class SettingController extends Controller implements HasMiddleware
         ]);
     }
 
-    public function uploadQrisImage(Request $request): JsonResponse
+    public function uploadQrisImage(ImageUploadRequest $request): JsonResponse
     {
-        $request->validate([
-            'qris_image' => ['required', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
-        ]);
-
         $old = Setting::where('group', 'store')->where('key', 'qris_image')->value('value');
-        if ($old) {
-            Storage::disk('public')->delete($old);
-        }
+        $path = app(ImageUploadService::class)->replace($request->file('qris_image'), 'qris', $old,
+            function ($path) {
+                $this->settingService->upsertSetting('store', 'qris_image', $path);
 
-        $path = $request->file('qris_image')->store('qris', 'public');
-        $this->settingService->upsertSetting('store', 'qris_image', $path);
+                return $path;
+            }, 'qris_image');
         CacheService::flushSettings();
 
         return response()->json([
@@ -243,29 +230,26 @@ class SettingController extends Controller implements HasMiddleware
     {
         $setting = Setting::where('group', 'store')->where('key', 'qris_image')->first();
         if ($setting) {
-            if ($setting->value) {
-                Storage::disk('public')->delete($setting->value);
-            }
+            $old = $setting->value;
             $setting->update(['value' => null]);
+            if ($old) {
+                Storage::disk('public')->delete($old);
+            }
         }
         CacheService::flushSettings();
 
         return response()->json(['message' => 'Gambar QRIS berhasil dihapus!']);
     }
 
-    public function uploadLoginImage(Request $request): JsonResponse
+    public function uploadLoginImage(ImageUploadRequest $request): JsonResponse
     {
-        $request->validate([
-            'login_image' => ['required', 'image', 'mimes:jpeg,png,jpg,webp', 'max:4096'],
-        ]);
-
         $old = Setting::where('group', 'store')->where('key', 'login_image')->value('value');
-        if ($old) {
-            Storage::disk('public')->delete($old);
-        }
+        $path = app(ImageUploadService::class)->replace($request->file('login_image'), 'login-image', $old,
+            function ($path) {
+                $this->settingService->upsertSetting('store', 'login_image', $path);
 
-        $path = $request->file('login_image')->store('login-image', 'public');
-        $this->settingService->upsertSetting('store', 'login_image', $path);
+                return $path;
+            }, 'login_image');
         CacheService::flushSettings();
 
         return response()->json([
@@ -278,10 +262,11 @@ class SettingController extends Controller implements HasMiddleware
     {
         $setting = Setting::where('group', 'store')->where('key', 'login_image')->first();
         if ($setting) {
-            if ($setting->value) {
-                Storage::disk('public')->delete($setting->value);
-            }
+            $old = $setting->value;
             $setting->update(['value' => null]);
+            if ($old) {
+                Storage::disk('public')->delete($old);
+            }
         }
         CacheService::flushSettings();
 
@@ -291,24 +276,18 @@ class SettingController extends Controller implements HasMiddleware
     /**
      * Upload banner promo untuk slot tertentu (1, 2, atau 3).
      */
-    public function uploadPromoBanner(Request $request): JsonResponse
+    public function uploadPromoBanner(ImageUploadRequest $request): JsonResponse
     {
-        $request->validate([
-            'banner' => ['required', 'image', 'mimes:jpeg,png,jpg,webp', 'max:3072'],
-            'slot' => ['required', 'integer', 'min:1', 'max:3'],
-        ]);
-
         $slot = (int) $request->input('slot');
         $key = 'promo_banner_'.$slot;
 
         $old = Setting::where('group', 'store')->where('key', $key)->value('value');
-        if ($old) {
-            Storage::disk('public')->delete($old);
-        }
+        $path = app(ImageUploadService::class)->replace($request->file('banner'), 'promo_banners', $old,
+            function ($path) use ($key) {
+                $this->settingService->upsertSetting('store', $key, $path);
 
-        $path = $request->file('banner')->store('promo_banners', 'public');
-
-        $this->settingService->upsertSetting('store', $key, $path);
+                return $path;
+            }, 'banner');
 
         CacheService::flushSettings();
 
@@ -332,10 +311,11 @@ class SettingController extends Controller implements HasMiddleware
         $setting = Setting::where('group', 'store')->where('key', $key)->first();
 
         if ($setting) {
-            if ($setting->value) {
-                Storage::disk('public')->delete($setting->value);
-            }
+            $old = $setting->value;
             $setting->update(['value' => null]);
+            if ($old) {
+                Storage::disk('public')->delete($old);
+            }
         }
 
         CacheService::flushSettings();
@@ -357,63 +337,5 @@ class SettingController extends Controller implements HasMiddleware
         }
 
         return response()->json(['banners' => $banners]);
-    }
-
-    /**
-     * Reset semua data transaksi (orders, order_items, payments, inventory_logs)
-     * tanpa menghapus produk, user, dan settings.
-     */
-    public function resetTransactions(Request $request): JsonResponse
-    {
-        if (! $request->user() || ! $request->user()->hasRole('owner')) {
-            abort(403, 'Hanya owner yang berhak mereset data transaksi.');
-        }
-
-        if (app()->isProduction()) {
-            return response()->json([
-                'message' => 'Fitur reset transaksi dinonaktifkan pada lingkungan production demi keamanan data.',
-            ], 403);
-        }
-
-        $request->validate([
-            'password' => ['required', 'string'],
-        ], [
-            'password.required' => 'Kata sandi konfirmasi wajib diisi untuk keamanan.',
-        ]);
-
-        if (! Hash::check($request->password, $request->user()->password)) {
-            return response()->json([
-                'message' => 'Kata sandi konfirmasi salah. Gagal melakukan reset transaksi.',
-            ], 422);
-        }
-
-        DB::transaction(function () {
-            OrderReturn::query()->delete();
-            CashClosing::query()->delete();
-            // Delete order items
-            OrderItem::query()->delete();
-
-            // Delete payments
-            Payment::query()->delete();
-
-            // Delete orders
-            Order::query()->delete();
-
-            // Delete inventory logs
-            InventoryLog::query()->delete();
-            DB::table('document_sequences')->delete();
-            DB::table('cash_day_locks')->delete();
-        });
-
-        CacheService::flushAll();
-
-        Log::warning('Data transaksi direset oleh owner.', [
-            'user_id' => $request->user()->id,
-            'ip' => $request->ip(),
-        ]);
-
-        return response()->json([
-            'message' => 'Semua data transaksi berhasil direset! Toko siap digunakan dari awal.',
-        ]);
     }
 }
