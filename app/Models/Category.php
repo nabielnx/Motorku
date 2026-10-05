@@ -12,7 +12,7 @@ class Category extends Model
 {
     public const CATALOG_GROUPS = [
         'automotive' => 'Otomotif',
-        'electronics' => 'Elektronik & Rumah Tangga',
+        'electronics' => 'Elektronik',
         'hardware' => 'Alat Bangunan',
         'bicycle' => 'Sepeda',
     ];
