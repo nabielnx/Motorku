@@ -25,7 +25,7 @@ class HandleInertiaRequests extends Middleware
         $s = Cache::remember(CacheService::SETTINGS_SHARED, CacheService::TTL_SETTINGS, function () {
             return Setting::whereIn('group', ['store', 'system', 'printer', 'catalog'])
                 ->get()
-                ->mapWithKeys(fn($row) => ["{$row->group}.{$row->key}" => $row->value])
+                ->mapWithKeys(fn ($row) => ["{$row->group}.{$row->key}" => $row->value])
                 ->toArray();
         });
 
@@ -36,36 +36,37 @@ class HandleInertiaRequests extends Middleware
 
             'auth' => [
                 'user' => $user ? [
-                    'id'     => $user->id,
-                    'name'   => $user->name,
-                    'email'  => $user->email,
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
                     'avatar' => $user->avatar ?? null,
                 ] : null,
 
                 // Expose roles & permissions ke frontend (React/Vue)
                 // Gunakan untuk kondisional tampilan UI
-                'roles'       => $user ? $user->getRoleNames() : [],
+                'roles' => $user ? $user->getRoleNames() : [],
                 'permissions' => $user ? $user->getAllPermissions()->pluck('name') : [],
             ],
 
             // Flash messages untuk notifikasi global
             'flash' => [
-                'success' => fn() => $request->session()->get('success'),
-                'error'   => fn() => $request->session()->get('error'),
-                'warning' => fn() => $request->session()->get('warning'),
+                'success' => fn () => $request->session()->get('success'),
+                'error' => fn () => $request->session()->get('error'),
+                'warning' => fn () => $request->session()->get('warning'),
             ],
 
-            'logo_url' => !empty($s['store.logo']) ? (str_starts_with($s['store.logo'], 'http') ? $s['store.logo'] : '/storage/' . ltrim($s['store.logo'], '/')) : null,
-            'login_image_url' => !empty($s['store.login_image']) ? (str_starts_with($s['store.login_image'], 'http') ? $s['store.login_image'] : '/storage/' . ltrim($s['store.login_image'], '/')) : null,
+            'logo_url' => ! empty($s['store.logo']) ? (str_starts_with($s['store.logo'], 'http') ? $s['store.logo'] : '/storage/'.ltrim($s['store.logo'], '/')) : null,
+            'login_image_url' => ! empty($s['store.login_image']) ? (str_starts_with($s['store.login_image'], 'http') ? $s['store.login_image'] : '/storage/'.ltrim($s['store.login_image'], '/')) : null,
 
             'app_settings' => [
-                'timezone'           => $timezone,
-                'locale'             => $s['system.locale']           ?? 'id',
-                'store_name'         => $s['store.name']                ?? 'Motorku',
-                'store_address'      => $s['store.address']             ?? null,
-                'store_phone'        => $s['store.phone']               ?? null,
+                'timezone' => $timezone,
+                'locale' => $s['system.locale'] ?? 'id',
+                'store_tagline' => $s['store.tagline'] ?? 'POS & ORDER',
+                'store_name' => $s['store.name'] ?? 'Motorku',
+                'store_address' => $s['store.address'] ?? null,
+                'store_phone' => $s['store.phone'] ?? null,
                 'auto_print_receipt' => ($s['printer.auto_print_receipt'] ?? 'true') !== 'false',
-                'show_total_sold'    => ($s['catalog.show_total_sold']    ?? 'true') !== 'false',
+                'show_total_sold' => ($s['catalog.show_total_sold'] ?? 'true') !== 'false',
             ],
         ];
     }

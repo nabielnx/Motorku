@@ -22,10 +22,12 @@ const HISTORY_KEY = 'motorku_orders_history';
 
 export default function Payment() {
     useForceLightTheme();
+    const [loaded, setLoaded] = useState(false);
     const [orderData, setOrderData] = useState(null);
     const [customerName, setCustomerName] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState(null);
+    const submittedRef = useRef(false);
     const customerNameInputRef = useRef(null);
 
     const handleClearAndReturn = () => {
@@ -50,16 +52,19 @@ export default function Payment() {
             setOrderData(data);
         } catch {
             handleClearAndReturn();
-        }
+        } finally { setLoaded(true); }
     }, []);
 
     const formatRp = (val) => `Rp ${val.toLocaleString('id-ID')}`;
+
+    if (loaded && !orderData) return <div className="p-6 text-center">Data pesanan tidak tersedia. <Link href="/" className="text-blue-700 underline">Kembali ke katalog</Link></div>;
 
     if (!orderData) {
         return <PaymentSkeleton />;
     }
 
     const handleSubmitOrder = async () => {
+        if (isSubmitting || submittedRef.current) return;
         setError(null);
         if (!customerName.trim()) {
             setError('Harap isi nama pemesan terlebih dahulu!');
@@ -81,7 +86,9 @@ export default function Payment() {
 
         try {
             const res = await axios.post('/api/customer/order', payload);
-            const order = res.data?.data;
+            const order = res.data?.data ?? res.data;
+            if (!order?.id || !order?.customer_token) throw new Error('Respons pesanan tidak lengkap.');
+            submittedRef.current = true;
 
             localStorage.removeItem(ORDER_KEY);
             localStorage.removeItem(CART_KEY);
@@ -126,7 +133,7 @@ export default function Payment() {
 
             router.visit('/order/waiting');
         } catch (err) {
-            setError(err.response?.data?.message || 'Terjadi kesalahan saat memproses pesanan.');
+            setError(submittedRef.current ? 'Pesanan sudah dibuat, tetapi penyimpanan browser gagal. Jangan kirim ulang; hubungi kasir untuk memeriksa pesanan.' : (err.response?.data?.message || 'Terjadi kesalahan saat memproses pesanan.'));
         } finally {
             setIsSubmitting(false);
         }

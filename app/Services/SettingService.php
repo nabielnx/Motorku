@@ -20,6 +20,7 @@ class SettingService
         }
 
         $setting->update($data);
+        CacheService::flushSettings();
 
         return $setting;
     }

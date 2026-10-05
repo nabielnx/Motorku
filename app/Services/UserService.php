@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\User;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 
 class UserService
 {
@@ -51,13 +52,13 @@ class UserService
                 $updateData['is_active'] = (bool) $data['is_active'];
             }
 
-            if (!empty($data['password'])) {
+            if (! empty($data['password'])) {
                 $updateData['password'] = Hash::make($data['password']);
             }
 
             $user->update($updateData);
 
-            if (!empty($data['role'])) {
+            if (! empty($data['role'])) {
                 $user->syncRoles([$data['role']]);
             }
 
@@ -67,6 +68,13 @@ class UserService
 
     public function deleteEmployee($id)
     {
-        return User::findOrFail($id)->delete();
+        $user = User::findOrFail($id);
+        $avatar = $user->avatar;
+        $deleted = $user->delete();
+        if ($deleted && $avatar && str_starts_with($avatar, 'avatars/')) {
+            DB::afterCommit(fn () => Storage::disk('public')->delete($avatar));
+        }
+
+        return $deleted;
     }
 }

@@ -160,11 +160,11 @@ export default function UserIndex({ initialUsers = {} }) {
             if (editId && !payload.password) delete payload.password;
             if (editId) {
                 const res = await axios.put(`/api/users/${editId}`, payload);
-                setUsers(prev => prev.map(u => u.id === editId ? res.data.data : u));
+                setUsers(prev => prev.map(u => u.id === editId ? (res.data.data ?? res.data) : u));
                 toast.success(`Data staf "${form.name}" berhasil diperbarui!`);
             } else {
                 const res = await axios.post('/api/users', payload);
-                setUsers(prev => [res.data.data, ...prev]);
+                setUsers(prev => [(res.data.data ?? res.data), ...prev]);
                 toast.success(`Staf "${form.name}" (${form.role.toUpperCase()}) berhasil ditambahkan!`);
             }
             setModal(null);

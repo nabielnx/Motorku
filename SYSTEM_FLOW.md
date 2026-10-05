@@ -73,7 +73,6 @@ Sistem menggunakan `spatie/laravel-permission` dengan 2 role utama:
 | **Laporan Penjualan & Print (`/reports`)** | ✓ | ✗ | ✗ |
 | **Kelola Staff & User (`/users`)** | ✓ (Minimal 1 Owner Aktif) | ✗ | ✗ |
 | **Pengaturan Toko & Pajak (`/settings`)** | ✓ | ✗ | ✗ |
-| **Reset Transaksi** | ✓ (Wajib Verifikasi Password) | ✗ | ✗ |
 
 ---
 

@@ -1,3 +1,5 @@
+import { storeDate, reportPeriods } from '@/Utils/dates';
+import MoneyInput from '@/Components/MoneyInput';
 import { useState, useEffect } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import ReportSkeleton from '@/Components/Skeletons/ReportSkeleton';
@@ -10,9 +12,11 @@ import {
 } from 'react-icons/fi';
 
 export default function ReportIndex({ reportStats = {}, filters = {} }) {
+    const { auth, app_settings } = usePage().props;
     const [isNavigating, setIsNavigating] = useState(false);
-    const today = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+    const today = storeDate(new Date(), app_settings?.timezone || 'Asia/Jakarta');
     const [cashDate, setCashDate] = useState(today);
+    const [cashError, setCashError] = useState(false);
     const [cashSummary, setCashSummary] = useState(null);
     const [openingCash, setOpeningCash] = useState('0');
     const [cashOut, setCashOut] = useState('0');
@@ -36,29 +40,31 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
         const removeFinish = router.on('finish', () => setIsNavigating(false));
         return () => { removeStart(); removeFinish(); };
     }, []);
-    const { auth, app_settings } = usePage().props;
     const locale = app_settings?.locale || 'id';
     const userName = auth?.user?.name || 'Owner';
     const userRole = auth?.roles?.[0] || auth?.user?.role || 'owner';
 
     useEffect(() => {
         let active = true;
+        const controller = new AbortController();
+        setCashError(false);
         setCashSummary(null);
         setOpeningCash('0');
         setCashOut('0');
         setActualCash('');
         setCashNotes('');
-        axios.get('/api/reports/cash', { params: { date: cashDate } }).then(({ data }) => {
+        axios.get('/api/reports/cash', { params: { date: cashDate }, signal: controller.signal }).then(({ data }) => {
             if (!active) return;
-            setCashSummary(data.data);
-            if (data.data.closing) {
-                setOpeningCash(String(data.data.closing.opening_cash));
-                setCashOut(String(data.data.closing.cash_out));
-                setActualCash(String(data.data.closing.actual_cash));
-                setCashNotes(data.data.closing.notes || '');
+            const summary = data.data ?? data;
+            setCashSummary(summary);
+            if (summary.closing) {
+                setOpeningCash(String(summary.closing.opening_cash));
+                setCashOut(String(summary.closing.cash_out));
+                setActualCash(String(summary.closing.actual_cash));
+                setCashNotes(summary.closing.notes || '');
             }
-        }).catch(() => { if (active) toast.error('Gagal memuat rekap kas.'); });
-        return () => { active = false; };
+        }).catch(() => { if (active) { setCashError(true); toast.error('Gagal memuat rekap kas.'); } });
+        return () => { active = false; controller.abort(); };
     }, [cashDate]);
 
     const totalRevenue = Number(reportStats.total_revenue ?? 0);
@@ -99,7 +105,7 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
                 actual_cash: Number(actualCash),
                 notes: cashNotes,
             });
-            setCashSummary(prev => ({ ...prev, closing: data.data }));
+            setCashSummary(prev => ({ ...prev, closing: data.data ?? data }));
             toast.success('Tutup kas harian tersimpan.');
         } catch (error) {
             toast.error(error.response?.data?.message || 'Gagal menyimpan tutup kas.');
@@ -120,13 +126,10 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
         const e = filters.end_date;
         if (!s || !e) return 'Bulan Ini';
 
-        const now = new Date();
-        const startOfMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
-        const today = now.toISOString().split('T')[0];
-
+        const startOfMonth = `${today.slice(0, 7)}-01`;
         if (s === startOfMonth && e === today) return 'Bulan Ini';
 
-        const fmt = (d) => new Date(d).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+        const fmt = (d) => new Date(d).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
         return `${fmt(s)} — ${fmt(e)}`;
     };
 
@@ -138,32 +141,12 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
         setPeriodOpen(false);
     };
 
-    const presets = () => {
-        const now = new Date();
-        const today = now.toISOString().split('T')[0];
-        const startOfMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
-
-        const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-        const prevMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
-        const prevStart = prevMonth.toISOString().split('T')[0];
-        const prevEnd = prevMonthEnd.toISOString().split('T')[0];
-
-        const weekAgo = new Date(now);
-        weekAgo.setDate(weekAgo.getDate() - 6);
-        const weekStart = weekAgo.toISOString().split('T')[0];
-
-        return [
-            { label: 'Hari Ini', start: today, end: today },
-            { label: '7 Hari Terakhir', start: weekStart, end: today },
-            { label: 'Bulan Ini', start: startOfMonth, end: today },
-            { label: 'Bulan Lalu', start: prevStart, end: prevEnd },
-        ];
-    };
+    const presets = () => reportPeriods(today);
 
     // Print report
     const todayFormatted = new Date().toLocaleDateString('id-ID', {
         day: 'numeric', month: 'long', year: 'numeric',
-        hour: '2-digit', minute: '2-digit',
+        hour: '2-digit', minute: '2-digit', timeZone: app_settings?.timezone || 'Asia/Jakarta',
     });
 
     const roleLabel = (r) => {
@@ -294,21 +277,21 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
                     </div>
                     {cashSummary ? <>
                         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
-                            <label>Uang awal (Rp)<input type="number" min="0" value={openingCash} disabled={!!cashSummary.closing} onChange={e => setOpeningCash(e.target.value)} className="mt-1 w-full rounded-lg border-slate-300 dark:bg-slate-800" /></label>
+                            <label>Uang awal (Rp)<MoneyInput  min="0" value={openingCash} disabled={!!cashSummary.closing} onChange={e => setOpeningCash(e.target.value)} className="mt-1 w-full rounded-lg border-slate-300 dark:bg-slate-800" /></label>
                             <div>Penjualan tunai<p className="mt-2 font-bold">{formatRp(cashSummary.closing?.cash_sales ?? cashSummary.cash_sales)}</p></div>
                             <div>Retur tunai<p className="mt-2 font-bold">− {formatRp(cashSummary.closing?.cash_returns ?? cashSummary.cash_returns)}</p></div>
-                            <label>Pengeluaran kas (Rp)<input type="number" min="0" value={cashOut} disabled={!!cashSummary.closing} onChange={e => setCashOut(e.target.value)} className="mt-1 w-full rounded-lg border-slate-300 dark:bg-slate-800" /></label>
+                            <label>Pengeluaran kas (Rp)<MoneyInput  min="0" value={cashOut} disabled={!!cashSummary.closing} onChange={e => setCashOut(e.target.value)} className="mt-1 w-full rounded-lg border-slate-300 dark:bg-slate-800" /></label>
                         </div>
                         <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 border-t border-slate-200 dark:border-slate-800 pt-3 text-xs">
                             <div>Seharusnya ada<p className="mt-1 text-lg font-black text-primaryDark dark:text-white">{formatRp(cashSummary.closing?.expected_cash ?? expectedCash)}</p></div>
-                            <label>Uang fisik terhitung (Rp)<input type="number" min="0" value={actualCash} disabled={!!cashSummary.closing} onChange={e => setActualCash(e.target.value)} className="mt-1 w-full rounded-lg border-slate-300 dark:bg-slate-800" /></label>
+                            <label>Uang fisik terhitung (Rp)<MoneyInput  min="0" value={actualCash} disabled={!!cashSummary.closing} onChange={e => setActualCash(e.target.value)} className="mt-1 w-full rounded-lg border-slate-300 dark:bg-slate-800" /></label>
                             <div>Selisih<p className={`mt-1 text-lg font-black ${Number(cashSummary.closing?.difference ?? cashDifference) === 0 ? 'text-primaryDark dark:text-white' : 'text-red-600'}`}>{cashDifference === null && !cashSummary.closing ? '—' : formatRp(cashSummary.closing?.difference ?? cashDifference)}</p></div>
                         </div>
                         <input type="text" maxLength="255" placeholder="Catatan selisih / pengeluaran (opsional)" value={cashNotes} disabled={!!cashSummary.closing} onChange={e => setCashNotes(e.target.value)} className="w-full rounded-lg border-slate-300 dark:bg-slate-800 text-xs" />
                         {cashSummary.closing ? <p className="text-xs font-bold text-primaryDark dark:text-white">Kas ditutup. Rekap terkunci; transaksi setelahnya tidak masuk rekap ini.</p> : (
                             <button type="button" onClick={saveCashClosing} disabled={savingCash || actualCash === '' || Number(openingCash) < 0 || Number(cashOut) < 0 || Number(actualCash) < 0} className="rounded-lg bg-accentYellow hover:bg-yellow-300 px-4 py-2 text-xs font-bold text-primaryDark disabled:opacity-40">{savingCash ? 'Menyimpan...' : 'Simpan Tutup Kas'}</button>
                         )}
-                    </> : <p className="text-xs text-slate-500">Memuat rekap kas...</p>}
+                    </> : <p className="text-xs text-slate-500">{cashError ? 'Rekap kas gagal dimuat. Coba pilih tanggal kembali atau muat ulang halaman.' : 'Memuat rekap kas...'}</p>}
                 </section>
 
                 {/* Content Grid: Top Products + Category */}

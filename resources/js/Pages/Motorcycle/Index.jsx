@@ -1,3 +1,4 @@
+import { IMAGE_ACCEPT, IMAGE_HELP, validImage } from '@/Utils/imageUpload';
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import MotorcycleSkeleton from '@/Components/Skeletons/MotorcycleSkeleton';
@@ -1739,10 +1740,11 @@ export default function MotorcycleIndex({
                                     <div className="flex-1 space-y-1.5">
                                         <input
                                             type="file"
-                                            accept="image/*"
-                                            onChange={e => setFormData({ ...formData, image_file: e.target.files[0] })}
+                                            accept={IMAGE_ACCEPT}
+                                            onChange={e => { const file = e.target.files[0]; if (validImage(file)) setFormData({ ...formData, image_file: file }); }}
                                             className="w-full text-xs text-slate-600 dark:text-slate-400 file:mr-2 file:py-1 file:px-2.5 file:rounded-md file:border-0 file:text-xs file:font-bold file:bg-slate-200 dark:file:bg-slate-700 file:text-slate-800 dark:file:text-slate-200 hover:file:bg-slate-300 cursor-pointer"
                                         />
+                                        <p className="text-xs text-slate-500">{IMAGE_HELP}</p>
                                         <input
                                             type="text"
                                             value={formData.image_url}

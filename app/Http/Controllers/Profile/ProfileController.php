@@ -3,8 +3,11 @@
 namespace App\Http\Controllers\Profile;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ImageUploadRequest;
 use App\Http\Requests\ProfileUpdateRequest;
 use App\Models\User;
+use App\Services\ImageUploadService;
+use App\Services\UserService;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -50,20 +53,15 @@ class ProfileController extends Controller
         return Redirect::route('profile.edit');
     }
 
-    public function uploadAvatar(Request $request): JsonResponse
+    public function uploadAvatar(ImageUploadRequest $request): JsonResponse
     {
-        $request->validate([
-            'avatar' => ['required', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
-        ]);
-
         $user = $request->user();
+        $path = app(ImageUploadService::class)->replace($request->file('avatar'), 'avatars', $user->avatar,
+            function ($path) use ($user) {
+                $user->update(['avatar' => $path]);
 
-        if ($user->avatar) {
-            Storage::disk('public')->delete($user->avatar);
-        }
-
-        $path = $request->file('avatar')->store('avatars', 'public');
-        $user->update(['avatar' => $path]);
+                return $path;
+            }, 'avatar');
 
         return response()->json([
             'message' => 'Foto profil berhasil diupload!',
@@ -75,11 +73,10 @@ class ProfileController extends Controller
     {
         $user = $request->user();
 
-        if ($user->avatar) {
-            if (Storage::disk('public')->exists($user->avatar)) {
-                Storage::disk('public')->delete($user->avatar);
-            }
-            $user->update(['avatar' => null]);
+        $old = $user->avatar;
+        $user->update(['avatar' => null]);
+        if ($old) {
+            Storage::disk('public')->delete($old);
         }
 
         return response()->json([
@@ -109,7 +106,7 @@ class ProfileController extends Controller
 
         Auth::logout();
 
-        $user->delete();
+        app(UserService::class)->deleteEmployee($user->id);
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();

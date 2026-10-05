@@ -87,7 +87,7 @@ export function StoreHeader({
         <>
             <div className="hidden bg-slate-900 text-slate-300 sm:block">
                 <div className="mx-auto flex max-w-[1280px] items-center justify-between px-6 py-1.5 text-[11px] lg:px-8 font-medium">
-                    <span>Pesan online, ambil langsung di toko</span>
+                    <span>{settings['store.tagline'] ?? props?.app_settings?.store_tagline ?? 'Pesan online, ambil langsung di toko'}</span>
                     <span>Pesan online, bayar di kasir</span>
                 </div>
             </div>

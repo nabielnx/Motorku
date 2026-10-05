@@ -1,3 +1,5 @@
+import { IMAGE_ACCEPT, IMAGE_HELP, validImage } from '@/Utils/imageUpload';
+import MoneyInput from '@/Components/MoneyInput';
 import React, { useState, useEffect, useRef } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import ProductTableSkeleton from '@/Components/Skeletons/ProductTableSkeleton';
@@ -1439,8 +1441,7 @@ export default function MenuManagement({
                                 <div className="grid grid-cols-2 gap-3">
                                     <div>
                                         <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Harga modal (Rp)</label>
-                                        <input
-                                            type="number"
+                                        <MoneyInput
                                             value={productFormData.cost_price}
                                             onChange={(e) => setProductFormData({...productFormData, cost_price: e.target.value})}
                                             placeholder="Opsional"
@@ -1449,8 +1450,7 @@ export default function MenuManagement({
                                     </div>
                                     <div>
                                         <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Harga jual (Rp)</label>
-                                        <input
-                                            type="number"
+                                        <MoneyInput
                                             required
                                             value={productFormData.price}
                                             onChange={(e) => setProductFormData({...productFormData, price: e.target.value})}
@@ -1499,10 +1499,10 @@ export default function MenuManagement({
                                     <label className="flex items-center gap-3 p-2.5 border border-dashed border-slate-300 dark:border-slate-700 rounded-lg cursor-pointer hover:border-slate-400 transition-colors bg-slate-50 dark:bg-slate-800">
                                         <input
                                             type="file"
-                                            accept="image/jpeg,image/png,image/jpg,image/webp"
+                                            accept={IMAGE_ACCEPT}
                                             onChange={(e) => {
                                                 const file = e.target.files?.[0];
-                                                if (file) {
+                                                if (validImage(file)) {
                                                     setProductFormData({
                                                         ...productFormData,
                                                         imageFile: file,
@@ -1521,7 +1521,7 @@ export default function MenuManagement({
                                         )}
                                         <div className="text-xs text-slate-500 dark:text-slate-400">
                                             <span className="font-bold text-primary dark:text-blue-300">Upload foto</span>
-                                            <br />JPG, PNG, WEBP · maks 2 MB
+                                            <br />{IMAGE_HELP}
                                         </div>
                                     </label>
                                 </div>
