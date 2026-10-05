@@ -26,9 +26,8 @@ class SettingService
 
     public function upsertSetting(string $group, string $key, string $value): Setting
     {
-        $setting = Setting::withTrashed()->firstOrNew(['group' => $group, 'key' => $key]);
+        $setting = Setting::query()->firstOrNew(['group' => $group, 'key' => $key]);
         $setting->fill(['value' => $value, 'type' => 'string']);
-        $setting->deleted_at = null;
         $setting->save();
 
         return $setting;

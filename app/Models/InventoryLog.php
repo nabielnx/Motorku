@@ -3,17 +3,17 @@
 namespace App\Models;
 
 use App\Enums\InventoryLogType;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class InventoryLog extends Model
 {
-    use HasUuids, SoftDeletes;
+    use HasUuids;
 
     protected $fillable = [
         'product_id',
+        'product_name',
         'user_id',
         'type',
         'quantity',
@@ -22,12 +22,12 @@ class InventoryLog extends Model
         'new_stock',
         'reference_type',
         'reference_id',
-        'sync_version'
+        'sync_version',
     ];
 
     protected $casts = [
-        'type'       => InventoryLogType::class,
-        'quantity'   => 'integer',
+        'type' => InventoryLogType::class,
+        'quantity' => 'integer',
         'created_at' => 'datetime',
     ];
 

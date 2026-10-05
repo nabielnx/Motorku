@@ -3,6 +3,7 @@
 namespace Tests\Feature\User;
 
 use App\Models\User;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -11,12 +12,13 @@ class UserCrudTest extends TestCase
     use RefreshDatabase;
 
     private User $owner;
+
     private User $cashier;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $this->seed(RoleSeeder::class);
 
         $this->owner = User::factory()->create();
         $this->owner->assignRole('owner');
@@ -63,7 +65,7 @@ class UserCrudTest extends TestCase
         $response->assertStatus(200)
             ->assertJsonPath('message', 'Akun pegawai berhasil dihapus!');
 
-        $this->assertSoftDeleted('users', ['id' => $staff->id]);
+        $this->assertDatabaseMissing('users', ['id' => $staff->id]);
     }
 
     public function test_owner_cannot_change_own_role(): void

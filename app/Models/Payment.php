@@ -2,15 +2,20 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Services\DocumentNumberService;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Relations\BelongsTo; 
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Payment extends Model
 {
-    use HasFactory, HasUuids, SoftDeletes;
+    use HasFactory, HasUuids;
+
+    protected static function booted(): void
+    {
+        static::deleting(fn (Payment $document) => app(DocumentNumberService::class)->remember('invoice', $document->invoice_number));
+    }
 
     protected $fillable = [
         'order_id',
@@ -29,7 +34,7 @@ class Payment extends Model
         'paid_at',
         'raw_response',
         'expired_at',
-        'sync_version'
+        'sync_version',
     ];
 
     protected function casts(): array
