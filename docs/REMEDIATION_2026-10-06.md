@@ -58,6 +58,12 @@ Tes subset navigasi/katalog dan autentikasi/profil lulus selama perbaikan lanjut
 
 Bukti verifikasi akhir tersimpan di `storage/app/pr-*.txt` dan `storage/app/pr-full-npm-audit.json`, yang diabaikan Git. Bukti audit sebelumnya tersimpan di `storage/app/remediation-*.txt`. Tes regresi baru mencakup FullAuditRemediationTest, CheckoutConcurrencyTest, ProductionProvisioningTest, AdminNavigationTest, checkout.test.js dan productPagination.test.js. Uji concurrency menjalankan dua proses PHP independen dengan fixture yang telah committed ke database testing: hasilnya UUID order sama, satu order, satu payment paid dan stok 5 menjadi 4.
 
+### Perbaikan gate Pint setelah CI pertama
+
+CI pertama PR #73 gagal karena argumen folder `bootstrap` memasukkan `bootstrap/cache/packages.php` dan `bootstrap/cache/services.php` yang dihasilkan Composer/Laravel. Cache lokal sebelumnya sempat diformat, sehingga pemeriksaan lokal tidak mereproduksi kondisi cache baru di CI. Setelah menjalankan ulang hook Composer `post-autoload-dump`, kegagalan dua file yang sama berhasil direproduksi.
+
+Perintah CI diperbaiki menjadi `vendor/bin/pint --test app bootstrap/*.php config database routes scripts tests`: file sumber PHP di bootstrap tetap diperiksa, sedangkan cache hasil generate tidak masuk cakupan. Perintah yang sama dijalankan melalui Bash dengan cache baru dan lulus. Bukti lokal: `storage/app/ci-pint-reproduced.txt` dan `storage/app/ci-pint-fixed.txt`.
+
 ## Advisory yang masih tersisa
 
 Pada verifikasi akhir 6 Oktober 2026, dependency transitif `source-map-js` diperbarui dari 1.2.1 ke patch 1.2.2 untuk mengatasi [GHSA-68fv-2mgg-jv7q](https://github.com/advisories/GHSA-68fv-2mgg-jv7q). Tes JavaScript dan build dijalankan ulang setelah pembaruan ini.
