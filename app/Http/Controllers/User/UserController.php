@@ -30,7 +30,7 @@ class UserController extends Controller implements HasMiddleware
     public static function middleware(): array
     {
         return [
-            new Middleware('role:owner', only: ['index', 'show', 'store', 'update', 'destroy', 'indexWeb']),
+            new Middleware('role:owner'),
         ];
     }
 
@@ -55,7 +55,8 @@ class UserController extends Controller implements HasMiddleware
 
         return Inertia::render('User/Index', [
             'initialUsers' => $users,
-            'activeOwnersCount' => User::role('owner')->where('is_active', true)->count(),
+            'activeOwnersCount' => User::role('owner')->where('is_active', true)->where('invitation_pending', false)->whereNotNull('email_verified_at')->count(),
+            'mailDeliveryIsLocal' => in_array(config('mail.default'), ['log', 'array'], true),
         ]);
     }
 
@@ -73,10 +74,10 @@ class UserController extends Controller implements HasMiddleware
     {
         Gate::authorize('create', User::class);
 
-        $user = $this->userService->createEmployee($request->validated());
+        $user = $this->userService->inviteEmployee($request->validated());
 
         return $this->successResponse(
-            'Akun pegawai berhasil didaftarkan!',
+            'Undangan aktivasi staf berhasil dibuat dan dikirim!',
             new UserResource($user->load('roles')),
             201
         );
@@ -126,5 +127,14 @@ class UserController extends Controller implements HasMiddleware
         $this->userService->deleteEmployee($id);
 
         return $this->successResponse('Akun pegawai berhasil dihapus!');
+    }
+
+    public function resendInvitation(string $id): JsonResponse
+    {
+        $user = User::findOrFail($id);
+        Gate::authorize('update', $user);
+        $this->userService->resendInvitation($id);
+
+        return $this->successResponse('Undangan aktivasi berhasil dikirim ulang.');
     }
 }

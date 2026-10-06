@@ -46,7 +46,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->redirectUsersTo(function (Request $request): string {
             $user = $request->user();
 
-            return $user?->hasRole('cashier') ? '/pos' : '/dashboard';
+            if ($user && ! $user->hasVerifiedEmail()) {
+                return '/verify-email';
+            }
+
+            return $user?->hasRole('owner') ? '/dashboard' : '/pos';
         });
 
         $middleware->append(ApplySystemSettings::class);
@@ -64,6 +68,7 @@ return Application::configure(basePath: dirname(__DIR__))
         //
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        $exceptions->dontFlash(['owner_password']);
         $exceptions->respond(function ($response, Throwable $exception, Request $request) {
             if ($response->getStatusCode() === 419) {
                 if ($request->header('X-Inertia')) {

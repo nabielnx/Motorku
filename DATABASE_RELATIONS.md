@@ -40,7 +40,7 @@ Database: **MySQL `sparepart`**. Struktur dibaca langsung dari database lokal pa
 
 | Tabel | Kegunaan |
 |---|---|
-| `users` | Akun staf/owner: nama, email, hash password, avatar dan status aktif. Role dipasang melalui tabel penghubung, bukan kolom role di tabel ini. |
+| `users` | Akun staf/owner: nama, email, hash password, avatar, status aktif, `email_verified_at`, dan `invitation_pending` untuk aktivasi undangan. Role dipasang melalui tabel penghubung, bukan kolom role di tabel ini. |
 | `roles` | Master peran akses. Alur aplikasi saat ini menggunakan `owner` dan `cashier`. |
 | `permissions` | Master izin tindakan, misalnya melihat produk atau mengelola kategori. Sebagian endpoint juga dibatasi langsung berdasarkan role. |
 | `model_has_roles` | Penghubung akun/model ke role. Satu akun bisa mendapat beberapa role. `model_type` + `model_id` menunjuk model, biasanya `App\Models\User`. |
@@ -48,7 +48,7 @@ Database: **MySQL `sparepart`**. Struktur dibaca langsung dari database lokal pa
 | `model_has_permissions` | Izin yang diberikan langsung ke akun/model di luar pemberian lewat role. Disediakan Spatie; tidak mempunyai menu khusus pemberian izin langsung pada UI staf saat ini. |
 | `sessions` | Sesi login/browser: identitas sesi, akun, IP, user agent, payload sesi dan aktivitas terakhir. Sesi biasa tetap digunakan setelah fitur Ingat saya dihapus. |
 | `personal_access_tokens` | Token API Laravel Sanctum untuk model/akun, lengkap dengan kemampuan dan waktu kedaluwarsa. Alur admin web saat ini memakai sesi; tidak ada menu pembuatan token API pada UI. |
-| `password_reset_tokens` | Tabel bawaan untuk token reset password melalui email. **Sudah tidak digunakan oleh alur aplikasi** setelah fitur Lupa password beserta endpointnya dihapus; tabel lama masih ada di database. |
+| `password_reset_tokens` | Penyimpanan hash token undangan staf melalui broker Laravel `staff_invitations`. Tautan berlaku 24 jam dan sekali pakai; hanya akun `invitation_pending` dapat mengaktifkan diri. Fitur publik Lupa password tetap tidak tersedia. |
 
 ### Pengaturan dan tabel sistem Laravel
 
@@ -207,7 +207,7 @@ Garis penuh pada diagram ini adalah FK database. Garis putus-putus adalah hubung
 - Core model memakai **hard delete**; database lokal yang dibaca tidak memiliki kolom `deleted_at`. Snapshot item nota dan nama produk pada log persediaan disediakan agar riwayat tetap terbaca setelah master produk dihapus.
 - `SET NULL` berarti baris riwayat tetap ada tetapi hubungan ke entitas yang dihapus menjadi kosong. `CASCADE` menghapus baris anak ketika induknya dihapus. `RESTRICT` menolak penghapusan induk selama masih dirujuk. Pemeriksaan business rule pada service dapat lebih ketat daripada FK, misalnya melindungi pesanan yang sudah dibayar dan produk dalam pesanan aktif.
 - Penghapusan motor/produk menghapus mapping `motorcycle_parts`. Kategori yang masih memiliki produk/anak tidak bisa langsung dihapus lewat aplikasi. Baris retur mencegah penghapusan nota/item asal melalui FK `RESTRICT`.
-- `users.remember_token` masih ada sebagai kolom schema lama, tetapi autentikasi Ingat saya sudah dinonaktifkan. `password_reset_tokens` juga masih ada secara fisik meski fitur reset email telah dihapus. Menonaktifkan fitur tidak otomatis menjalankan migrasi penghapusan tabel/kolom.
+- `users.remember_token` masih ada sebagai kolom schema lama, tetapi autentikasi Ingat saya sudah dinonaktifkan. `password_reset_tokens` digunakan kembali untuk undangan staf; endpoint reset password publik tetap dihapus.
 - `sync_version` tersedia di beberapa tabel sebagai penanda versi; keberadaannya belum berarti offline sync sudah diimplementasikan.
 - Tidak ada tabel pelanggan terpisah, juga tidak ada tabel transaksi/stok terpisah untuk Elektronik, Alat Bangunan atau Sepeda. Pemisahan kelompok dilakukan lewat kategori.
 - Migrasi hard delete `2026_10_05_000001_use_permanent_deletes` menghapus baris legacy bertanda `deleted_at` dan kolomnya. Penerapannya membutuhkan backup; rollback schema tidak mengembalikan data yang sudah dihapus. Preflight menolak relasi legacy yang berisiko kehilangan data aktif/retur. Catatan ini tetap berlaku untuk instalasi lain yang belum menjalankan migrasi tersebut.

@@ -23,11 +23,12 @@ export default function UpdateProfileInformation({
         useForm({
             name: user.name,
             email: user.email,
+            current_password: '',
         });
 
     const submit = (e) => {
         e.preventDefault();
-        patch(route('profile.update'));
+        patch(route('profile.update'), { onFinish: () => setData('current_password', '') });
     };
 
     const handleUploadAvatar = async () => {
@@ -190,6 +191,15 @@ export default function UpdateProfileInformation({
                                     Tautan verifikasi baru telah dikirim ke alamat email Anda.
                                 </div>
                             )}
+                        </div>
+                    )}
+
+                    {data.email.trim().toLowerCase() !== user.email && (
+                        <div>
+                            <label htmlFor="current_password" className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Password saat ini</label>
+                            <input id="current_password" type="password" value={data.current_password} onChange={(e) => setData('current_password', e.target.value)} required autoComplete="current-password" className="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-sm" />
+                            <p className="mt-1 text-xs text-slate-500">Email baru harus diverifikasi sebelum Anda dapat mengakses toko kembali.</p>
+                            <InputError message={errors.current_password} className="mt-1.5" />
                         </div>
                     )}
 

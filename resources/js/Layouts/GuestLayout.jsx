@@ -1,7 +1,7 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import { Link, usePage } from '@inertiajs/react';
 
-export default function Guest({ children }) {
+export default function Guest({ children, title = 'Selamat Datang Kembali', subtitle }) {
     const { login_image_url } = usePage().props;
 
     return (
@@ -18,15 +18,15 @@ export default function Guest({ children }) {
             </div>
 
             {/* KANAN: Area Form Login */}
-            <div className="w-full lg:w-1/2 flex flex-col justify-center items-center p-8 sm:p-12 relative z-10 bg-white h-screen">
+            <div className="w-full lg:w-1/2 flex flex-col justify-center items-center p-8 sm:p-12 relative z-10 bg-white min-h-screen">
                 <div className="w-full max-w-md flex flex-col justify-center">
                     
                     <div className="flex flex-col items-center mb-8">
                         <Link href="/">
                             <ApplicationLogo className="w-36 h-[192px] mb-6" />
                         </Link>
-                        <h2 className="text-3xl font-black text-slate-900 mb-2 text-center tracking-tight">Selamat Datang Kembali</h2>
-                        <p className="text-gray-500 text-sm text-center">Masuk ke Portal Manajemen <span className="font-bold text-blue-600">Motorku</span></p>
+                        <h1 className="text-3xl font-black text-slate-900 mb-2 text-center tracking-tight">{title}</h1>
+                        <p className="text-gray-500 text-sm text-center">{subtitle || <>Masuk ke Portal Manajemen <span className="font-bold text-blue-600">Motorku</span></>}</p>
                     </div>
                     
                     {/* Area Input */}

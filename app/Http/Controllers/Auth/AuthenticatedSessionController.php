@@ -41,7 +41,11 @@ class AuthenticatedSessionController extends Controller
             return redirect()->route('login')->with('status', 'Akun Anda sedang menunggu persetujuan. Silakan hubungi Administrator/Owner untuk memberikan hak akses (role).');
         }
 
-        $defaultRoute = $user->hasRole('cashier') ? route('pos.index', absolute: false) : route('dashboard', absolute: false);
+        if (! $user->hasVerifiedEmail()) {
+            return redirect()->route('verification.notice');
+        }
+
+        $defaultRoute = $user->hasRole('owner') ? route('dashboard', absolute: false) : route('pos.index', absolute: false);
 
         return redirect($defaultRoute);
     }

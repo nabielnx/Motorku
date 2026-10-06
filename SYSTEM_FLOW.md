@@ -423,6 +423,12 @@ sequenceDiagram
 | `POST` | `/api/users` | `UserController@store` | `role:owner` | `StoreUserRequest` |
 | `PUT` | `/api/users/{id}` | `UserController@update` | `role:owner` | `UpdateUserRequest` |
 | `DELETE` | `/api/users/{id}` | `UserController@destroy` | `role:owner` | Minimum 1 owner check |
+| `POST` | `/api/users/{id}/invitation` | `UserController@resendInvitation` | `auth`, `verified`, `role:owner`, throttle | Pending invitation only |
+| `GET` | `/staff/invitation/{token}?email=...` | `StaffInvitationController@show` | `guest`, throttle | Token masih berlaku |
+| `POST` | `/staff/invitation` | `StaffInvitationController@store` | `guest`, throttle | `AcceptStaffInvitationRequest` |
+| `GET/POST` | `/verify-email`, `/email/verification-notification` | Email verification controllers | `auth`, throttle untuk kirim | Verifikasi alamat milik akun |
+
+Kelola Staf membuat undangan, bukan password untuk staf baru. Penerima membuat password melalui tautan sekali pakai yang berlaku 24 jam; aktivasi memverifikasi email. Beberapa owner diperbolehkan dengan hak penuh yang sama. Pemberian akses Owner serta pengubahan email/password staf memerlukan password pembuat perubahan. Minimal satu owner aktif yang terverifikasi dan selesai aktivasi harus dipertahankan; akun menunggu undangan belum dihitung. Halaman aplikasi dan API admin/POS memakai `verified`; profil, verifikasi, serta logout tetap tersedia untuk memperbaiki email yang salah. Detail setup pengirim email dan akun pertama ada di [STAFF_ACCOUNTS.md](docs/STAFF_ACCOUNTS.md).
 
 ### 7.2 Rute Motor & Mapping Sparepart (Fitment)
 | Method | URI | Handler | Middleware / Role | Form Request / Validasi |
