@@ -18,8 +18,8 @@ class UpdateMotorcyclePartRequest extends FormRequest
         $validCategories = array_keys(MotorcyclePart::categoryLabels());
 
         return [
-            'part_category'  => ['sometimes', 'required', 'string', Rule::in($validCategories)],
-            'notes'          => ['nullable', 'string', 'max:255'],
+            'part_category' => ['sometimes', 'required', 'string', Rule::in($validCategories)],
+            'notes' => ['nullable', 'string', 'max:255'],
             'is_recommended' => ['nullable', 'boolean'],
         ];
     }
@@ -28,8 +28,8 @@ class UpdateMotorcyclePartRequest extends FormRequest
     {
         return [
             'part_category.required' => 'Kategori / tipe part wajib dipilih.',
-            'part_category.in'       => 'Kategori part tidak valid.',
-            'notes.max'              => 'Catatan maksimal 255 karakter.',
+            'part_category.in' => 'Kategori part tidak valid.',
+            'notes.max' => 'Catatan maksimal 255 karakter.',
         ];
     }
 }

@@ -3,14 +3,15 @@
 namespace App\Http\Controllers\Report;
 
 use App\Http\Controllers\Controller;
-use App\Services\ReportService;
-use App\Services\CashClosingService;
+use App\Http\Requests\Report\ReportDateRangeRequest;
 use App\Http\Requests\Report\StoreCashClosingRequest;
+use App\Services\CashClosingService;
+use App\Services\ReportService;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
-use Carbon\Carbon;
 use Inertia\Inertia;
 
 class ReportController extends Controller implements HasMiddleware
@@ -29,7 +30,7 @@ class ReportController extends Controller implements HasMiddleware
         ];
     }
 
-    public function indexWeb(Request $request)
+    public function indexWeb(ReportDateRangeRequest $request)
     {
         [$startDate, $endDate] = $this->dateRange($request);
         $reportStats = $this->reportService->getReportStats($startDate, $endDate);
@@ -43,17 +44,17 @@ class ReportController extends Controller implements HasMiddleware
         ]);
     }
 
-    public function index(Request $request): JsonResponse
+    public function index(ReportDateRangeRequest $request): JsonResponse
     {
         [$startDate, $endDate] = $this->dateRange($request);
         $data = $this->reportService->getSummaryByDateRange($startDate, $endDate);
 
         return response()->json([
-            'data' => $data
+            'data' => $data,
         ]);
     }
 
-    public function sales(Request $request): JsonResponse
+    public function sales(ReportDateRangeRequest $request): JsonResponse
     {
         [$startDate, $endDate] = $this->dateRange($request);
         $items = $this->reportService->getSalesByDateRange($startDate, $endDate);
@@ -61,7 +62,7 @@ class ReportController extends Controller implements HasMiddleware
         return response()->json(['data' => $items]);
     }
 
-    public function export(Request $request): JsonResponse
+    public function export(ReportDateRangeRequest $request): JsonResponse
     {
         [$startDate, $endDate] = $this->dateRange($request);
         $orders = $this->reportService->getExportDataByDateRange($startDate, $endDate);
@@ -76,7 +77,7 @@ class ReportController extends Controller implements HasMiddleware
 
         return response()->json([
             'message' => 'Laporan harian berhasil ditarik',
-            'data' => $summary
+            'data' => $summary,
         ]);
     }
 
@@ -92,10 +93,10 @@ class ReportController extends Controller implements HasMiddleware
         return response()->json(['data' => $cashClosing->close($request->validated())], 201);
     }
 
-    private function dateRange(Request $request): array
+    private function dateRange(ReportDateRangeRequest $request): array
     {
-        $start = Carbon::parse($request->query('start_date', now()->startOfMonth()->toDateString()))->startOfDay();
-        $end = Carbon::parse($request->query('end_date', now()->toDateString()))->endOfDay();
+        $start = Carbon::parse($request->validated('start_date'))->startOfDay();
+        $end = Carbon::parse($request->validated('end_date'))->endOfDay();
 
         if ($end->lt($start)) {
             abort(422, 'Rentang tanggal tidak valid.');

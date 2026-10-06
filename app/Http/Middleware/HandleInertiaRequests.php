@@ -66,6 +66,7 @@ class HandleInertiaRequests extends Middleware
                 'store_address' => $s['store.address'] ?? null,
                 'store_phone' => $s['store.phone'] ?? null,
                 'auto_print_receipt' => ($s['printer.auto_print_receipt'] ?? 'true') !== 'false',
+                'paper_size' => ($s['printer.paper_size'] ?? '80') === '58' ? '58' : '80',
                 'show_total_sold' => ($s['catalog.show_total_sold'] ?? 'true') !== 'false',
             ],
         ];

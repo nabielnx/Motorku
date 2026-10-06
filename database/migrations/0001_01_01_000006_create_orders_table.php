@@ -44,19 +44,19 @@ return new class extends Migration
                 'preparing',
                 'ready',
                 'completed',
-                'cancelled'
+                'cancelled',
             ])->default('pending');
 
             $table->enum('order_type', [
                 'dine_in',
-                'take_away'
+                'take_away',
             ])->default('take_away');
 
             $table->enum('payment_status', [
                 'unpaid',
                 'partial',
                 'paid',
-                'refunded'
+                'refunded',
             ])->default('unpaid');
 
             // Offline Sync

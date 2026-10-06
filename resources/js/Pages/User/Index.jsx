@@ -19,7 +19,7 @@ const extractPaginator = (data) => {
     return { data: list, current_page: 1, last_page: 1, total: list.length, per_page: 10 };
 };
 
-export default function UserIndex({ initialUsers = {} }) {
+export default function UserIndex({ initialUsers = {}, activeOwnersCount = 0 }) {
     const [isNavigating, setIsNavigating] = useState(false);
 
     useEffect(() => {
@@ -70,10 +70,10 @@ export default function UserIndex({ initialUsers = {} }) {
         }, { preserveState: true, preserveScroll: true });
     };
 
-    const fetchUsers = () => {
+    const fetchUsers = (page = currentPage) => {
         router.get('/users', {
             search: search || undefined,
-            page: currentPage,
+            page,
             role: roleFilter === 'All' ? undefined : roleFilter
         }, { preserveState: true, preserveScroll: true });
     };
@@ -105,7 +105,6 @@ export default function UserIndex({ initialUsers = {} }) {
     }, [search]);
 
     const safeUsers = Array.isArray(users) ? users : [];
-    const activeOwnersCount = safeUsers.filter(u => u && u.is_active !== false && u.roles?.some(r => r.name === 'owner')).length;
 
     const filtered = safeUsers.filter(u => {
         if (!u) return false;
@@ -159,15 +158,14 @@ export default function UserIndex({ initialUsers = {} }) {
             const payload = { ...form };
             if (editId && !payload.password) delete payload.password;
             if (editId) {
-                const res = await axios.put(`/api/users/${editId}`, payload);
-                setUsers(prev => prev.map(u => u.id === editId ? (res.data.data ?? res.data) : u));
+                await axios.put(`/api/users/${editId}`, payload);
                 toast.success(`Data staf "${form.name}" berhasil diperbarui!`);
             } else {
-                const res = await axios.post('/api/users', payload);
-                setUsers(prev => [(res.data.data ?? res.data), ...prev]);
+                await axios.post('/api/users', payload);
                 toast.success(`Staf "${form.name}" (${form.role.toUpperCase()}) berhasil ditambahkan!`);
             }
             setModal(null);
+            fetchUsers();
         } catch (err) {
             const errorsObj = err.response?.data?.errors;
             const firstErr = errorsObj ? (Array.isArray(Object.values(errorsObj)[0]) ? Object.values(errorsObj)[0][0] : Object.values(errorsObj)[0]) : null;
@@ -199,6 +197,7 @@ export default function UserIndex({ initialUsers = {} }) {
         try {
             await axios.delete(`/api/users/${userToDelete.id}`);
             setUsers(prev => prev.filter(u => u.id !== userToDelete.id));
+            fetchUsers(users.length === 1 && currentPage > 1 ? currentPage - 1 : currentPage);
             toast.success(`Staf "${userToDelete.name}" berhasil dihapus!`);
             setModal(null);
             setUserToDelete(null);

@@ -22,14 +22,14 @@ class PosController extends Controller implements HasMiddleware
 
     public function index(): Response
     {
-        $settings = Setting::all()->mapWithKeys(fn($s) => [
-            $s->group . '.' . $s->key => $s->value
+        $settings = Setting::all()->mapWithKeys(fn ($s) => [
+            $s->group.'.'.$s->key => $s->value,
         ])->toArray();
 
         return Inertia::render('POS/Index', [
-            'initialProducts'   => Product::with(['category', 'motorcycles'])->where('is_available', true)->get(),
+            'initialProducts' => Product::with(['category', 'motorcycles'])->where('is_available', true)->get(),
             'initialCategories' => Category::all(),
-            'settings'          => $settings,
+            'settings' => $settings,
         ]);
     }
 }

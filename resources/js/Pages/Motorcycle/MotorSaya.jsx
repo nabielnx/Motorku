@@ -23,6 +23,7 @@ import {
     FiTool,
     FiStar
 } from 'react-icons/fi';
+import OrderingUnavailable from '@/Components/Customer/OrderingUnavailable';
 import { MotorIcon, ProductPhoto, ProductCategoryIcon } from '@/Components/Customer/Storefront';
 import { fuzzyFilterProducts } from '@/Utils/fuzzySearch';
 
@@ -257,6 +258,8 @@ export default function MotorSaya({
     }
 
     // ─── STEP 1: Pilih Motor ───
+    if (settings['qr_order.enabled'] === 'false') return <OrderingUnavailable />;
+
     if (!selectedMotor) {
         const allMotors = Object.values(motorcyclesByBrand).flat();
         const baseMotors = activeBrand === 'semua' ? allMotors : (motorcyclesByBrand[activeBrand] || []);

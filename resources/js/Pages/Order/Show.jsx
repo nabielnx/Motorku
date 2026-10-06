@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, usePage } from '@inertiajs/react';
 import axios from 'axios';
+import { createRequestId } from '@/Utils/checkout';
 import { toast } from 'sonner';
 import { FiArrowLeft, FiClock, FiCheckCircle, FiPrinter, FiUser, FiMapPin } from 'react-icons/fi';
 
@@ -114,8 +115,8 @@ export default function OrderShow({ order: initialOrder }) {
                                             <p className="font-bold text-slate-800 text-sm">{item.product_name}</p>
                                             {item.notes && <p className="text-xs text-slate-400 mt-0.5">"{item.notes}"</p>}
                                             {returnedQty(item.id) > 0 && <p className="text-xs text-amber-700 mt-1">Diretur: {returnedQty(item.id)} dari {item.quantity}</p>}
-                                            {isOwner && ['cash', 'qris_manual'].includes(order.payment_method) && order.payment_status === 'paid' && returnedQty(item.id) < item.quantity && (
-                                                <button type="button" onClick={() => { setReturningItem(item); returnRequestId.current = crypto.randomUUID(); setReturnQty(1); setRestock(true); setReturnReason(''); setRefundMethod('cash'); setRefundReference(''); setRefundConfirmed(false); }} className="text-xs font-bold text-blue-600 mt-2">Retur barang ini</button>
+                                            {isOwner && order.order_status === 'completed' && ['cash', 'qris_manual'].includes(order.payment_method) && order.payment_status === 'paid' && returnedQty(item.id) < item.quantity && (
+                                                <button type="button" onClick={() => { returnRequestId.current = createRequestId(); setReturningItem(item); setReturnQty(1); setRestock(true); setReturnReason(''); setRefundMethod('cash'); setRefundReference(''); setRefundConfirmed(false); }} className="text-xs font-bold text-blue-600 mt-2">Retur barang ini</button>
                                             )}
                                         </div>
                                         <div className="text-right">

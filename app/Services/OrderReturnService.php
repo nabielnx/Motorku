@@ -28,8 +28,8 @@ class OrderReturnService
 
             $paidMethod = $order->payments()->whereIn('payment_method', ['cash', 'qris_manual'])
                 ->where('status', 'paid')->value('payment_method');
-            if ($order->order_status === OrderStatus::Cancelled || ! $paidMethod) {
-                throw ValidationException::withMessages(['order_id' => 'Retur hanya tersedia untuk transaksi tunai atau QRIS Manual yang sudah lunas.']);
+            if ($order->order_status !== OrderStatus::Completed || ! $paidMethod) {
+                throw ValidationException::withMessages(['order_id' => 'Retur hanya tersedia untuk transaksi tunai atau QRIS Manual yang sudah lunas dan selesai.']);
             }
             if ($paidMethod === 'cash' && $data['refund_method'] !== 'cash') {
                 throw ValidationException::withMessages(['refund_method' => 'Transaksi tunai dikembalikan secara tunai.']);

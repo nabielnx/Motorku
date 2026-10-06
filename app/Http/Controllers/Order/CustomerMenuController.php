@@ -34,7 +34,7 @@ class CustomerMenuController extends Controller
     {
         return Cache::remember(CacheService::SETTINGS_STORE, CacheService::TTL_SETTINGS, function () {
             $rows = Setting::query()
-                ->whereIn('group', ['store', 'tax', 'catalog'])
+                ->whereIn('group', ['store', 'tax', 'catalog', 'promo_banner', 'qr_order'])
                 ->get(['group', 'key', 'value']);
 
             $settings = $rows->mapWithKeys(fn ($s) => [
@@ -44,7 +44,7 @@ class CustomerMenuController extends Controller
             $promoBanners = collect(range(1, 3))->mapWithKeys(function (int $slot) use ($settings) {
                 $path = $settings['store.promo_banner_'.$slot] ?? null;
 
-                return [$slot => $path ? Storage::url($path) : null];
+                return [$slot => $path && ($settings['promo_banner.enabled'] ?? 'true') !== 'false' ? Storage::url($path) : null];
             })->all();
 
             return compact('settings', 'promoBanners');
@@ -53,6 +53,10 @@ class CustomerMenuController extends Controller
 
     public function index(): Response
     {
+        $settingsData = $this->settingsAndBanners();
+        if (($settingsData['settings']['qr_order.enabled'] ?? 'true') === 'false') {
+            return Inertia::render('Order/Menu', ['initialProducts' => [], 'initialCategories' => [], 'settings' => $settingsData['settings'], 'bestSellerProductIds' => [], 'promoBanners' => []]);
+        }
         // Single query for both totalSoldMap AND bestSellerProductIds (was 2 separate queries)
         $salesData = DB::table('order_items')
             ->join('orders', 'order_items.order_id', '=', 'orders.id')
@@ -111,6 +115,7 @@ class CustomerMenuController extends Controller
      */
     public function storeOrder(StoreCustomerOrderRequest $request, OrderService $orderService): JsonResponse
     {
+        abort_if(Setting::where('group', 'qr_order')->where('key', 'enabled')->value('value') === 'false', 403, 'Pemesanan online sedang dinonaktifkan. Silakan hubungi kasir.');
         $data = $request->validated();
         if (collect($data['items'])->sum('quantity') > config('order.public_max_total_quantity', 30)) {
             throw ValidationException::withMessages([

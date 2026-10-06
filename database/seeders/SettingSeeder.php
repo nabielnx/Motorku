@@ -30,7 +30,7 @@ class SettingSeeder extends Seeder
             [
                 'group' => 'store',
                 'key' => 'logo',
-                'value' => 'logo/KhjIclRcD4NNnH44nvMkhrGhEuhPyTpREqSfOTSQ.png',
+                'value' => '',
                 'type' => 'string',
             ],
 
@@ -122,8 +122,6 @@ class SettingSeeder extends Seeder
                 'type' => 'boolean',
             ],
 
-
-
             /*
             |--------------------------------------------------------------------------
             | QR Ordering
@@ -208,7 +206,7 @@ class SettingSeeder extends Seeder
 
         foreach ($settings as $setting) {
 
-            Setting::updateOrCreate(
+            Setting::firstOrCreate(
                 [
                     'group' => $setting['group'],
                     'key' => $setting['key'],

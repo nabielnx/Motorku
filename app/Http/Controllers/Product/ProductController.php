@@ -5,22 +5,22 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Product;
 
 use App\Http\Controllers\Controller;
-use App\Services\ProductService;
 use App\Http\Requests\Product\StoreProductRequest;
 use App\Http\Requests\Product\UpdateProductRequest;
 use App\Http\Resources\ProductResource;
+use App\Models\Category;
+use App\Models\Product;
+use App\Services\CacheService;
+use App\Services\ProductService;
 use App\Traits\ApiResponseHelpers;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\Gate;
-use App\Models\Product;
-use App\Models\Category;
-use App\Services\CacheService;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
-use Illuminate\Http\RedirectResponse;
 
 class ProductController extends Controller implements HasMiddleware
 {
@@ -46,7 +46,7 @@ class ProductController extends Controller implements HasMiddleware
         $availability = $request->string('availability')->value();
         $sort = $request->string('sort')->value();
         $group = $request->string('group')->value();
-        abort_if($group && !array_key_exists($group, Category::CATALOG_GROUPS), 422, 'Kelompok produk tidak valid.');
+        abort_if($group && ! array_key_exists($group, Category::CATALOG_GROUPS), 422, 'Kelompok produk tidak valid.');
 
         $products = $this->productService->getProductsForWeb($search, $category, $stockStatus, $availability, $sort, $group ?: null, $request->integer('per_page', 16));
 
@@ -106,10 +106,8 @@ class ProductController extends Controller implements HasMiddleware
     public function store(StoreProductRequest $request): JsonResponse
     {
         Gate::authorize('create', Product::class);
-        
-        $product = $this->productService->createProduct($request->validated());
 
-        CacheService::flushCatalog();
+        $product = $this->productService->createProduct($request->validated());
         CacheService::flushMotorcycleParts();
 
         return $this->successResponse(
@@ -123,7 +121,7 @@ class ProductController extends Controller implements HasMiddleware
     {
         $product = $this->productService->getProductById($id);
 
-        if (!$product) {
+        if (! $product) {
             return $this->errorResponse('Produk tidak ditemukan', 404);
         }
 
@@ -136,15 +134,13 @@ class ProductController extends Controller implements HasMiddleware
     {
         $product = $this->productService->getProductById($id);
 
-        if (!$product) {
+        if (! $product) {
             return $this->errorResponse('Produk tidak ditemukan', 404);
         }
 
         Gate::authorize('update', $product);
 
         $updatedProduct = $this->productService->updateProduct($id, $request->validated());
-
-        CacheService::flushCatalog();
         CacheService::flushMotorcycleParts();
 
         return $this->successResponse(
@@ -157,15 +153,13 @@ class ProductController extends Controller implements HasMiddleware
     {
         $product = $this->productService->getProductById($id);
 
-        if (!$product) {
+        if (! $product) {
             return $this->errorResponse('Produk tidak ditemukan', 404);
         }
 
         Gate::authorize('delete', $product);
 
         $this->productService->deleteProduct($id);
-
-        CacheService::flushCatalog();
         CacheService::flushMotorcycleParts();
 
         return $this->successResponse('Produk berhasil dihapus!');

@@ -10,6 +10,7 @@ on:
 
 permissions:
   contents: write
+  actions: read
 
 concurrency:
   group: deploy-production
@@ -26,6 +27,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      - name: Require successful CI for this commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?head_sha=$GITHUB_SHA&event=push&branch=main&per_page=100" > ci-runs.json
+          jq -e 'any(.workflow_runs[]; .head_sha == env.GITHUB_SHA and .head_branch == "main" and .status == "completed" and .conclusion == "success")' ci-runs.json
       - name: Check deployment configuration
         env:
           SSH_HOST: ${{ secrets.PRODUCTION_SSH_HOST }}
@@ -69,8 +76,40 @@ jobs:
             set -e
             test -f "$DEPLOY_PATH/.env"
             test -d "$DEPLOY_PATH/storage"
-      - name: Enable maintenance mode
-        id: maintenance
+      - name: Package release
+        run: |
+          tar --exclude=bootstrap/cache --exclude=public/storage -czf release.tgz app bootstrap config database public resources routes artisan composer.json composer.lock vendor scripts
+      - name: Upload release
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.PRODUCTION_SSH_HOST }}
+          username: ${{ secrets.PRODUCTION_SSH_USER }}
+          key: ${{ secrets.PRODUCTION_SSH_KEY }}
+          port: ${{ vars.PRODUCTION_SSH_PORT || '22' }}
+          source: release.tgz
+          target: ${{ vars.PRODUCTION_DEPLOY_PATH }}/.incoming-${{ github.sha }}
+          overwrite: true
+      - name: Activate release with backup
+        id: activate
+        uses: appleboy/ssh-action@v1
+        env:
+          DEPLOY_PATH: ${{ vars.PRODUCTION_DEPLOY_PATH }}
+          RELEASE_SHA: ${{ github.sha }}
+        with:
+          host: ${{ secrets.PRODUCTION_SSH_HOST }}
+          username: ${{ secrets.PRODUCTION_SSH_USER }}
+          key: ${{ secrets.PRODUCTION_SSH_KEY }}
+          port: ${{ vars.PRODUCTION_SSH_PORT || '22' }}
+          envs: DEPLOY_PATH,RELEASE_SHA
+          script: |
+            set -e
+            incoming="$DEPLOY_PATH/.incoming-$RELEASE_SHA"
+            tar -xzf "$incoming/release.tgz" -C "$incoming"
+            bash "$incoming/scripts/deploy-release.sh" "$DEPLOY_PATH" "$incoming"
+      - name: Health check
+        run: curl --fail --location --retry 3 --retry-delay 5 "${APP_URL%/}/up"
+      - name: Keep failed release in maintenance
+        if: failure() && steps.activate.outcome == 'success'
         uses: appleboy/ssh-action@v1
         env:
           DEPLOY_PATH: ${{ vars.PRODUCTION_DEPLOY_PATH }}
@@ -84,50 +123,6 @@ jobs:
             set -e
             cd "$DEPLOY_PATH"
             php artisan down
-      - name: Upload release
-        uses: appleboy/scp-action@v1
-        with:
-          host: ${{ secrets.PRODUCTION_SSH_HOST }}
-          username: ${{ secrets.PRODUCTION_SSH_USER }}
-          key: ${{ secrets.PRODUCTION_SSH_KEY }}
-          port: ${{ vars.PRODUCTION_SSH_PORT || '22' }}
-          source: app,bootstrap,config,database,public,resources,routes,artisan,composer.json,composer.lock,vendor
-          target: ${{ vars.PRODUCTION_DEPLOY_PATH }}
-          overwrite: true
-      - name: Finish deployment
-        uses: appleboy/ssh-action@v1
-        env:
-          DEPLOY_PATH: ${{ vars.PRODUCTION_DEPLOY_PATH }}
-        with:
-          host: ${{ secrets.PRODUCTION_SSH_HOST }}
-          username: ${{ secrets.PRODUCTION_SSH_USER }}
-          key: ${{ secrets.PRODUCTION_SSH_KEY }}
-          port: ${{ vars.PRODUCTION_SSH_PORT || '22' }}
-          envs: DEPLOY_PATH
-          script: |
-            set -e
-            cd "$DEPLOY_PATH"
-            php artisan optimize:clear
-            php artisan migrate --force
-            php artisan storage:link || true
-            php artisan optimize
-            php artisan queue:restart || true
-            php artisan up
-      - name: Restore service if deployment fails
-        if: failure() && steps.maintenance.outcome == 'success'
-        uses: appleboy/ssh-action@v1
-        env:
-          DEPLOY_PATH: ${{ vars.PRODUCTION_DEPLOY_PATH }}
-        with:
-          host: ${{ secrets.PRODUCTION_SSH_HOST }}
-          username: ${{ secrets.PRODUCTION_SSH_USER }}
-          key: ${{ secrets.PRODUCTION_SSH_KEY }}
-          port: ${{ vars.PRODUCTION_SSH_PORT || '22' }}
-          envs: DEPLOY_PATH
-          script: |
-            cd "$DEPLOY_PATH" && php artisan up
-      - name: Health check
-        run: curl --fail --location --retry 3 --retry-delay 5 "$APP_URL"
       - name: Tag release
         run: |
           git config user.name 'github-actions[bot]'

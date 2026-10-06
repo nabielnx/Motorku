@@ -71,7 +71,6 @@ class RoleSeeder extends Seeder
             // Reports
             'report.view',
 
-
             // Settings
             'setting.view',
             'setting.update',

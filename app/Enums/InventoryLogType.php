@@ -12,8 +12,8 @@ enum InventoryLogType: string
     public function label(): string
     {
         return match ($this) {
-            self::StockIn    => 'Stok Masuk',
-            self::StockOut   => 'Stok Keluar',
+            self::StockIn => 'Stok Masuk',
+            self::StockOut => 'Stok Keluar',
             self::Adjustment => 'Penyesuaian',
             self::StockReturn => 'Stok Kembali',
         };
@@ -25,8 +25,8 @@ enum InventoryLogType: string
     public function opposite(): self
     {
         return match ($this) {
-            self::StockIn    => self::StockOut,
-            self::StockOut   => self::StockIn,
+            self::StockIn => self::StockOut,
+            self::StockOut => self::StockIn,
             self::Adjustment => self::Adjustment,
             self::StockReturn => self::StockOut,
         };

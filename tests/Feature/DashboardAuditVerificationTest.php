@@ -9,6 +9,7 @@ use App\Models\Payment;
 use App\Models\Product;
 use App\Models\User;
 use App\Services\DashboardService;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
@@ -22,7 +23,7 @@ class DashboardAuditVerificationTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $this->seed(RoleSeeder::class);
 
         $this->owner = User::factory()->create();
         $this->owner->assignRole('owner');
@@ -203,10 +204,9 @@ class DashboardAuditVerificationTest extends TestCase
         $response = $this->actingAs($this->owner)->get('/dashboard');
 
         $response->assertStatus(200);
-        $response->assertInertia(fn ($page) => 
-            $page->component('Dashboard/Owner/Index')
-                 ->where('filters.period', 'today')
-                 ->has('stats.pending_orders')
+        $response->assertInertia(fn ($page) => $page->component('Dashboard/Owner/Index')
+            ->where('filters.period', 'today')
+            ->has('stats.pending_orders')
         );
     }
 }

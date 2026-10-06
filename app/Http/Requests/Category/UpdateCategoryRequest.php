@@ -36,8 +36,20 @@ class UpdateCategoryRequest extends FormRequest
             ],
             'description' => ['nullable', 'string'],
             'sub_categories' => ['nullable', 'array'],
-            'sub_categories.*.id' => ['nullable', 'string'],
-            'sub_categories.*.name' => ['required', 'string', 'max:255'],
+            'sub_categories.*.id' => ['nullable', 'uuid', 'distinct', Rule::exists('categories', 'id')->where('parent_id', $id)],
+            'sub_categories.*.name' => Rule::forEach(fn ($value, $attribute) => [
+                'required', 'string', 'max:255',
+                Rule::unique('categories', 'name')->ignore($this->input(str_replace('.name', '.id', $attribute))),
+                function ($attribute, $value, $fail) {
+                    if (! is_string($value) || ! is_string($this->input('name'))) {
+                        return;
+                    }
+                    $names = collect($this->input('sub_categories', []))->pluck('name')->filter(fn ($name) => is_string($name))->map(fn ($name) => mb_strtolower(trim($name)));
+                    if ($names->filter(fn ($name) => $name === mb_strtolower(trim($value)))->count() > 1 || strcasecmp(trim($value), trim($this->input('name'))) === 0) {
+                        $fail('Nama kategori tidak boleh sama.');
+                    }
+                },
+            ]),
         ];
     }
 }

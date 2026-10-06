@@ -12,7 +12,7 @@ class CategoryFactory extends Factory
     public function definition(): array
     {
         return [
-            'name'        => fake()->unique()->randomElement([
+            'name' => fake()->unique()->randomElement([
                 'Ayam', 'Minuman', 'Sambal', 'Snack',
                 'Nasi', 'Paket', 'Dessert', 'Lainnya',
             ]),

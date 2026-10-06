@@ -6,6 +6,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\User;
 use App\Services\OrderService;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -64,7 +65,7 @@ class OrderListFilterTest extends TestCase
 
     public function test_orders_page_combines_filters_and_preserves_them_in_props(): void
     {
-        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $this->seed(RoleSeeder::class);
         $cashier = User::factory()->create();
         $cashier->assignRole('cashier');
         $order = Order::factory()->create(['order_status' => 'pending']);
@@ -85,7 +86,7 @@ class OrderListFilterTest extends TestCase
 
     public function test_active_orders_are_prioritized_and_pos_sales_remain_in_history(): void
     {
-        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $this->seed(RoleSeeder::class);
         $cashier = User::factory()->create();
         $cashier->assignRole('cashier');
         $online = Order::factory()->create([

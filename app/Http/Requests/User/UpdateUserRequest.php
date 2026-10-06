@@ -17,8 +17,8 @@ class UpdateUserRequest extends FormRequest
         $userId = $this->route('id');
 
         return [
-            'name'     => 'sometimes|required|string|max:255',
-            'email'    => [
+            'name' => 'sometimes|required|string|max:255',
+            'email' => [
                 'sometimes',
                 'required',
                 'string',
@@ -27,7 +27,7 @@ class UpdateUserRequest extends FormRequest
                 Rule::unique('users')->ignore($userId),
             ],
             'password' => 'nullable|string|min:8',
-            'role'     => 'sometimes|required|string|in:owner,cashier',
+            'role' => 'sometimes|required|string|in:owner,cashier',
             'is_active' => 'sometimes|boolean',
         ];
     }

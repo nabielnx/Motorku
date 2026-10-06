@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import OrderingUnavailable from '@/Components/Customer/OrderingUnavailable';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import useForceLightTheme from '@/Utils/useForceLightTheme';
 import MenuSkeleton from '@/Components/Skeletons/MenuSkeleton';
@@ -172,7 +173,7 @@ export default function CustomerMenu({
     // ── Perhitungan ──
     const subtotal = cart.reduce((s, i) => s + (i.price * i.qty), 0);
     const taxEnabled = settings['tax.enabled'] !== 'false';
-    const taxRate = parseFloat(settings['tax.percentage'] || '10') / 100;
+    const taxRate = parseFloat(settings['tax.percentage'] || '0') / 100;
     const tax = taxEnabled ? Math.round(subtotal * taxRate) : 0;
     const total = subtotal + tax;
     const totalQty = cart.reduce((s, i) => s + i.qty, 0);
@@ -326,6 +327,8 @@ export default function CustomerMenu({
     if (isNavigating || isSkeletonPreview) {
         return <MenuSkeleton fullPage={true} isGrid={selectedMainCategory !== null} showPromo={!searchQuery.trim() && selectedMainCategory === null} hasCart={cart.length > 0} />;
     }
+
+    if (settings['qr_order.enabled'] === 'false') return <OrderingUnavailable />;
 
     return (
         <div className="customer-storefront min-h-screen bg-[#f8fafc] text-slate-900">

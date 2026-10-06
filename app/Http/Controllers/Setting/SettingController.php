@@ -4,13 +4,13 @@ namespace App\Http\Controllers\Setting;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ImageUploadRequest;
+use App\Http\Requests\Setting\SaveSettingsRequest;
 use App\Http\Requests\Setting\UpdateSettingRequest;
 use App\Models\Setting;
 use App\Services\CacheService;
 use App\Services\ImageUploadService;
 use App\Services\SettingService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\Storage;
@@ -88,71 +88,9 @@ class SettingController extends Controller implements HasMiddleware
         ]);
     }
 
-    public function saveAll(Request $request): JsonResponse
+    public function saveAll(SaveSettingsRequest $request): JsonResponse
     {
-        // Per-field validation rules keyed by "group.key"
-        $fieldRules = [
-            'store.tagline' => ['nullable', 'string', 'max:120'],
-            'store.name' => ['required', 'string', 'max:100'],
-            'store.phone' => ['required', 'string', 'regex:/^[0-9+\-\s()]{8,20}$/'],
-            'store.email' => ['required', 'email', 'max:100'],
-            'store.address' => ['required', 'string', 'max:500'],
-            'tax.enabled' => ['required', 'in:true,false'],
-            'tax.percentage' => ['numeric', 'min:0', 'max:100'],
-            'payment.cash_enabled' => ['required', 'in:true,false'],
-            'payment.qris_enabled' => ['required', 'in:true,false'],
-            'payment.card_enabled' => ['required', 'in:true,false'],
-            'printer.paper_size' => ['required', 'integer', 'in:58,80'],
-            'printer.auto_print_receipt' => ['required', 'in:true,false'],
-            'qr_order.enabled' => ['required', 'in:true,false'],
-            'qr_order.session_timeout' => ['integer', 'min:1', 'max:1440'],
-            'catalog.show_total_sold' => ['required', 'in:true,false'],
-            'promo_banner.enabled' => ['required', 'in:true,false'],
-            'store.open_time' => ['required', 'date_format:H:i'],
-            'store.close_time' => ['required', 'date_format:H:i'],
-            'system.timezone' => ['required', 'in:Asia/Jakarta,Asia/Makassar,Asia/Jayapura'],
-            'system.locale' => ['required', 'in:id,en'],
-        ];
-
-        $fieldMessages = [
-            'store.phone' => 'Nomor telepon hanya boleh berisi angka, +, -, spasi, dan tanda kurung (8-20 karakter).',
-            'store.email' => 'Format email tidak valid.',
-            'store.tagline' => ['nullable', 'string', 'max:120'],
-            'store.name' => 'Nama toko wajib diisi (maks 100 karakter).',
-            'store.address' => 'Alamat toko wajib diisi (maks 500 karakter).',
-            'tax.percentage' => 'Persentase pajak harus angka antara 0-100.',
-            'store.open_time' => 'Format jam buka harus HH:MM.',
-            'store.close_time' => 'Format jam tutup harus HH:MM.',
-        ];
-
-        $data = $request->validate([
-            'settings' => ['required', 'array'],
-            'settings.*.group' => ['required', 'string'],
-            'settings.*.key' => ['required', 'string'],
-            'settings.*.value' => ['nullable'],
-        ]);
-
-        foreach ($data['settings'] as $item) {
-            $key = $item['group'].'.'.$item['key'];
-            if (isset($fieldRules[$key])) {
-                $v = validator(['value' => $item['value']], ['value' => $fieldRules[$key]]);
-                if ($v->fails()) {
-                    $msg = $fieldMessages[$key] ?? $v->errors()->first('value');
-
-                    return response()->json(['message' => $msg], 422);
-                }
-            }
-        }
-
-        foreach ($data['settings'] as $item) {
-            $this->settingService->upsertSetting(
-                $item['group'],
-                $item['key'],
-                (string) $item['value']
-            );
-        }
-
-        CacheService::flushSettings();
+        $this->settingService->saveAll($request->validated('settings'));
 
         return response()->json(['message' => 'Pengaturan berhasil disimpan!']);
     }

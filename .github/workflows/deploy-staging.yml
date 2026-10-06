@@ -62,6 +62,9 @@ jobs:
             set -e
             test -f "$DEPLOY_PATH/.env"
             test -d "$DEPLOY_PATH/storage"
+      - name: Package release
+        run: |
+          tar --exclude=bootstrap/cache --exclude=public/storage -czf release.tgz app bootstrap config database public resources routes artisan composer.json composer.lock vendor scripts
       - name: Upload release
         uses: appleboy/scp-action@v1
         with:
@@ -69,10 +72,30 @@ jobs:
           username: ${{ secrets.STAGING_SSH_USER }}
           key: ${{ secrets.STAGING_SSH_KEY }}
           port: ${{ vars.STAGING_SSH_PORT || '22' }}
-          source: app,bootstrap,config,database,public,resources,routes,artisan,composer.json,composer.lock,vendor
-          target: ${{ vars.STAGING_DEPLOY_PATH }}
+          source: release.tgz
+          target: ${{ vars.STAGING_DEPLOY_PATH }}/.incoming-${{ github.event.workflow_run.head_sha }}
           overwrite: true
-      - name: Finish deployment
+      - name: Activate release with backup
+        id: activate
+        uses: appleboy/ssh-action@v1
+        env:
+          DEPLOY_PATH: ${{ vars.STAGING_DEPLOY_PATH }}
+          RELEASE_SHA: ${{ github.event.workflow_run.head_sha }}
+        with:
+          host: ${{ secrets.STAGING_SSH_HOST }}
+          username: ${{ secrets.STAGING_SSH_USER }}
+          key: ${{ secrets.STAGING_SSH_KEY }}
+          port: ${{ vars.STAGING_SSH_PORT || '22' }}
+          envs: DEPLOY_PATH,RELEASE_SHA
+          script: |
+            set -e
+            incoming="$DEPLOY_PATH/.incoming-$RELEASE_SHA"
+            tar -xzf "$incoming/release.tgz" -C "$incoming"
+            bash "$incoming/scripts/deploy-release.sh" "$DEPLOY_PATH" "$incoming"
+      - name: Health check
+        run: curl --fail --location --retry 3 --retry-delay 5 "${APP_URL%/}/up"
+      - name: Keep failed release in maintenance
+        if: failure() && steps.activate.outcome == 'success'
         uses: appleboy/ssh-action@v1
         env:
           DEPLOY_PATH: ${{ vars.STAGING_DEPLOY_PATH }}
@@ -85,10 +108,4 @@ jobs:
           script: |
             set -e
             cd "$DEPLOY_PATH"
-            php artisan optimize:clear
-            php artisan migrate --force
-            php artisan storage:link || true
-            php artisan optimize
-            php artisan queue:restart || true
-      - name: Health check
-        run: curl --fail --location --retry 3 --retry-delay 5 "$APP_URL"
+            php artisan down

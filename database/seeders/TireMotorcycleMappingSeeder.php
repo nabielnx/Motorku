@@ -34,12 +34,12 @@ class TireMotorcycleMappingSeeder extends Seeder
 
         foreach ($motorcycles as $motor) {
             $brand = strtolower($motor->brand);
-            $type  = strtolower($motor->engine_type);
+            $type = strtolower($motor->engine_type);
             $model = strtolower($motor->model);
 
-            $isHonda   = ($brand === 'honda');
-            $isYamaha  = ($brand === 'yamaha');
-            $isSuzuki  = ($brand === 'suzuki');
+            $isHonda = ($brand === 'honda');
+            $isYamaha = ($brand === 'yamaha');
+            $isSuzuki = ($brand === 'suzuki');
             $isKawasaki = ($brand === 'kawasaki');
 
             $isMatic = ($type === 'matic');
@@ -47,71 +47,71 @@ class TireMotorcycleMappingSeeder extends Seeder
             $isSport = ($type === 'sport');
 
             // ── Specific Model Detection ──
-            $isNmax     = str_contains($model, 'nmax');
-            $isAerox    = str_contains($model, 'aerox');
-            $isPcx160   = str_contains($model, 'pcx 160');
-            $isPcx150   = str_contains($model, 'pcx 150') || (str_contains($model, 'pcx') && !$isPcx160);
-            $isAdv160   = str_contains($model, 'adv 160');
-            $isAdv150   = str_contains($model, 'adv 150') || (str_contains($model, 'adv') && !$isAdv160);
-            $isAdv      = str_contains($model, 'adv');
+            $isNmax = str_contains($model, 'nmax');
+            $isAerox = str_contains($model, 'aerox');
+            $isPcx160 = str_contains($model, 'pcx 160');
+            $isPcx150 = str_contains($model, 'pcx 150') || (str_contains($model, 'pcx') && ! $isPcx160);
+            $isAdv160 = str_contains($model, 'adv 160');
+            $isAdv150 = str_contains($model, 'adv 150') || (str_contains($model, 'adv') && ! $isAdv160);
+            $isAdv = str_contains($model, 'adv');
             $isVario160 = str_contains($model, 'vario 160');
             $isVarioMid = str_contains($model, 'vario 125') || str_contains($model, 'vario 150');
             $isVario110 = str_contains($model, 'vario 110');
-            $isBeat     = str_contains($model, 'beat');
-            $isScoopyR12 = str_contains($model, 'scoopy') && !str_contains($model, 'karbu');
-            $isGenio    = str_contains($model, 'genio');
-            $isSpacy    = str_contains($model, 'spacy');
-            $isStyleo   = str_contains($model, 'stylo');
-            $isFazzio   = str_contains($model, 'fazzio') || str_contains($model, 'filano');
-            $isFreego   = str_contains($model, 'freego');
-            $isMio      = str_contains($model, 'mio') || str_contains($model, 'fino') || str_contains($model, 'soul') || str_contains($model, 'gear');
-            $isLexi     = str_contains($model, 'lexi');
-            $isXmax     = str_contains($model, 'xmax');
+            $isBeat = str_contains($model, 'beat');
+            $isScoopyR12 = str_contains($model, 'scoopy') && ! str_contains($model, 'karbu');
+            $isGenio = str_contains($model, 'genio');
+            $isSpacy = str_contains($model, 'spacy');
+            $isStyleo = str_contains($model, 'stylo');
+            $isFazzio = str_contains($model, 'fazzio') || str_contains($model, 'filano');
+            $isFreego = str_contains($model, 'freego');
+            $isMio = str_contains($model, 'mio') || str_contains($model, 'fino') || str_contains($model, 'soul') || str_contains($model, 'gear');
+            $isLexi = str_contains($model, 'lexi');
+            $isXmax = str_contains($model, 'xmax');
 
-            $isSupra    = str_contains($model, 'supra') && !str_contains($model, 'gtr');
+            $isSupra = str_contains($model, 'supra') && ! str_contains($model, 'gtr');
             $isSupraGtr = str_contains($model, 'supra gtr') || str_contains($model, 'gtr');
-            $isRevo     = str_contains($model, 'revo') || str_contains($model, 'blade');
-            $isJupiter  = str_contains($model, 'jupiter') && !str_contains($model, 'mx');
-            $isVega     = str_contains($model, 'vega');
-            $isMxKing   = str_contains($model, 'mx king') || str_contains($model, 'jupiter mx');
+            $isRevo = str_contains($model, 'revo') || str_contains($model, 'blade');
+            $isJupiter = str_contains($model, 'jupiter') && ! str_contains($model, 'mx');
+            $isVega = str_contains($model, 'vega');
+            $isMxKing = str_contains($model, 'mx king') || str_contains($model, 'jupiter mx');
 
-            $isCb150    = str_contains($model, 'cb150') && !str_contains($model, 'cbr');
-            $isCbr150   = str_contains($model, 'cbr150');
-            $isCbr250   = str_contains($model, 'cbr250');
-            $isSonic    = str_contains($model, 'sonic');
-            $isMegapro  = str_contains($model, 'megapro');
-            $isVerza    = str_contains($model, 'verza');
-            $isCrf150   = str_contains($model, 'crf150');
-            $isCrf250   = str_contains($model, 'crf250');
-            $isCb150x   = str_contains($model, 'cb150x');
+            $isCb150 = str_contains($model, 'cb150') && ! str_contains($model, 'cbr');
+            $isCbr150 = str_contains($model, 'cbr150');
+            $isCbr250 = str_contains($model, 'cbr250');
+            $isSonic = str_contains($model, 'sonic');
+            $isMegapro = str_contains($model, 'megapro');
+            $isVerza = str_contains($model, 'verza');
+            $isCrf150 = str_contains($model, 'crf150');
+            $isCrf250 = str_contains($model, 'crf250');
+            $isCb150x = str_contains($model, 'cb150x');
 
-            $isVixion   = str_contains($model, 'vixion');
-            $isR15      = str_contains($model, 'r15');
-            $isR25      = str_contains($model, 'r25');
-            $isMt15     = str_contains($model, 'mt-15');
-            $isMt25     = str_contains($model, 'mt-25');
-            $isXsr      = str_contains($model, 'xsr');
-            $isByson    = str_contains($model, 'byson');
-            $isWr155    = str_contains($model, 'wr155');
+            $isVixion = str_contains($model, 'vixion');
+            $isR15 = str_contains($model, 'r15');
+            $isR25 = str_contains($model, 'r25');
+            $isMt15 = str_contains($model, 'mt-15');
+            $isMt25 = str_contains($model, 'mt-25');
+            $isXsr = str_contains($model, 'xsr');
+            $isByson = str_contains($model, 'byson');
+            $isWr155 = str_contains($model, 'wr155');
 
-            $isNex      = str_contains($model, 'nex');
-            $isAddress  = str_contains($model, 'address');
-            $isAvenis   = str_contains($model, 'avenis');
-            $isBurgman  = str_contains($model, 'burgman');
-            $isSpin     = str_contains($model, 'spin');
-            $isSkywave  = str_contains($model, 'skywave') || str_contains($model, 'skydrive');
-            $isSmash    = str_contains($model, 'smash');
-            $isShogun   = str_contains($model, 'shogun');
-            $isSatria   = str_contains($model, 'satria');
-            $isGsx      = str_contains($model, 'gsx');
-            $isThunder  = str_contains($model, 'thunder');
+            $isNex = str_contains($model, 'nex');
+            $isAddress = str_contains($model, 'address');
+            $isAvenis = str_contains($model, 'avenis');
+            $isBurgman = str_contains($model, 'burgman');
+            $isSpin = str_contains($model, 'spin');
+            $isSkywave = str_contains($model, 'skywave') || str_contains($model, 'skydrive');
+            $isSmash = str_contains($model, 'smash');
+            $isShogun = str_contains($model, 'shogun');
+            $isSatria = str_contains($model, 'satria');
+            $isGsx = str_contains($model, 'gsx');
+            $isThunder = str_contains($model, 'thunder');
 
-            $isNinja    = str_contains($model, 'ninja');
-            $isKlx      = str_contains($model, 'klx');
+            $isNinja = str_contains($model, 'ninja');
+            $isKlx = str_contains($model, 'klx');
             $isDtracker = str_contains($model, 'd-tracker');
-            $isW175     = str_contains($model, 'w175');
-            $isAthlete  = str_contains($model, 'athlete');
-            $isKazeR    = str_contains($model, 'kaze');
+            $isW175 = str_contains($model, 'w175');
+            $isAthlete = str_contains($model, 'athlete');
+            $isKazeR = str_contains($model, 'kaze');
 
             // Retro R12 group (Scoopy new, Fazzio, Filano, FreeGo)
             $isRetroR12 = $isScoopyR12 || $isFazzio || $isFreego;
@@ -119,17 +119,17 @@ class TireMotorcycleMappingSeeder extends Seeder
             // Helper closure
             $mapTire = function (string $productName, string $partCategory, string $notes, bool $isRecommended = false) use ($motor, $tireProducts) {
                 $product = $tireProducts->firstWhere('name', $productName);
-                if (!$product) {
+                if (! $product) {
                     return;
                 }
                 MotorcyclePart::updateOrCreate(
                     [
                         'motorcycle_id' => $motor->id,
-                        'product_id'    => $product->id,
+                        'product_id' => $product->id,
                     ],
                     [
-                        'part_category'  => $partCategory,
-                        'notes'          => $notes,
+                        'part_category' => $partCategory,
+                        'notes' => $notes,
                         'is_recommended' => $isRecommended,
                     ]
                 );
@@ -192,7 +192,7 @@ class TireMotorcycleMappingSeeder extends Seeder
             // ── Retro Ring 12: Scoopy R12, Fazzio, Filano ──
             // Scoopy: Depan 100/90-12, Belakang 110/90-12
             // Fazzio/Filano: 110/70-12 (depan & belakang sama)
-            elseif ($isRetroR12 && !$isFreego) {
+            elseif ($isRetroR12 && ! $isFreego) {
                 if ($isScoopyR12) {
                     $mapTire('Ban Luar IRC Ring 12 - 100/90 Tubeless (Scoopy Ring 12 Depan)', 'ban_depan', 'Ban depan IRC Tubeless 100/90-12 OEM Scoopy', true);
                     $mapTire('Ban Luar AHM Ring 12 - 100/90 Tubeless (Scoopy Ring 12 Depan)', 'ban_depan', 'Ban depan AHM Tubeless 100/90-12 OEM Scoopy');
@@ -225,7 +225,7 @@ class TireMotorcycleMappingSeeder extends Seeder
 
             // ── Matic Standar Ring 14: Beat, Vario 110, Genio, Spacy, Mio, Fino, Nex, etc ──
             // Depan: 80/90-14, Belakang: 90/90-14
-            elseif ($isMatic && !$isXmax) {
+            elseif ($isMatic && ! $isXmax) {
                 // Tubeless IRC
                 $mapTire('Ban Luar IRC Ring 14 - 80/90 Tubeless (Beat / Vario Depan & MIO Belakang)', 'ban_depan', 'Ban depan IRC Tubeless 80/90-14 standar matic R14', true);
                 $mapTire('Ban Luar IRC Ring 14 - 90/90 Tubeless (Beat / Vario Belakang & MIO Depan)', 'ban_belakang', 'Ban belakang IRC Tubeless 90/90-14 standar matic R14', true);
@@ -337,15 +337,13 @@ class TireMotorcycleMappingSeeder extends Seeder
                     // KLX/D-Tracker menggunakan trail tire
                     $mapTire('Ban Luar IRC Ring 17 - 80/100 Non-Tubeless (Sport / Trail)', 'ban_depan', 'Ban depan IRC Non-Tubeless 80/100-17 KLX/D-Tracker');
                     $mapTire('Ban Luar IRC Ring 17 - 100/90 Non-Tubeless (Sport / Trail)', 'ban_belakang', 'Ban belakang IRC Non-Tubeless 100/90-17 KLX/D-Tracker');
-                }
-                elseif ($isKawasaki && $isW175) {
+                } elseif ($isKawasaki && $isW175) {
                     // W175 menggunakan ban Ring 18
                     $mapTire('Ban Luar IRC Ring 18 - 2.75 Non-Tubeless (Sport Ring 18)', 'ban_depan', 'Ban depan IRC Non-Tubeless 2.75-18 W175', true);
                     $mapTire('Ban Luar IRC Ring 18 - 3.00 Non-Tubeless (Sport Ring 18)', 'ban_belakang', 'Ban belakang IRC Non-Tubeless 3.00-18 W175', true);
                     $mapTire('Ban Dalam IRC Ring 18 - 2.25 / 2.50 (Sport Ring 18)', 'ban_dalam_depan', 'Ban dalam depan IRC Ring 18 W175');
                     $mapTire('Ban Dalam IRC Ring 18 - 2.75 / 3.00 (Sport Ring 18)', 'ban_dalam_belakang', 'Ban dalam belakang IRC Ring 18 W175');
-                }
-                elseif ($isKawasaki && $isNinja) {
+                } elseif ($isKawasaki && $isNinja) {
                     // Ninja 250: ban standarnya lebih besar, tapi 100/80-17 & 130/70-17 bisa pakai
                     $mapTire('Ban Luar IRC Ring 17 - 100/80 Tubeless (CB150R / CBR 150R Depan)', 'ban_depan', 'Ban depan IRC Tubeless 100/80-17 Ninja');
                     $mapTire('Ban Luar IRC Ring 17 - 130/70 Tubeless (CB150R / CBR 150R Belakang)', 'ban_belakang', 'Ban belakang IRC Tubeless 130/70-17 Ninja');
