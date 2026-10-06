@@ -350,9 +350,14 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                                         {lowStockAlerts.length > 0 ? (
                                             lowStockAlerts.map((stock, idx) => (
                                                 <div key={idx} className="flex items-center justify-between gap-3 py-2 pr-3 border-b border-slate-100 dark:border-slate-800 last:border-none text-xs">
-                                                    <div className="min-w-0">
-                                                        <span className="font-semibold text-slate-900 dark:text-slate-100 block truncate">{stock.name}</span>
-                                                        {stock.status !== 'Critical' && <span className="text-xs text-slate-500 dark:text-slate-400">{stock.left}</span>}
+                                                    <div className="flex min-w-0 items-start gap-2.5">
+                                                        <span className={`w-5 shrink-0 tabular-nums ${idx < 3 ? 'font-bold text-[#fceb2d]' : 'text-slate-400 dark:text-slate-500'}`}>
+                                                            {String(idx + 1).padStart(2, '0')}
+                                                        </span>
+                                                        <div className="min-w-0">
+                                                            <span className="font-semibold text-slate-900 dark:text-slate-100 block truncate">{stock.name}</span>
+                                                            {stock.status !== 'Critical' && <span className="text-xs text-slate-500 dark:text-slate-400">{stock.left}</span>}
+                                                        </div>
                                                     </div>
                                                     <span className={`font-semibold shrink-0 ${stock.status === 'Critical' ? 'text-rose-700 dark:text-rose-400' : 'text-accentYellow'}`}>
                                                         {stock.status === 'Critical' ? 'Habis' : 'Menipis'}
