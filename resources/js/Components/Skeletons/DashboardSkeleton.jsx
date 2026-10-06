@@ -51,10 +51,12 @@ export default function DashboardSkeleton() {
                 </div>
             </div>
 
-            <div className={`${panel} col-span-12 order-3 flex h-[280px] flex-col p-5 sm:p-6 xl:col-span-8`}>
-                <div className="mb-3 shrink-0 border-b border-slate-100 pb-2 dark:border-slate-800"><Skeleton className="h-6 w-24" /><Skeleton className="mt-1 h-4 w-44" /></div>
-                <div className="flex min-h-0 flex-1 items-end gap-3 pl-14 pt-1">{[30, 55, 20, 75, 40, 60, 35].map((height, i) => <div key={i} className="flex h-full flex-1 items-end"><div className="w-full" style={{ height: `${height}%` }}><Skeleton className="h-full w-full rounded-t-md" /></div></div>)}</div>
-                <div className="flex h-7 shrink-0 items-end justify-between gap-3 pb-1 pl-14">{Array.from({ length: 7 }).map((_, i) => <Skeleton key={i} className="h-2 w-8" />)}</div>
+            <div className={`${panel} col-span-12 order-3 flex h-[280px] flex-col overflow-hidden xl:col-span-8`}>
+                <div className="flex shrink-0 items-center justify-between gap-3 bg-slate-100 px-4 py-3 dark:bg-slate-800 sm:px-5"><Skeleton className="h-5 w-24" /><Skeleton className="h-3 w-44" /></div>
+                <div className="flex min-h-0 flex-1 flex-col p-4 sm:p-5">
+                    <div className="flex min-h-0 flex-1 items-end gap-3 pl-14 pt-1">{[30, 55, 20, 75, 40, 60, 35].map((height, i) => <div key={i} className="flex h-full flex-1 items-end"><div className="w-full" style={{ height: `${height}%` }}><Skeleton className="h-full w-full rounded-t-md" /></div></div>)}</div>
+                    <div className="flex h-7 shrink-0 items-end justify-between gap-3 pb-1 pl-14">{Array.from({ length: 7 }).map((_, i) => <Skeleton key={i} className="h-2 w-8" />)}</div>
+                </div>
             </div>
 
             <div className={`${panel} col-span-12 order-4 h-[280px] overflow-hidden xl:col-span-4`}>
