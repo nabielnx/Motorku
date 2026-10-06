@@ -5,6 +5,7 @@ import DashboardSkeleton from '@/Components/Skeletons/DashboardSkeleton';
 import { Head, Link, router } from '@inertiajs/react';
 import axios from 'axios';
 import { recentOrderStatus } from './recentOrderStatus';
+import { salesChartTicks } from './salesChartTicks';
 import { 
     FiTrendingUp, 
     FiShoppingBag, 
@@ -80,6 +81,8 @@ export default function Dashboard({ stats = {}, filters = {} }) {
 
     // Real sales data from backend
     const salesData = stats.sales_data || [];
+    const desktopSalesTicks = salesChartTicks(salesData.length, 8);
+    const mobileSalesTicks = salesChartTicks(salesData.length, 4);
     const salesActivity = salesData.filter((day) => day.value !== 0 || day.count > 0);
     const showSalesChart = salesActivity.length > 0 && salesData.every((day) => day.value >= 0);
     const maxSalesValue = Math.max(...salesData.map(d => d.value), 0);
@@ -299,8 +302,8 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                                                         style={{ height: `${heightPct}%` }}
                                                     >
                                                         {/* Hover Tooltip */}
-                                                        <div className="opacity-0 group-hover:opacity-100 absolute -top-11 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] py-1 px-2.5 rounded font-bold whitespace-nowrap transition z-30 pointer-events-none shadow-md border border-slate-700">
-                                                            {formatRp(data.value)}<br/>{data.count} Transaksi
+                                                        <div className="opacity-0 group-hover:opacity-100 absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] py-1 px-2.5 rounded font-bold whitespace-nowrap transition z-30 pointer-events-none shadow-md border border-slate-700">
+                                                            {data.day}<br/>{formatRp(data.value)}<br/>{data.count} Transaksi
                                                         </div>
                                                     </div>
                                                 </div>
@@ -318,8 +321,8 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                             {/* X-Axis Labels Row */}
                             <div className="pl-14 w-full flex items-center justify-between gap-1 sm:gap-2 pt-3 shrink-0">
                                 {salesData.map((data, idx) => (
-                                    <div key={idx} className="flex-1 text-center min-w-0">
-                                        <span className={`text-[10px] sm:text-[11px] font-bold block truncate ${data.is_today ? 'text-accentYellow' : 'text-slate-600 dark:text-slate-400'}`} title={data.day}>
+                                    <div key={idx} className="relative h-4 flex-1 text-center min-w-0">
+                                        <span className={`absolute left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] sm:text-[11px] font-bold ${mobileSalesTicks.has(idx) ? 'block' : 'hidden'} ${desktopSalesTicks.has(idx) ? 'sm:block' : 'sm:hidden'} ${data.is_today ? 'text-accentYellow' : 'text-slate-600 dark:text-slate-400'}`} title={data.day}>
                                             {data.day}
                                         </span>
                                     </div>
