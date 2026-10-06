@@ -44,7 +44,7 @@ export default function DashboardSkeleton() {
                 <div className="flex min-h-0 flex-1 flex-col p-4 sm:p-5 xl:py-3">
                     <div className="relative min-h-0 flex-1">
                         <div className="absolute inset-0 overflow-hidden">
-                            {Array.from({ length: 5 }).map((_, i) => <div key={i} className="flex justify-between gap-3 border-t border-slate-100 py-2 dark:border-slate-800"><div className="flex min-w-0 flex-1 items-start gap-2.5"><Skeleton className="h-3 w-5 shrink-0" /><Skeleton className="h-3 w-3/4" /></div><Skeleton className="h-3 w-12 shrink-0" /></div>)}
+                            {Array.from({ length: 5 }).map((_, i) => <div key={i} className="flex items-center justify-between gap-3 border-t border-slate-100 py-2 dark:border-slate-800"><div className="flex min-w-0 flex-1 items-center gap-2.5"><Skeleton className="h-[26px] w-[26px] shrink-0 !rounded-lg" /><Skeleton className="h-3 w-3/4" /></div><Skeleton className="h-3 w-12 shrink-0" /></div>)}
                         </div>
                     </div>
                     <Skeleton className="mt-2 h-3 w-20 shrink-0" />
@@ -62,7 +62,7 @@ export default function DashboardSkeleton() {
             <div className={`${panel} col-span-12 order-4 h-[280px] overflow-hidden xl:col-span-4`}>
                 <div className="bg-slate-100 px-4 py-3 dark:bg-slate-800 sm:px-5"><Skeleton className="h-4 w-32" /></div>
                 <div className="px-4 pb-3 pt-1 sm:px-5">
-                    {Array.from({ length: 5 }).map((_, i) => <div key={i} className="flex items-center justify-between gap-3 border-t border-slate-100 py-2.5 dark:border-slate-800"><div className="flex flex-1 items-center gap-2"><Skeleton className="h-3 w-5" /><Skeleton className="h-3 w-3/4" /></div><Skeleton className="h-3 w-16" /></div>)}
+                    {Array.from({ length: 5 }).map((_, i) => <div key={i} className="flex items-center justify-between gap-3 border-t border-slate-100 py-2 dark:border-slate-800"><div className="flex min-w-0 flex-1 items-center gap-2.5"><Skeleton className="h-[26px] w-[26px] shrink-0 !rounded-lg" /><Skeleton className="h-3 w-3/4" /></div><Skeleton className="h-3 w-16 shrink-0" /></div>)}
                 </div>
             </div>
         </SkeletonWrapper>

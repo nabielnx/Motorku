@@ -20,6 +20,8 @@ import {
     FiCalendar
 } from 'react-icons/fi';
 
+const numberBadgeClass = 'relative inline-flex h-[26px] w-[26px] shrink-0 items-center justify-center overflow-hidden rounded-lg bg-primary pb-0.5 text-xs font-bold leading-none tabular-nums text-accentYellow';
+
 export default function Dashboard({ stats = {}, filters = {} }) {
 
     const [isNavigating, setIsNavigating] = useState(false);
@@ -324,8 +326,9 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                                     topSellingMenu.map((item, idx) => (
                                         <div key={idx} className="flex items-center justify-between gap-3 py-2 border-b border-slate-100 dark:border-slate-800 last:border-none">
                                             <div className="flex items-center space-x-2.5 min-w-0">
-                                                <span className={`w-5 text-xs tabular-nums shrink-0 ${Number(item.rank || idx + 1) <= 3 ? 'font-bold text-[#fceb2d]' : 'text-slate-400 dark:text-slate-500'}`}>
+                                                <span className={numberBadgeClass}>
                                                     {String(item.rank || idx + 1).padStart(2, '0')}
+                                                    <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-0.5 bg-accentYellow" />
                                                 </span>
                                                 <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 truncate">{item.name}</span>
                                             </div>
@@ -350,9 +353,10 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                                         {lowStockAlerts.length > 0 ? (
                                             lowStockAlerts.map((stock, idx) => (
                                                 <div key={idx} className="flex items-center justify-between gap-3 py-2 pr-3 border-b border-slate-100 dark:border-slate-800 last:border-none text-xs">
-                                                    <div className="flex min-w-0 items-start gap-2.5">
-                                                        <span className={`w-5 shrink-0 tabular-nums ${idx < 3 ? 'font-bold text-[#fceb2d]' : 'text-slate-400 dark:text-slate-500'}`}>
+                                                    <div className="flex min-w-0 items-center gap-2.5">
+                                                        <span className={numberBadgeClass}>
                                                             {String(idx + 1).padStart(2, '0')}
+                                                            <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-0.5 bg-accentYellow" />
                                                         </span>
                                                         <div className="min-w-0">
                                                             <span className="font-semibold text-slate-900 dark:text-slate-100 block truncate">{stock.name}</span>
