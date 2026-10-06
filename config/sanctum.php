@@ -21,7 +21,7 @@ return [
     'stateful' => array_filter(array_unique(array_merge(
         // Lokal dev
         ['localhost', 'localhost:3000', 'localhost:8000', 'localhost:5173',
-         '127.0.0.1', '127.0.0.1:8000', '127.0.0.1:5173', '::1'],
+            '127.0.0.1', '127.0.0.1:8000', '127.0.0.1:5173', '::1'],
         // Domain dari APP_URL (otomatis di staging/production tanpa hardcode)
         array_filter([Sanctum::currentApplicationUrlWithPort()]),
         // Override manual via .env (opsional, bisa diisi lebih dari satu domain dipisah koma)

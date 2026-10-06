@@ -7,13 +7,11 @@ namespace App\Services;
 use App\Enums\InventoryLogType;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
-use App\Events\OrderStatusUpdated;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\Setting;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -29,7 +27,8 @@ class OrderService
 
     public function createPosSale(array $data): array
     {
-        return DB::transaction(function () use ($data) {
+        $order = $this->checkoutOnce($data, 'pos', function () use ($data) {
+            unset($data['request_id']);
             $order = $this->createOrder($data);
             $order->update([
                 'order_status' => OrderStatus::Completed,
@@ -44,8 +43,46 @@ class OrderService
                 'notes' => 'Penjualan langsung POS',
             ]);
 
-            return ['order' => $order->fresh(['items', 'cashier', 'payments']), 'payment' => $payment];
+            return $order->fresh(['items', 'cashier', 'payments']);
         });
+
+        return ['order' => $order, 'payment' => $order->payments->firstWhere('status', 'paid')];
+    }
+
+    private function checkoutOnce(array $data, string $channel, callable $create): Order
+    {
+        if (empty($data['request_id'])) {
+            return DB::transaction($create, 3);
+        }
+
+        $id = $data['request_id'];
+        unset($data['request_id']);
+        ksort($data);
+        $actor = $channel === 'public' ? null : auth()->id();
+        $fingerprint = hash('sha256', json_encode([$channel, $actor, $data], JSON_THROW_ON_ERROR));
+
+        return DB::transaction(function () use ($id, $fingerprint, $create) {
+            // The primary key serializes even two first-time submissions.
+            $inserted = DB::table('checkout_requests')->insertOrIgnore([
+                'id' => $id, 'fingerprint' => $fingerprint, 'created_at' => now(), 'updated_at' => now(),
+            ]);
+            $request = DB::table('checkout_requests')->where('id', $id)->lockForUpdate()->first();
+            if (! hash_equals($request->fingerprint, $fingerprint)) {
+                throw ValidationException::withMessages(['request_id' => 'Identitas checkout sudah digunakan untuk pesanan berbeda.']);
+            }
+            if (! $inserted) {
+                $order = Order::with(['items', 'cashier', 'payments'])->find($request->order_id);
+                if (! $order) {
+                    throw ValidationException::withMessages(['request_id' => 'Pesanan checkout ini sudah dihapus. Mulai pesanan baru.']);
+                }
+
+                return $order;
+            }
+            $order = $create();
+            DB::table('checkout_requests')->where('id', $id)->update(['order_id' => $order->id, 'updated_at' => now()]);
+
+            return $order;
+        }, 3);
     }
 
     public function getOrdersForWeb(?string $status = null, ?string $search = null, ?string $date = null)
@@ -133,6 +170,11 @@ class OrderService
 
     public function createOrder(array $data, bool $forcePublic = false)
     {
+        return $this->checkoutOnce($data, $forcePublic || ! auth()->check() ? 'public' : 'admin', fn () => $this->createOrderRecord($data, $forcePublic));
+    }
+
+    private function createOrderRecord(array $data, bool $forcePublic): Order
+    {
         if (empty(trim($data['customer_name'] ?? ''))) {
             throw ValidationException::withMessages([
                 'customer_name' => ['Nama pelanggan wajib diisi.'],
@@ -144,6 +186,7 @@ class OrderService
             $subtotal = 0.0;
             $orderItemsData = [];
             $stockDeductions = [];
+            $requiredStock = collect($data['items'])->groupBy('product_id')->map(fn ($items) => $items->sum('quantity'));
 
             foreach ($data['items'] as $item) {
                 $product = Product::whereKey($item['product_id'])->lockForUpdate()->firstOrFail();
@@ -155,7 +198,7 @@ class OrderService
                     ]);
                 }
 
-                if ((float) $product->stock < $quantity) {
+                if ((float) $product->stock < $requiredStock[$product->id]) {
                     throw ValidationException::withMessages([
                         'items' => "Stok {$product->name} tidak mencukupi.",
                     ]);
@@ -188,7 +231,7 @@ class OrderService
             $taxEnabled = filter_var($this->setting('tax', 'enabled', 'true'), FILTER_VALIDATE_BOOLEAN);
             $taxRate = (float) $this->setting('tax', 'percentage', 0) / 100;
 
-            $taxAmount = $taxEnabled ? round($subtotal * $taxRate, 2) : 0;
+            $taxAmount = $taxEnabled ? round($subtotal * $taxRate) : 0;
             $discountAmount = (float) ($data['discount_amount'] ?? 0);
             $total = max(0, $subtotal - $discountAmount + $taxAmount);
             $orderNumber = $this->nextOrderNumber();
@@ -200,12 +243,13 @@ class OrderService
                 'customer_access_token' => $isPublicOrder ? Str::random(64) : null,
                 'notes' => $data['notes'] ?? null,
                 'subtotal' => $subtotal,
+                'discount_amount' => $discountAmount,
                 'tax_amount' => $taxAmount,
                 'total' => $total,
                 'order_status' => OrderStatus::Pending,
                 'payment_status' => PaymentStatus::Unpaid,
                 'ordered_at' => now(),
-                'expires_at' => now()->addMinutes(config('order.expiry_minutes', 60)),
+                'expires_at' => now()->addMinutes($isPublicOrder ? (int) $this->setting('qr_order', 'session_timeout', config('order.expiry_minutes', 15)) : config('order.expiry_minutes', 15)),
             ]);
 
             foreach ($orderItemsData as &$itemData) {
@@ -232,8 +276,6 @@ class OrderService
 
             return $order->load(['items', 'cashier']);
         });
-
-        CacheService::flushCatalog();
 
         return $result;
     }
@@ -322,6 +364,7 @@ class OrderService
 
             if ($nextStatus === OrderStatus::Cancelled && $order->order_status !== OrderStatus::Cancelled) {
                 $this->restoreReservedStock($order);
+                $order->payments()->where('status', 'pending')->update(['status' => 'cancelled']);
             }
 
             // Convert enum to string for the update array
@@ -335,12 +378,6 @@ class OrderService
             ]));
 
             $updatedOrder = $order->fresh(['items', 'cashier']);
-
-            try {
-                OrderStatusUpdated::dispatch($updatedOrder);
-            } catch (\Throwable $e) {
-                Log::warning('OrderStatusUpdated broadcast gagal (Reverb offline/unreachable): '.$e->getMessage());
-            }
 
             return $updatedOrder;
         });

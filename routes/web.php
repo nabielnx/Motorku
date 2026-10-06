@@ -1,20 +1,18 @@
 <?php
 
-use App\Http\Controllers\Order\CustomerMenuController;
 use App\Http\Controllers\Dashboard\DashboardController;
 use App\Http\Controllers\Dashboard\PosController;
-use App\Http\Controllers\Product\ProductController;
-use App\Http\Controllers\Category\CategoryController;
-use App\Http\Controllers\Order\OrderController;
-use App\Http\Controllers\Report\ReportController;
 use App\Http\Controllers\Inventory\InventoryController;
-use App\Http\Controllers\User\UserController;
-use App\Http\Controllers\Setting\SettingController;
-use App\Http\Controllers\Motorcycle\MotorSayaController;
 use App\Http\Controllers\Motorcycle\MotorcycleController;
+use App\Http\Controllers\Motorcycle\MotorSayaController;
+use App\Http\Controllers\Order\CustomerMenuController;
+use App\Http\Controllers\Order\OrderController;
+use App\Http\Controllers\Product\ProductController;
+use App\Http\Controllers\Report\ReportController;
+use App\Http\Controllers\Setting\SettingController;
+use App\Http\Controllers\User\UserController;
 use App\Models\Motorcycle;
 use Illuminate\Support\Facades\Route;
-
 use Inertia\Inertia;
 
 // Public QR Customer Menu (katalog sparepart)
@@ -24,10 +22,10 @@ Route::get('/sitemap.xml', fn () => response()
     ->header('Content-Type', 'application/xml; charset=UTF-8'))->name('sitemap');
 
 // Public Customer QR Flow
-Route::get('/sanctum/csrf-cookie', fn() => response()->noContent());
-Route::get('/payment', fn() => Inertia::render('Payment/Index'))->name('customer.payment');
-Route::get('/order/waiting', fn() => Inertia::render('Order/Waiting'))->name('customer.order.waiting');
-Route::get('/order/status', fn() => Inertia::render('Order/Status'))->name('customer.order.status');
+Route::get('/sanctum/csrf-cookie', fn () => response()->noContent());
+Route::get('/payment', fn () => Inertia::render('Payment/Index'))->name('customer.payment');
+Route::get('/order/waiting', fn () => Inertia::render('Order/Waiting'))->name('customer.order.waiting');
+Route::get('/order/status', fn () => Inertia::render('Order/Status'))->name('customer.order.status');
 
 // Public "Motor Saya" — motorcycle part finder
 Route::get('/motor-saya/{slug?}', [MotorSayaController::class, 'index'])->name('motor-saya');
@@ -80,4 +78,4 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 });
 
-require __DIR__ . '/auth.php';
+require __DIR__.'/auth.php';

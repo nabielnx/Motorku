@@ -3,13 +3,13 @@
 namespace App\Http\Controllers\Payment;
 
 use App\Http\Controllers\Controller;
-use App\Services\PaymentService;
 use App\Http\Requests\Payment\StorePaymentRequest;
+use App\Models\Payment;
+use App\Services\PaymentService;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\Gate;
-use App\Models\Payment;
 
 class PaymentController extends Controller implements HasMiddleware
 {
@@ -32,8 +32,9 @@ class PaymentController extends Controller implements HasMiddleware
     public function index(Request $request)
     {
         Gate::authorize('viewAny', Payment::class);
-        
+
         $perPage = $request->integer('per_page', 15);
+
         return response()->json($this->paymentService->getAllPayments($perPage));
     }
 
@@ -42,7 +43,7 @@ class PaymentController extends Controller implements HasMiddleware
         // 1. Ambil data dulu
         $payment = $this->paymentService->getPaymentById($id);
 
-        if (!$payment) {
+        if (! $payment) {
             return response()->json(['message' => 'Data pembayaran tidak ditemukan'], 404);
         }
 
@@ -60,7 +61,7 @@ class PaymentController extends Controller implements HasMiddleware
 
         return response()->json([
             'message' => 'Pembayaran berhasil diproses!',
-            'data' => $payment
+            'data' => $payment,
         ], 201);
     }
 
@@ -69,7 +70,7 @@ class PaymentController extends Controller implements HasMiddleware
         // 1. Ambil data dulu
         $payment = $this->paymentService->getPaymentById($id);
 
-        if (!$payment) {
+        if (! $payment) {
             return response()->json(['message' => 'Data pembayaran tidak ditemukan'], 404);
         }
 
@@ -79,7 +80,7 @@ class PaymentController extends Controller implements HasMiddleware
 
         // 3. Validasi (Gate 2 - Inline)
         $validated = $request->validate([
-            'status' => ['required', 'in:pending,paid,failed,expired,cancelled,refunded']
+            'status' => ['required', 'in:pending,paid,failed,expired,cancelled,refunded'],
         ]);
 
         // 4. Eksekusi
@@ -87,8 +88,7 @@ class PaymentController extends Controller implements HasMiddleware
 
         return response()->json([
             'message' => 'Status pembayaran berhasil diperbarui!',
-            'data' => $updatedPayment
+            'data' => $updatedPayment,
         ]);
     }
-
 }

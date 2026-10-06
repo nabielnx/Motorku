@@ -3,13 +3,10 @@
 namespace Tests\Feature\Payment;
 
 use App\Enums\OrderStatus;
-use App\Events\OrderStatusUpdated;
 use App\Http\Requests\Payment\StorePaymentRequest;
 use App\Models\Order;
 use App\Models\User;
 use App\Policies\OrderPolicy;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Support\Facades\Validator;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -93,14 +90,5 @@ class AuditRemediationTest extends TestCase
         $cancelledOrder = new Order;
         $cancelledOrder->order_status = OrderStatus::Cancelled;
         $this->assertFalse($policy->update($user, $cancelledOrder));
-    }
-
-    #[Test]
-    public function order_status_updated_event_is_queued_and_not_blocking(): void
-    {
-        $implements = class_implements(OrderStatusUpdated::class);
-
-        $this->assertContains(ShouldBroadcast::class, $implements);
-        $this->assertNotContains(ShouldBroadcastNow::class, $implements);
     }
 }

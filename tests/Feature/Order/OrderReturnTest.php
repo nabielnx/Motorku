@@ -6,6 +6,7 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Models\Setting;
 use App\Models\User;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -148,7 +149,7 @@ class OrderReturnTest extends TestCase
 
     public function test_owner_can_refund_manual_qris_by_transfer_without_reducing_cash_drawer(): void
     {
-        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $this->seed(RoleSeeder::class);
         Storage::fake('public');
         $owner = User::factory()->create();
         $owner->assignRole('owner');
@@ -183,7 +184,7 @@ class OrderReturnTest extends TestCase
 
     public function test_manual_qris_cash_refund_is_counted_in_cash_drawer(): void
     {
-        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $this->seed(RoleSeeder::class);
         Storage::fake('public');
         $owner = User::factory()->create();
         $owner->assignRole('owner');

@@ -19,6 +19,8 @@ class Category extends Model
 
     use HasFactory, HasUuids;
 
+    protected $attributes = ['catalog_group' => 'automotive'];
+
     protected $fillable = [
         'catalog_group',
         'name',

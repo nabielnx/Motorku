@@ -29,7 +29,7 @@ class ProductPolicy
 
     public function delete(User $user, Product $product): bool
     {
-        // Contoh aturan ketat tambahan: 
+        // Contoh aturan ketat tambahan:
         // Product nggak boleh dihapus kalau stoknya masih ada (opsional, sesuaikan bisnis)
         return $user->can('product.delete');
     }

@@ -4,6 +4,13 @@ import './bootstrap';
 import { createInertiaApp, router } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createRoot } from 'react-dom/client';
+import { prepareProductVisit } from './Utils/productPagination';
+
+router.on('before', (event) => {
+    let viewMode = 'list';
+    try { viewMode = localStorage.getItem('product_view_mode_v2') || 'list'; } catch {}
+    prepareProductVisit(event.detail.visit, viewMode, window.innerWidth);
+});
 
 router.on('invalid', (event) => {
     if (event.detail.response.status === 419) {

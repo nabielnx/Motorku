@@ -14,29 +14,29 @@ class OrderFactory extends Factory
     public function definition(): array
     {
         $subtotal = fake()->randomElement([25000, 45000, 75000, 100000, 150000]);
-        $tax      = round($subtotal * 0.11);
-        $total    = $subtotal + $tax;
+        $tax = round($subtotal * 0.11);
+        $total = $subtotal + $tax;
 
         return [
-            'cashier_id'            => User::factory(),
-            'order_number'          => 'ORD-' . now()->format('Ymd') . '-' . strtoupper(Str::random(5)),
-            'customer_name'         => fake()->optional()->name(),
-            'customer_phone'        => fake()->optional()->phoneNumber(),
-            'subtotal'              => $subtotal,
-            'discount_amount'       => 0,
-            'tax_amount'            => $tax,
-            'total'                 => $total,
-            'notes'                 => null,
-            'order_status'          => 'pending',
-            'payment_status'        => 'unpaid',
-            'ordered_at'            => now(),
+            'cashier_id' => User::factory(),
+            'order_number' => 'ORD-'.now()->format('Ymd').'-'.strtoupper(Str::random(5)),
+            'customer_name' => fake()->optional()->name(),
+            'customer_phone' => fake()->optional()->phoneNumber(),
+            'subtotal' => $subtotal,
+            'discount_amount' => 0,
+            'tax_amount' => $tax,
+            'total' => $total,
+            'notes' => null,
+            'order_status' => 'pending',
+            'payment_status' => 'unpaid',
+            'ordered_at' => now(),
         ];
     }
 
     public function completed(): static
     {
         return $this->state([
-            'order_status'   => 'completed',
+            'order_status' => 'completed',
             'payment_status' => 'paid',
         ]);
     }
@@ -44,9 +44,8 @@ class OrderFactory extends Factory
     public function cancelled(): static
     {
         return $this->state([
-            'order_status'   => 'cancelled',
+            'order_status' => 'cancelled',
             'payment_status' => 'refunded',
         ]);
     }
-
 }

@@ -140,7 +140,7 @@ class MotorcycleSeeder extends Seeder
         ];
 
         foreach ($motorcycles as $data) {
-            $slug = Str::slug($data['brand'] . '-' . $data['model'] . '-' . $data['year_start']);
+            $slug = Str::slug($data['brand'].'-'.$data['model'].'-'.$data['year_start']);
 
             Motorcycle::firstOrCreate(
                 ['slug' => $slug],

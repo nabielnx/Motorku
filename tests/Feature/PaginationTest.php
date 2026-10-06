@@ -2,9 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Models\Category;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -18,7 +20,7 @@ class PaginationTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $this->seed(RoleSeeder::class);
 
         $this->owner = User::factory()->create();
         $this->owner->assignRole('owner');
@@ -102,7 +104,7 @@ class PaginationTest extends TestCase
     #[Test]
     public function products_web_index_returns_paginated_inertia_prop(): void
     {
-        $category = \App\Models\Category::factory()->create();
+        $category = Category::factory()->create();
         Product::factory()->count(18)->create(['category_id' => $category->id]);
 
         $response = $this->actingAs($this->owner)
@@ -136,5 +138,4 @@ class PaginationTest extends TestCase
         $this->assertEquals(12, $initialUsers['total']);
         $this->assertCount(2, $initialUsers['data']);
     }
-
 }

@@ -19,6 +19,9 @@ class MotorSayaController extends Controller
      */
     public function index(?string $slug = null): Response
     {
+        if (Setting::where('group', 'qr_order')->where('key', 'enabled')->value('value') === 'false') {
+            return Inertia::render('Motorcycle/MotorSaya', ['motorcyclesByBrand' => [], 'settings' => ['qr_order.enabled' => 'false'], 'partCategories' => [], 'initialPartsData' => null]);
+        }
         $motorcycles = Cache::remember(CacheService::MOTORCYCLES_LIST, CacheService::TTL_MOTORCYCLE, function () {
             return Motorcycle::withCount('parts')
                 ->orderBy('brand')
@@ -42,7 +45,7 @@ class MotorSayaController extends Controller
         if ($slug) {
             $motorcycle = Motorcycle::where('slug', $slug)
                 ->orWhere('id', $slug)
-                ->orWhere('slug', 'like', $slug . '%')
+                ->orWhere('slug', 'like', $slug.'%')
                 ->firstOrFail();
 
             $initialPartsData = $this->buildMotorcyclePartsData($motorcycle);
@@ -61,6 +64,7 @@ class MotorSayaController extends Controller
      */
     public function compatibleParts(string $motorcycleId): JsonResponse
     {
+        abort_if(Setting::where('group', 'qr_order')->where('key', 'enabled')->value('value') === 'false', 403, 'Pemesanan online sedang dinonaktifkan.');
         $motorcycle = Motorcycle::where('id', $motorcycleId)
             ->orWhere('slug', $motorcycleId)
             ->firstOrFail();

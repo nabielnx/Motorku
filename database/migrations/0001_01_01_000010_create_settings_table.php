@@ -28,7 +28,7 @@ return new class extends Migration
                 'integer',
                 'decimal',
                 'boolean',
-                'json'
+                'json',
             ])->default('string');
 
             // Offline Sync

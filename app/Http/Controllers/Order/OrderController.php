@@ -5,21 +5,21 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Order;
 
 use App\Http\Controllers\Controller;
-use App\Services\OrderService;
-use App\Services\OrderReturnService;
-use App\Services\ReportService;
 use App\Http\Requests\Order\StoreOrderRequest;
-use App\Http\Requests\Order\StorePosSaleRequest;
 use App\Http\Requests\Order\StoreOrderReturnRequest;
+use App\Http\Requests\Order\StorePosSaleRequest;
 use App\Http\Requests\Order\UpdateOrderRequest;
 use App\Http\Resources\OrderResource;
+use App\Models\Order;
+use App\Services\OrderReturnService;
+use App\Services\OrderService;
+use App\Services\ReportService;
 use App\Traits\ApiResponseHelpers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\Gate;
-use App\Models\Order;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 
@@ -95,6 +95,7 @@ class OrderController extends Controller implements HasMiddleware
     public function pendingCount(): JsonResponse
     {
         $count = Order::where('order_status', 'pending')->count();
+
         return $this->successResponse('Berhasil mengambil jumlah pesanan tertunda', ['count' => $count]);
     }
 
@@ -141,7 +142,7 @@ class OrderController extends Controller implements HasMiddleware
     {
         $order = $this->orderService->getOrderById($id);
 
-        if (!$order) {
+        if (! $order) {
             return $this->errorResponse('Pesanan tidak ditemukan', 404);
         }
 
@@ -154,7 +155,7 @@ class OrderController extends Controller implements HasMiddleware
     {
         $order = $this->orderService->getOrderById($id);
 
-        if (!$order) {
+        if (! $order) {
             return $this->errorResponse('Pesanan tidak ditemukan', 404);
         }
 
@@ -177,7 +178,7 @@ class OrderController extends Controller implements HasMiddleware
     {
         $order = $this->orderService->getOrderById($id);
 
-        if (!$order) {
+        if (! $order) {
             return $this->errorResponse('Pesanan tidak ditemukan', 404);
         }
 

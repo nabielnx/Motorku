@@ -17,10 +17,10 @@ class UpdateInventoryRequest extends FormRequest
     {
         return [
             'product_id' => 'sometimes|required|uuid|exists:products,id',
-            'user_id'    => 'nullable|uuid|exists:users,id',
-            'type'       => ['sometimes', 'required', Rule::enum(InventoryLogType::class)],
-            'quantity'   => 'sometimes|required|numeric|min:0',
-            'note'       => 'nullable|string',
+            'user_id' => 'nullable|uuid|exists:users,id',
+            'type' => ['sometimes', 'required', Rule::enum(InventoryLogType::class)],
+            'quantity' => 'sometimes|required|numeric|min:0',
+            'note' => 'nullable|string',
         ];
     }
 }

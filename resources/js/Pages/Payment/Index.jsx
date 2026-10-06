@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import axios from 'axios';
+import { checkoutRequestId } from '@/Utils/checkout';
 import useForceLightTheme from '@/Utils/useForceLightTheme';
 import PaymentSkeleton from '@/Components/Skeletons/PaymentSkeleton';
 import {
@@ -85,36 +86,30 @@ export default function Payment() {
         };
 
         try {
-            const res = await axios.post('/api/customer/order', payload);
+            const requestId = checkoutRequestId(localStorage, 'customer_checkout', payload);
+            const res = await axios.post('/api/customer/order', { ...payload, request_id: requestId });
             const order = res.data?.data ?? res.data;
             if (!order?.id || !order?.customer_token) throw new Error('Respons pesanan tidak lengkap.');
             submittedRef.current = true;
+            localStorage.removeItem('customer_checkout');
 
             localStorage.removeItem(ORDER_KEY);
             localStorage.removeItem(CART_KEY);
             localStorage.removeItem('motorku_cart_time');
-
-            // Build items array for immediate display on Waiting page
-            const cartItems = orderData.cart.map(i => ({
-                product_name: i.name,
-                quantity: i.qty,
-                subtotal: i.price * i.qty,
-                notes: i.notes || null,
-            }));
 
             const paymentData = {
                 order_id: order.id,
                 order_number: order.order_number,
                 customer_token: order.customer_token,
                 total: order.total,
-                subtotal: orderData.subtotal,
-                tax_amount: orderData.tax,
+                subtotal: order.subtotal,
+                tax_amount: order.tax_amount,
                 pickup_label: 'Ambil di Toko',
                 customer_name: customerName,
                 payment_method: 'kasir',
-                order_status: 'pending',
-                created_at: new Date().toISOString(),
-                items: cartItems,
+                order_status: order.order_status,
+                created_at: order.created_at,
+                items: order.items,
             };
 
             localStorage.setItem(PAYMENT_KEY, JSON.stringify(paymentData));

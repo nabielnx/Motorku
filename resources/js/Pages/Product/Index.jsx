@@ -1,5 +1,6 @@
 import { IMAGE_ACCEPT, IMAGE_HELP, validImage } from '@/Utils/imageUpload';
 import MoneyInput from '@/Components/MoneyInput';
+import { productPageSize } from '@/Utils/productPagination';
 import React, { useState, useEffect, useRef } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import ProductTableSkeleton from '@/Components/Skeletons/ProductTableSkeleton';
@@ -41,12 +42,19 @@ export default function MenuManagement({
     const locale = props.app_settings?.locale || 'id';
     const selectedGroup = filters.group || '';
     const groupName = catalogGroups[selectedGroup];
+    const hasProductFilters = Boolean(
+        filters.search?.trim()
+        || (filters.category && filters.category !== 'All')
+        || (filters.stock_status && filters.stock_status !== 'all')
+        || (filters.availability && filters.availability !== 'all')
+    );
     const [activeTab, setActiveTab] = useState('products'); // 'products' | 'categories'
     const [isNavigating, setIsNavigating] = useState(false);
     const skeletonParam = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('skeleton') : null;
 
     useEffect(() => {
         const removeStart = router.on('start', (event) => {
+            if (event.detail.visit.async) return;
             const rawUrl = event?.detail?.visit?.url;
             let targetPath = '';
             if (typeof rawUrl === 'string') {
@@ -58,7 +66,9 @@ export default function MenuManagement({
                 setIsNavigating(true);
             }
         });
-        const removeFinish = router.on('finish', () => setIsNavigating(false));
+        const removeFinish = router.on('finish', (event) => {
+            if (!event.detail.visit.async) setIsNavigating(false);
+        });
         return () => { removeStart(); removeFinish(); };
     }, []);
 
@@ -169,11 +179,13 @@ export default function MenuManagement({
 
     useEffect(() => {
         const syncPageSize = () => {
-            const columns = window.innerWidth >= 1700 ? 6 : window.innerWidth >= 1280 ? 5 : window.innerWidth >= 1024 ? 4 : window.innerWidth >= 640 ? 3 : 2;
-            const nextSize = viewMode === 'grid' ? Math.ceil(16 / columns) * columns : 16;
+            const nextSize = productPageSize(viewMode, window.innerWidth);
             if (nextSize === perPage) return;
             const params = Object.fromEntries(new URLSearchParams(window.location.search));
-            router.get('/products', { ...params, page: 1, per_page: nextSize }, { preserveState: true, preserveScroll: true, replace: true });
+            router.get('/products', { ...params, page: 1, per_page: nextSize }, {
+                preserveState: true, preserveScroll: true, replace: true,
+                async: true, showProgress: false, only: ['initialProducts'],
+            });
         };
         syncPageSize();
         const breakpoints = [640, 1024, 1280, 1700].map(width => window.matchMedia(`(min-width: ${width}px)`));
@@ -857,8 +869,12 @@ export default function MenuManagement({
                                 {filteredItems.length === 0 ? (
                                     <div className="flex flex-col items-center justify-center py-20 text-slate-400">
                                         <FiPackage className="w-12 h-12 text-slate-300 dark:text-slate-600 mb-3" />
-                                        <p className="text-base font-extrabold text-slate-700 dark:text-slate-300">Tidak ada produk ditemukan</p>
-                                        <p className="text-xs font-semibold mt-1">Coba ubah kata kunci pencarian atau filter status kamu.</p>
+                                        <p className="text-base font-extrabold text-slate-700 dark:text-slate-300">
+                                            {hasProductFilters ? 'Tidak ada produk ditemukan' : `Belum ada produk${groupName ? ` ${groupName}` : ''}`}
+                                        </p>
+                                        <p className="text-xs font-semibold mt-1">
+                                            {hasProductFilters ? 'Coba ubah kata kunci pencarian atau filter produk.' : 'Tambahkan produk pertama untuk mulai mengisi katalog ini.'}
+                                        </p>
                                     </div>
                                 ) : (
                                     <>

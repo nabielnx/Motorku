@@ -1,3 +1,4 @@
+import ThermalReceipt from '@/Components/ThermalReceipt';
 import MoneyInput from '@/Components/MoneyInput';
 import React, { useEffect, useState, useRef } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
@@ -724,105 +725,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
 
             {/* THERMAL PRINTABLE RECEIPT TEMPLATE FOR ORDER LIST */}
             {printOrderData && (
-                <div id="thermal-printable-receipt" className="hidden">
-                    <div className="text-center pb-2 border-b border-dashed border-black mb-2">
-                        <h2 className="font-bold text-sm uppercase tracking-wider">{app_settings?.store_name || 'MOTORKU'}</h2>
-                        <p className="text-[10px]">{app_settings?.store_name || 'Motorku'}</p>
-                        {app_settings?.store_address && <p className="text-[9px]">{app_settings.store_address}</p>}
-                        {app_settings?.store_phone && <p className="text-[9px]">Telp: {app_settings.store_phone}</p>}
-                    </div>
-
-                    <div className="py-1 border-b border-dashed border-black text-[10px] space-y-0.5 mb-2">
-                        <div className="flex justify-between">
-                            <span>No. Struk:</span>
-                            <span className="font-bold">{printOrderData.order_number || 'ORD-POS'}</span>
-                        </div>
-                        <div className="flex justify-between">
-                            <span>Waktu:</span>
-                            <span>{printOrderData.created_at ? new Date(printOrderData.created_at).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }) : '-'}</span>
-                        </div>
-                        <div className="flex justify-between">
-                            <span>Pelanggan:</span>
-                            <span className="font-bold">{printOrderData.customer_name || 'Walk-in Guest'}</span>
-                        </div>
-                        <div className="flex justify-between">
-                            <span>Tipe Order:</span>
-                            <span>Ambil di Toko</span>
-                        </div>
-                        <div className="flex justify-between">
-                            <span>Kasir:</span>
-                            <span>{printOrderData.cashier?.name || userName}</span>
-                        </div>
-                    </div>
-
-                    {/* ITEMS LIST */}
-                    <div className="py-1 border-b border-dashed border-black text-[10px] mb-2">
-                        <div className="flex justify-between font-bold border-b border-black pb-0.5 mb-1">
-                            <span>Item</span>
-                            <span>Total</span>
-                        </div>
-                        {printOrderData.items?.map((item, idx) => (
-                            <div key={idx} className="mb-1">
-                                <div className="flex justify-between font-bold">
-                                    <span>{item.product_name || item.name} x{item.quantity}</span>
-                                    <span>Rp {(Number(item.subtotal) || 0).toLocaleString('id-ID')}</span>
-                                </div>
-                                <div className="text-[9px] text-gray-600 pl-1">
-                                    @ Rp {(Number(item.unit_price) || 0).toLocaleString('id-ID')} {item.notes ? `(${item.notes})` : ''}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-
-                    {/* FINANCIAL TOTALS */}
-                    <div className="py-1 border-b border-dashed border-black text-[10px] space-y-0.5 mb-2">
-                        <div className="flex justify-between">
-                            <span>Subtotal</span>
-                            <span>Rp {(Number(printOrderData.subtotal) || 0).toLocaleString('id-ID')}</span>
-                        </div>
-                        {Number(printOrderData.tax_amount) > 0 && (
-                            <div className="flex justify-between">
-                                <span>Pajak</span>
-                                <span>Rp {(Number(printOrderData.tax_amount) || 0).toLocaleString('id-ID')}</span>
-                            </div>
-                        )}
-                        <div className="flex justify-between font-bold text-[12px] pt-1 border-t border-black">
-                            <span>TOTAL TAGIHAN</span>
-                            <span>Rp {(Number(printOrderData.total) || 0).toLocaleString('id-ID')}</span>
-                        </div>
-                        <div className="flex justify-between pt-1">
-                            <span>Status Bayar:</span>
-                            <span className="font-bold uppercase">{printOrderData.payment_status === 'paid' ? 'LUNAS' : 'BELUM BAYAR'}</span>
-                        </div>
-                        {printOrderData.payments && printOrderData.payments.length > 0 && (
-                            <>
-                                <div className="flex justify-between">
-                                    <span>Metode Bayar:</span>
-                                    <span className="font-bold uppercase">{printOrderData.payments[0].payment_method}</span>
-                                </div>
-                                {printOrderData.payments[0].payment_method === 'cash' && printOrderData.payments[0].amount_received != null && (
-                                    <>
-                                        <div className="flex justify-between">
-                                            <span>Uang Diterima:</span>
-                                            <span>Rp {(Number(printOrderData.payments[0].amount_received) || 0).toLocaleString('id-ID')}</span>
-                                        </div>
-                                        <div className="flex justify-between font-bold">
-                                            <span>Kembalian:</span>
-                                            <span>Rp {(Number(printOrderData.payments[0].change_amount) || 0).toLocaleString('id-ID')}</span>
-                                        </div>
-                                    </>
-                                )}
-                            </>
-                        )}
-                    </div>
-
-                    {/* FOOTER */}
-                    <div className="pt-2 text-center text-[9px] space-y-0.5">
-                        <p className="font-bold">*** TERIMA KASIH ***</p>
-                        <p>Terima kasih sudah berbelanja di Motorku</p>
-                        <p>Simpan Struk Ini Sebagai Bukti Pembayaran</p>
-                    </div>
-                </div>
+                <ThermalReceipt order={printOrderData} settings={app_settings} fallbackCashier={userName} />
             )}
         </AuthenticatedLayout>
     );

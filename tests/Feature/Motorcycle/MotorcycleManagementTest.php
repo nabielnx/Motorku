@@ -7,6 +7,7 @@ use App\Models\Motorcycle;
 use App\Models\MotorcyclePart;
 use App\Models\Product;
 use App\Models\User;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -15,13 +16,15 @@ class MotorcycleManagementTest extends TestCase
     use RefreshDatabase;
 
     private User $user;
+
     private User $cashierUser;
+
     private Category $category;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $this->seed(RoleSeeder::class);
 
         $this->user = User::factory()->create();
         $this->user->assignRole('owner');
@@ -35,22 +38,21 @@ class MotorcycleManagementTest extends TestCase
     public function test_can_view_motorcycles_index_page(): void
     {
         Motorcycle::create([
-            'brand'       => 'Honda',
-            'model'       => 'Vario 160',
-            'slug'        => 'honda-vario-160-2022',
-            'year_start'  => 2022,
-            'engine_cc'   => 160,
+            'brand' => 'Honda',
+            'model' => 'Vario 160',
+            'slug' => 'honda-vario-160-2022',
+            'year_start' => 2022,
+            'engine_cc' => 160,
             'engine_type' => 'matic',
         ]);
 
         $response = $this->actingAs($this->user)->get('/motorcycles');
         $response->assertStatus(200);
-        $response->assertInertia(fn ($page) => 
-            $page->component('Motorcycle/Index')
-                ->has('motorcycles')
-                ->has('products')
-                ->has('partCategories')
-                ->has('categoryGroups')
+        $response->assertInertia(fn ($page) => $page->component('Motorcycle/Index')
+            ->has('motorcycles')
+            ->has('products')
+            ->has('partCategories')
+            ->has('categoryGroups')
         );
     }
 
@@ -61,18 +63,18 @@ class MotorcycleManagementTest extends TestCase
         $resIndex->assertStatus(403);
 
         $resStore = $this->actingAs($this->cashierUser)->postJson('/motorcycles', [
-            'brand'       => 'Honda',
-            'model'       => 'Beat',
-            'year_start'  => 2023,
-            'engine_cc'   => 110,
+            'brand' => 'Honda',
+            'model' => 'Beat',
+            'year_start' => 2023,
+            'engine_cc' => 110,
             'engine_type' => 'matic',
         ]);
         $resStore->assertStatus(403);
 
         $resBulk = $this->actingAs($this->cashierUser)->postJson('/motorcycles/bulk-attach', [
             'motorcycle_ids' => ['some-uuid'],
-            'product_ids'    => ['some-uuid'],
-            'part_category'  => 'oli_mesin',
+            'product_ids' => ['some-uuid'],
+            'part_category' => 'oli_mesin',
         ]);
         $resBulk->assertStatus(403);
     }
@@ -89,10 +91,10 @@ class MotorcycleManagementTest extends TestCase
 
         // Success
         $response = $this->actingAs($this->user)->postJson('/motorcycles', [
-            'brand'       => 'Yamaha',
-            'model'       => 'NMAX 155',
-            'year_start'  => 2020,
-            'engine_cc'   => 155,
+            'brand' => 'Yamaha',
+            'model' => 'NMAX 155',
+            'year_start' => 2020,
+            'engine_cc' => 155,
             'engine_type' => 'matic',
         ]);
 
@@ -106,26 +108,26 @@ class MotorcycleManagementTest extends TestCase
     public function test_can_update_motorcycle(): void
     {
         $motor = Motorcycle::create([
-            'brand'       => 'Honda',
-            'model'       => 'Beat Deluxe',
-            'slug'        => 'honda-beat-deluxe-2021',
-            'year_start'  => 2021,
-            'engine_cc'   => 110,
+            'brand' => 'Honda',
+            'model' => 'Beat Deluxe',
+            'slug' => 'honda-beat-deluxe-2021',
+            'year_start' => 2021,
+            'engine_cc' => 110,
             'engine_type' => 'matic',
         ]);
 
         $response = $this->actingAs($this->user)->putJson("/motorcycles/{$motor->id}", [
-            'brand'       => 'Honda',
-            'model'       => 'Beat Street',
-            'year_start'  => 2021,
-            'year_end'    => 2024,
-            'engine_cc'   => 110,
+            'brand' => 'Honda',
+            'model' => 'Beat Street',
+            'year_start' => 2021,
+            'year_end' => 2024,
+            'engine_cc' => 110,
             'engine_type' => 'matic',
         ]);
 
         $response->assertStatus(200);
         $this->assertDatabaseHas('motorcycles', [
-            'id'    => $motor->id,
+            'id' => $motor->id,
             'model' => 'Beat Street',
         ]);
     }
@@ -133,23 +135,23 @@ class MotorcycleManagementTest extends TestCase
     public function test_can_attach_and_validate_sparepart_mapping(): void
     {
         $motor = Motorcycle::create([
-            'brand'       => 'Honda',
-            'model'       => 'PCX 160',
-            'slug'        => 'honda-pcx-160-2023',
-            'year_start'  => 2023,
-            'engine_cc'   => 160,
+            'brand' => 'Honda',
+            'model' => 'PCX 160',
+            'slug' => 'honda-pcx-160-2023',
+            'year_start' => 2023,
+            'engine_cc' => 160,
             'engine_type' => 'matic',
         ]);
 
         $product = Product::factory()->create([
-            'name'        => 'Oli MPX2 0.8L',
-            'sku'         => 'OLI-MPX2-08',
+            'name' => 'Oli MPX2 0.8L',
+            'sku' => 'OLI-MPX2-08',
             'category_id' => $this->category->id,
         ]);
 
         // Validation failure: invalid category
         $invalidRes = $this->actingAs($this->user)->postJson("/motorcycles/{$motor->id}/parts", [
-            'product_id'    => $product->id,
+            'product_id' => $product->id,
             'part_category' => 'invalid_category_xyz',
         ]);
         $invalidRes->assertStatus(422)
@@ -157,23 +159,23 @@ class MotorcycleManagementTest extends TestCase
 
         // Success attach
         $response = $this->actingAs($this->user)->postJson("/motorcycles/{$motor->id}/parts", [
-            'product_id'     => $product->id,
-            'part_category'  => 'oli_mesin',
-            'notes'          => 'Kapasitas 0.8 Liter',
+            'product_id' => $product->id,
+            'part_category' => 'oli_mesin',
+            'notes' => 'Kapasitas 0.8 Liter',
             'is_recommended' => true,
         ]);
 
         $response->assertStatus(201);
         $this->assertDatabaseHas('motorcycle_parts', [
-            'motorcycle_id'  => $motor->id,
-            'product_id'     => $product->id,
-            'part_category'  => 'oli_mesin',
+            'motorcycle_id' => $motor->id,
+            'product_id' => $product->id,
+            'part_category' => 'oli_mesin',
             'is_recommended' => true,
         ]);
 
         // Duplicate attach fails
         $dupRes = $this->actingAs($this->user)->postJson("/motorcycles/{$motor->id}/parts", [
-            'product_id'    => $product->id,
+            'product_id' => $product->id,
             'part_category' => 'oli_mesin',
         ]);
         $dupRes->assertStatus(422);
@@ -182,11 +184,11 @@ class MotorcycleManagementTest extends TestCase
     public function test_can_bulk_attach_parts_mode_one_motor_to_many_products(): void
     {
         $motor = Motorcycle::create([
-            'brand'       => 'Honda',
-            'model'       => 'ADV 160',
-            'slug'        => 'honda-adv-160-2023',
-            'year_start'  => 2023,
-            'engine_cc'   => 160,
+            'brand' => 'Honda',
+            'model' => 'ADV 160',
+            'slug' => 'honda-adv-160-2023',
+            'year_start' => 2023,
+            'engine_cc' => 160,
             'engine_type' => 'matic',
         ]);
 
@@ -196,9 +198,9 @@ class MotorcycleManagementTest extends TestCase
 
         $response = $this->actingAs($this->user)->postJson('/motorcycles/bulk-attach', [
             'motorcycle_ids' => [$motor->id],
-            'product_ids'    => [$p1->id, $p2->id, $p3->id],
-            'part_category'  => 'oli_mesin',
-            'notes'          => 'Bulk batch test',
+            'product_ids' => [$p1->id, $p2->id, $p3->id],
+            'part_category' => 'oli_mesin',
+            'notes' => 'Bulk batch test',
             'is_recommended' => true,
         ]);
 
@@ -206,8 +208,8 @@ class MotorcycleManagementTest extends TestCase
             ->assertJson([
                 'data' => [
                     'attached' => 3,
-                    'skipped'  => 0,
-                    'total'    => 3,
+                    'skipped' => 0,
+                    'total' => 3,
                 ],
             ]);
 
@@ -217,16 +219,16 @@ class MotorcycleManagementTest extends TestCase
         $p4 = Product::factory()->create(['name' => 'Oli Mesin D', 'category_id' => $this->category->id]);
         $response2 = $this->actingAs($this->user)->postJson('/motorcycles/bulk-attach', [
             'motorcycle_ids' => [$motor->id],
-            'product_ids'    => [$p2->id, $p3->id, $p4->id],
-            'part_category'  => 'oli_mesin',
+            'product_ids' => [$p2->id, $p3->id, $p4->id],
+            'part_category' => 'oli_mesin',
         ]);
 
         $response2->assertStatus(200)
             ->assertJson([
                 'data' => [
                     'attached' => 1,
-                    'skipped'  => 2,
-                    'total'    => 3,
+                    'skipped' => 2,
+                    'total' => 3,
                 ],
             ]);
 
@@ -236,11 +238,11 @@ class MotorcycleManagementTest extends TestCase
     public function test_can_bulk_attach_parts_with_auto_category(): void
     {
         $motor = Motorcycle::create([
-            'brand'       => 'Yamaha',
-            'model'       => 'NMAX 155',
-            'slug'        => 'yamaha-nmax-155-2024',
-            'year_start'  => 2024,
-            'engine_cc'   => 155,
+            'brand' => 'Yamaha',
+            'model' => 'NMAX 155',
+            'slug' => 'yamaha-nmax-155-2024',
+            'year_start' => 2024,
+            'engine_cc' => 155,
             'engine_type' => 'matic',
         ]);
 
@@ -252,39 +254,39 @@ class MotorcycleManagementTest extends TestCase
 
         $response = $this->actingAs($this->user)->postJson('/motorcycles/bulk-attach', [
             'motorcycle_ids' => [$motor->id],
-            'product_ids'    => [$oli->id, $busi->id, $aki->id, $vbelt->id],
-            'part_category'  => 'auto',
-            'notes'          => 'Smart auto-mapping test',
+            'product_ids' => [$oli->id, $busi->id, $aki->id, $vbelt->id],
+            'part_category' => 'auto',
+            'notes' => 'Smart auto-mapping test',
         ]);
 
         $response->assertStatus(200)
             ->assertJson([
                 'data' => [
                     'attached' => 4,
-                    'skipped'  => 0,
-                    'total'    => 4,
+                    'skipped' => 0,
+                    'total' => 4,
                 ],
             ]);
 
         // Verify each product was mapped to its correct category
         $this->assertDatabaseHas('motorcycle_parts', [
             'motorcycle_id' => $motor->id,
-            'product_id'    => $oli->id,
+            'product_id' => $oli->id,
             'part_category' => 'oli_mesin',
         ]);
         $this->assertDatabaseHas('motorcycle_parts', [
             'motorcycle_id' => $motor->id,
-            'product_id'    => $busi->id,
+            'product_id' => $busi->id,
             'part_category' => 'busi',
         ]);
         $this->assertDatabaseHas('motorcycle_parts', [
             'motorcycle_id' => $motor->id,
-            'product_id'    => $aki->id,
+            'product_id' => $aki->id,
             'part_category' => 'aki',
         ]);
         $this->assertDatabaseHas('motorcycle_parts', [
             'motorcycle_id' => $motor->id,
-            'product_id'    => $vbelt->id,
+            'product_id' => $vbelt->id,
             'part_category' => 'v_belt',
         ]);
     }
@@ -323,8 +325,8 @@ class MotorcycleManagementTest extends TestCase
 
         $response = $this->actingAs($this->user)->postJson('/motorcycles/bulk-attach', [
             'motorcycle_ids' => [$m1->id, $m2->id, $m3->id],
-            'product_ids'    => [$product->id],
-            'part_category'  => 'busi',
+            'product_ids' => [$product->id],
+            'part_category' => 'busi',
             'is_recommended' => true,
         ]);
 
@@ -332,8 +334,8 @@ class MotorcycleManagementTest extends TestCase
             ->assertJson([
                 'data' => [
                     'attached' => 3,
-                    'skipped'  => 0,
-                    'total'    => 3,
+                    'skipped' => 0,
+                    'total' => 3,
                 ],
             ]);
 
@@ -343,11 +345,11 @@ class MotorcycleManagementTest extends TestCase
     public function test_can_filter_search_and_paginate_motorcycle_parts(): void
     {
         $motor = Motorcycle::create([
-            'brand'       => 'Honda',
-            'model'       => 'Vario 125',
-            'slug'        => 'honda-vario-125-2022',
-            'year_start'  => 2022,
-            'engine_cc'   => 125,
+            'brand' => 'Honda',
+            'model' => 'Vario 125',
+            'slug' => 'honda-vario-125-2022',
+            'year_start' => 2022,
+            'engine_cc' => 125,
             'engine_type' => 'matic',
         ]);
 
@@ -371,11 +373,11 @@ class MotorcycleManagementTest extends TestCase
             ->assertJson([
                 'data' => [
                     'current_page' => 1,
-                    'last_page'    => 2,
-                    'per_page'     => 3,
-                    'total'        => 6,
+                    'last_page' => 2,
+                    'per_page' => 3,
+                    'total' => 6,
                     'total_mapped' => 6,
-                ]
+                ],
             ]);
         $this->assertCount(3, $resPage1->json('data.data'));
 
@@ -404,32 +406,32 @@ class MotorcycleManagementTest extends TestCase
     public function test_can_update_and_detach_motorcycle_part(): void
     {
         $motor = Motorcycle::create([
-            'brand'       => 'Suzuki',
-            'model'       => 'Satria F150',
-            'slug'        => 'suzuki-satria-f150-2018',
-            'year_start'  => 2018,
-            'engine_cc'   => 150,
+            'brand' => 'Suzuki',
+            'model' => 'Satria F150',
+            'slug' => 'suzuki-satria-f150-2018',
+            'year_start' => 2018,
+            'engine_cc' => 150,
             'engine_type' => 'sport',
         ]);
 
         $product = Product::factory()->create(['name' => 'Busi Denso Iridium', 'sku' => 'BUSI-DENSO', 'category_id' => $this->category->id]);
         $part = MotorcyclePart::create([
-            'motorcycle_id'  => $motor->id,
-            'product_id'     => $product->id,
-            'part_category'  => 'busi',
-            'notes'          => 'Catatan awal',
+            'motorcycle_id' => $motor->id,
+            'product_id' => $product->id,
+            'part_category' => 'busi',
+            'notes' => 'Catatan awal',
             'is_recommended' => false,
         ]);
 
         // Update mapping
         $updateRes = $this->actingAs($this->user)->putJson("/motorcycles/{$motor->id}/parts/{$part->id}", [
-            'notes'          => 'Catatan baru rekomendasi',
+            'notes' => 'Catatan baru rekomendasi',
             'is_recommended' => true,
         ]);
         $updateRes->assertStatus(200);
         $this->assertDatabaseHas('motorcycle_parts', [
-            'id'             => $part->id,
-            'notes'          => 'Catatan baru rekomendasi',
+            'id' => $part->id,
+            'notes' => 'Catatan baru rekomendasi',
             'is_recommended' => true,
         ]);
 
@@ -442,25 +444,25 @@ class MotorcycleManagementTest extends TestCase
     public function test_can_reattach_deleted_part_as_a_new_mapping(): void
     {
         $motor = Motorcycle::create([
-            'brand'       => 'Yamaha',
-            'model'       => 'NMAX 155',
-            'slug'        => 'yamaha-nmax-155-2021',
-            'year_start'  => 2021,
-            'engine_cc'   => 155,
+            'brand' => 'Yamaha',
+            'model' => 'NMAX 155',
+            'slug' => 'yamaha-nmax-155-2021',
+            'year_start' => 2021,
+            'engine_cc' => 155,
             'engine_type' => 'matic',
         ]);
 
         $product = Product::factory()->create([
-            'name'        => 'Yamalube Super Matic',
-            'sku'         => 'YAM-SUPER-MATIC',
+            'name' => 'Yamalube Super Matic',
+            'sku' => 'YAM-SUPER-MATIC',
             'category_id' => $this->category->id,
         ]);
 
         // 1. Initial attach
         $attachRes = $this->actingAs($this->user)->postJson("/motorcycles/{$motor->id}/parts", [
-            'product_id'     => $product->id,
-            'part_category'  => 'oli_mesin',
-            'notes'          => 'Initial note',
+            'product_id' => $product->id,
+            'part_category' => 'oli_mesin',
+            'notes' => 'Initial note',
             'is_recommended' => false,
         ]);
         $attachRes->assertStatus(201);
@@ -473,15 +475,15 @@ class MotorcycleManagementTest extends TestCase
 
         // 3. Re-attach creates a fresh mapping without a duplicate key error
         $reattachRes = $this->actingAs($this->user)->postJson("/motorcycles/{$motor->id}/parts", [
-            'product_id'     => $product->id,
-            'part_category'  => 'oli_mesin',
-            'notes'          => 'Updated note after reattach',
+            'product_id' => $product->id,
+            'part_category' => 'oli_mesin',
+            'notes' => 'Updated note after reattach',
             'is_recommended' => true,
         ]);
         $reattachRes->assertStatus(201);
         $this->assertDatabaseHas('motorcycle_parts', [
-            'id'             => $reattachRes->json('data.id'),
-            'notes'          => 'Updated note after reattach',
+            'id' => $reattachRes->json('data.id'),
+            'notes' => 'Updated note after reattach',
             'is_recommended' => true,
         ]);
 
@@ -495,16 +497,16 @@ class MotorcycleManagementTest extends TestCase
 
         $bulkRes = $this->actingAs($this->user)->postJson('/motorcycles/bulk-attach', [
             'motorcycle_ids' => [$motor->id],
-            'product_ids'    => [$product->id],
-            'part_category'  => 'oli_mesin',
+            'product_ids' => [$product->id],
+            'part_category' => 'oli_mesin',
             'is_recommended' => true,
         ]);
         $bulkRes->assertStatus(200)
             ->assertJson([
                 'data' => [
                     'attached' => 1,
-                    'skipped'  => 0,
-                    'total'    => 1,
+                    'skipped' => 0,
+                    'total' => 1,
                 ],
             ]);
 

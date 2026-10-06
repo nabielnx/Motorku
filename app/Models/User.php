@@ -14,6 +14,11 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, HasRoles, HasUuids, Notifiable;
 
+    protected $attributes = ['is_active' => true];
+
+    // Disable remember-me authentication, including cookies issued previously.
+    protected $rememberTokenName = '';
+
     protected static function booted(): void
     {
         static::deleting(function (User $user) {
@@ -40,6 +45,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_active' => 'boolean',
         ];
     }
 }

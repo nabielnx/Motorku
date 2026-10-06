@@ -1,6 +1,5 @@
 import axios from 'axios';
-// Pages currently poll for updates; initialize Echo only when a page subscribes to a channel.
-import { installCsrfRecovery } from './Utils/csrf';
+import { installCsrfRecovery } from './Utils/csrf.js';
 
 window.axios = axios;
 

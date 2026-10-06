@@ -3,7 +3,6 @@
 namespace Tests\Feature\Order;
 
 use App\Models\Category;
-use App\Models\InventoryLog;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
@@ -21,6 +20,7 @@ class PosAuditVerificationTest extends TestCase
         Role::findOrCreate('cashier', 'web');
         $user = User::factory()->create();
         $user->assignRole('cashier');
+
         return $user;
     }
 

@@ -4,12 +4,10 @@ namespace App\Services;
 
 use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
-use App\Events\OrderStatusUpdated;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\Setting;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
 class PaymentService
@@ -33,7 +31,7 @@ class PaymentService
 
             if ($method === 'qris_manual' && (
                 Setting::where('group', 'payment')->where('key', 'qris_enabled')->value('value') === 'false'
-                || ! Setting::where('group', 'store')->where('key', 'qris_image')->whereNotNull('value')->exists()
+                || blank(Setting::where('group', 'store')->where('key', 'qris_image')->value('value'))
             )) {
                 throw ValidationException::withMessages(['payment_method' => 'Gambar QRIS toko belum tersedia atau QRIS dinonaktifkan.']);
             }
@@ -42,15 +40,12 @@ class PaymentService
                 throw ValidationException::withMessages(['order_id' => 'Pesanan yang dibatalkan tidak bisa dibayar.']);
             }
 
-            if ($order->payment_status === PaymentStatus::Paid || $order->payments()->where('status', 'paid')->exists()) {
+            if ($order->payment_status !== PaymentStatus::Unpaid || $order->payments()->where('status', 'paid')->exists()) {
                 throw ValidationException::withMessages(['order_id' => 'Pesanan ini sudah lunas atau memiliki pembayaran aktif yang telah dikonfirmasi.']);
             }
 
             // Cancel any previous pending payments for this order (e.g. pending QRIS attempt)
-            $order->payments()->where('status', 'pending')
-                ->where(function ($query) {
-                    $query->whereNull('payment_channel')->orWhere('payment_channel', '!=', 'doku_checkout');
-                })->update(['status' => 'cancelled']);
+            $order->payments()->where('status', 'pending')->update(['status' => 'cancelled']);
 
             $amountDue = (float) $order->total;
             $amountReceived = $method === 'cash' ? (float) ($data['amount_received'] ?? 0) : $amountDue;
@@ -103,8 +98,10 @@ class PaymentService
     public function updatePaymentStatus($id, $status)
     {
         return DB::transaction(function () use ($id, $status) {
+            $orderId = Payment::findOrFail($id)->order_id;
+            // Always lock the order before its payment, as processPayment does.
+            $order = Order::whereKey($orderId)->lockForUpdate()->firstOrFail();
             $payment = Payment::whereKey($id)->lockForUpdate()->firstOrFail();
-            $order = Order::whereKey($payment->order_id)->lockForUpdate()->first();
 
             $allowed = match ($payment->status) {
                 'pending' => ['paid', 'failed', 'expired', 'cancelled'],
@@ -120,10 +117,28 @@ class PaymentService
 
             // Guard idempotency: jika order sudah lunas via payment lain,
             // tolak finalisasi ganda untuk mencegah double-charge.
-            if ($status === 'paid' && $order && $order->payment_status === PaymentStatus::Paid) {
+            if ($status === 'paid' && ($order->payment_status !== PaymentStatus::Unpaid || $order->payments()->where('status', 'paid')->exists())) {
                 throw ValidationException::withMessages([
                     'order_id' => 'Pesanan ini sudah lunas. Pembayaran ganda tidak diizinkan.',
                 ]);
+            }
+
+            if ($status === 'paid') {
+                if ($order->order_status === OrderStatus::Cancelled) {
+                    throw ValidationException::withMessages(['order_id' => 'Pesanan yang dibatalkan tidak bisa dibayar.']);
+                }
+                if (! in_array($payment->payment_method, ['cash', 'qris_manual'], true)) {
+                    throw ValidationException::withMessages(['payment_method' => 'Metode pembayaran tidak didukung.']);
+                }
+                if ((float) $payment->amount !== (float) $order->total || (float) $payment->amount_received < (float) $order->total) {
+                    throw ValidationException::withMessages(['amount_received' => 'Nominal pembayaran tidak sesuai tagihan. Buat pembayaran baru.']);
+                }
+                if ($payment->payment_method === 'cash') {
+                    $this->cashClosing->assertCashDayOpen(now()->toDateString());
+                } elseif (Setting::where('group', 'payment')->where('key', 'qris_enabled')->value('value') === 'false'
+                    || blank(Setting::where('group', 'store')->where('key', 'qris_image')->value('value'))) {
+                    throw ValidationException::withMessages(['payment_method' => 'QRIS toko belum tersedia atau dinonaktifkan.']);
+                }
             }
 
             $payment->update([
@@ -134,7 +149,7 @@ class PaymentService
             if ($order) {
                 if ($status === 'paid') {
                     $this->finalizePaidOrder($order);
-                } else {
+                } elseif ($order->payment_status !== PaymentStatus::Refunded && ! $order->payments()->where('status', 'paid')->exists()) {
                     $order->update([
                         'payment_status' => match ($status) {
                             'refunded' => PaymentStatus::Refunded,
@@ -164,10 +179,5 @@ class PaymentService
             'sync_version' => $order->sync_version + 1,
         ]);
 
-        try {
-            OrderStatusUpdated::dispatch($order->fresh(['items', 'cashier']));
-        } catch (\Throwable $e) {
-            Log::warning('OrderStatusUpdated broadcast gagal (Reverb offline/unreachable): '.$e->getMessage());
-        }
     }
 }

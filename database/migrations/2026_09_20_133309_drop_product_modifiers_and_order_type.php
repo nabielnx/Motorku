@@ -45,7 +45,7 @@ return new class extends Migration
         Schema::table('orders', function (Blueprint $table) {
             $table->enum('order_type', [
                 'dine_in',
-                'take_away'
+                'take_away',
             ])->default('take_away')->after('order_status');
         });
     }

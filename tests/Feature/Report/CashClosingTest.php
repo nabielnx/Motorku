@@ -5,6 +5,7 @@ namespace Tests\Feature\Report;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
@@ -15,7 +16,7 @@ class CashClosingTest extends TestCase
 
     public function test_owner_can_reconcile_cash_sales_and_returns_once_per_day(): void
     {
-        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $this->seed(RoleSeeder::class);
         $owner = User::factory()->create();
         $owner->assignRole('owner');
         $product = Product::factory()->create(['stock' => 5, 'price' => 30000]);
@@ -75,7 +76,7 @@ class CashClosingTest extends TestCase
 
     public function test_cash_sale_is_rejected_after_day_is_closed(): void
     {
-        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $this->seed(RoleSeeder::class);
         $owner = User::factory()->create();
         $owner->assignRole('owner');
         $product = Product::factory()->create(['stock' => 3, 'price' => 30000]);
