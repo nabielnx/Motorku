@@ -137,6 +137,12 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
     const locale = props.app_settings?.locale || 'id';
 
     useEffect(() => {
+        // Dialog portals also need the admin icon styling.
+        document.body.classList.add('admin-icons');
+        return () => document.body.classList.remove('admin-icons');
+    }, []);
+
+    useEffect(() => {
         const removeStart = router.on('start', (event) => {
             try {
                 const rawUrl = event?.detail?.visit?.url;
