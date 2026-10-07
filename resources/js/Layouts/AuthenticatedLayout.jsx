@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import Dropdown from '@/Components/Dropdown';
+import NotificationCenter from '@/Components/NotificationCenter';
 import { Link, usePage, router } from '@inertiajs/react';
 import { toast, Toaster } from 'sonner';
 import { getTranslation } from '@/i18n/translations';
@@ -30,8 +31,7 @@ import {
     FiUsers,
     FiX,
     FiSun,
-    FiMoon,
-    FiBell
+    FiMoon
 } from 'react-icons/fi';
 
 const catalogGroups = [
@@ -132,9 +132,6 @@ function getDestinationInfo(url, locale = 'id') {
     return null;
 }
 
-let cachedActiveCount = 0;
-let activeCountFetchedAt = 0;
-
 export default function AuthenticatedLayout({ header, pageTitle, noPadding = false, children }) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [navigatingDestination, setNavigatingDestination] = useState(null);
@@ -199,28 +196,7 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
     };
 
     // ── Pesanan yang masih perlu ditangani ──
-    const [activeOrderCount, setActiveOrderCount] = useState(cachedActiveCount);
-
-    useEffect(() => {
-        if (!user.email_verified_at) return;
-        const controller = new AbortController();
-        let fetching = false;
-        const fetchCount = async () => {
-            if (document.hidden || fetching || Date.now() - activeCountFetchedAt < 10000) return;
-            fetching = true;
-            try {
-                const res = await window.axios.get('/api/orders/active-count', { signal: controller.signal });
-                if (controller.signal.aborted) return;
-                cachedActiveCount = Number(res.data?.count ?? 0);
-                activeCountFetchedAt = Date.now();
-                setActiveOrderCount(cachedActiveCount);
-            } catch { /* Keep the previous badge on temporary errors. */ }
-            finally { fetching = false; }
-        };
-        fetchCount();
-        const timer = setInterval(fetchCount, 10000);
-        return () => { controller.abort(); clearInterval(timer); };
-    }, [user.email_verified_at]);
+    const [activeOrderCount, setActiveOrderCount] = useState(0);
 
 
     useEffect(() => {
@@ -468,21 +444,7 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                     {/* Right Action Icons */}
                     <div className="flex items-center gap-1 sm:gap-1.5">
                         {/* Notification Bell Badge */}
-                        <Link
-                            href="/orders?status=action"
-                            title={activeOrderCount > 0
-                                ? `${activeOrderCount} pesanan perlu ditangani`
-                                : 'Notifikasi Pesanan'}
-                            aria-label={activeOrderCount > 0 ? `${activeOrderCount} pesanan perlu ditangani` : 'Notifikasi Pesanan'}
-                            className="relative p-2 rounded-lg text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer flex items-center justify-center shrink-0"
-                        >
-                            <FiBell size={19} className={activeOrderCount > 0 ? 'text-amber-500 dark:text-amber-400' : ''} />
-                            {activeOrderCount > 0 && (
-                                <span className="absolute top-1 right-1 bg-rose-600 text-white text-[9px] font-black min-w-4 h-4 px-1 rounded-full flex items-center justify-center border border-white dark:border-slate-900 shadow-2xs">
-                                    {activeOrderCount > 99 ? '99+' : activeOrderCount}
-                                </span>
-                            )}
-                        </Link>
+                        <NotificationCenter user={user} roles={userRoles} onActiveOrderCountChange={setActiveOrderCount} timezone={props.app_settings?.timezone} />
 
                         {/* Dark / Light Mode Toggle Button */}
                         <button

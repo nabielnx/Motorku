@@ -57,6 +57,8 @@ class UserService
             ]);
             $this->sendInvitation($user);
 
+            app(NotificationService::class)->send('staff', 'Staf diundang', $user->name.' diundang sebagai '.$data['role'].'.', '/users', true);
+
             return $user;
         });
     }
@@ -98,6 +100,7 @@ class UserService
                     'email_verified_at' => now(),
                 ])->save();
                 event(new Verified($user));
+                app(NotificationService::class)->send('staff', 'Staf mengaktifkan akun', $user->name.' telah menerima undangan dan memverifikasi email.', '/users', true);
             });
             if ($status !== Password::PASSWORD_RESET) {
                 throw ValidationException::withMessages(['email' => 'Tautan undangan tidak valid atau kedaluwarsa. Minta owner mengirim ulang undangan.']);
@@ -177,7 +180,9 @@ class UserService
                 $updateData['password'] = Hash::make($data['password']);
             }
 
+            $roleChanged = ! empty($data['role']) && ! $user->hasRole($data['role']);
             $user->forceFill($updateData)->save();
+            $accountChanged = $user->wasChanged(['name', 'email', 'password', 'is_active']);
 
             if ($emailChanged || ! empty($data['password'])) {
                 $this->revokeOldAccess($user);
@@ -193,6 +198,10 @@ class UserService
                 } else {
                     $this->sendAccountNotification($user, new VerifyEmail);
                 }
+            }
+
+            if ($accountChanged || $roleChanged) {
+                app(NotificationService::class)->send('staff', 'Akun staf diperbarui', $user->name.' · Informasi atau hak akses akun berubah.', '/users', true);
             }
 
             return $user;
@@ -212,6 +221,9 @@ class UserService
             $deleted = $user->delete();
             if ($deleted && $avatar && str_starts_with($avatar, 'avatars/')) {
                 DB::afterCommit(fn () => Storage::disk('public')->delete($avatar));
+            }
+            if ($deleted) {
+                app(NotificationService::class)->send('staff', 'Akun staf dihapus', $user->name.' telah dihapus dari daftar staf.', '/users', true);
             }
 
             return $deleted;
