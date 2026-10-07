@@ -225,7 +225,7 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
                 </div>
 
                 {/* KPI Cards */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
                     {[
                         {
                             label: 'Pendapatan Setelah Retur',
@@ -256,8 +256,8 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
                             <div className="flex items-start justify-between gap-2">
                                 <div className="min-w-0">
                                     <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{kpi.label}</p>
-                                    <p className={`text-lg font-black dark:text-white mt-1 leading-tight ${i === 0 ? 'text-primaryDark' : 'text-slate-900'}`}>{kpi.value}</p>
-                                    {kpi.sub && <p className="text-[11px] font-medium text-slate-400 dark:text-slate-500 mt-1 truncate">{kpi.sub}</p>}
+                                    <p className={`text-lg font-black dark:text-white mt-1 leading-tight break-words ${i === 0 ? 'text-primaryDark' : 'text-slate-900'}`}>{kpi.value}</p>
+                                    {kpi.sub && <p className="text-[11px] font-medium text-slate-400 dark:text-slate-500 mt-1 break-words">{kpi.sub}</p>}
                                 </div>
                                 <div className="flex items-center justify-center shrink-0 text-primary dark:text-blue-300">
                                     <kpi.icon size={19} strokeWidth={2} />
@@ -273,16 +273,16 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
                             <h3 className="text-sm font-extrabold text-primaryDark dark:text-white">Cocokkan Kas Harian</h3>
                             <p className="text-xs text-slate-500">Rekap uang fisik per tanggal</p>
                         </div>
-                        <input type="date" max={today} value={cashDate} onChange={e => setCashDate(e.target.value)} className="rounded-lg border-slate-300 dark:bg-slate-800 text-sm" />
+                        <input type="date" aria-label="Tanggal rekap kas" max={today} value={cashDate} onChange={e => setCashDate(e.target.value)} className="min-w-0 max-w-full rounded-lg border-slate-300 dark:bg-slate-800 text-sm" />
                     </div>
                     {cashSummary ? <>
-                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
                             <label>Uang awal (Rp)<MoneyInput  min="0" value={openingCash} disabled={!!cashSummary.closing} onChange={e => setOpeningCash(e.target.value)} className="mt-1 w-full rounded-lg border-slate-300 dark:bg-slate-800" /></label>
                             <div>Penjualan tunai<p className="mt-2 font-bold">{formatRp(cashSummary.closing?.cash_sales ?? cashSummary.cash_sales)}</p></div>
                             <div>Retur tunai<p className="mt-2 font-bold">− {formatRp(cashSummary.closing?.cash_returns ?? cashSummary.cash_returns)}</p></div>
                             <label>Pengeluaran kas (Rp)<MoneyInput  min="0" value={cashOut} disabled={!!cashSummary.closing} onChange={e => setCashOut(e.target.value)} className="mt-1 w-full rounded-lg border-slate-300 dark:bg-slate-800" /></label>
                         </div>
-                        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 border-t border-slate-200 dark:border-slate-800 pt-3 text-xs">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 border-t border-slate-200 dark:border-slate-800 pt-3 text-xs">
                             <div>Seharusnya ada<p className="mt-1 text-lg font-black text-primaryDark dark:text-white">{formatRp(cashSummary.closing?.expected_cash ?? expectedCash)}</p></div>
                             <label>Uang fisik terhitung (Rp)<MoneyInput  min="0" value={actualCash} disabled={!!cashSummary.closing} onChange={e => setActualCash(e.target.value)} className="mt-1 w-full rounded-lg border-slate-300 dark:bg-slate-800" /></label>
                             <div>Selisih<p className={`mt-1 text-lg font-black ${Number(cashSummary.closing?.difference ?? cashDifference) === 0 ? 'text-primaryDark dark:text-white' : 'text-red-600'}`}>{cashDifference === null && !cashSummary.closing ? '—' : formatRp(cashSummary.closing?.difference ?? cashDifference)}</p></div>
@@ -302,9 +302,10 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
                         <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
                             <h3 className="text-sm font-extrabold text-primaryDark dark:text-white">Produk Terlaris</h3>
                             <p className="text-[11px] text-slate-400 dark:text-slate-500 font-medium mt-0.5">Top 5 berdasarkan porsi terjual</p>
+                            <p className="sm:hidden text-[11px] text-slate-500 mt-1">Geser tabel untuk melihat semua kolom.</p>
                         </div>
                         <div className="overflow-x-auto">
-                            <table className="w-full text-left text-xs">
+                            <table className="w-full min-w-[560px] text-left text-xs">
                                 <thead>
                                     <tr className="border-b border-slate-100 dark:border-slate-800 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider bg-slate-50/60 dark:bg-slate-800/60">
                                         <th className="py-2.5 px-4 w-8">#</th>
@@ -350,9 +351,9 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
                         <div className="p-4 space-y-3">
                             {categoryBreakdown.length > 0 ? categoryBreakdown.map((cat, idx) => (
                                 <div key={idx}>
-                                    <div className="flex items-center justify-between mb-1">
-                                        <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">{cat.name}</span>
-                                        <span className="text-xs font-bold text-slate-900 dark:text-white">{formatRp(cat.amount)}</span>
+                                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-1 sm:gap-3 mb-1">
+                                        <span className="min-w-0 break-words text-xs font-semibold text-slate-700 dark:text-slate-300">{cat.name}</span>
+                                        <span className="shrink-0 text-xs font-bold text-slate-900 dark:text-white">{formatRp(cat.amount)}</span>
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <div className="flex-1 h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">

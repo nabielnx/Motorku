@@ -70,7 +70,7 @@ const fieldValidators = {
 function Toggle({ value, onChange }) {
     const on = value === 'true';
     return (
-      <label className="relative inline-flex items-center cursor-pointer">
+      <label className="relative inline-flex shrink-0 items-center cursor-pointer">
         <input type="checkbox" checked={on} onChange={onChange} className="sr-only peer" />
         <div className="w-10 h-5 bg-slate-200 peer-checked:bg-blue-600 rounded-full after:content-['']
 after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all
@@ -319,7 +319,7 @@ export default function SettingIndex() {
     }
   };
 
-  const inputCls = 'w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 rounded-xl px-3 py-2 text-sm focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-blue-500';
+  const inputCls = 'w-full min-w-0 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 rounded-xl px-3 py-2 text-sm focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-blue-500';
   const labelCls = 'block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1';
 
   const sections = [
@@ -381,7 +381,7 @@ export default function SettingIndex() {
             <FiHome className="text-blue-600 dark:text-yellow-400" size={20} />
             <h3 className="font-extrabold text-base text-slate-900 dark:text-white">Logo Toko</h3>
           </div>
-          <div className="flex items-center gap-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
             <div className="w-24 aspect-[3/4] rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-700 flex items-center justify-center overflow-hidden bg-slate-50 dark:bg-slate-800 shrink-0 p-1">
               {logoPreview ? (
                 <img src={logoPreview} alt="preview" className="w-full h-full object-contain" />
@@ -416,7 +416,7 @@ export default function SettingIndex() {
               </div>
               <p className="text-[10px] text-slate-400 dark:text-slate-500">{IMAGE_HELP}</p>
               {logoPreview && (
-                <div className="flex gap-2 pt-1">
+                <div className="flex flex-wrap gap-2 pt-1">
                   <button onClick={handleUploadLogo} disabled={uploading} className="px-4 py-2 bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 dark:hover:bg-slate-700 disabled:bg-slate-300 text-white text-xs font-bold rounded-xl transition-colors cursor-pointer border border-slate-700">
                     {uploading ? 'Mengupload...' : 'Simpan Logo Baru'}
                   </button>
@@ -498,10 +498,10 @@ export default function SettingIndex() {
 
         {/* PROMO BANNER SECTION */}
         <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4 transition-colors">
-          <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
-            <FiUpload className="text-blue-600 dark:text-yellow-400" size={20} />
-            <h3 className="font-extrabold text-base text-slate-900 dark:text-white">Banner Promo Self-Order</h3>
-            <div className="ml-auto flex items-center gap-2">
+          <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
+            <FiUpload className="shrink-0 text-blue-600 dark:text-yellow-400" size={20} />
+            <h3 className="min-w-0 flex-1 font-extrabold text-base text-slate-900 dark:text-white">Banner Promo Self-Order</h3>
+            <div className="ml-auto w-full sm:w-auto shrink-0 flex items-center justify-end gap-2">
               <Toggle
                 value={form.promo_banner_enabled}
                 onChange={() => set('promo_banner_enabled', form.promo_banner_enabled === 'true' ? 'false' : 'true')}
@@ -515,7 +515,9 @@ export default function SettingIndex() {
             <p className="text-xs text-slate-400 dark:text-slate-500 italic">Banner promo dinonaktifkan. Aktifkan toggle di atas untuk mengatur banner.</p>
           ) : (
           <>
-          <p className="text-xs text-slate-500 dark:text-slate-400">Upload hingga 3 foto banner promo. Rasio ideal 16:5 (1600×500 px). {IMAGE_HELP}</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">Upload hingga 3 foto banner promo. Banner yang terisi berganti otomatis setiap 5 detik di katalog pelanggan.</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400"><strong>Ukuran ideal: 600 × 1000 px (tegak, rasio 3:5).</strong> Banner mengikuti rasio asli gambar agar tampil utuh tanpa dipotong. Gunakan rasio yang sama untuk ketiga slot agar lebarnya konsisten saat berganti.</p>
+          <p className="text-[10px] text-slate-400 dark:text-slate-500">{IMAGE_HELP}</p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {[1, 2, 3].map(slot => {
               const b = banners[slot] || {};
@@ -525,11 +527,11 @@ export default function SettingIndex() {
                 <div key={slot} className="space-y-2">
                   <p className="text-xs font-bold text-slate-600 dark:text-slate-300">Slot {slot}</p>
                   {/* Preview */}
-                  <div className="w-full aspect-[16/5] rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 overflow-hidden flex items-center justify-center">
+                  <div className="w-full max-w-[180px] aspect-[3/5] rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 overflow-hidden flex items-center justify-center">
                     {preview ? (
-                      <img src={preview} alt={`Banner ${slot}`} className="w-full h-full object-cover" />
+                      <img src={preview} alt={`Banner ${slot}`} className="w-full h-full object-contain" />
                     ) : (
-                      <span className="text-[10px] font-bold text-slate-300 dark:text-slate-600">Belum ada banner</span>
+                      <span className="text-center text-[10px] font-bold text-slate-400 dark:text-slate-500">Belum ada banner<br />600 × 1000 px · 3:5</span>
                     )}
                   </div>
                   {/* Actions */}
@@ -589,10 +591,10 @@ export default function SettingIndex() {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {fields.map(({ field, label, type, options, span, note, maxLength, placeholder, inputMode, min, max, step }) => (
-                  <div key={field} className={span ? 'sm:col-span-2' : ''}>
+                  <div key={field} className={`min-w-0 ${span ? 'sm:col-span-2' : ''}`}>
                     <label className={labelCls}>{label}</label>
                     {type === 'toggle' ? (
-                      <div className="flex items-center gap-3 mt-1">
+                      <div className="flex flex-wrap items-center gap-3 mt-1">
                         <Toggle
                           value={form[field]}
                           onChange={() => set(field, form[field] === 'true' ? 'false' : 'true')}
@@ -647,8 +649,8 @@ export default function SettingIndex() {
           ))}
 
           <div className="flex justify-end sticky bottom-4">
-            <button type="submit" disabled={loading} className="bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white font-bold px-8 py-3 rounded-xl flex items-center gap-2 shadow-lg transition-all cursor-pointer">
-              <FiSave size={18} />
+            <button type="submit" disabled={loading} className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white font-bold px-4 sm:px-8 py-3 rounded-xl flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer">
+              <FiSave size={18} className="shrink-0" />
               {loading ? 'Menyimpan...' : 'Simpan Semua Pengaturan'}
             </button>
           </div>

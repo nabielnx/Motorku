@@ -913,7 +913,7 @@ export default function MotorcycleIndex({
                     {/* Motorcycle Models List */}
                     {totalMotorItems > 0 ? (
                         <>
-                            <div className="flex-1 min-h-0 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
+                            <div className="flex-1 min-h-0 overflow-y-auto">
                             {paginatedMotorList.map(m => {
                                 const isExpanded = expandedMotor === m.id;
                                 const currentMotorParts = partsData[m.id] || { data: [], total: 0, current_page: 1, last_page: 1, total_mapped: m.parts_count || 0 };
@@ -922,11 +922,13 @@ export default function MotorcycleIndex({
                                 const bCfg = getBrandConfig(m.brand);
 
                                 return (
-                                    <div key={m.id} className="transition-colors">
+                                    <div key={m.id} className={`border-2 transition-colors ${isExpanded
+                                        ? 'mx-1 my-2 rounded-xl overflow-hidden border-primary dark:border-accentYellow'
+                                        : 'border-transparent border-b-slate-100 dark:border-b-slate-800'}`}>
                                         {/* Main Motor Header Row */}
                                         <div
                                             className={`p-2.5 sm:p-3.5 cursor-pointer transition-colors ${
-                                                isExpanded ? 'bg-slate-50 dark:bg-slate-800' : 'hover:bg-slate-50 dark:hover:bg-slate-800'
+                                                isExpanded ? 'bg-primary/10 dark:bg-primary/20' : 'hover:bg-slate-50 dark:hover:bg-slate-800'
                                             }`}
                                             onClick={() => toggleExpandMotor(m.id)}
                                         >
@@ -969,6 +971,11 @@ export default function MotorcycleIndex({
                                                             <h3 className="font-bold text-sm sm:text-base text-slate-900 dark:text-white leading-tight">
                                                                 {m.model}
                                                             </h3>
+                                                            {isExpanded && (
+                                                                <span className="rounded-full bg-accentYellow px-2 py-0.5 text-[10px] font-bold text-primaryDark">
+                                                                    Dipilih
+                                                                </span>
+                                                            )}
                                                         </div>
                                                         {/* Clean Meta: Typography with improved contrast */}
                                                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium flex items-center gap-1.5 flex-wrap">
@@ -1025,6 +1032,8 @@ export default function MotorcycleIndex({
                                                                 : 'text-slate-500 dark:text-slate-300 md:bg-white dark:md:bg-slate-800 md:border-slate-200 dark:md:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-750'
                                                         }`}
                                                         title={isExpanded ? 'Sembunyikan daftar sparepart' : 'Lihat daftar sparepart kompatibel'}
+                                                        aria-expanded={isExpanded}
+                                                        aria-controls={`motor-parts-${m.id}`}
                                                     >
                                                         <span className="hidden md:inline">{isExpanded ? 'Sembunyikan Part' : 'Lihat Part'}</span>
                                                         {isExpanded ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
@@ -1035,7 +1044,7 @@ export default function MotorcycleIndex({
 
                                         {/* EXPANDED PANEL: Seamless Unified Sub-Table */}
                                         {isExpanded && (
-                                            <div className="border-t border-slate-100 sm:border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+                                            <div id={`motor-parts-${m.id}`} className="border-t border-primary/20 dark:border-accentYellow/20 bg-white dark:bg-slate-900">
                                                 {/* Unified Single-Row Control Bar */}
                                                 <div className="px-2 sm:px-4 py-1 md:py-2 bg-white md:bg-slate-50 dark:bg-slate-900 dark:md:bg-slate-800 border-b border-slate-100 md:border-slate-200 dark:border-slate-800 flex flex-wrap md:flex-nowrap items-center gap-1.5 md:gap-2">
                                                         {/* Search inside motorcycle parts */}
@@ -1240,19 +1249,13 @@ export default function MotorcycleIndex({
                                                                         </div>
 
                                                                         <div className="flex-1 min-w-0">
-                                                                                <p className="font-semibold text-slate-900 dark:text-white text-xs sm:text-sm truncate">
-                                                                                    {part.product?.name}
-                                                                                </p>
+                                                                            <p className="font-semibold text-slate-900 dark:text-white text-xs sm:text-sm whitespace-normal break-words leading-snug">
+                                                                                {part.product?.name}
+                                                                            </p>
                                                                             <div className="flex items-center gap-1.5 mt-0.5 text-[11px] text-slate-500 dark:text-slate-400 min-w-0">
                                                                                 {part.product?.sku && (
                                                                                     <span className="font-mono text-[11px] text-slate-400 dark:text-slate-500 truncate shrink-0 max-w-24 sm:max-w-none">
                                                                                         {part.product.sku}
-                                                                                    </span>
-                                                                                )}
-                                                                                <span className="md:hidden truncate">{categoryLabel}</span>
-                                                                                {part.notes && (
-                                                                                    <span className="italic truncate max-w-[200px]" title={part.notes}>
-                                                                                        • {part.notes}
                                                                                     </span>
                                                                                 )}
                                                                             </div>
@@ -1529,7 +1532,7 @@ export default function MotorcycleIndex({
                                                 <input type="checkbox" checked={selected} onChange={() => setBulkProductIds(prev => selected ? prev.filter(id => id !== product.id) : [...prev, product.id])} className="w-4 h-4 shrink-0 rounded text-blue-600 border-slate-300 dark:border-slate-600" />
                                                 <ProductThumbnail path={product.image_path} name={product.name} category={product.category?.name || product.category} size="w-8 h-8" />
                                                 <div className="min-w-0">
-                                                    <p className="font-bold text-slate-900 dark:text-white truncate">{product.name}</p>
+                                                    <p className="font-bold text-slate-900 dark:text-white whitespace-normal break-words leading-snug">{product.name}</p>
                                                     <p className="text-slate-500 dark:text-slate-400 truncate">{product.sku || '-'} · {formatRp(product.price)}</p>
                                                 </div>
                                             </label>
@@ -1872,7 +1875,7 @@ export default function MotorcycleIndex({
                                             product_id: p.id,
                                             part_category: p.default_part_category || partFormData.part_category
                                         })}
-                                        className={`flex items-center justify-between p-2.5 text-xs cursor-pointer transition ${
+                                        className={`flex flex-col sm:flex-row sm:items-center justify-between gap-1 p-2.5 text-xs cursor-pointer transition ${
                                             partFormData.product_id === p.id ? 'bg-slate-100 dark:bg-slate-800 border-l-4 border-l-primary' : 'hover:bg-slate-50 dark:hover:bg-slate-800'
                                         }`}
                                     >
@@ -1887,18 +1890,18 @@ export default function MotorcycleIndex({
                                                 />
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <div className="flex items-center gap-2">
-                                                    <span className="font-black text-slate-900 dark:text-white truncate">{p.name}</span>
-                                                    {p.sku && <span className="text-[10px] font-mono text-slate-500 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-1 py-0.5 rounded">{p.sku}</span>}
+                                                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-1 sm:gap-2">
+                                                    <span className="min-w-0 font-black text-slate-900 dark:text-white whitespace-normal break-words leading-snug">{p.name}</span>
+                                                    {p.sku && <span className="shrink-0 text-[10px] font-mono text-slate-500 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-1 py-0.5 rounded">{p.sku}</span>}
                                                 </div>
-                                                <div className="flex items-center gap-2 mt-0.5 text-[11px] text-slate-500">
+                                                <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5 text-[11px] text-slate-500">
                                                     <span className="font-semibold text-slate-700 dark:text-slate-300">{p.category?.name || 'Katalog'}</span>
                                                     <span>·</span>
-                                                    <span className={`font-semibold ${p.stock <= 0 ? 'text-red-500' : 'text-slate-600 dark:text-slate-400'}`}>Stok: {p.stock} {p.unit || 'pcs'}</span>
+                                                    <span className={`whitespace-nowrap font-semibold ${p.stock <= 0 ? 'text-red-500' : 'text-slate-600 dark:text-slate-400'}`}>Stok: {p.stock} {p.unit || 'pcs'}</span>
                                                 </div>
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-2 shrink-0">
+                                        <div className="flex items-center gap-2 shrink-0 pl-14 sm:pl-0">
                                             <span className="font-black text-blue-600 dark:text-blue-400">{formatRp(p.price)}</span>
                                             {partFormData.product_id === p.id && <FiCheck size={16} className="text-blue-600" />}
                                         </div>
@@ -2136,7 +2139,7 @@ export default function MotorcycleIndex({
                                         </span>
                                     )}
                                 </div>
-                                <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white leading-tight truncate mt-0.5" title={previewPart.name}>
+                                <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white leading-tight whitespace-normal break-words mt-0.5" title={previewPart.name}>
                                     {previewPart.name}
                                 </h3>
                             </div>

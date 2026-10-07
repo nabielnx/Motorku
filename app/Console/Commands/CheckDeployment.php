@@ -21,6 +21,9 @@ class CheckDeployment extends Command
             'HTTPS application URL' => str_starts_with(config('app.url'), 'https://'),
             'Application key configured' => filled(config('app.key')),
             'Secure session cookies' => (bool) config('session.secure'),
+            'Database sessions for access revocation' => config('session.driver') === 'database'
+                && config('session.table') === 'sessions'
+                && in_array(config('session.connection'), [null, config('database.default')], true),
             'GD with WebP support' => extension_loaded('gd') && (gd_info()['WebP Support'] ?? false),
             'Storage writable' => is_writable(storage_path()) && is_writable(base_path('bootstrap/cache')),
             'Public storage link' => is_link(public_path('storage')),

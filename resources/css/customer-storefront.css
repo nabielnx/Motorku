@@ -35,17 +35,6 @@
     }
 }
 
-.perspective-1000 {
-    perspective: 1000px;
-    -webkit-perspective: 1000px;
-}
-
-.depth-recede-banner {
-    transform-origin: center left;
-    will-change: transform, opacity, filter;
-    transition: transform 0.25s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.25s ease, filter 0.25s ease;
-}
-
 @media (prefers-reduced-motion: reduce) {
     .customer-storefront *,
     .customer-storefront *::before,

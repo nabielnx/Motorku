@@ -3,30 +3,22 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Services\UserService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
 
 class PasswordController extends Controller
 {
-    public function update(Request $request): RedirectResponse
+    public function update(Request $request, UserService $users): RedirectResponse
     {
         $validated = $request->validate([
             'current_password' => ['required', 'current_password'],
             'password' => ['required', Password::defaults(), 'confirmed'],
         ]);
 
-        $request->user()->update([
-            'password' => Hash::make($validated['password']),
-        ]);
-
-        Auth::logoutOtherDevices($validated['password']);
-
-        $request->user()->forceFill([
-            'remember_token' => null,
-        ])->save();
+        $users->updatePassword($request->user(), $validated);
+        $request->session()->regenerate(true);
 
         return back();
     }

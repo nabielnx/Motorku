@@ -244,7 +244,7 @@ export default function CustomerMenu({
         filterPredicate: categoryFilterPredicate
     });
 
-    const promoSlots = [1, 2, 3].map(slot => promoBanners?.[slot]).filter(Boolean);
+    const promoSlots = React.useMemo(() => [1, 2, 3].map(slot => promoBanners?.[slot]).filter(Boolean), [promoBanners]);
 
     const storeName = settings['store.name'] || 'Motorku';
     const phone = settings['store.phone'] || settings['phone'] || '';
@@ -379,7 +379,7 @@ export default function CustomerMenu({
                     <section className="pb-1">
                         <MotoQuickPromoSection
                             products={promoProducts}
-                            bannerUrl={promoBanners?.[1] || promoBanners?.['1'] || null}
+                            bannerUrls={promoSlots}
                             onProductClick={openDetail}
                             bestSellerProductIds={bestSellerProductIds}
                             formatRp={formatRp}
