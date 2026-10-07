@@ -265,11 +265,18 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
     const removeFromCart = (item) => setItemToDelete(item);
 
     const confirmRemoveFromCart = () => {
-        if (!itemToDelete) return;
+        if (!itemToDelete || submittingRef.current || isOrderComplete) return;
         const targetId = itemToDelete.id;
         focusSearchAfterDeleteRef.current = true;
         setValidationError('');
-        setCart(prev => prev.filter(i => i.id !== targetId));
+        if (itemToDelete.clearAll) {
+            setCart([]);
+            setCashReceived('');
+            resetQrisFlow();
+            toast.success('Keranjang berhasil dikosongkan.');
+        } else {
+            setCart(prev => prev.filter(i => i.id !== targetId));
+        }
         setItemToDelete(null);
     };
 
@@ -694,9 +701,20 @@ return (
 
                     {/* Customer & Order Settings */}
                     <div className="p-3.5 border-b border-slate-300 dark:border-slate-800 space-y-2 bg-slate-50 dark:bg-slate-800 shrink-0">
-                        <div className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 font-semibold flex items-center justify-between gap-2">
+                        <div className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 font-semibold flex flex-wrap items-center justify-between gap-2">
                             <span className="flex items-center gap-1.5"><FiShoppingBag className="w-4 h-4 text-slate-500 dark:text-slate-400" strokeWidth={2.5} /> Keranjang <span className="rounded-md bg-primary px-1.5 py-0.5 text-[10px] font-bold text-[#fceb2d]">{cartItemCount} item</span></span>
-                            <button type="button" onClick={() => setIsMobileCartOpen(false)} className="flex items-center gap-1 rounded-lg px-2 py-1 text-blue-700 dark:text-blue-300 md:hidden" aria-label="Kembali ke daftar produk"><FiArrowLeft aria-hidden="true" /> Produk</button>
+                            <div className="flex shrink-0 items-center gap-1">
+                                <button
+                                    type="button"
+                                    onClick={() => setItemToDelete({ clearAll: true })}
+                                    disabled={cart.length === 0 || isSubmittingOrder || isOrderComplete}
+                                    aria-label="Kosongkan keranjang"
+                                    className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40 dark:text-red-400 dark:hover:bg-red-950/40"
+                                >
+                                    <FiTrash2 className="h-3.5 w-3.5" aria-hidden="true" /> Kosongkan
+                                </button>
+                                <button type="button" onClick={() => setIsMobileCartOpen(false)} className="flex items-center gap-1 rounded-lg px-2 py-1 text-blue-700 dark:text-blue-300 md:hidden" aria-label="Kembali ke daftar produk"><FiArrowLeft aria-hidden="true" /> Produk</button>
+                            </div>
                         </div>
                         <div className="flex items-center gap-2">
                             <FiUser className="text-slate-500 dark:text-slate-400 w-4 h-4 shrink-0" strokeWidth={2.5} />
@@ -1176,10 +1194,10 @@ return (
             >
                 <div className="p-5">
                     <DialogTitle className="text-base font-bold text-slate-900 dark:text-white">
-                        Hapus produk dari keranjang?
+                        {itemToDelete?.clearAll ? 'Kosongkan keranjang?' : 'Hapus produk dari keranjang?'}
                     </DialogTitle>
                     <p className="mt-2 break-words text-sm text-slate-600 dark:text-slate-300">
-                        {itemToDelete?.name}
+                        {itemToDelete?.clearAll ? `Semua ${cartItemCount} barang yang dipilih akan dihapus dari keranjang.` : itemToDelete?.name}
                     </p>
                     <div className="mt-5 flex justify-end gap-2">
                         <button
@@ -1195,7 +1213,7 @@ return (
                             onClick={confirmRemoveFromCart}
                             className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
                         >
-                            Hapus
+                            {itemToDelete?.clearAll ? 'Ya, kosongkan' : 'Hapus'}
                         </button>
                     </div>
                 </div>
