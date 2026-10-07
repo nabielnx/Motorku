@@ -4,7 +4,7 @@ import UserTableSkeleton from '@/Components/Skeletons/UserTableSkeleton';
 import { Head, usePage, router } from '@inertiajs/react';
 import axios from 'axios';
 import { toast } from 'sonner';
-import { FiPlus, FiEdit2, FiTrash2, FiSearch, FiShield, FiUserCheck, FiUserX, FiX, FiAlertCircle, FiMail } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2, FiSearch, FiShield, FiUserCheck, FiUserX, FiX, FiAlertCircle, FiMail, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 
 const ROLE_BADGES = {
     owner: { label: 'Owner', color: 'bg-primary text-white border-primary' },
@@ -235,18 +235,18 @@ export default function UserIndex({ initialUsers = {}, activeOwnersCount = 0, ma
     };
 
     return (
-        <AuthenticatedLayout pageTitle={locale === 'en' ? 'Staff Management' : 'Kelola Staff & Pegawai'}>
+        <AuthenticatedLayout pageTitle={locale === 'en' ? 'Staff Management' : 'Kelola Staf'}>
             <Head title={`${locale === 'en' ? 'Staff Management' : 'Kelola Staf'}`}>
                 <meta name="description" content="Kelola akun pengguna, peran hak akses (Owner / Kasir), dan status staf pegawai Motorku." />
             </Head>
             <div className="space-y-4">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
                     <div>
                         <h3 className="text-lg font-bold text-primaryDark dark:text-white">Daftar Staf <span className="ml-1 text-sm font-semibold text-slate-500 dark:text-slate-400">{totalUsers}</span></h3>
                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Akun dan hak akses toko</p>
                     </div>
-                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
-                        <div className="relative w-full sm:w-64">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full lg:w-auto">
+                        <div className="relative w-full sm:flex-1 lg:flex-none lg:w-64">
                             <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" size={16} />
                             <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Cari nama atau email..." className="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 rounded-lg pl-9 pr-3 py-2 text-xs focus:ring-2 focus:ring-primary" autoComplete="off" />
                         </div>
@@ -272,9 +272,9 @@ export default function UserIndex({ initialUsers = {}, activeOwnersCount = 0, ma
                             </button>
                         ))}
                     </div>
-                    <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-300px)] no-scrollbar">
-                        <table className="w-full min-w-[640px] text-left">
-                            <thead>
+                    <div className="overflow-x-auto">
+                        <table className="block lg:table w-full text-left">
+                            <thead className="hidden lg:table-header-group">
                                 <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-400 dark:text-slate-500 font-bold text-xs uppercase sticky top-0 z-10 bg-slate-50/60 dark:bg-slate-800/90">
                                     <th className="py-3.5 px-5 bg-slate-50/60 dark:bg-slate-800/90">Pegawai</th>
                                     <th className="py-3.5 px-5 bg-slate-50/60 dark:bg-slate-800/90">Role</th>
@@ -282,7 +282,7 @@ export default function UserIndex({ initialUsers = {}, activeOwnersCount = 0, ma
                                     <th className="py-3.5 px-5 text-right bg-slate-50/60 dark:bg-slate-800/90">Aksi</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                            <tbody className="block lg:table-row-group divide-y divide-slate-100 dark:divide-slate-800">
                                 {filtered.map(user => {
                                     const roleName = user.roles?.[0]?.name || 'cashier';
                                     const badge = ROLE_BADGES[roleName] || { label: roleName, color: 'bg-slate-100 text-slate-700' };
@@ -294,8 +294,8 @@ export default function UserIndex({ initialUsers = {}, activeOwnersCount = 0, ma
                                         : (isLastOwnerRow ? "Tidak dapat menghapus owner terakhir yang aktif" : "Hapus Staf");
 
                                     return (
-                                        <tr key={user.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/50 transition-colors">
-                                            <td className="py-4 px-5">
+                                        <tr key={user.id} className="grid grid-cols-2 lg:table-row hover:bg-slate-50/60 dark:hover:bg-slate-800/50 transition-colors">
+                                            <td className="block lg:table-cell col-span-2 min-w-0 py-4 px-4 lg:px-5">
                                                 <div className="flex items-center gap-3">
                                                     {user.avatar ? (
                                                         <img 
@@ -308,41 +308,42 @@ export default function UserIndex({ initialUsers = {}, activeOwnersCount = 0, ma
                                                             {String(user.name || 'U').charAt(0).toUpperCase()}
                                                         </div>
                                                     )}
-                                                    <div>
-                                                        <div className="flex items-center gap-1.5">
-                                                            <p className="font-bold text-slate-900 dark:text-white">{user.name}</p>
+                                                    <div className="min-w-0">
+                                                        <div className="flex flex-wrap items-center gap-1.5">
+                                                            <p className="break-words font-bold text-slate-900 dark:text-white">{user.name}</p>
                                                             {isSelfRow && (
                                                                 <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-accentYellow text-primaryDark">
                                                                     Akun Anda
                                                                 </span>
                                                             )}
                                                         </div>
-                                                        <p className="text-xs text-slate-400 dark:text-slate-500">{user.email}</p>
+                                                        <p className="break-all text-xs text-slate-400 dark:text-slate-500">{user.email}</p>
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="py-4 px-5">
+                                            <td className="block lg:table-cell min-w-0 px-4 pb-3 lg:py-4 lg:px-5">
                                                 <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold border ${badge.color}`}>
                                                     <FiShield size={12} />{badge.label}
                                                 </span>
                                             </td>
-                                            <td className="py-4 px-5">
+                                            <td className="block lg:table-cell min-w-0 px-4 pb-3 lg:py-4 lg:px-5 text-right lg:text-left">
                                                 <span className={`inline-flex items-center gap-1 text-xs font-bold ${user.is_active !== false ? 'text-primaryDark dark:text-blue-300' : 'text-red-600'}`}>
                                                     {user.is_active === false ? <FiUserX size={14} /> : user.invitation_pending || !user.email_verified_at ? <FiMail size={14} /> : <FiUserCheck size={14} />}
                                                     {user.is_active === false ? 'Nonaktif' : user.invitation_pending ? 'Menunggu aktivasi' : !user.email_verified_at ? 'Belum verifikasi' : 'Aktif'}
                                                 </span>
                                             </td>
-                                            <td className="py-4 px-5 text-right">
+                                            <td className="block lg:table-cell col-span-2 px-4 pb-3 lg:py-4 lg:px-5 text-right">
                                                 <div className="flex items-center justify-end gap-2">
                                                     {user.invitation_pending && user.is_active !== false && (
                                                         <button onClick={() => resendInvitation(user)} disabled={loading} className="p-2 text-primary hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg disabled:opacity-40" title="Kirim ulang undangan" aria-label={`Kirim ulang undangan untuk ${user.name}`}><FiMail size={16} /></button>
                                                     )}
-                                                    <button onClick={() => openEdit(user)} className="p-2 text-slate-500 hover:text-primaryDark dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg cursor-pointer" title="Edit Staf"><FiEdit2 size={16} /></button>
+                                                    <button onClick={() => openEdit(user)} className="p-2 text-slate-500 hover:text-primaryDark dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg cursor-pointer" title="Edit Staf" aria-label={`Edit staf ${user.name}`}><FiEdit2 size={16} /></button>
                                                     <button 
                                                         onClick={() => confirmDelete(user.id)} 
                                                         disabled={deleteDisabled}
                                                         className={`p-2 rounded-lg transition-colors cursor-pointer ${deleteDisabled ? 'text-slate-200 dark:text-slate-700 cursor-not-allowed' : 'text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/50'}`} 
                                                         title={deleteTooltip}
+                                                        aria-label={`Hapus staf ${user.name}`}
                                                     >
                                                         <FiTrash2 size={16} />
                                                     </button>
@@ -352,7 +353,7 @@ export default function UserIndex({ initialUsers = {}, activeOwnersCount = 0, ma
                                     );
                                 })}
                                 {filtered.length === 0 && (
-                                    <tr><td colSpan={4} className="py-12 text-center text-sm text-slate-400 dark:text-slate-500">Tidak ada pegawai ditemukan.</td></tr>
+                                    <tr className="block lg:table-row"><td colSpan={4} className="block lg:table-cell py-12 text-center text-sm text-slate-400 dark:text-slate-500">Tidak ada pegawai ditemukan.</td></tr>
                                 )}
                             </tbody>
                         </table>
@@ -360,27 +361,29 @@ export default function UserIndex({ initialUsers = {}, activeOwnersCount = 0, ma
 
                     {/* User Pagination Footer */}
                     {totalUsers > 0 && (
-                        <div className="p-4 bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs font-semibold text-slate-600 dark:text-slate-400">
+                        <div className="p-4 bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs font-semibold text-slate-600 dark:text-slate-400">
                             <span>
-                                Menampilkan {((currentPage - 1) * perPage) + 1} - {Math.min(currentPage * perPage, totalUsers)} dari {totalUsers} pegawai
+                                <span className="hidden sm:inline">Menampilkan </span>{((currentPage - 1) * perPage) + 1}–{Math.min(currentPage * perPage, totalUsers)} / {totalUsers} staf
                             </span>
                             <div className="flex items-center space-x-2">
                                 <button
                                     onClick={() => changeUserPage(currentPage - 1)}
                                     disabled={currentPage <= 1}
+                                    aria-label="Halaman staf sebelumnya"
                                     className="px-3 py-1.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 rounded-lg border border-slate-300 dark:border-slate-700 font-bold transition text-slate-700 dark:text-slate-200 cursor-pointer"
                                 >
-                                    Sebelumnya
+                                    <FiChevronLeft className="sm:hidden" /><span className="hidden sm:inline">Sebelumnya</span>
                                 </button>
-                                <span className="px-3 py-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg text-slate-800 dark:text-slate-200 font-bold">
+                                <span className="whitespace-nowrap px-3 py-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg text-slate-800 dark:text-slate-200 font-bold">
                                     {currentPage} / {totalPages}
                                 </span>
                                 <button
                                     onClick={() => changeUserPage(currentPage + 1)}
                                     disabled={currentPage >= totalPages}
+                                    aria-label="Halaman staf berikutnya"
                                     className="px-3 py-1.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 rounded-lg border border-slate-300 dark:border-slate-700 font-bold transition text-slate-700 dark:text-slate-200 cursor-pointer"
                                 >
-                                    Selanjutnya
+                                    <FiChevronRight className="sm:hidden" /><span className="hidden sm:inline">Selanjutnya</span>
                                 </button>
                             </div>
                         </div>
