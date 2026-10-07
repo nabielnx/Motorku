@@ -13,13 +13,16 @@ export default function MotoQuickPromoSection({
     renderProductCard,
 }) {
     const scrollContainerRef = useRef(null);
+    const [scrollOffset, setScrollOffset] = useState(0);
     const [canScrollLeft, setCanScrollLeft] = useState(false);
     const [canScrollRight, setCanScrollRight] = useState(true);
     const [bannerHeight, setBannerHeight] = useState(0);
+    const [bannerAspectRatio, setBannerAspectRatio] = useState(3 / 5);
     const promoItems = products.slice(0, 8);
     const [bannerIndex, setBannerIndex] = useState(0);
     const [bannerPaused, setBannerPaused] = useState(() => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
     const bannerUrl = bannerUrls[bannerIndex] || bannerUrls[0] || null;
+    const bannerWidth = bannerHeight * bannerAspectRatio;
 
     useEffect(() => setBannerIndex(0), [bannerUrls]);
     useEffect(() => {
@@ -62,6 +65,7 @@ export default function MotoQuickPromoSection({
 
     const handleScroll = (e) => {
         const { scrollLeft, scrollWidth, clientWidth } = e.currentTarget;
+        setScrollOffset(scrollLeft);
         setCanScrollLeft(scrollLeft > 10);
         setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
     };
@@ -97,7 +101,7 @@ export default function MotoQuickPromoSection({
         <div className="mb-5">
             <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden select-none">
                 {/* ══ FULL-WIDTH HEADER BLUE BACKGROUND ══ */}
-                <div className="absolute inset-0 bg-[#4066AD] z-0">
+                <div className="absolute inset-y-0 right-0 overflow-hidden bg-[#4066AD] z-0" style={{ left: bannerUrl ? Math.max(0, bannerWidth - scrollOffset) : 0 }}>
                     <div className="absolute inset-0 bg-gradient-to-r from-[#4A72BC] via-[#4066AD] to-[#365799]" />
                     <div className="absolute -left-12 -top-12 h-48 w-48 rounded-full bg-white/20 blur-2xl" />
                     <div className="absolute right-0 bottom-0 h-56 w-56 rounded-full bg-blue-900/30 blur-3xl" />
@@ -143,11 +147,12 @@ export default function MotoQuickPromoSection({
                     className="relative z-10 flex items-stretch gap-2 sm:gap-2.5 overflow-x-auto no-scrollbar scroll-smooth snap-x snap-mandatory py-2.5 sm:py-3 cursor-grab active:cursor-grabbing"
                 >
                     {bannerUrl && (
-                        <div className="relative shrink-0 snap-start -my-2.5 sm:-my-3 overflow-hidden" style={{ width: bannerHeight * 3 / 5 }}>
+                        <div className="relative shrink-0 snap-start -my-2.5 sm:-my-3 overflow-hidden" style={{ width: bannerWidth }}>
                             <img
                                 src={bannerUrl}
                                 alt={`Banner promo ${bannerIndex + 1} dari ${bannerUrls.length}`}
-                                className="absolute inset-0 h-full w-full object-contain"
+                                className="absolute inset-0 h-full w-full object-contain object-left"
+                                onLoad={event => setBannerAspectRatio(event.currentTarget.naturalWidth / event.currentTarget.naturalHeight)}
                                 loading="lazy"
                                 draggable="false"
                             />

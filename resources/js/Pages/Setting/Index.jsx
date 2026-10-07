@@ -516,7 +516,7 @@ export default function SettingIndex() {
           ) : (
           <>
           <p className="text-xs text-slate-500 dark:text-slate-400">Upload hingga 3 foto banner promo. Banner yang terisi berganti otomatis setiap 5 detik di katalog pelanggan.</p>
-          <p className="text-xs text-slate-500 dark:text-slate-400"><strong>Ukuran ideal: 600 × 1000 px (tegak, rasio 3:5).</strong> Gambar ditampilkan utuh tanpa dipotong; rasio lain menyisakan ruang di sekelilingnya.</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400"><strong>Ukuran ideal: 600 × 1000 px (tegak, rasio 3:5).</strong> Banner mengikuti rasio asli gambar agar tampil utuh tanpa dipotong. Gunakan rasio yang sama untuk ketiga slot agar lebarnya konsisten saat berganti.</p>
           <p className="text-[10px] text-slate-400 dark:text-slate-500">{IMAGE_HELP}</p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {[1, 2, 3].map(slot => {
