@@ -134,6 +134,22 @@ class UserService
         $this->sendAccountNotification($user, new VerifyEmail);
     }
 
+    public function updatePassword(User $user, array $data): void
+    {
+        DB::transaction(function () use ($user, $data) {
+            $locked = User::whereKey($user->id)->lockForUpdate()->firstOrFail();
+            if (! Hash::check($data['current_password'], $locked->password)) {
+                throw ValidationException::withMessages(['current_password' => __('auth.password')]);
+            }
+            $locked->forceFill([
+                'password' => Hash::make($data['password']),
+                'remember_token' => null,
+            ])->save();
+            $this->revokeOldAccess($locked);
+        });
+        $user->refresh();
+    }
+
     public function updateEmployee($id, array $data)
     {
         return DB::transaction(function () use ($id, $data) {
