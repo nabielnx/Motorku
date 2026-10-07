@@ -913,7 +913,7 @@ export default function MotorcycleIndex({
                     {/* Motorcycle Models List */}
                     {totalMotorItems > 0 ? (
                         <>
-                            <div className="flex-1 min-h-0 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
+                            <div className="flex-1 min-h-0 overflow-y-auto">
                             {paginatedMotorList.map(m => {
                                 const isExpanded = expandedMotor === m.id;
                                 const currentMotorParts = partsData[m.id] || { data: [], total: 0, current_page: 1, last_page: 1, total_mapped: m.parts_count || 0 };
@@ -924,7 +924,7 @@ export default function MotorcycleIndex({
                                 return (
                                     <div key={m.id} className={`border-2 transition-colors ${isExpanded
                                         ? 'mx-1 my-2 rounded-xl overflow-hidden border-primary dark:border-accentYellow'
-                                        : 'border-transparent'}`}>
+                                        : 'border-transparent border-b-slate-100 dark:border-b-slate-800'}`}>
                                         {/* Main Motor Header Row */}
                                         <div
                                             className={`p-2.5 sm:p-3.5 cursor-pointer transition-colors ${
