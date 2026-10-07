@@ -37,6 +37,36 @@ class NotificationCenterTest extends TestCase
         $this->cashier->assignRole('cashier');
     }
 
+    public function test_cleanup_only_deletes_store_notifications_read_at_least_seven_days_ago(): void
+    {
+        $this->travelTo(now()->startOfSecond());
+        $cutoff = now()->subDays(7);
+        $create = fn (User $user, $readAt, $type = StoreActivity::class) => $user->notifications()->create([
+            'id' => fake()->uuid(), 'type' => $type, 'read_at' => $readAt,
+            'data' => ['category' => 'order', 'title' => 'Uji retensi', 'message' => 'Uji', 'url' => '/orders', 'owner_only' => false],
+            'created_at' => now()->subDays(90),
+        ]);
+        $expired = $create($this->owner, $cutoff->copy()->subSecond());
+        $boundary = $create($this->cashier, $cutoff);
+        $recent = $create($this->owner, $cutoff->copy()->addSecond());
+        $newlyRead = $create($this->owner, now());
+        $unread = $create($this->cashier, null);
+        $otherType = $create($this->owner, $cutoff, StaffInvitation::class);
+
+        // Reopening an already read notification must not extend its retention.
+        app(NotificationService::class)->markRead($this->owner, $expired->id);
+        $this->artisan('notifications:prune-read')->assertSuccessful();
+
+        foreach ([$expired, $boundary] as $notification) {
+            $this->assertDatabaseMissing('notifications', ['id' => $notification->id]);
+        }
+        foreach ([$recent, $newlyRead, $unread, $otherType] as $notification) {
+            $this->assertDatabaseHas('notifications', ['id' => $notification->id]);
+        }
+        $this->assertSame(1, app(NotificationService::class)->summary($this->cashier)['unread_count']);
+        $this->assertSame(0, app(NotificationService::class)->pruneRead());
+    }
+
     public function test_notifications_are_private_paginated_and_read_per_account(): void
     {
         for ($i = 0; $i < 12; $i++) {

@@ -11,3 +11,7 @@ Artisan::command('inspire', function () {
 Schedule::command('orders:expire-stale')
     ->everyMinute()
     ->withoutOverlapping();
+
+Schedule::command('notifications:prune-read')
+    ->dailyAt('03:00')
+    ->withoutOverlapping();
