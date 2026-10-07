@@ -1,12 +1,12 @@
 import ThermalReceipt from '@/Components/ThermalReceipt';
 import MoneyInput from '@/Components/MoneyInput';
 import { checkoutRequestId } from '@/Utils/checkout';
+import { POS_CART_KEY, MAX_POS_QTY as MAX_QTY, formatPosProduct, readPosCart, addToPosCart } from '@/Utils/posCart';
 import React, { useState, useEffect, useRef } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import Modal from '@/Components/Modal';
 import PosCardSkeleton from '@/Components/Skeletons/PosCardSkeleton';
 import { Head, router, usePage } from '@inertiajs/react';
-import { getProductImage } from '@/Utils/productImage';
 import { ProductPhoto } from '@/Components/Customer/Storefront';
 import { getVisibleCategoryIds } from '@/Utils/posCategoryFilter';
 import { fuzzyFilterProducts } from '@/Utils/fuzzySearch';
@@ -40,23 +40,7 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
     // Format Products from Database or Fallback
     const formatProducts = (rawProducts) => {
         if (!rawProducts || rawProducts.length === 0) return [];
-        return rawProducts.map(p => {
-            const catName = p.category ? p.category.name : 'Sparepart';
-            return {
-                id: p.id,
-                sku: p.sku || '',
-                brand: p.brand || '',
-                rack_location: p.rack_location || '',
-                name: p.name,
-                description: p.description || '',
-                price: Number(p.price),
-                category: catName,
-                categoryId: p.category_id,
-                stock: p.stock !== undefined && p.stock !== null ? Number(p.stock) : 0,
-                image: getProductImage(p.image_path, catName),
-                motorcycles: p.motorcycles || []
-            };
-        });
+        return rawProducts.map(formatPosProduct);
     };
 
 
@@ -107,13 +91,21 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
     }, [viewMode]);
 
     // Cart State
-    const [cart, setCart] = useState(() => {
-        try { const local = localStorage.getItem('pos_cart'); return local ? JSON.parse(local) : []; } catch { return []; }
-    });
+    const [cart, setCart] = useState(() => readPosCart(localStorage));
+
+    useEffect(() => {
+        const syncCart = event => {
+            if (event.storageArea === localStorage && (event.key === POS_CART_KEY || event.key === null)) {
+                setCart(readPosCart(localStorage));
+            }
+        };
+        window.addEventListener('storage', syncCart);
+        return () => window.removeEventListener('storage', syncCart);
+    }, []);
 
     // Sync State to LocalStorage
     useEffect(() => {
-        localStorage.setItem('pos_cart', JSON.stringify(cart));
+        localStorage.setItem(POS_CART_KEY, JSON.stringify(cart));
         localStorage.setItem('pos_customer_name', customerName);
     }, [cart, customerName]);
 
@@ -216,50 +208,19 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
         filterPredicate: categoryFilterPredicate
     });
 
-    const MAX_QTY = 200;
-    const MAX_ITEMS = 20;
-
     // Cart Handlers
     const addToCart = (item) => {
         setValidationError('');
-        if (item.stock <= 0) {
-            toast.error(`${item.name} sudah habis (Stok: 0).`);
-            return;
+        try {
+            const nextCart = addToPosCart(cart, item);
+            const msg = cart.some(product => product.id === item.id)
+                ? `+1 ${item.name} ditambahkan`
+                : `${item.name} ditambahkan ke keranjang`;
+            setCart(nextCart);
+            toast.success(msg, { duration: 1200 });
+        } catch (error) {
+            toast.error(error.message);
         }
-
-        const currentInCart = cart.find(i => i.id === item.id);
-        const currentQty = currentInCart ? currentInCart.qty : 0;
-
-        if (currentQty + 1 > item.stock) {
-            toast.error(`Stok ${item.name} tidak mencukupi (Tersedia: ${item.stock} unit, di keranjang: ${currentQty}).`);
-            return;
-        }
-
-        // Cek limit sebelum update agar toast tidak dipanggil dari dalam updater (pure fn)
-        if (currentInCart && currentInCart.qty >= MAX_QTY) {
-            toast.error(`Maksimal ${MAX_QTY} unit per item.`);
-            return;
-        }
-        if (!currentInCart && cart.length >= MAX_ITEMS) {
-            toast.error(`Maksimal ${MAX_ITEMS} jenis item per pesanan.`);
-            return;
-        }
-
-        // Toast dipanggil di sini (luar updater) agar tidak double-fire di StrictMode
-        const msg = currentInCart
-            ? `+1 ${item.name} ditambahkan`
-            : `${item.name} ditambahkan ke keranjang`;
-        toast.success(msg, { duration: 1200 });
-
-        setCart(prev => {
-            const exists = prev.find(i => i.id === item.id);
-            if (exists) {
-                if (exists.qty >= MAX_QTY) return prev;
-                return prev.map(i => i.id === item.id ? { ...i, qty: i.qty + 1 } : i);
-            }
-            if (prev.length >= MAX_ITEMS) return prev;
-            return [...prev, { ...item, qty: 1, notes: '' }];
-        });
     };
 
     const updateQty = (id, delta) => {
