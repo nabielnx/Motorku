@@ -515,7 +515,9 @@ export default function SettingIndex() {
             <p className="text-xs text-slate-400 dark:text-slate-500 italic">Banner promo dinonaktifkan. Aktifkan toggle di atas untuk mengatur banner.</p>
           ) : (
           <>
-          <p className="text-xs text-slate-500 dark:text-slate-400">Upload hingga 3 foto banner promo. Banner yang terisi berganti otomatis setiap 5 detik di katalog pelanggan. Rasio ideal 16:5 (1600×500 px). {IMAGE_HELP}</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">Upload hingga 3 foto banner promo. Banner yang terisi berganti otomatis setiap 5 detik di katalog pelanggan.</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400"><strong>Ukuran ideal: 600 × 1000 px (tegak, rasio 3:5).</strong> Gambar ditampilkan utuh tanpa dipotong; rasio lain menyisakan ruang di sekelilingnya.</p>
+          <p className="text-[10px] text-slate-400 dark:text-slate-500">{IMAGE_HELP}</p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {[1, 2, 3].map(slot => {
               const b = banners[slot] || {};
@@ -525,11 +527,11 @@ export default function SettingIndex() {
                 <div key={slot} className="space-y-2">
                   <p className="text-xs font-bold text-slate-600 dark:text-slate-300">Slot {slot}</p>
                   {/* Preview */}
-                  <div className="w-full aspect-[16/5] rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 overflow-hidden flex items-center justify-center">
+                  <div className="w-full max-w-[180px] aspect-[3/5] rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 overflow-hidden flex items-center justify-center">
                     {preview ? (
-                      <img src={preview} alt={`Banner ${slot}`} className="w-full h-full object-cover" />
+                      <img src={preview} alt={`Banner ${slot}`} className="w-full h-full object-contain" />
                     ) : (
-                      <span className="text-[10px] font-bold text-slate-300 dark:text-slate-600">Belum ada banner</span>
+                      <span className="text-center text-[10px] font-bold text-slate-400 dark:text-slate-500">Belum ada banner<br />600 × 1000 px · 3:5</span>
                     )}
                   </div>
                   {/* Actions */}

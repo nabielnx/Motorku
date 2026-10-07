@@ -28,12 +28,13 @@ class SettingsPageTest extends TestCase
         $urls = [];
         foreach ([1, 2, 3] as $slot) {
             $response = $this->postJson('/api/settings/banners', [
-                'slot' => $slot, 'banner' => UploadedFile::fake()->image("banner-{$slot}.png", 1600, 500),
+                'slot' => $slot, 'banner' => UploadedFile::fake()->image("banner-{$slot}.png", 600, 1000),
             ])->assertOk()->assertJsonPath('slot', $slot);
             $urls[$slot] = $response->json('url');
             $path = Setting::where('group', 'store')->where('key', 'promo_banner_'.$slot)->value('value');
             $this->assertStringEndsWith('.webp', $path);
             Storage::disk('public')->assertExists($path);
+            $this->assertSame([600, 1000], array_slice(getimagesize(Storage::disk('public')->path($path)), 0, 2));
             $this->get('/')->assertInertia(fn ($page) => $page->where('promoBanners.'.$slot, $urls[$slot]));
         }
         $this->get('/')->assertInertia(fn ($page) => $page

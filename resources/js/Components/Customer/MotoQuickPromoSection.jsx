@@ -2,15 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { FiChevronLeft, FiChevronRight, FiPause, FiPlay, FiStar } from 'react-icons/fi';
 import { ProductPhoto } from './Storefront';
 
-/**
- * MotoQuickPromoSection
- *
- * Layout: Full-width dark navy background.
- * - Banner image sits on the LEFT, BEHIND product cards (absolute, z-1).
- * - Product cards use responsive sizing matching regular catalog cards.
- * - Initial spacer pushes products to the RIGHT so the banner is visible.
- * - As user scrolls left, products slide OVER the banner, and banner recedes with 3D depth.
- */
+// Banner and product cards share one horizontal scroll track.
 
 export default function MotoQuickPromoSection({
     products = [],
@@ -21,7 +13,6 @@ export default function MotoQuickPromoSection({
     renderProductCard,
 }) {
     const scrollContainerRef = useRef(null);
-    const [scrollProgress, setScrollProgress] = useState(0);
     const [canScrollLeft, setCanScrollLeft] = useState(false);
     const [canScrollRight, setCanScrollRight] = useState(true);
     const [bannerIndex, setBannerIndex] = useState(0);
@@ -43,7 +34,7 @@ export default function MotoQuickPromoSection({
     const scrollLeftStartRef = useRef(0);
     const hasDraggedRef = useRef(false);
 
-    // Reset scroll to 0 on mount so spacer/banner is visible initially
+    // Start with the banner visible.
     useEffect(() => {
         const el = scrollContainerRef.current;
         if (el) {
@@ -61,8 +52,6 @@ export default function MotoQuickPromoSection({
 
     const handleScroll = (e) => {
         const { scrollLeft, scrollWidth, clientWidth } = e.currentTarget;
-        const progress = Math.min(Math.max(scrollLeft / 160, 0), 1);
-        setScrollProgress(progress);
         setCanScrollLeft(scrollLeft > 10);
         setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
     };
@@ -94,15 +83,8 @@ export default function MotoQuickPromoSection({
         scrollContainerRef.current.scrollLeft = scrollLeftStartRef.current - walk;
     };
 
-    // 3D receding values driven by scroll progress
-    const bannerScale = 1 - scrollProgress * 0.1;
-    const bannerTranslateZ = -scrollProgress * 50;
-    const bannerBrightness = 1 - scrollProgress * 0.15;
-    const bannerOpacity = 1 - scrollProgress * 0.2;
-
     return (
-        <div className="relative mb-5 rounded-2xl sm:rounded-3xl overflow-hidden select-none"
-             style={{ perspective: '1000px' }}>
+        <div className="relative mb-5 rounded-2xl sm:rounded-3xl overflow-hidden select-none">
             {/* ══ FULL-WIDTH HEADER BLUE BACKGROUND ══ */}
             <div className="absolute inset-0 bg-[#4066AD] z-0">
                 <div className="absolute inset-0 bg-gradient-to-r from-[#4A72BC] via-[#4066AD] to-[#365799]" />
@@ -110,51 +92,6 @@ export default function MotoQuickPromoSection({
                 <div className="absolute right-0 bottom-0 h-56 w-56 rounded-full bg-blue-900/30 blur-3xl" />
                 <div className="absolute inset-0 opacity-[0.04] bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]" />
             </div>
-
-            {/* ══ BANNER IMAGE — spans left 55%, behind product cards ══ */}
-            <div
-                className="absolute left-0 top-0 bottom-0 z-[1] w-[55%] sm:w-[45%] will-change-transform overflow-hidden"
-                style={{
-                    transform: `scale(${bannerScale}) translateZ(${bannerTranslateZ}px)`,
-                    opacity: bannerOpacity,
-                    filter: `brightness(${bannerBrightness})`,
-                    transformOrigin: 'center left',
-                    transition: 'transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease, filter 0.35s ease',
-                    WebkitMaskImage: 'linear-gradient(to right, rgba(0,0,0,1) 88%, rgba(0,0,0,0) 100%)',
-                    maskImage: 'linear-gradient(to right, rgba(0,0,0,1) 88%, rgba(0,0,0,0) 100%)',
-                }}
-            >
-                {bannerUrl ? (
-                    <>
-                        <img
-                            src={bannerUrl}
-                            alt={`Banner promo ${bannerIndex + 1} dari ${bannerUrls.length}`}
-                            className="h-full w-full object-cover"
-                            loading="lazy"
-                            draggable="false"
-                        />
-                        {/* Subtle edge gradient feathering just at the cut line */}
-                        <div className="absolute inset-y-0 right-0 w-6 sm:w-8 bg-gradient-to-r from-transparent to-[#4066AD] pointer-events-none" />
-                    </>
-                ) : (
-                    <div className="h-full w-full" />
-                )}
-            </div>
-
-            {bannerUrls.length > 1 && (
-                <div role="group" aria-label="Kontrol banner promo" className="absolute bottom-1 left-2 z-20 flex items-center">
-                    {bannerUrls.map((url, index) => (
-                        <button key={index} type="button" onClick={() => setBannerIndex(index)} aria-label={`Tampilkan banner promo ${index + 1}`} aria-pressed={bannerIndex === index}
-                            className="flex h-5 w-4 items-center justify-center rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-white">
-                            <span className={`h-1 rounded-full shadow-[0_0_2px_rgba(0,0,0,0.6)] transition-all ${bannerIndex === index ? 'w-2 bg-[#FFDD00]' : 'w-1 bg-white/80'}`} />
-                        </button>
-                    ))}
-                    <button type="button" onClick={() => setBannerPaused(value => !value)} aria-label={bannerPaused ? 'Putar banner promo otomatis' : 'Jeda banner promo otomatis'}
-                        className="flex h-5 w-5 items-center justify-center rounded-full text-white drop-shadow-[0_0_2px_rgba(0,0,0,0.6)] hover:text-[#FFDD00] focus-visible:outline focus-visible:outline-2 focus-visible:outline-white">
-                        {bannerPaused ? <FiPlay size={10} aria-hidden="true" /> : <FiPause size={10} aria-hidden="true" />}
-                    </button>
-                </div>
-            )}
 
             {/* ══ Desktop Navigation Arrows ══ */}
             {canScrollLeft && (
@@ -178,9 +115,7 @@ export default function MotoQuickPromoSection({
                 </button>
             )}
 
-            {/* ══ HORIZONTAL SCROLL TRACK ══
-                 Products match regular catalog sizing (w-[calc((100%-20px)/3.25)]).
-                 As user scrolls, products slide over the banner area. */}
+            {/* Banner scrolls alongside products without covering them. */}
             <div
                 ref={scrollContainerRef}
                 onScroll={handleScroll}
@@ -196,8 +131,33 @@ export default function MotoQuickPromoSection({
                 }}
                 className="relative z-10 flex items-stretch gap-2 sm:gap-2.5 overflow-x-auto no-scrollbar scroll-smooth snap-x snap-mandatory py-2.5 sm:py-3 cursor-grab active:cursor-grabbing"
             >
-                {/* Spacer pushes products to ~center of viewport — snap-start prevents snap-mandatory from skipping it */}
-                <div className="shrink-0 w-[45%] sm:w-[35%] snap-start" aria-hidden="true" />
+                {bannerUrl && (
+                    <div className="relative shrink-0 snap-start w-[calc((100%-20px)/3.25)] sm:w-[calc((100%-24px)/3.35)] md:w-[130px] overflow-hidden">
+                        <div className={bannerUrls.length > 1 ? 'absolute inset-x-0 top-0 bottom-5' : 'absolute inset-0'}>
+                            <img
+                                src={bannerUrl}
+                                alt={`Banner promo ${bannerIndex + 1} dari ${bannerUrls.length}`}
+                                className="h-full w-full object-contain"
+                                loading="lazy"
+                                draggable="false"
+                            />
+                        </div>
+                        {bannerUrls.length > 1 && (
+                            <div role="group" aria-label="Kontrol banner promo" className="absolute bottom-1 left-2 z-20 flex items-center">
+                                {bannerUrls.map((url, index) => (
+                                    <button key={index} type="button" onClick={() => setBannerIndex(index)} aria-label={`Tampilkan banner promo ${index + 1}`} aria-pressed={bannerIndex === index}
+                                        className="flex h-5 w-4 items-center justify-center rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-white">
+                                        <span className={`h-1 rounded-full shadow-[0_0_2px_rgba(0,0,0,0.6)] transition-all ${bannerIndex === index ? 'w-2 bg-[#FFDD00]' : 'w-1 bg-white/80'}`} />
+                                    </button>
+                                ))}
+                                <button type="button" onClick={() => setBannerPaused(value => !value)} aria-label={bannerPaused ? 'Putar banner promo otomatis' : 'Jeda banner promo otomatis'}
+                                    className="flex h-5 w-5 items-center justify-center rounded-full text-white drop-shadow-[0_0_2px_rgba(0,0,0,0.6)] hover:text-[#FFDD00] focus-visible:outline focus-visible:outline-2 focus-visible:outline-white">
+                                    {bannerPaused ? <FiPlay size={10} aria-hidden="true" /> : <FiPause size={10} aria-hidden="true" />}
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                )}
 
                 {promoItems.map(item => {
                     if (renderProductCard) {
