@@ -4,6 +4,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import MotorcycleSkeleton from '@/Components/Skeletons/MotorcycleSkeleton';
 import { Head, router } from '@inertiajs/react';
 import { getProductImage } from '@/Utils/productImage';
+import { POS_CART_KEY, formatPosProduct, readPosCart, addToPosCart } from '@/Utils/posCart';
 import { ProductPhoto } from '@/Components/Customer/Storefront';
 import MotorIcon from '@/Components/MotorIcon';
 import { toast } from 'sonner';
@@ -440,6 +441,25 @@ export default function MotorcycleIndex({
         } finally {
             setSaving(false);
         }
+    };
+
+    const addPartToPosCart = product => {
+        let nextCart;
+        try {
+            nextCart = addToPosCart(readPosCart(localStorage), formatPosProduct(product));
+        } catch (error) {
+            toast.error(error.message);
+            return;
+        }
+        try {
+            localStorage.setItem(POS_CART_KEY, JSON.stringify(nextCart));
+        } catch {
+            toast.error('Keranjang POS tidak dapat disimpan. Periksa penyimpanan browser lalu coba lagi.');
+            return;
+        }
+        toast.success(`${product.name} (+1) masuk ke keranjang POS.`, {
+            action: { label: 'Buka POS', onClick: () => router.visit('/pos') },
+        });
     };
 
     // Delete motorcycle trigger (opens custom popup)
@@ -1156,7 +1176,7 @@ export default function MotorcycleIndex({
                                                 </div>
 
                                                 {/* Table Header for clear tabular scanning on md+ screens */}
-                                                <div className="hidden md:grid md:grid-cols-12 gap-3 px-4 py-2 bg-slate-100 dark:bg-slate-800 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">
+                                                <div className="hidden md:grid md:grid-cols-[repeat(11,minmax(0,1fr))_116px] gap-3 px-4 py-2 bg-slate-100 dark:bg-slate-800 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">
                                                     <div className="col-span-5">Produk Sparepart</div>
                                                     <div className="col-span-2">Kategori</div>
                                                     <div className="col-span-2 text-right">Harga Jual</div>
@@ -1190,7 +1210,7 @@ export default function MotorcycleIndex({
                                                             return (
                                                                 <div
                                                                     key={part.id}
-                                                                    className="px-2.5 sm:px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800 transition grid grid-cols-[minmax(0,1fr)_auto_auto] md:grid-cols-12 md:items-center gap-x-2 gap-y-1.5 md:gap-3 text-xs"
+                                                                    className="px-2.5 sm:px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800 transition grid grid-cols-[minmax(0,1fr)_auto_auto] md:grid-cols-[repeat(11,minmax(0,1fr))_116px] md:items-center gap-x-2 gap-y-1.5 md:gap-3 text-xs"
                                                                 >
                                                                     {/* Col 1 (5 cols): Thumbnail & Product Info */}
                                                                     <div className="col-span-3 md:col-span-5 flex items-center gap-2.5 md:gap-3 min-w-0">
@@ -1268,6 +1288,16 @@ export default function MotorcycleIndex({
 
                                                                     {/* Col 5 (1 col): Actions */}
                                                                     <div className="md:col-span-1 flex items-center justify-end gap-0.5 md:gap-1 shrink-0 -translate-y-1 md:translate-y-0">
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => addPartToPosCart(part.product)}
+                                                                            disabled={!part.product?.id || stock <= 0 || part.product.is_available === false}
+                                                                            className="p-1.5 rounded-md bg-accentYellow text-primaryDark hover:bg-yellow-300 transition cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
+                                                                            title={stock <= 0 ? 'Stok habis' : part.product?.is_available === false ? 'Produk nonaktif di POS' : 'Tambah 1 ke keranjang POS'}
+                                                                            aria-label={`Tambahkan ${part.product?.name || 'produk'} ke keranjang POS`}
+                                                                        >
+                                                                            <FiPlus size={14} strokeWidth={2.5} />
+                                                                        </button>
                                                                         <button
                                                                             onClick={() => togglePartRecommendation(m.id, part)}
                                                                             className={`p-1.5 rounded-md transition cursor-pointer ${

@@ -9,7 +9,7 @@ export default function MotorcycleSkeleton({ rows = 6 }) {
             {Array.from({ length: rows }).map((_, i) => (
                 <div
                     key={i}
-                    className="grid grid-cols-[minmax(0,1fr)_auto_auto] md:grid-cols-12 gap-x-2 gap-y-1.5 md:gap-3 md:items-center py-2.5 px-2.5 sm:px-4 bg-white dark:bg-slate-900"
+                    className="grid grid-cols-[minmax(0,1fr)_auto_auto] md:grid-cols-[repeat(11,minmax(0,1fr))_116px] gap-x-2 gap-y-1.5 md:gap-3 md:items-center py-2.5 px-2.5 sm:px-4 bg-white dark:bg-slate-900"
                 >
                     {/* Product image + name */}
                     <div className="col-span-3 md:col-span-5 flex items-center gap-2.5">
@@ -32,8 +32,8 @@ export default function MotorcycleSkeleton({ rows = 6 }) {
                         <Skeleton className="h-5 w-10 mx-auto rounded" />
                     </div>
                     {/* Action */}
-                    <div className="col-span-1 text-right">
-                        <Skeleton className="w-7 h-7 rounded-md ml-auto" />
+                    <div className="col-span-1 flex justify-end gap-1">
+                        {Array.from({ length: 4 }).map((_, index) => <Skeleton key={index} className="w-6 h-6 rounded-md" />)}
                     </div>
                 </div>
             ))}
