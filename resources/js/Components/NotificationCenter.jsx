@@ -10,7 +10,7 @@ export default function NotificationCenter({ user, roles, onActiveOrderCountChan
     const userKey = `${user.id}:${[...roles].sort().join(',')}`;
     const [open, setOpen] = useState(false);
     const [summary, setSummary] = useState(() => cachedSummary?.key === userKey ? cachedSummary.data : {});
-    const [unreadOnly, setUnreadOnly] = useState(false);
+    const [unreadOnly, setUnreadOnly] = useState(true);
     const [page, setPage] = useState(1);
     const [items, setItems] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -95,7 +95,7 @@ export default function NotificationCenter({ user, roles, onActiveOrderCountChan
     const count = Number(summary.unread_count ?? 0);
     return (
         <>
-            <button type="button" onClick={() => { setPage(1); setOpen(true); }} aria-label={count ? `Notifikasi, ${count} belum dibaca` : 'Notifikasi'} aria-haspopup="dialog" aria-expanded={open}
+            <button type="button" onClick={() => { setUnreadOnly(true); setPage(1); setOpen(true); }} aria-label={count ? `Notifikasi, ${count} belum dibaca` : 'Notifikasi'} aria-haspopup="dialog" aria-expanded={open}
                 className="relative flex shrink-0 items-center justify-center rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white">
                 <FiBell size={19} className={count ? 'text-amber-500 dark:text-amber-400' : ''} />
                 {count > 0 && <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full border border-white bg-rose-600 px-1 text-[9px] font-black text-white dark:border-slate-900">{count > 99 ? '99+' : count}</span>}
