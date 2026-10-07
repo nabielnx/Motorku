@@ -922,11 +922,13 @@ export default function MotorcycleIndex({
                                 const bCfg = getBrandConfig(m.brand);
 
                                 return (
-                                    <div key={m.id} className="transition-colors">
+                                    <div key={m.id} className={`border-2 transition-colors ${isExpanded
+                                        ? 'mx-1 my-2 rounded-xl overflow-hidden border-primary dark:border-accentYellow'
+                                        : 'border-transparent'}`}>
                                         {/* Main Motor Header Row */}
                                         <div
                                             className={`p-2.5 sm:p-3.5 cursor-pointer transition-colors ${
-                                                isExpanded ? 'bg-slate-50 dark:bg-slate-800' : 'hover:bg-slate-50 dark:hover:bg-slate-800'
+                                                isExpanded ? 'bg-primary/10 dark:bg-primary/20' : 'hover:bg-slate-50 dark:hover:bg-slate-800'
                                             }`}
                                             onClick={() => toggleExpandMotor(m.id)}
                                         >
@@ -969,6 +971,11 @@ export default function MotorcycleIndex({
                                                             <h3 className="font-bold text-sm sm:text-base text-slate-900 dark:text-white leading-tight">
                                                                 {m.model}
                                                             </h3>
+                                                            {isExpanded && (
+                                                                <span className="rounded-full bg-accentYellow px-2 py-0.5 text-[10px] font-bold text-primaryDark">
+                                                                    Dipilih
+                                                                </span>
+                                                            )}
                                                         </div>
                                                         {/* Clean Meta: Typography with improved contrast */}
                                                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium flex items-center gap-1.5 flex-wrap">
@@ -1025,6 +1032,8 @@ export default function MotorcycleIndex({
                                                                 : 'text-slate-500 dark:text-slate-300 md:bg-white dark:md:bg-slate-800 md:border-slate-200 dark:md:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-750'
                                                         }`}
                                                         title={isExpanded ? 'Sembunyikan daftar sparepart' : 'Lihat daftar sparepart kompatibel'}
+                                                        aria-expanded={isExpanded}
+                                                        aria-controls={`motor-parts-${m.id}`}
                                                     >
                                                         <span className="hidden md:inline">{isExpanded ? 'Sembunyikan Part' : 'Lihat Part'}</span>
                                                         {isExpanded ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
@@ -1035,7 +1044,7 @@ export default function MotorcycleIndex({
 
                                         {/* EXPANDED PANEL: Seamless Unified Sub-Table */}
                                         {isExpanded && (
-                                            <div className="border-t border-slate-100 sm:border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+                                            <div id={`motor-parts-${m.id}`} className="border-t border-primary/20 dark:border-accentYellow/20 bg-white dark:bg-slate-900">
                                                 {/* Unified Single-Row Control Bar */}
                                                 <div className="px-2 sm:px-4 py-1 md:py-2 bg-white md:bg-slate-50 dark:bg-slate-900 dark:md:bg-slate-800 border-b border-slate-100 md:border-slate-200 dark:border-slate-800 flex flex-wrap md:flex-nowrap items-center gap-1.5 md:gap-2">
                                                         {/* Search inside motorcycle parts */}
@@ -1247,12 +1256,6 @@ export default function MotorcycleIndex({
                                                                                 {part.product?.sku && (
                                                                                     <span className="font-mono text-[11px] text-slate-400 dark:text-slate-500 truncate shrink-0 max-w-24 sm:max-w-none">
                                                                                         {part.product.sku}
-                                                                                    </span>
-                                                                                )}
-                                                                                <span className="md:hidden truncate">{categoryLabel}</span>
-                                                                                {part.notes && (
-                                                                                    <span className="italic truncate max-w-[200px]" title={part.notes}>
-                                                                                        • {part.notes}
                                                                                     </span>
                                                                                 )}
                                                                             </div>
