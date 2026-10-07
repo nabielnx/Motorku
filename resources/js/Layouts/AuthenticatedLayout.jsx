@@ -468,10 +468,10 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                                         <img 
                                             src={'/storage/' + user.avatar} 
                                             alt={user.name} 
-                                            className="w-10 h-10 rounded-lg border-2 border-slate-300 dark:border-slate-700 object-cover shadow-xs"
+                                            className="w-10 h-10 shrink-0 rounded-full border-2 border-slate-300 dark:border-slate-700 object-cover shadow-xs"
                                         />
                                     ) : (
-                                        <div className="w-10 h-10 rounded-lg bg-primary text-white font-black text-sm flex items-center justify-center border-2 border-primaryDark shadow-xs">
+                                        <div className="w-10 h-10 shrink-0 rounded-full bg-primary text-white font-black text-sm flex items-center justify-center border-2 border-primaryDark shadow-xs">
                                             {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
                                         </div>
                                     )}
