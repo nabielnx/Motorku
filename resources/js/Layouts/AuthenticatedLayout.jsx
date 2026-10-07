@@ -13,6 +13,7 @@ import SettingSkeleton from '@/Components/Skeletons/SettingSkeleton';
 import MotorcyclePageSkeleton from '@/Components/Skeletons/MotorcyclePageSkeleton';
 import PosCardSkeleton from '@/Components/Skeletons/PosCardSkeleton';
 import Skeleton from '@/Components/Skeleton';
+import MotorIcon from '@/Components/MotorIcon';
 import { getNavigationDestination } from '@/Utils/navigation';
 import { 
     FiGrid, 
@@ -28,7 +29,6 @@ import {
     FiPackage,
     FiUsers,
     FiX,
-    FiMonitor,
     FiSun,
     FiMoon,
     FiBell
@@ -306,7 +306,7 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                 })),
                 {
                     name: 'Data Motor',
-                    icon: FiMonitor,
+                    icon: MotorIcon,
                     href: safeRoute('motorcycles.index', '/motorcycles'),
                     active: isItemActive('/motorcycles'),
                     roles: ['owner']

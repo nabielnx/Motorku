@@ -5,6 +5,7 @@ import MotorcycleSkeleton from '@/Components/Skeletons/MotorcycleSkeleton';
 import { Head, router } from '@inertiajs/react';
 import { getProductImage } from '@/Utils/productImage';
 import { ProductPhoto } from '@/Components/Customer/Storefront';
+import MotorIcon from '@/Components/MotorIcon';
 import { toast } from 'sonner';
 import {
     FiPlus, FiEdit2, FiTrash2, FiLink, FiX, FiSearch,
@@ -12,18 +13,6 @@ import {
     FiRefreshCw, FiBox, FiAlertCircle, FiCheckCircle,
     FiLayers, FiCheckSquare, FiSquare, FiMaximize2, FiChevronLeft, FiChevronRight
 } from 'react-icons/fi';
-
-function MotorIconPlaceholder({ size = 22, className = "" }) {
-    return (
-        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={className}>
-            <circle cx="5.5" cy="17.5" r="3.5" />
-            <circle cx="18.5" cy="17.5" r="3.5" />
-            <path d="M15 6h2l3 5.5V17" />
-            <path d="M5.5 17.5h9.5" />
-            <path d="m15 11-3-5.5H8.5L5 11.5V17" />
-        </svg>
-    );
-}
 
 function ProductThumbnail({ path, name = '', category = '', size = 'w-8 h-8' }) {
     return (
@@ -947,7 +936,7 @@ export default function MotorcycleIndex({
                                                                 </div>
                                                             </>
                                                         ) : (
-                                                            <MotorIconPlaceholder className="text-slate-400 dark:text-slate-500" size={32} />
+                                                            <MotorIcon className="text-slate-400 dark:text-slate-500" size={32} />
                                                         )}
                                                     </div>
 
@@ -1473,7 +1462,7 @@ export default function MotorcycleIndex({
                                             <label key={motor.id} className={'flex items-center gap-2.5 p-2 text-xs cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 ' + (selected ? 'bg-slate-100 dark:bg-slate-800 border-l-2 border-primary' : '')}>
                                                 <input type="checkbox" checked={selected} onChange={() => setBulkMotorIds(prev => selected ? prev.filter(id => id !== motor.id) : [...prev, motor.id])} className="w-4 h-4 shrink-0 rounded text-blue-600 border-slate-300 dark:border-slate-600" />
                                                 <div className="w-8 h-8 rounded-md bg-slate-100 dark:bg-slate-800 overflow-hidden shrink-0 flex items-center justify-center">
-                                                    {motor.image_url ? <img src={motor.image_url} alt="" className="w-full h-full object-cover" /> : <MotorIconPlaceholder size={16} className="text-slate-400" />}
+                                                    {motor.image_url ? <img src={motor.image_url} alt="" className="w-full h-full object-cover" /> : <MotorIcon size={16} className="text-slate-400" />}
                                                 </div>
                                                 <div className="min-w-0">
                                                     <p className="font-bold text-slate-900 dark:text-white truncate">{motor.brand} {motor.model}</p>
