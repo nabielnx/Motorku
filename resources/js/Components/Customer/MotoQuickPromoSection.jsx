@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { FiChevronLeft, FiChevronRight, FiStar } from 'react-icons/fi';
+import { FiChevronLeft, FiChevronRight, FiPause, FiPlay, FiStar } from 'react-icons/fi';
 import { ProductPhoto } from './Storefront';
 
 /**
@@ -14,7 +14,7 @@ import { ProductPhoto } from './Storefront';
 
 export default function MotoQuickPromoSection({
     products = [],
-    bannerUrl = null,
+    bannerUrls = [],
     onProductClick,
     bestSellerProductIds = [],
     formatRp,
@@ -24,6 +24,18 @@ export default function MotoQuickPromoSection({
     const [scrollProgress, setScrollProgress] = useState(0);
     const [canScrollLeft, setCanScrollLeft] = useState(false);
     const [canScrollRight, setCanScrollRight] = useState(true);
+    const [bannerIndex, setBannerIndex] = useState(0);
+    const [bannerPaused, setBannerPaused] = useState(() => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    const bannerUrl = bannerUrls[bannerIndex] || bannerUrls[0] || null;
+
+    useEffect(() => setBannerIndex(0), [bannerUrls]);
+    useEffect(() => {
+        if (bannerUrls.length < 2 || bannerPaused) return;
+        const timer = setInterval(() => {
+            if (!document.hidden) setBannerIndex(index => (index + 1) % bannerUrls.length);
+        }, 5000);
+        return () => clearInterval(timer);
+    }, [bannerUrls, bannerIndex, bannerPaused]);
 
     // Mouse drag support for desktop
     const isDownRef = useRef(false);
@@ -116,7 +128,7 @@ export default function MotoQuickPromoSection({
                     <>
                         <img
                             src={bannerUrl}
-                            alt="Banner Promo"
+                            alt={`Banner promo ${bannerIndex + 1} dari ${bannerUrls.length}`}
                             className="h-full w-full object-cover"
                             loading="lazy"
                             draggable="false"
@@ -128,6 +140,21 @@ export default function MotoQuickPromoSection({
                     <div className="h-full w-full" />
                 )}
             </div>
+
+            {bannerUrls.length > 1 && (
+                <div role="group" aria-label="Kontrol banner promo" className="absolute bottom-1 left-2 z-20 flex items-center">
+                    {bannerUrls.map((url, index) => (
+                        <button key={index} type="button" onClick={() => setBannerIndex(index)} aria-label={`Tampilkan banner promo ${index + 1}`} aria-pressed={bannerIndex === index}
+                            className="flex h-5 w-4 items-center justify-center rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-white">
+                            <span className={`h-1 rounded-full shadow-[0_0_2px_rgba(0,0,0,0.6)] transition-all ${bannerIndex === index ? 'w-2 bg-[#FFDD00]' : 'w-1 bg-white/80'}`} />
+                        </button>
+                    ))}
+                    <button type="button" onClick={() => setBannerPaused(value => !value)} aria-label={bannerPaused ? 'Putar banner promo otomatis' : 'Jeda banner promo otomatis'}
+                        className="flex h-5 w-5 items-center justify-center rounded-full text-white drop-shadow-[0_0_2px_rgba(0,0,0,0.6)] hover:text-[#FFDD00] focus-visible:outline focus-visible:outline-2 focus-visible:outline-white">
+                        {bannerPaused ? <FiPlay size={10} aria-hidden="true" /> : <FiPause size={10} aria-hidden="true" />}
+                    </button>
+                </div>
+            )}
 
             {/* ══ Desktop Navigation Arrows ══ */}
             {canScrollLeft && (

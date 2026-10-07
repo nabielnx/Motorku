@@ -515,7 +515,7 @@ export default function SettingIndex() {
             <p className="text-xs text-slate-400 dark:text-slate-500 italic">Banner promo dinonaktifkan. Aktifkan toggle di atas untuk mengatur banner.</p>
           ) : (
           <>
-          <p className="text-xs text-slate-500 dark:text-slate-400">Upload hingga 3 foto banner promo. Rasio ideal 16:5 (1600×500 px). {IMAGE_HELP}</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">Upload hingga 3 foto banner promo. Banner yang terisi berganti otomatis setiap 5 detik di katalog pelanggan. Rasio ideal 16:5 (1600×500 px). {IMAGE_HELP}</p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {[1, 2, 3].map(slot => {
               const b = banners[slot] || {};
