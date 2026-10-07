@@ -14,6 +14,8 @@ import SettingSkeleton from '@/Components/Skeletons/SettingSkeleton';
 import MotorcyclePageSkeleton from '@/Components/Skeletons/MotorcyclePageSkeleton';
 import PosCardSkeleton from '@/Components/Skeletons/PosCardSkeleton';
 import Skeleton from '@/Components/Skeleton';
+import MotorIcon from '@/Components/MotorIcon';
+import { getNavigationDestination } from '@/Utils/navigation';
 import { 
     FiGrid, 
     FiCoffee, 
@@ -28,13 +30,21 @@ import {
     FiPackage,
     FiUsers,
     FiX,
-    FiMonitor,
     FiSun,
     FiMoon
 } from 'react-icons/fi';
 
-function getDestinationInfo(path, locale = 'id') {
-    if (!path) return null;
+const catalogGroups = [
+    ['automotive', 'Otomotif'],
+    ['electronics', 'Elektronik'],
+    ['hardware', 'Alat Bangunan'],
+    ['bicycle', 'Sepeda'],
+];
+
+function getDestinationInfo(url, locale = 'id') {
+    if (!url) return null;
+    const destination = new URL(url, 'http://localhost');
+    const path = destination.pathname;
     if (path.startsWith('/orders')) {
         return {
             title: locale === 'en' ? 'Orders List' : 'Daftar Pesanan',
@@ -50,15 +60,10 @@ function getDestinationInfo(path, locale = 'id') {
         };
     }
     if (path.startsWith('/products') || path.startsWith('/categories')) {
-        let viewMode = 'grid';
-        if (typeof window !== 'undefined') {
-            try {
-                viewMode = localStorage.getItem('product_view_mode') || 'grid';
-            } catch {}
-        }
+        const groupName = catalogGroups.find(([group]) => group === destination.searchParams.get('group'))?.[1];
         return {
-            title: locale === 'en' ? 'Product Management' : 'Manajemen Produk',
-            component: <ProductTableSkeleton fullPage={true} viewMode={viewMode} />,
+            title: groupName || (locale === 'en' ? 'Products' : 'Produk'),
+            component: <ProductTableSkeleton fullPage={true} />,
             noPadding: true,
         };
     }
@@ -141,28 +146,16 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
 
     useEffect(() => {
         const removeStart = router.on('start', (event) => {
+            if (event.detail.visit.async) return;
             try {
-                const rawUrl = event?.detail?.visit?.url;
-                let targetPath = '';
-                if (typeof rawUrl === 'string') {
-                    targetPath = new URL(rawUrl, window.location.origin).pathname;
-                } else if (rawUrl instanceof URL) {
-                    targetPath = rawUrl.pathname;
-                } else if (rawUrl?.pathname) {
-                    targetPath = rawUrl.pathname;
-                }
-
-                const currentPath = window.location.pathname;
-                if (targetPath && targetPath !== currentPath) {
-                    setNavigatingDestination(targetPath);
-                }
+                setNavigatingDestination(getNavigationDestination(event.detail.visit, window.location.href));
             } catch {
                 setNavigatingDestination(null);
             }
         });
 
-        const removeFinish = router.on('finish', () => {
-            setNavigatingDestination(null);
+        const removeFinish = router.on('finish', (event) => {
+            if (!event.detail.visit.async) setNavigatingDestination(null);
         });
 
         return () => {
@@ -229,8 +222,9 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
 
     const homeHref = hasRole('cashier') ? '/pos' : '/dashboard';
     const destInfo = getDestinationInfo(navigatingDestination, locale);
-    const activePath = navigatingDestination || url;
-    const activeCatalogGroup = new URL(activePath, 'http://localhost').searchParams.get('group');
+    const activeUrl = new URL(navigatingDestination || url, 'http://localhost');
+    const activePath = activeUrl.pathname;
+    const activeCatalogGroup = activeUrl.searchParams.get('group');
 
     const isItemActive = (itemHref) => {
         if (!itemHref) return false;
@@ -278,12 +272,7 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                     active: (isItemActive('/products') && !activeCatalogGroup) || activePath.startsWith('/categories'),
                     roles: ['owner']
                 },
-                ...[
-                    ['automotive', 'Otomotif'],
-                    ['electronics', 'Elektronik'],
-                    ['hardware', 'Alat Bangunan'],
-                    ['bicycle', 'Sepeda'],
-                ].map(([group, name]) => ({
+                ...catalogGroups.map(([group, name]) => ({
                     name,
                     icon: FiPackage,
                     href: `${safeRoute('products.index', '/products')}?group=${group}`,
@@ -293,7 +282,7 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                 })),
                 {
                     name: 'Data Motor',
-                    icon: FiMonitor,
+                    icon: MotorIcon,
                     href: safeRoute('motorcycles.index', '/motorcycles'),
                     active: isItemActive('/motorcycles'),
                     roles: ['owner']
