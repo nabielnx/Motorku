@@ -49,6 +49,7 @@ Database: **MySQL `sparepart`**. Struktur dibaca langsung dari database lokal pa
 | `sessions` | Sesi login/browser: identitas sesi, akun, IP, user agent, payload sesi dan aktivitas terakhir. Sesi biasa tetap digunakan setelah fitur Ingat saya dihapus. |
 | `personal_access_tokens` | Token API Laravel Sanctum untuk model/akun, lengkap dengan kemampuan dan waktu kedaluwarsa. Alur admin web saat ini memakai sesi; tidak ada menu pembuatan token API pada UI. |
 | `password_reset_tokens` | Penyimpanan hash token undangan staf melalui broker Laravel `staff_invitations`. Tautan berlaku 24 jam dan sekali pakai; hanya akun `invitation_pending` dapat mengaktifkan diri. Fitur publik Lupa password tetap tidak tersedia. |
+| `notifications` | Penambahan setelah snapshot awal: notifikasi admin Laravel dengan UUID penerima, payload aktivitas, status dibaca per akun, dan timestamp. Relasi polymorphic ke `users`; penghapusan akun membersihkan riwayatnya. Alur dijelaskan di [NOTIFICATIONS.md](docs/NOTIFICATIONS.md). |
 
 ### Pengaturan dan tabel sistem Laravel
 

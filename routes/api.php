@@ -41,6 +41,7 @@ Route::middleware([...$base, 'role:owner'])->group(function () {
 Route::middleware([...$base, 'role:owner|cashier'])->group(function () {
     require __DIR__.'/order.php';
     require __DIR__.'/payment.php';
+    require __DIR__.'/notification.php';
 });
 
 // ─── 3. OWNER — Inventaris ───

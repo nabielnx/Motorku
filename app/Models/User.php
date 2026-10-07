@@ -24,6 +24,7 @@ class User extends Authenticatable implements MustVerifyEmail
     protected static function booted(): void
     {
         static::deleting(function (User $user) {
+            $user->notifications()->delete();
             $user->tokens()->delete();
             DB::table('sessions')->where('user_id', $user->id)->delete();
             Password::broker('staff_invitations')->deleteToken($user);
