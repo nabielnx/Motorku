@@ -334,6 +334,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                 ...order,
                 status: payment?.order?.order_status || order.status,
                 payment_status: 'paid',
+                payment_method: payment?.payment_method || paymentMethod,
                 paid_at: payment?.paid_at || new Date().toISOString(),
             } : order));
 
@@ -355,6 +356,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
     const pageOrders = safeOrdersList;
 
     const formatRp = (val) => `Rp ${Number(val || 0).toLocaleString('id-ID')}`;
+    const paymentMethodLabel = (method) => ({ cash: 'Tunai', qris_manual: 'QRIS', qris: 'QRIS' }[method] || method || '—');
 
     const summaryData = localSummary && Object.keys(localSummary).length > 0 ? localSummary : (summary && Object.keys(summary).length > 0 ? summary : (sharedSummary || {}));
 
@@ -499,6 +501,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                                         {display.secondary && <span className={`rounded-md px-1.5 py-0.5 text-[10px] font-bold ${display.secondary.color}`}>{display.secondary.label}</span>}
                                     </div>
                                     <div className="mt-2 flex items-center justify-end gap-2 border-t border-slate-100 dark:border-slate-800 pt-2 text-xs font-bold">
+                                        <span className="mr-auto text-slate-600 dark:text-slate-300">Metode: {paymentMethodLabel(order.payment_method)}</span>
                                         <div className="relative z-20 flex items-center gap-2">
                                             {order.payment_status === 'unpaid' && order.status !== 'cancelled' && (
                                                 <button type="button" onClick={() => openPayment(order)} className="rounded-md bg-accentYellow px-2.5 py-1.5 text-primaryDark font-bold">Konfirmasi Bayar</button>
@@ -519,15 +522,25 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
 
                     {/* Desktop data table */}
                     <div className="hidden sm:block overflow-x-auto overflow-y-auto max-h-[calc(100vh-380px)] no-scrollbar">
-                        <table className="w-full min-w-[840px] text-left border-collapse">
+                        <table className="w-full min-w-[840px] table-fixed text-left border-collapse">
+                            <colgroup>
+                                <col className="w-[21%]" />
+                                <col className="w-[16%]" />
+                                <col className="w-[8%]" />
+                                <col className="w-[15%]" />
+                                <col className="w-[14%]" />
+                                <col className="w-[13%]" />
+                                <col className="w-[13%]" />
+                            </colgroup>
                             <thead>
                                 <tr className="bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-800 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider sticky top-0 z-10">
                                     <th className="px-3.5 py-2.5">PESANAN</th>
                                     <th className="px-3.5 py-2.5">PELANGGAN</th>
-                                    <th className="px-3.5 py-2.5">ITEM</th>
-                                    <th className="px-3.5 py-2.5">TOTAL</th>
-                                    <th className="w-[150px] px-3.5 py-2.5">STATUS</th>
-                                    <th className="w-[210px] px-3.5 py-2.5">AKSI</th>
+                                    <th className="px-3.5 py-2.5 text-center">ITEM</th>
+                                    <th className="px-3.5 py-2.5 text-right">TOTAL</th>
+                                    <th className="px-3.5 py-2.5 text-center">STATUS</th>
+                                    <th className="px-3.5 py-2.5 text-center">METODE PEMBAYARAN</th>
+                                    <th className="px-3.5 py-2.5 text-center">AKSI</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-200 dark:divide-slate-800 border-b border-slate-200 dark:border-slate-800">
@@ -544,28 +557,28 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                                             </td>
 
                                             {/* PELANGGAN */}
-                                            <td className="px-3.5 py-2.5 text-xs font-bold text-slate-800 dark:text-slate-200">
+                                            <td className="break-words px-3.5 py-2.5 text-xs font-bold text-slate-800 dark:text-slate-200">
                                                 {order.customer}
                                                 {order.matching_item && <span className="mt-0.5 block truncate text-[11px] font-medium text-blue-700 dark:text-blue-300">Barang: {order.matching_item}</span>}
                                             </td>
 
                                             {/* JUMLAH ITEM */}
-                                            <td className="px-3.5 py-2.5 text-xs font-bold text-slate-700 dark:text-slate-300">{order.items} item</td>
+                                            <td className="whitespace-nowrap px-3.5 py-2.5 text-center text-xs font-bold text-slate-700 dark:text-slate-300">{order.items} item</td>
 
                                             {/* TOTAL TAGIHAN */}
-                                            <td className="px-3.5 py-2.5 font-black text-slate-900 dark:text-white text-xs">
+                                            <td className="whitespace-nowrap px-3.5 py-2.5 text-right font-black text-slate-900 dark:text-white text-xs">
                                                 {formatRp(order.total)}
                                             </td>
 
                                              {/* STATUS PESANAN */}
-                                             <td className="w-[150px] px-3.5 py-2.5">
+                                             <td className="px-3.5 py-2.5">
                                                  {(() => {
                                                      const display = getStatusDisplay(order.status, order.payment_status, Number(order.returned_amount || 0));
                                                      const PrimaryIcon = display.primary.icon;
                                                      return (
-                                                         <div className="flex items-center gap-1.5" title={display.tooltip}>
+                                                         <div className="flex flex-wrap items-center justify-center gap-1.5 text-center" title={display.tooltip}>
                                                              <span className={`inline-flex items-center gap-1 text-[11px] font-bold ${display.primary.plain ? '' : 'rounded-md px-2 py-0.5'} ${display.primary.color}`}>
-                                                                 <PrimaryIcon size={12} />
+                                                                 <PrimaryIcon size={12} className="shrink-0" />
                                                                  {display.primary.label}
                                                              </span>
                                                              {display.secondary && (
@@ -578,14 +591,18 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                                                  })()}
                                              </td>
 
+                                            {/* METODE PEMBAYARAN */}
+                                            <td className="px-3.5 py-2.5 text-center text-xs font-bold text-slate-700 dark:text-slate-300">
+                                                {paymentMethodLabel(order.payment_method)}
+                                            </td>
                                             {/* AKSI */}
-                                            <td className="w-[210px] px-3.5 py-2.5">
-                                                <div className="flex items-center gap-1.5">
+                                            <td className="px-3.5 py-2.5">
+                                                <div className="flex flex-wrap items-center justify-center gap-1">
                                                     {/* Highlighted Konfirmasi Pembayaran Button for Unpaid Orders */}
                                                     {order.payment_status === 'unpaid' && order.status !== 'cancelled' && (
                                                         <button
                                                             onClick={() => openPayment(order)}
-                                                            className="px-2.5 py-1 text-[11px] font-extrabold text-primaryDark bg-accentYellow hover:bg-yellow-300 active:scale-95 shadow-2xs rounded-lg border border-accentYellow transition-all cursor-pointer shrink-0"
+                                                            className="max-w-full px-2.5 py-1 text-[11px] font-extrabold text-primaryDark bg-accentYellow hover:bg-yellow-300 active:scale-95 shadow-2xs rounded-lg border border-accentYellow transition-all cursor-pointer"
                                                             title="Konfirmasi Pembayaran Kasir"
                                                         >
                                                             Konfirmasi Bayar
@@ -629,7 +646,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                                 })}
                                 {pageOrders.length === 0 && (
                                     <tr>
-                                        <td colSpan={6} className="px-5 py-12 text-center text-sm text-slate-400 dark:text-slate-500 font-semibold">
+                                        <td colSpan={7} className="px-5 py-12 text-center text-sm text-slate-400 dark:text-slate-500 font-semibold">
                                             {statusFilter === 'action' ? 'Belum ada pesanan yang perlu ditangani.' : 'Tidak ada transaksi yang sesuai.'}
                                         </td>
                                     </tr>

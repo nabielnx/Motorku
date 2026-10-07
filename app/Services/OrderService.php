@@ -115,6 +115,9 @@ class OrderService
         return $query->paginate(10)
             ->withQueryString()
             ->through(function ($order) use ($search) {
+                $paidPayment = $order->payments->where('status', 'paid')->sortByDesc('paid_at')->first();
+                $payment = $paidPayment ?? $order->payments->where('status', 'pending')->sortByDesc('created_at')->first();
+
                 return [
                     'id' => $order->order_number ?: substr($order->id, 0, 8),
                     'real_id' => $order->id,
@@ -133,11 +136,9 @@ class OrderService
                     'total' => (float) $order->total,
                     'status' => $order->order_status,
                     'payment_status' => $order->payment_status,
+                    'payment_method' => $payment?->payment_method,
                     'returned_amount' => (float) ($order->returns_sum_amount ?? 0),
-                    'paid_at' => $order->payments
-                        ->where('status', 'paid')
-                        ->sortByDesc('paid_at')
-                        ->first()?->paid_at?->toIso8601String(),
+                    'paid_at' => $paidPayment?->paid_at?->toIso8601String(),
                     'created_at' => $order->created_at?->toIso8601String(),
                     'time' => $order->created_at ? $order->created_at->timezone(config('app.timezone'))->format('H:i') : '-',
                     'date' => $order->created_at ? $order->created_at->timezone(config('app.timezone'))->format('d M Y') : '-',
