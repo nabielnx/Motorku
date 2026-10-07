@@ -28,7 +28,7 @@ class CreateOwner extends Command
             return self::FAILURE;
         }
         $data = [
-            'name' => $this->option('name'), 'email' => $this->argument('email'), 'role' => 'owner',
+            'name' => $this->option('name'), 'email' => strtolower(trim($this->argument('email'))), 'role' => 'owner',
             'password' => $this->secret('Password owner'),
             'password_confirmation' => $this->secret('Ulangi password'),
         ];
@@ -46,6 +46,7 @@ class CreateOwner extends Command
         }
         $users->createEmployee($data);
         $this->info('Owner berhasil dibuat.');
+        $this->info('Masuk dan kirim email verifikasi untuk mengaktifkan akses toko.');
 
         return self::SUCCESS;
     }

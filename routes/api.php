@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/user', fn (Request $request) => $request->user())
-    ->middleware('auth:sanctum');
+    ->middleware(['auth:sanctum', 'verified']);
 
 // ─── PUBLIC: Customer QR Self-Order (no auth, no CSRF) ───
 Route::post('/customer/order', [CustomerMenuController::class, 'storeOrder'])
@@ -19,7 +19,7 @@ Route::post('/customer/order/{orderId}/cancel', [CustomerMenuController::class, 
     ->middleware('throttle:60,1')
     ->name('api.customer.order.cancel');
 
-$base = ['web', 'auth'];
+$base = ['web', 'auth', 'verified'];
 
 Route::middleware([...$base, 'role:owner|cashier'])
     ->get('/settings/qris-image', [SettingController::class, 'getQrisImage'])

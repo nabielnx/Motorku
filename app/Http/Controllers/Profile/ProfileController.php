@@ -36,18 +36,7 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $user = $request->user();
-        $validated = $request->validated();
-
-        unset($validated['avatar']);
-
-        $user->fill($validated);
-
-        if ($user->isDirty('email')) {
-            $user->email_verified_at = null;
-        }
-
-        $user->save();
+        app(UserService::class)->updateProfile($request->user(), $request->safe()->only(['name', 'email']));
 
         return Redirect::route('profile.edit');
     }

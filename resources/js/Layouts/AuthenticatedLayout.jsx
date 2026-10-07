@@ -137,6 +137,12 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
     const locale = props.app_settings?.locale || 'id';
 
     useEffect(() => {
+        // Dialog portals also need the admin icon styling.
+        document.body.classList.add('admin-icons');
+        return () => document.body.classList.remove('admin-icons');
+    }, []);
+
+    useEffect(() => {
         const removeStart = router.on('start', (event) => {
             try {
                 const rawUrl = event?.detail?.visit?.url;
@@ -203,6 +209,7 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
     const [activeOrderCount, setActiveOrderCount] = useState(cachedActiveCount);
 
     useEffect(() => {
+        if (!user.email_verified_at) return;
         const controller = new AbortController();
         let fetching = false;
         const fetchCount = async () => {
@@ -220,7 +227,7 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
         fetchCount();
         const timer = setInterval(fetchCount, 10000);
         return () => { controller.abort(); clearInterval(timer); };
-    }, []);
+    }, [user.email_verified_at]);
 
 
     useEffect(() => {

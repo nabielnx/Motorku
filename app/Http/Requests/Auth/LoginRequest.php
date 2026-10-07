@@ -59,7 +59,23 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        if (Auth::user()->invitation_pending) {
+            Auth::logout();
+            RateLimiter::hit($this->throttleKey());
+
+            throw ValidationException::withMessages([
+                'email' => 'Aktifkan akun melalui tautan undangan sebelum masuk.',
+            ]);
+        }
+
         RateLimiter::clear($this->throttleKey());
+    }
+
+    protected function prepareForValidation(): void
+    {
+        if (is_string($this->input('email'))) {
+            $this->merge(['email' => strtolower(trim($this->input('email')))]);
+        }
     }
 
     /**

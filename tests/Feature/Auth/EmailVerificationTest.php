@@ -3,6 +3,7 @@
 namespace Tests\Feature\Auth;
 
 use App\Models\User;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
@@ -24,7 +25,9 @@ class EmailVerificationTest extends TestCase
 
     public function test_email_can_be_verified(): void
     {
+        $this->seed(RoleSeeder::class);
         $user = User::factory()->unverified()->create();
+        $user->assignRole('owner');
 
         Event::fake();
 
@@ -54,5 +57,18 @@ class EmailVerificationTest extends TestCase
         $this->actingAs($user)->get($verificationUrl);
 
         $this->assertFalse($user->fresh()->hasVerifiedEmail());
+    }
+
+    public function test_cashier_verification_redirects_to_pos(): void
+    {
+        $this->seed(RoleSeeder::class);
+        $user = User::factory()->unverified()->create();
+        $user->assignRole('cashier');
+        $url = URL::temporarySignedRoute('verification.verify', now()->addMinutes(60), [
+            'id' => $user->id, 'hash' => sha1($user->email),
+        ]);
+
+        $this->actingAs($user)->get($url)->assertRedirect('/pos?verified=1');
+        $this->assertTrue($user->fresh()->hasVerifiedEmail());
     }
 }
