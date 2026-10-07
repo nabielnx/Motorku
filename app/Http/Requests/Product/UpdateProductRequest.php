@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Product;
 
+use App\Services\ImageUploadService;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -24,18 +25,18 @@ class UpdateProductRequest extends FormRequest
     {
         return [
             'category_id' => ['sometimes', 'required', 'exists:categories,id'],
-            'sku' => ['sometimes', 'required', 'string', 'unique:products,sku,' . $this->route('id'), 'max:255'],
+            'sku' => ['sometimes', 'required', 'string', 'unique:products,sku,'.$this->route('id'), 'max:255'],
             'name' => ['sometimes', 'required', 'string', 'max:255'],
             'brand' => ['nullable', 'string', 'max:255'],
             'barcode' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'price' => ['sometimes', 'required', 'numeric', 'min:0'],
-            'cost_price' => ['nullable', 'numeric', 'min:0'],
+            'price' => ['sometimes', 'required', 'numeric', 'min:0', 'max:9999999999999', 'regex:/^\d+$/'],
+            'cost_price' => ['nullable', 'numeric', 'min:0', 'max:9999999999999', 'regex:/^\d+$/'],
             'stock' => ['prohibited'],
             'minimum_stock' => ['nullable', 'numeric', 'min:0'],
             'unit' => ['nullable', 'string', 'max:50'],
             'rack_location' => ['nullable', 'string', 'max:255'],
-            'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
+            'image' => ImageUploadService::rules('nullable'),
             'is_available' => ['nullable', 'boolean'],
         ];
     }

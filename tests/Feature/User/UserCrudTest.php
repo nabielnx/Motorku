@@ -5,6 +5,7 @@ namespace Tests\Feature\User;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
 class UserCrudTest extends TestCase
@@ -40,15 +41,15 @@ class UserCrudTest extends TestCase
 
     public function test_owner_can_create_user_with_role(): void
     {
+        Notification::fake();
         $response = $this->actingAs($this->owner)->postJson('/api/users', [
             'name' => 'Kasir Barunya',
             'email' => 'kasirbaru@mieamour.test',
-            'password' => 'password123',
             'role' => 'cashier',
         ]);
 
         $response->assertStatus(201)
-            ->assertJsonPath('message', 'Akun pegawai berhasil didaftarkan!');
+            ->assertJsonPath('message', 'Undangan aktivasi staf berhasil dibuat dan dikirim!');
 
         $this->assertDatabaseHas('users', ['email' => 'kasirbaru@mieamour.test']);
         $createdUser = User::where('email', 'kasirbaru@mieamour.test')->first();

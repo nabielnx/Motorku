@@ -13,6 +13,9 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
+        if (! app()->environment(['local', 'testing'])) {
+            throw new \LogicException('Akun contoh hanya boleh dibuat di lingkungan local atau testing.');
+        }
         /*
         |--------------------------------------------------------------------------
         | Owner
@@ -31,8 +34,6 @@ class UserSeeder extends Seeder
         );
 
         $owner->assignRole('owner');
-
-
 
         /*
         |--------------------------------------------------------------------------
@@ -65,7 +66,6 @@ class UserSeeder extends Seeder
         );
 
         $cashier2->assignRole('cashier');
-
 
     }
 }

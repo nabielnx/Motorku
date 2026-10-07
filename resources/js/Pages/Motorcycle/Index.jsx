@@ -1,9 +1,12 @@
+import { IMAGE_ACCEPT, IMAGE_HELP, validImage } from '@/Utils/imageUpload';
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import MotorcycleSkeleton from '@/Components/Skeletons/MotorcycleSkeleton';
 import { Head, router } from '@inertiajs/react';
 import { getProductImage } from '@/Utils/productImage';
+import { POS_CART_KEY, formatPosProduct, readPosCart, addToPosCart } from '@/Utils/posCart';
 import { ProductPhoto } from '@/Components/Customer/Storefront';
+import MotorIcon from '@/Components/MotorIcon';
 import { toast } from 'sonner';
 import {
     FiPlus, FiEdit2, FiTrash2, FiLink, FiX, FiSearch,
@@ -11,18 +14,6 @@ import {
     FiRefreshCw, FiBox, FiAlertCircle, FiCheckCircle,
     FiLayers, FiCheckSquare, FiSquare, FiMaximize2, FiChevronLeft, FiChevronRight
 } from 'react-icons/fi';
-
-function MotorIconPlaceholder({ size = 22, className = "" }) {
-    return (
-        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={className}>
-            <circle cx="5.5" cy="17.5" r="3.5" />
-            <circle cx="18.5" cy="17.5" r="3.5" />
-            <path d="M15 6h2l3 5.5V17" />
-            <path d="M5.5 17.5h9.5" />
-            <path d="m15 11-3-5.5H8.5L5 11.5V17" />
-        </svg>
-    );
-}
 
 function ProductThumbnail({ path, name = '', category = '', size = 'w-8 h-8' }) {
     return (
@@ -450,6 +441,25 @@ export default function MotorcycleIndex({
         } finally {
             setSaving(false);
         }
+    };
+
+    const addPartToPosCart = product => {
+        let nextCart;
+        try {
+            nextCart = addToPosCart(readPosCart(localStorage), formatPosProduct(product));
+        } catch (error) {
+            toast.error(error.message);
+            return;
+        }
+        try {
+            localStorage.setItem(POS_CART_KEY, JSON.stringify(nextCart));
+        } catch {
+            toast.error('Keranjang POS tidak dapat disimpan. Periksa penyimpanan browser lalu coba lagi.');
+            return;
+        }
+        toast.success(`${product.name} (+1) masuk ke keranjang POS.`, {
+            action: { label: 'Buka POS', onClick: () => router.visit('/pos') },
+        });
     };
 
     // Delete motorcycle trigger (opens custom popup)
@@ -946,7 +956,7 @@ export default function MotorcycleIndex({
                                                                 </div>
                                                             </>
                                                         ) : (
-                                                            <MotorIconPlaceholder className="text-slate-400 dark:text-slate-500" size={32} />
+                                                            <MotorIcon className="text-slate-400 dark:text-slate-500" size={32} />
                                                         )}
                                                     </div>
 
@@ -1166,7 +1176,7 @@ export default function MotorcycleIndex({
                                                 </div>
 
                                                 {/* Table Header for clear tabular scanning on md+ screens */}
-                                                <div className="hidden md:grid md:grid-cols-12 gap-3 px-4 py-2 bg-slate-100 dark:bg-slate-800 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">
+                                                <div className="hidden md:grid md:grid-cols-[repeat(11,minmax(0,1fr))_116px] gap-3 px-4 py-2 bg-slate-100 dark:bg-slate-800 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">
                                                     <div className="col-span-5">Produk Sparepart</div>
                                                     <div className="col-span-2">Kategori</div>
                                                     <div className="col-span-2 text-right">Harga Jual</div>
@@ -1200,7 +1210,7 @@ export default function MotorcycleIndex({
                                                             return (
                                                                 <div
                                                                     key={part.id}
-                                                                    className="px-2.5 sm:px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800 transition grid grid-cols-[minmax(0,1fr)_auto_auto] md:grid-cols-12 md:items-center gap-x-2 gap-y-1.5 md:gap-3 text-xs"
+                                                                    className="px-2.5 sm:px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800 transition grid grid-cols-[minmax(0,1fr)_auto_auto] md:grid-cols-[repeat(11,minmax(0,1fr))_116px] md:items-center gap-x-2 gap-y-1.5 md:gap-3 text-xs"
                                                                 >
                                                                     {/* Col 1 (5 cols): Thumbnail & Product Info */}
                                                                     <div className="col-span-3 md:col-span-5 flex items-center gap-2.5 md:gap-3 min-w-0">
@@ -1278,6 +1288,16 @@ export default function MotorcycleIndex({
 
                                                                     {/* Col 5 (1 col): Actions */}
                                                                     <div className="md:col-span-1 flex items-center justify-end gap-0.5 md:gap-1 shrink-0 -translate-y-1 md:translate-y-0">
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => addPartToPosCart(part.product)}
+                                                                            disabled={!part.product?.id || stock <= 0 || part.product.is_available === false}
+                                                                            className="p-1.5 rounded-md bg-accentYellow text-primaryDark hover:bg-yellow-300 transition cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
+                                                                            title={stock <= 0 ? 'Stok habis' : part.product?.is_available === false ? 'Produk nonaktif di POS' : 'Tambah 1 ke keranjang POS'}
+                                                                            aria-label={`Tambahkan ${part.product?.name || 'produk'} ke keranjang POS`}
+                                                                        >
+                                                                            <FiPlus size={14} strokeWidth={2.5} />
+                                                                        </button>
                                                                         <button
                                                                             onClick={() => togglePartRecommendation(m.id, part)}
                                                                             className={`p-1.5 rounded-md transition cursor-pointer ${
@@ -1472,7 +1492,7 @@ export default function MotorcycleIndex({
                                             <label key={motor.id} className={'flex items-center gap-2.5 p-2 text-xs cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 ' + (selected ? 'bg-slate-100 dark:bg-slate-800 border-l-2 border-primary' : '')}>
                                                 <input type="checkbox" checked={selected} onChange={() => setBulkMotorIds(prev => selected ? prev.filter(id => id !== motor.id) : [...prev, motor.id])} className="w-4 h-4 shrink-0 rounded text-blue-600 border-slate-300 dark:border-slate-600" />
                                                 <div className="w-8 h-8 rounded-md bg-slate-100 dark:bg-slate-800 overflow-hidden shrink-0 flex items-center justify-center">
-                                                    {motor.image_url ? <img src={motor.image_url} alt="" className="w-full h-full object-cover" /> : <MotorIconPlaceholder size={16} className="text-slate-400" />}
+                                                    {motor.image_url ? <img src={motor.image_url} alt="" className="w-full h-full object-cover" /> : <MotorIcon size={16} className="text-slate-400" />}
                                                 </div>
                                                 <div className="min-w-0">
                                                     <p className="font-bold text-slate-900 dark:text-white truncate">{motor.brand} {motor.model}</p>
@@ -1739,10 +1759,11 @@ export default function MotorcycleIndex({
                                     <div className="flex-1 space-y-1.5">
                                         <input
                                             type="file"
-                                            accept="image/*"
-                                            onChange={e => setFormData({ ...formData, image_file: e.target.files[0] })}
+                                            accept={IMAGE_ACCEPT}
+                                            onChange={e => { const file = e.target.files[0]; if (validImage(file)) setFormData({ ...formData, image_file: file }); }}
                                             className="w-full text-xs text-slate-600 dark:text-slate-400 file:mr-2 file:py-1 file:px-2.5 file:rounded-md file:border-0 file:text-xs file:font-bold file:bg-slate-200 dark:file:bg-slate-700 file:text-slate-800 dark:file:text-slate-200 hover:file:bg-slate-300 cursor-pointer"
                                         />
+                                        <p className="text-xs text-slate-500">{IMAGE_HELP}</p>
                                         <input
                                             type="text"
                                             value={formData.image_url}

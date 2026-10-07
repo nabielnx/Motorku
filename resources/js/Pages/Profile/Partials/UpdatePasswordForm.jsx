@@ -1,8 +1,8 @@
 import InputError from '@/Components/InputError';
 import { Transition } from '@headlessui/react';
-import { useForm, Link } from '@inertiajs/react';
+import { useForm } from '@inertiajs/react';
 import { useRef, useState, useMemo } from 'react';
-import { FiEye, FiEyeOff, FiCheck, FiX, FiLock, FiSave, FiHelpCircle } from 'react-icons/fi';
+import { FiEye, FiEyeOff, FiCheck, FiX, FiLock, FiSave } from 'react-icons/fi';
 
 function calcStrength(password) {
     let score = 0;
@@ -87,13 +87,6 @@ export default function UpdatePasswordForm({ className = '' }) {
                         </p>
                     </div>
                 </div>
-                <Link
-                    href={route('password.request')}
-                    className="hidden sm:flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-700 dark:text-yellow-400 dark:hover:text-blue-300 transition shrink-0"
-                >
-                    <FiHelpCircle className="w-3.5 h-3.5" strokeWidth={2.5} />
-                    <span>Lupa password?</span>
-                </Link>
             </header>
 
             <form onSubmit={updatePassword} className="space-y-4">

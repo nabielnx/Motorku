@@ -1,9 +1,12 @@
+import ThermalReceipt from '@/Components/ThermalReceipt';
+import MoneyInput from '@/Components/MoneyInput';
+import { checkoutRequestId } from '@/Utils/checkout';
+import { POS_CART_KEY, MAX_POS_QTY as MAX_QTY, formatPosProduct, readPosCart, addToPosCart } from '@/Utils/posCart';
 import React, { useState, useEffect, useRef } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import Modal from '@/Components/Modal';
 import PosCardSkeleton from '@/Components/Skeletons/PosCardSkeleton';
 import { Head, router, usePage } from '@inertiajs/react';
-import { getProductImage } from '@/Utils/productImage';
 import { ProductPhoto } from '@/Components/Customer/Storefront';
 import { getVisibleCategoryIds } from '@/Utils/posCategoryFilter';
 import { fuzzyFilterProducts } from '@/Utils/fuzzySearch';
@@ -33,26 +36,11 @@ import {
 
 
 export default function POSIndex({ initialProducts = [], initialCategories = [], settings = {} }) {
+    const { auth } = usePage().props;
     // Format Products from Database or Fallback
     const formatProducts = (rawProducts) => {
         if (!rawProducts || rawProducts.length === 0) return [];
-        return rawProducts.map(p => {
-            const catName = p.category ? p.category.name : 'Sparepart';
-            return {
-                id: p.id,
-                sku: p.sku || '',
-                brand: p.brand || '',
-                rack_location: p.rack_location || '',
-                name: p.name,
-                description: p.description || '',
-                price: Number(p.price),
-                category: catName,
-                categoryId: p.category_id,
-                stock: p.stock !== undefined && p.stock !== null ? Number(p.stock) : 0,
-                image: getProductImage(p.image_path, catName),
-                motorcycles: p.motorcycles || []
-            };
-        });
+        return rawProducts.map(formatPosProduct);
     };
 
 
@@ -103,13 +91,21 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
     }, [viewMode]);
 
     // Cart State
-    const [cart, setCart] = useState(() => {
-        try { const local = localStorage.getItem('pos_cart'); return local ? JSON.parse(local) : []; } catch { return []; }
-    });
+    const [cart, setCart] = useState(() => readPosCart(localStorage));
+
+    useEffect(() => {
+        const syncCart = event => {
+            if (event.storageArea === localStorage && (event.key === POS_CART_KEY || event.key === null)) {
+                setCart(readPosCart(localStorage));
+            }
+        };
+        window.addEventListener('storage', syncCart);
+        return () => window.removeEventListener('storage', syncCart);
+    }, []);
 
     // Sync State to LocalStorage
     useEffect(() => {
-        localStorage.setItem('pos_cart', JSON.stringify(cart));
+        localStorage.setItem(POS_CART_KEY, JSON.stringify(cart));
         localStorage.setItem('pos_customer_name', customerName);
     }, [cart, customerName]);
 
@@ -174,7 +170,7 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
     const cartItemCount = cart.reduce((sum, item) => sum + item.qty, 0);
     const subtotal = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
     const taxEnabled = settings['tax.enabled'] !== 'false';
-    const taxRate = parseFloat(settings['tax.percentage'] || '10') / 100;
+    const taxRate = parseFloat(settings['tax.percentage'] || '0') / 100;
     const tax = taxEnabled ? Math.round(subtotal * taxRate) : 0;
     const total = subtotal + tax;
 
@@ -212,50 +208,19 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
         filterPredicate: categoryFilterPredicate
     });
 
-    const MAX_QTY = 200;
-    const MAX_ITEMS = 20;
-
     // Cart Handlers
     const addToCart = (item) => {
         setValidationError('');
-        if (item.stock <= 0) {
-            toast.error(`${item.name} sudah habis (Stok: 0).`);
-            return;
+        try {
+            const nextCart = addToPosCart(cart, item);
+            const msg = cart.some(product => product.id === item.id)
+                ? `+1 ${item.name} ditambahkan`
+                : `${item.name} ditambahkan ke keranjang`;
+            setCart(nextCart);
+            toast.success(msg, { duration: 1200 });
+        } catch (error) {
+            toast.error(error.message);
         }
-
-        const currentInCart = cart.find(i => i.id === item.id);
-        const currentQty = currentInCart ? currentInCart.qty : 0;
-
-        if (currentQty + 1 > item.stock) {
-            toast.error(`Stok ${item.name} tidak mencukupi (Tersedia: ${item.stock} unit, di keranjang: ${currentQty}).`);
-            return;
-        }
-
-        // Cek limit sebelum update agar toast tidak dipanggil dari dalam updater (pure fn)
-        if (currentInCart && currentInCart.qty >= MAX_QTY) {
-            toast.error(`Maksimal ${MAX_QTY} unit per item.`);
-            return;
-        }
-        if (!currentInCart && cart.length >= MAX_ITEMS) {
-            toast.error(`Maksimal ${MAX_ITEMS} jenis item per pesanan.`);
-            return;
-        }
-
-        // Toast dipanggil di sini (luar updater) agar tidak double-fire di StrictMode
-        const msg = currentInCart
-            ? `+1 ${item.name} ditambahkan`
-            : `${item.name} ditambahkan ke keranjang`;
-        toast.success(msg, { duration: 1200 });
-
-        setCart(prev => {
-            const exists = prev.find(i => i.id === item.id);
-            if (exists) {
-                if (exists.qty >= MAX_QTY) return prev;
-                return prev.map(i => i.id === item.id ? { ...i, qty: i.qty + 1 } : i);
-            }
-            if (prev.length >= MAX_ITEMS) return prev;
-            return [...prev, { ...item, qty: 1, notes: '' }];
-        });
     };
 
     const updateQty = (id, delta) => {
@@ -349,22 +314,26 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
 
         try {
             // Simpan order dan pembayaran bersama setelah kasir mengonfirmasi dana masuk.
-            const sale = await axios.post('/api/orders/pos-sale', {
+            const payload = {
                 ...buildOrderData(),
                 payment_method: paymentMethod,
                 ...(paymentMethod === 'cash'
                     ? { amount_received: Number(cashReceived) }
                     : { reference_number: qrisReference.trim() || null }),
-            });
-            const createdOrder = sale.data?.data?.order;
-            const payment = sale.data?.data?.payment;
+            };
+            const requestId = checkoutRequestId(localStorage, `pos_checkout:${auth.user.id}`, payload);
+            const sale = await axios.post('/api/orders/pos-sale', { ...payload, request_id: requestId });
+            const createdOrder = sale.data?.order;
+            const payment = sale.data?.payment;
+            if (!createdOrder?.id || !payment?.invoice_number) throw new Error('Respons transaksi tidak lengkap. Coba lagi untuk mengambil transaksi yang sama.');
             const serverTotal = Number(createdOrder?.total ?? total);
 
             setLastCreatedOrder({
                 invoice_number: payment?.invoice_number || createdOrder?.order_number || 'ORD-SUCCESS',
+                order: createdOrder,
                 total_amount: serverTotal,
-                cash_received: paymentMethod === 'cash' ? Number(cashReceived) : null,
-                change_amount: paymentMethod === 'cash' ? Math.max(0, Number(cashReceived) - serverTotal) : 0,
+                cash_received: paymentMethod === 'cash' ? Number(payment.amount_received) : null,
+                change_amount: Number(payment.change_amount),
             });
             setIsOrderComplete(true);
 
@@ -390,6 +359,7 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
     });
 
     const handleNewOrder = () => {
+        localStorage.removeItem(`pos_checkout:${auth.user.id}`);
         resetQrisFlow();
         setCart([]);
         setIsMobileCartOpen(false);
@@ -721,7 +691,7 @@ return (
 
                 {/* RIGHT SIDE: Cart & Checkout Panel */}
                 <div className={`${isMobileCartOpen ? 'flex' : 'hidden'} md:flex w-full md:w-96 lg:w-[410px] bg-white dark:bg-slate-900 border-l border-slate-300 dark:border-slate-800 flex-col min-h-0 flex-1 md:flex-none h-full overflow-hidden shrink-0 transition-colors`}>
-                    
+
                     {/* Customer & Order Settings */}
                     <div className="p-3.5 border-b border-slate-300 dark:border-slate-800 space-y-2 bg-slate-50 dark:bg-slate-800 shrink-0">
                         <div className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 font-semibold flex items-center justify-between gap-2">
@@ -830,7 +800,7 @@ return (
                             </div>
                             {taxEnabled && (
                                 <div className="flex justify-between">
-                                    <span>Pajak ({settings['tax.percentage'] || '10'}%)</span>
+                                    <span>Pajak ({settings['tax.percentage'] || '0'}%)</span>
                                     <span className="font-bold text-slate-800 dark:text-slate-200">{formatRp(tax)}</span>
                                 </div>
                             )}
@@ -972,9 +942,9 @@ return (
                                                     <span className="absolute left-3.5 text-slate-400 dark:text-slate-500 font-bold text-base select-none pointer-events-none">
                                                         Rp
                                                     </span>
-                                                    <input
+                                                    <MoneyInput
                                                         ref={cashInputRef}
-                                                        type="number"
+
                                                         placeholder="0"
                                                         value={cashReceived}
                                                         onChange={(e) => setCashReceived(e.target.value)}
@@ -1232,93 +1202,12 @@ return (
             </Modal>
 
             {/* THERMAL PRINTABLE RECEIPT TEMPLATE (Targeted by @media print) */}
-            <div id="thermal-printable-receipt" className="hidden">
-                <div className="text-center pb-2 border-b border-dashed border-black mb-2">
-                    <h2 className="font-bold text-sm uppercase tracking-wider">{settings['store.name'] || 'MOTORKU'}</h2>
-                    <p className="text-[10px]">{settings['store.name'] || 'Motorku'}</p>
-                    {settings['store.address'] && <p className="text-[9px]">{settings['store.address']}</p>}
-                    {settings['store.phone'] && <p className="text-[9px]">Telp: {settings['store.phone']}</p>}
-                </div>
+            <ThermalReceipt order={lastCreatedOrder?.order} settings={{
+                store_name: settings['store.name'], store_address: settings['store.address'],
+                store_phone: settings['store.phone'], paper_size: settings['printer.paper_size'],
+                timezone: settings['system.timezone'],
+            }} fallbackCashier={auth.user.name} />
 
-                <div className="py-1 border-b border-dashed border-black text-[10px] space-y-0.5 mb-2">
-                    <div className="flex justify-between">
-                        <span>No. Struk:</span>
-                        <span className="font-bold">{lastCreatedOrder?.invoice_number || 'ORD-POS'}</span>
-                    </div>
-                    <div className="flex justify-between">
-                        <span>Waktu:</span>
-                        <span>{new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' })}</span>
-                    </div>
-                    <div className="flex justify-between">
-                        <span>Pelanggan:</span>
-                        <span className="font-bold">{customerName || 'Walk-in Guest'}</span>
-                    </div>
-                    <div className="flex justify-between">
-                        <span>Tipe Order:</span>
-                        <span>Ambil di Toko</span>
-                    </div>
-                </div>
-
-                {/* ITEMS LIST */}
-                <div className="py-1 border-b border-dashed border-black text-[10px] mb-2">
-                    <div className="flex justify-between font-bold border-b border-black pb-0.5 mb-1">
-                        <span>Item</span>
-                        <span>Total</span>
-                    </div>
-                    {cart.map((item, idx) => (
-                        <div key={idx} className="mb-1">
-                            <div className="flex justify-between font-bold">
-                                <span>{item.name} x{item.qty}</span>
-                                <span>{formatRp(item.price * item.qty)}</span>
-                            </div>
-                            <div className="text-[9px] text-gray-600 pl-1">
-                                @ {formatRp(item.price)} {item.notes ? `(${item.notes})` : ''}
-                            </div>
-                        </div>
-                    ))}
-                </div>
-
-                {/* FINANCIAL TOTALS */}
-                <div className="py-1 border-b border-dashed border-black text-[10px] space-y-0.5 mb-2">
-                    <div className="flex justify-between">
-                        <span>Subtotal</span>
-                        <span>{formatRp(subtotal)}</span>
-                    </div>
-                    {tax > 0 && (
-                        <div className="flex justify-between">
-                            <span>Pajak ({settings['tax.percentage'] || '10'}%)</span>
-                            <span>{formatRp(tax)}</span>
-                        </div>
-                    )}
-                    <div className="flex justify-between font-bold text-[12px] pt-1 border-t border-black">
-                        <span>TOTAL TAGIHAN</span>
-                        <span>{formatRp(total)}</span>
-                    </div>
-                    <div className="flex justify-between pt-1">
-                        <span>Metode Bayar:</span>
-                        <span className="font-bold">{paymentMethodLabel}</span>
-                    </div>
-                    {paymentMethod === 'cash' && lastCreatedOrder?.cash_received != null && (
-                        <>
-                            <div className="flex justify-between">
-                                <span>Uang Diterima:</span>
-                                <span>{formatRp(lastCreatedOrder.cash_received)}</span>
-                            </div>
-                            <div className="flex justify-between font-bold">
-                                <span>Kembalian:</span>
-                                <span>{formatRp(lastCreatedOrder.change_amount)}</span>
-                            </div>
-                        </>
-                    )}
-                </div>
-
-                {/* FOOTER */}
-                <div className="pt-2 text-center text-[9px] space-y-0.5">
-                    <p className="font-bold">*** TERIMA KASIH ***</p>
-                    <p>Semoga Kendaraan Anda Makin Awet</p>
-                    <p>Simpan Struk Ini Sebagai Bukti Pembayaran</p>
-                </div>
-            </div>
         </AuthenticatedLayout>
     );
 }

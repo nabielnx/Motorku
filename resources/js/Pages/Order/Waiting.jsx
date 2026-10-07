@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import { toast } from 'sonner';
 import useForceLightTheme from '@/Utils/useForceLightTheme';
@@ -24,7 +24,10 @@ const POLL_INTERVAL = 6000;
 
 export default function WaitingConfirmation() {
     useForceLightTheme();
+    const [loaded, setLoaded] = useState(false);
     const [orderInfo, setOrderInfo] = useState(null);
+    const orderRef = useRef(orderInfo);
+    orderRef.current = orderInfo;
     const [orderStatus, setOrderStatus] = useState('pending');
     const [paymentStatus, setPaymentStatus] = useState('pending');
     const [cancelling, setCancelling] = useState(false);
@@ -72,22 +75,28 @@ export default function WaitingConfirmation() {
         try {
             const raw = localStorage.getItem(PAYMENT_KEY);
             if (!raw) { router.visit('/'); return; }
-            setOrderInfo(JSON.parse(raw));
-        } catch { router.visit('/'); }
+            const parsed = JSON.parse(raw);
+            if (!parsed?.order_id || !parsed?.customer_token) { router.visit('/order/status'); return; }
+            setOrderInfo(parsed);
+        } catch { router.visit('/'); } finally { setLoaded(true); }
     }, []);
 
     useEffect(() => {
         if (!orderInfo) return;
 
+        const controller = new AbortController();
+        let busy = false;
         const pollOrder = async () => {
+            if (busy || document.hidden || ['completed', 'cancelled'].includes(orderRef.current?.order_status)) return;
+            busy = true;
             try {
                 const res = await axios.get(`/api/customer/order/${orderInfo.order_id}/status`, {
-                    params: { customer_token: orderInfo.customer_token, t: Date.now() }
+                    params: { customer_token: orderInfo.customer_token }, signal: controller.signal
                 });
-                const d = res.data?.data;
-                if (!d?.order_status) return;
+                const d = res.data?.data ?? res.data;
+                if (!d?.order_status || controller.signal.aborted || orderRef.current?.order_status === 'cancelled') return;
                 const info = {
-                    ...orderInfo,
+                    ...orderRef.current,
                     order_status: d.order_status,
                     payment_status: d.payment_status,
                     total: d.total,
@@ -119,14 +128,14 @@ export default function WaitingConfirmation() {
                 if (d.payment_status === 'paid') { setPaymentStatus('paid'); }
                 setPaymentStatus(d.payment_status);
             } catch (err) {
-                if (err.response?.status === 404) {
+                if (!controller.signal.aborted && err.response?.status === 404) {
                     try {
                         localStorage.removeItem(PAYMENT_KEY);
                         localStorage.removeItem(CURRENT_ORDER_KEY);
                     } catch {}
                     router.visit('/');
                 }
-            }
+            } finally { busy = false; }
         };
 
         // Polling status pesanan secara berkala dengan perlindungan customer_token
@@ -134,11 +143,14 @@ export default function WaitingConfirmation() {
         const interval = setInterval(() => { pollOrder(); }, POLL_INTERVAL);
 
         return () => {
+            controller.abort();
             clearInterval(interval);
         };
-    }, [orderInfo?.order_id, orderInfo?.customer_token, paymentStatus]);
+    }, [orderInfo?.order_id, orderInfo?.customer_token]);
 
     const formatRp = (val) => `Rp ${Number(val).toLocaleString('id-ID')}`;
+
+    if (loaded && !orderInfo) return <div className="p-6 text-center">Data pesanan tidak tersedia. <Link href="/" className="text-blue-700 underline">Kembali ke katalog</Link></div>;
 
     if (!orderInfo) {
         return <WaitingSkeleton />;

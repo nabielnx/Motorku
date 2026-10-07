@@ -14,14 +14,14 @@ class GetMotorcyclePartsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'search'         => ['nullable', 'string', 'max:100'],
-            'part_category'  => ['nullable', 'string', 'max:50'],
-            'category'       => ['nullable', 'string', 'max:50'],
-            'group'          => ['nullable', 'string', 'max:50'],
+            'search' => ['nullable', 'string', 'max:100'],
+            'part_category' => ['nullable', 'string', 'max:50'],
+            'category' => ['nullable', 'string', 'max:50'],
+            'group' => ['nullable', 'string', 'max:50'],
             'is_recommended' => ['nullable'],
-            'per_page'       => ['nullable', 'integer', 'min:1', 'max:100'],
-            'page'           => ['nullable', 'integer', 'min:1'],
-            'all'            => ['nullable'],
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
+            'page' => ['nullable', 'integer', 'min:1'],
+            'all' => ['nullable'],
         ];
     }
 }

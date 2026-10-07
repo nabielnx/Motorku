@@ -26,6 +26,22 @@ class ProfileUpdateRequest extends FormRequest
                 'max:255',
                 Rule::unique(User::class)->ignore($this->user()->id),
             ],
+            'current_password' => [Rule::requiredIf($this->input('email') !== $this->user()->email), 'nullable', 'current_password:web'],
+        ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        if (is_string($this->input('email'))) {
+            $this->merge(['email' => strtolower(trim($this->input('email')))]);
+        }
+    }
+
+    public function messages(): array
+    {
+        return [
+            'current_password.required' => 'Masukkan password Anda untuk mengubah email.',
+            'current_password.current_password' => 'Password akun Anda tidak sesuai.',
         ];
     }
 }

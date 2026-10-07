@@ -20,6 +20,8 @@ import {
     FiCalendar
 } from 'react-icons/fi';
 
+const numberBadgeClass = 'relative inline-flex h-[26px] w-[26px] shrink-0 items-center justify-center overflow-hidden rounded-lg bg-primary pb-0.5 text-xs font-bold leading-none tabular-nums text-accentYellow';
+
 export default function Dashboard({ stats = {}, filters = {} }) {
 
     const [isNavigating, setIsNavigating] = useState(false);
@@ -80,6 +82,8 @@ export default function Dashboard({ stats = {}, filters = {} }) {
 
     // Real sales data from backend
     const salesData = stats.sales_data || [];
+    const [activeSale, setActiveSale] = useState(null);
+    useEffect(() => setActiveSale(null), [stats.sales_data]);
     const salesActivity = salesData.filter((day) => day.value !== 0 || day.count > 0);
     const showSalesChart = salesActivity.length > 0 && salesData.every((day) => day.value >= 0);
     const maxSalesValue = Math.max(...salesData.map(d => d.value), 0);
@@ -94,27 +98,35 @@ export default function Dashboard({ stats = {}, filters = {} }) {
 
     const [ordersPaginator, setOrdersPaginator] = useState(stats.recent_orders);
     const [isFetchingOrders, setIsFetchingOrders] = useState(false);
+    const ordersRequest = useRef(null);
+    useEffect(() => () => ordersRequest.current?.abort(), []);
     const mobileOrdersRef = useRef(null);
     const desktopOrdersRef = useRef(null);
 
     useEffect(() => {
+        ordersRequest.current?.abort();
+        setIsFetchingOrders(false);
         setOrdersPaginator(stats.recent_orders);
     }, [stats.recent_orders]);
 
     const fetchOrdersPage = async (page) => {
         if (page < 1 || page > (ordersPaginator?.last_page || 1)) return;
+        ordersRequest.current?.abort();
+        const controller = new AbortController();
+        ordersRequest.current = controller;
         setIsFetchingOrders(true);
         try {
             const response = await axios.get('/api/dashboard/recent-orders', {
-                params: { page, per_page: 15, period: currentPeriod, start_date: startDate, end_date: endDate }
+                params: { page, per_page: 15, period: currentPeriod, start_date: startDate, end_date: endDate }, signal: controller.signal
             });
+            if (controller.signal.aborted) return;
             setOrdersPaginator(response.data);
             if (mobileOrdersRef.current) mobileOrdersRef.current.scrollTop = 0;
             if (desktopOrdersRef.current) desktopOrdersRef.current.scrollTop = 0;
         } catch {
             // Keep the current page if the request fails.
         } finally {
-            setIsFetchingOrders(false);
+            if (!controller.signal.aborted) setIsFetchingOrders(false);
         }
     };
 
@@ -239,87 +251,62 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                 <div className="contents">
                     
                     {/* Left: Financial Sales Bar Chart with Y-Axis Ticks & Gridlines */}
-                    <div className="col-span-12 xl:col-span-8 order-3 h-[280px] bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-xl border border-slate-300 dark:border-slate-800 shadow-xs flex flex-col justify-between transition-colors">
-                        <div className="border-b border-slate-100 dark:border-slate-800 pb-3 mb-2">
-                            <h3 className="font-extrabold text-primaryDark dark:text-white text-base">Penjualan</h3>
+                    <div className="col-span-12 xl:col-span-8 order-3 h-[280px] min-w-0 overflow-hidden bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-800 shadow-xs flex flex-col transition-colors">
+                        <div className="flex shrink-0 items-center justify-between gap-3 bg-primary px-4 py-3 sm:px-5">
+                            <h3 className="font-bold text-white text-sm">Penjualan</h3>
+                            <p className="text-right text-[11px] leading-5 text-white/80">{stats.sales_range}</p>
                         </div>
 
-                        {!showSalesChart ? (
-                            <div className="py-5 text-sm text-slate-600 dark:text-slate-300 space-y-2">
-                                {salesActivity.length === 0
-                                    ? `Belum ada pembayaran atau retur ${periodLabel.toLowerCase()}.`
-                                    : salesActivity.map((day, index) => (
-                                        <p key={index}>{day.day}: {formatRp(day.value)} bersih, {day.count} transaksi lunas.</p>
-                                    ))}
-                            </div>
-                        ) : (
-                        /* Tetap tampil meski hanya satu hari memiliki penjualan */
-                        <div className="relative flex-1 flex flex-col justify-between pt-6">
-
-                            {/* Chart Main Plot Area (Y-Axis Labels + Gridlines & Bars) */}
-                            <div className="relative flex-1 w-full min-h-0 flex items-stretch">
-
-                                {/* Y-Axis Labels Column */}
-                                <div className="w-14 flex flex-col justify-between pointer-events-none pr-2 shrink-0 py-0">
-                                    {yAxisTicks.map((tick, i) => (
-                                        <div key={i} className="flex items-center justify-end h-0">
-                                            <span className="text-[10px] font-mono font-bold text-slate-400 dark:text-slate-500 text-right leading-none">
-                                                {formatShortRp(tick)}
-                                            </span>
-                                        </div>
-                                    ))}
-                                </div>
-
-                                {/* Gridlines + Bars Plot Canvas */}
-                                <div className="relative flex-1 h-full min-h-0">
-
-                                    {/* Horizontal Gridlines */}
-                                    <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
-                                        {yAxisTicks.map((_, i) => (
-                                            <div key={i} className="w-full border-b border-slate-200/70 dark:border-slate-800 border-dashed"></div>
+                        <div className="flex min-h-0 flex-1 flex-col p-4 sm:p-5">
+                            {!showSalesChart ? (
+                                <div className="min-h-0 flex-1 overflow-y-auto py-3 text-sm text-slate-600 dark:text-slate-300 space-y-2">
+                                    {salesActivity.length === 0
+                                        ? `Belum ada pembayaran atau retur ${periodLabel.toLowerCase()}.`
+                                        : salesActivity.map((day, index) => (
+                                            <p key={index}>{day.full_label}: {formatRp(day.value)} bersih, {day.count} transaksi lunas.</p>
                                         ))}
-                                    </div>
-
-                                    {/* Bar Columns Container (fills 100% of exact same plot canvas) */}
-                                    <div className="relative w-full h-full flex items-end justify-between gap-1 sm:gap-2 z-10">
-                                        {salesData.length > 0 ? salesData.map((data, idx) => {
-                                            const heightPct = maxSalesValue > 0 ? Math.min(Math.max((data.value / maxSalesValue) * 100, data.value > 0 ? 4 : 0), 100) : 0;
-                                            return (
-                                                <div key={idx} className="flex-1 flex flex-col justify-end h-full group relative">
-                                                    <div 
-                                                        className={`w-full max-w-[72px] mx-auto rounded-t-md transition-all duration-200 relative ${data.value > 0 ? (data.is_today ? 'bg-accentYellow group-hover:bg-yellow-400 shadow-xs' : 'bg-primary group-hover:bg-primaryDark shadow-xs') : 'bg-slate-200/60 dark:bg-slate-800'}`}
-                                                        style={{ height: `${heightPct}%` }}
-                                                    >
-                                                        {/* Hover Tooltip */}
-                                                        <div className="opacity-0 group-hover:opacity-100 absolute -top-11 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] py-1 px-2.5 rounded font-bold whitespace-nowrap transition z-30 pointer-events-none shadow-md border border-slate-700">
-                                                            {formatRp(data.value)}<br/>{data.count} Transaksi
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            );
-                                        }) : (
-                                            <div className="flex-1 flex items-center justify-center text-xs font-semibold text-slate-400">
-                                                Belum ada data penjualan {periodLabel.toLowerCase()}
+                                </div>
+                            ) : (
+                            <div className="relative min-h-0 flex-1">
+                                <div className="h-full overflow-x-auto overflow-y-hidden pt-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary" role="region" aria-label="Grafik penjualan, geser untuk melihat seluruh periode" tabIndex={0} onScroll={() => setActiveSale(null)}>
+                                    <div className="flex h-full" style={{ minWidth: `${56 + salesData.length * (currentPeriod === 'today' ? 44 : currentPeriod === 'this_year' ? 40 : 24)}px` }}>
+                                        <div className="sticky left-0 z-20 flex w-14 shrink-0 flex-col bg-white pr-2 dark:bg-slate-900" aria-hidden="true">
+                                            <div className="flex min-h-0 flex-1 flex-col justify-between">
+                                                {yAxisTicks.map((tick, i) => (
+                                                    <span key={i} className="text-right text-[10px] font-mono font-bold leading-none text-slate-400 dark:text-slate-500">{formatShortRp(tick)}</span>
+                                                ))}
                                             </div>
-                                        )}
+                                            <div className="h-7 shrink-0" />
+                                        </div>
+                                        <div className="flex min-w-0 flex-1 flex-col">
+                                            <div className="relative min-h-0 flex-1">
+                                                <div className="pointer-events-none absolute inset-0 flex flex-col justify-between" aria-hidden="true">
+                                                    {yAxisTicks.map((_, i) => <div key={i} className="w-full border-b border-dashed border-slate-200/70 dark:border-slate-800" />)}
+                                                </div>
+                                                <div className="absolute inset-0 flex items-end">
+                                                    {salesData.map((data, idx) => {
+                                                        const heightPct = maxSalesValue > 0 ? Math.min(Math.max((data.value / maxSalesValue) * 100, data.value > 0 ? 4 : 0), 100) : 0;
+                                                        return (
+                                                            <button key={idx} type="button" className="group flex h-full min-w-0 flex-1 items-end justify-center px-1 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary"
+                                                                aria-label={`${data.full_label}: ${formatRp(data.value)}, ${data.count} transaksi`}
+                                                                onMouseEnter={() => setActiveSale(data)} onMouseLeave={() => setActiveSale(null)}
+                                                                onFocus={() => setActiveSale(data)} onBlur={() => setActiveSale(null)} onClick={() => setActiveSale(data)}>
+                                                                <span aria-hidden="true" className={`w-full max-w-[72px] rounded-t-md transition-colors ${data.is_today ? 'bg-accentYellow group-hover:bg-yellow-400' : 'bg-primary group-hover:bg-primaryDark'}`} style={{ height: `${heightPct}%` }} />
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                            <div className="flex h-7 shrink-0 items-end pb-1" aria-hidden="true">
+                                                {salesData.map((data, idx) => <span key={idx} className={`min-w-0 flex-1 text-center text-[10px] sm:text-[11px] font-bold whitespace-nowrap ${data.is_today ? 'text-accentYellow' : 'text-slate-600 dark:text-slate-400'}`}>{data.label}</span>)}
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-
+                                {activeSale && <div role="status" className="pointer-events-none absolute right-0 top-0 z-30 max-w-full rounded bg-slate-900 px-2.5 py-1 text-[10px] font-bold text-white shadow-md">{activeSale.full_label}<br />{formatRp(activeSale.value)}<br />{activeSale.count} Transaksi</div>}
                             </div>
-
-                            {/* X-Axis Labels Row */}
-                            <div className="pl-14 w-full flex items-center justify-between gap-1 sm:gap-2 pt-3 shrink-0">
-                                {salesData.map((data, idx) => (
-                                    <div key={idx} className="flex-1 text-center min-w-0">
-                                        <span className={`text-[10px] sm:text-[11px] font-bold block truncate ${data.is_today ? 'text-accentYellow' : 'text-slate-600 dark:text-slate-400'}`} title={data.day}>
-                                            {data.day}
-                                        </span>
-                                    </div>
-                                ))}
-                            </div>
-
+                            )}
                         </div>
-                        )}
                     </div>
 
                     {/* Produk terlaris dan stok yang perlu dicek */}
@@ -339,8 +326,9 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                                     topSellingMenu.map((item, idx) => (
                                         <div key={idx} className="flex items-center justify-between gap-3 py-2 border-b border-slate-100 dark:border-slate-800 last:border-none">
                                             <div className="flex items-center space-x-2.5 min-w-0">
-                                                <span className={`w-5 text-xs tabular-nums shrink-0 ${Number(item.rank || idx + 1) <= 3 ? 'font-bold text-[#fceb2d]' : 'text-slate-400 dark:text-slate-500'}`}>
+                                                <span className={numberBadgeClass}>
                                                     {String(item.rank || idx + 1).padStart(2, '0')}
+                                                    <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-0.5 bg-accentYellow" />
                                                 </span>
                                                 <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 truncate">{item.name}</span>
                                             </div>
@@ -365,9 +353,15 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                                         {lowStockAlerts.length > 0 ? (
                                             lowStockAlerts.map((stock, idx) => (
                                                 <div key={idx} className="flex items-center justify-between gap-3 py-2 pr-3 border-b border-slate-100 dark:border-slate-800 last:border-none text-xs">
-                                                    <div className="min-w-0">
-                                                        <span className="font-semibold text-slate-900 dark:text-slate-100 block truncate">{stock.name}</span>
-                                                        {stock.status !== 'Critical' && <span className="text-xs text-slate-500 dark:text-slate-400">{stock.left}</span>}
+                                                    <div className="flex min-w-0 items-center gap-2.5">
+                                                        <span className={numberBadgeClass}>
+                                                            {String(idx + 1).padStart(2, '0')}
+                                                            <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-0.5 bg-accentYellow" />
+                                                        </span>
+                                                        <div className="min-w-0">
+                                                            <span className="font-semibold text-slate-900 dark:text-slate-100 block truncate">{stock.name}</span>
+                                                            {stock.status !== 'Critical' && <span className="text-xs text-slate-500 dark:text-slate-400">{stock.left}</span>}
+                                                        </div>
                                                     </div>
                                                     <span className={`font-semibold shrink-0 ${stock.status === 'Critical' ? 'text-rose-700 dark:text-rose-400' : 'text-accentYellow'}`}>
                                                         {stock.status === 'Critical' ? 'Habis' : 'Menipis'}

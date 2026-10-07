@@ -15,6 +15,19 @@ class CatalogGroupTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_grid_page_size_keeps_rows_full_and_limits_requested_size(): void
+    {
+        $category = Category::factory()->create();
+        Product::factory()->count(25)->create(['category_id' => $category->id]);
+        $service = app(ProductService::class);
+        foreach ([16, 18, 20] as $size) {
+            $page = $service->getProductsForWeb(perPage: $size);
+            $this->assertSame($size, $page->perPage());
+            $this->assertCount($size, $page->items());
+        }
+        $this->assertSame(16, $service->getProductsForWeb(perPage: 999)->perPage());
+    }
+
     public function test_group_uses_parent_category_and_keeps_the_same_product_stock(): void
     {
         $root = Category::factory()->create(['catalog_group' => 'electronics']);

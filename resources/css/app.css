@@ -6,6 +6,12 @@ html, body, #app {
     min-height: 100%;
 }
 
+@layer components {
+    .admin-icons svg[fill="none"][stroke="currentColor"] {
+        stroke-width: 2.75;
+    }
+}
+
 @layer utilities {
     .no-scrollbar::-webkit-scrollbar {
         display: none;
@@ -72,7 +78,7 @@ html, body, #app {
         position: absolute !important;
         left: 0 !important;
         top: 0 !important;
-        width: 80mm !important;
+        width: var(--receipt-width, 80mm) !important;
         max-width: 100% !important;
         padding: 4mm !important;
         margin: 0 !important;

@@ -4,7 +4,7 @@ import UserTableSkeleton from '@/Components/Skeletons/UserTableSkeleton';
 import { Head, usePage, router } from '@inertiajs/react';
 import axios from 'axios';
 import { toast } from 'sonner';
-import { FiPlus, FiEdit2, FiTrash2, FiSearch, FiShield, FiUserCheck, FiUserX, FiX, FiAlertCircle } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2, FiSearch, FiShield, FiUserCheck, FiUserX, FiX, FiAlertCircle, FiMail } from 'react-icons/fi';
 
 const ROLE_BADGES = {
     owner: { label: 'Owner', color: 'bg-primary text-white border-primary' },
@@ -19,7 +19,7 @@ const extractPaginator = (data) => {
     return { data: list, current_page: 1, last_page: 1, total: list.length, per_page: 10 };
 };
 
-export default function UserIndex({ initialUsers = {} }) {
+export default function UserIndex({ initialUsers = {}, activeOwnersCount = 0, mailDeliveryIsLocal = false }) {
     const [isNavigating, setIsNavigating] = useState(false);
 
     useEffect(() => {
@@ -48,7 +48,7 @@ export default function UserIndex({ initialUsers = {} }) {
     const [modal, setModal] = useState(null);
     const [editId, setEditId] = useState(null);
     const [userToDelete, setUserToDelete] = useState(null);
-    const [form, setForm] = useState({ name: '', email: '', password: '', role: 'cashier', is_active: true });
+    const [form, setForm] = useState({ name: '', email: '', password: '', owner_password: '', role: 'cashier', is_active: true });
     const [formError, setFormError] = useState(null);
     const [loading, setLoading] = useState(false);
 
@@ -70,10 +70,10 @@ export default function UserIndex({ initialUsers = {} }) {
         }, { preserveState: true, preserveScroll: true });
     };
 
-    const fetchUsers = () => {
+    const fetchUsers = (page = currentPage) => {
         router.get('/users', {
             search: search || undefined,
-            page: currentPage,
+            page,
             role: roleFilter === 'All' ? undefined : roleFilter
         }, { preserveState: true, preserveScroll: true });
     };
@@ -105,7 +105,6 @@ export default function UserIndex({ initialUsers = {} }) {
     }, [search]);
 
     const safeUsers = Array.isArray(users) ? users : [];
-    const activeOwnersCount = safeUsers.filter(u => u && u.is_active !== false && u.roles?.some(r => r.name === 'owner')).length;
 
     const filtered = safeUsers.filter(u => {
         if (!u) return false;
@@ -118,11 +117,15 @@ export default function UserIndex({ initialUsers = {} }) {
 
     const editingUser = editId ? safeUsers.find(u => u.id === editId) : null;
     const isSelf = editingUser && auth?.user?.id === editingUser.id;
-    const isLastActiveOwner = editingUser && editingUser.roles?.[0]?.name === 'owner' && activeOwnersCount <= 1;
+    const isUsableOwner = (user) => user?.roles?.some(role => role.name === 'owner') && user.is_active !== false && !user.invitation_pending && !!user.email_verified_at;
+    const isLastActiveOwner = isUsableOwner(editingUser) && activeOwnersCount <= 1;
+    const requiresConfirmation = (form.role === 'owner' && !editingUser?.roles?.some(role => role.name === 'owner'))
+        || !!form.password
+        || (!!editingUser && form.email.trim().toLowerCase() !== editingUser.email);
 
     const openAdd = () => {
         setEditId(null);
-        setForm({ name: '', email: '', password: '', role: 'cashier', is_active: true });
+        setForm({ name: '', email: '', password: '', owner_password: '', role: 'cashier', is_active: true });
         setFormError(null);
         setModal('form');
     };
@@ -133,6 +136,7 @@ export default function UserIndex({ initialUsers = {} }) {
             name: user.name, 
             email: user.email, 
             password: '', 
+            owner_password: '',
             role: user.roles?.[0]?.name || 'cashier',
             is_active: user.is_active !== false
         });
@@ -141,6 +145,7 @@ export default function UserIndex({ initialUsers = {} }) {
     };
 
     const handleSubmit = async () => {
+        if (loading) return;
         setFormError(null);
         if (!form.name.trim() || !form.email.trim()) {
             const errText = 'Nama dan Email wajib diisi!';
@@ -148,26 +153,26 @@ export default function UserIndex({ initialUsers = {} }) {
             toast.error(errText);
             return;
         }
-        if (!editId && !form.password.trim()) {
-            const errText = 'Password wajib diisi!';
+        if (requiresConfirmation && !form.owner_password) {
+            const errText = 'Masukkan password akun Anda untuk mengonfirmasi perubahan.';
             setFormError(errText);
             toast.error(errText);
             return;
         }
         setLoading(true);
         try {
-            const payload = { ...form };
-            if (editId && !payload.password) delete payload.password;
+            const payload = { ...form, name: form.name.trim(), email: form.email.trim().toLowerCase() };
+            if (!payload.password) delete payload.password;
+            if (!requiresConfirmation) delete payload.owner_password;
             if (editId) {
-                const res = await axios.put(`/api/users/${editId}`, payload);
-                setUsers(prev => prev.map(u => u.id === editId ? res.data.data : u));
+                await axios.put(`/api/users/${editId}`, payload);
                 toast.success(`Data staf "${form.name}" berhasil diperbarui!`);
             } else {
-                const res = await axios.post('/api/users', payload);
-                setUsers(prev => [res.data.data, ...prev]);
-                toast.success(`Staf "${form.name}" (${form.role.toUpperCase()}) berhasil ditambahkan!`);
+                await axios.post('/api/users', payload);
+                toast.success(mailDeliveryIsLocal ? 'Undangan dibuat. Email aktivasi dicatat di log lokal.' : `Undangan aktivasi dikirim ke ${payload.email}.`);
             }
             setModal(null);
+            fetchUsers();
         } catch (err) {
             const errorsObj = err.response?.data?.errors;
             const firstErr = errorsObj ? (Array.isArray(Object.values(errorsObj)[0]) ? Object.values(errorsObj)[0][0] : Object.values(errorsObj)[0]) : null;
@@ -185,7 +190,7 @@ export default function UserIndex({ initialUsers = {} }) {
             toast.error('Anda tidak dapat menghapus akun Anda sendiri.');
             return;
         }
-        if (user?.roles?.[0]?.name === 'owner' && activeOwnersCount <= 1) {
+        if (isUsableOwner(user) && activeOwnersCount <= 1) {
             toast.error('Tidak dapat menghapus owner terakhir yang aktif.');
             return;
         }
@@ -199,6 +204,7 @@ export default function UserIndex({ initialUsers = {} }) {
         try {
             await axios.delete(`/api/users/${userToDelete.id}`);
             setUsers(prev => prev.filter(u => u.id !== userToDelete.id));
+            fetchUsers(users.length === 1 && currentPage > 1 ? currentPage - 1 : currentPage);
             toast.success(`Staf "${userToDelete.name}" berhasil dihapus!`);
             setModal(null);
             setUserToDelete(null);
@@ -210,6 +216,19 @@ export default function UserIndex({ initialUsers = {} }) {
             }
             const msg = err.response?.data?.message || err.response?.data?.errors?.user?.[0] || 'Gagal menghapus staff';
             toast.error(msg);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const resendInvitation = async (user) => {
+        if (loading) return;
+        setLoading(true);
+        try {
+            await axios.post(route('api.users.invitation', user.id));
+            toast.success(mailDeliveryIsLocal ? 'Undangan baru dicatat di log lokal.' : 'Undangan aktivasi dikirim ulang.');
+        } catch (err) {
+            toast.error(err.response?.data?.errors?.email?.[0] || err.response?.data?.message || 'Gagal mengirim ulang undangan.');
         } finally {
             setLoading(false);
         }
@@ -236,6 +255,10 @@ export default function UserIndex({ initialUsers = {} }) {
                         </button>
                     </div>
                 </div>
+
+                {mailDeliveryIsLocal && (
+                    <p className="text-xs text-slate-600 dark:text-slate-400">Mode lokal: email undangan dicatat di log pengembangan. Pengiriman ke inbox memerlukan layanan email.</p>
+                )}
 
                 {isNavigating ? (
                     <UserTableSkeleton />
@@ -264,7 +287,7 @@ export default function UserIndex({ initialUsers = {} }) {
                                     const roleName = user.roles?.[0]?.name || 'cashier';
                                     const badge = ROLE_BADGES[roleName] || { label: roleName, color: 'bg-slate-100 text-slate-700' };
                                     const isSelfRow = user.id === auth?.user?.id;
-                                    const isLastOwnerRow = user.roles?.[0]?.name === 'owner' && activeOwnersCount <= 1;
+                                    const isLastOwnerRow = isUsableOwner(user) && activeOwnersCount <= 1;
                                     const deleteDisabled = isSelfRow || isLastOwnerRow;
                                     const deleteTooltip = isSelfRow 
                                         ? "Anda tidak dapat menghapus akun Anda sendiri" 
@@ -305,12 +328,15 @@ export default function UserIndex({ initialUsers = {} }) {
                                             </td>
                                             <td className="py-4 px-5">
                                                 <span className={`inline-flex items-center gap-1 text-xs font-bold ${user.is_active !== false ? 'text-primaryDark dark:text-blue-300' : 'text-red-600'}`}>
-                                                    {user.is_active !== false ? <FiUserCheck size={14} /> : <FiUserX size={14} />}
-                                                    {user.is_active !== false ? 'Aktif' : 'Nonaktif'}
+                                                    {user.is_active === false ? <FiUserX size={14} /> : user.invitation_pending || !user.email_verified_at ? <FiMail size={14} /> : <FiUserCheck size={14} />}
+                                                    {user.is_active === false ? 'Nonaktif' : user.invitation_pending ? 'Menunggu aktivasi' : !user.email_verified_at ? 'Belum verifikasi' : 'Aktif'}
                                                 </span>
                                             </td>
                                             <td className="py-4 px-5 text-right">
                                                 <div className="flex items-center justify-end gap-2">
+                                                    {user.invitation_pending && user.is_active !== false && (
+                                                        <button onClick={() => resendInvitation(user)} disabled={loading} className="p-2 text-primary hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg disabled:opacity-40" title="Kirim ulang undangan" aria-label={`Kirim ulang undangan untuk ${user.name}`}><FiMail size={16} /></button>
+                                                    )}
                                                     <button onClick={() => openEdit(user)} className="p-2 text-slate-500 hover:text-primaryDark dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg cursor-pointer" title="Edit Staf"><FiEdit2 size={16} /></button>
                                                     <button 
                                                         onClick={() => confirmDelete(user.id)} 
@@ -365,10 +391,10 @@ export default function UserIndex({ initialUsers = {} }) {
 
             {modal === 'form' && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-                    <div className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white">
+                    <form onSubmit={(event) => { event.preventDefault(); handleSubmit(); }} className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto p-6 space-y-4 shadow-2xl border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white">
                         <div className="flex justify-between items-center">
                             <h3 className="font-black text-slate-800 dark:text-white">{editId ? 'Edit Data Staf' : 'Tambah Staf Baru'}</h3>
-                            <button onClick={() => setModal(null)} className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"><FiX size={18} /></button>
+                            <button type="button" onClick={() => setModal(null)} aria-label="Tutup" className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"><FiX size={18} /></button>
                         </div>
 
                         {formError && (
@@ -377,35 +403,38 @@ export default function UserIndex({ initialUsers = {} }) {
                                     <FiAlertCircle className="shrink-0 text-rose-600 dark:text-rose-400" size={16} />
                                     <span>{formError}</span>
                                 </div>
-                                <button onClick={() => setFormError(null)} className="text-rose-400 hover:text-rose-600"><FiX size={14} /></button>
+                                <button type="button" onClick={() => setFormError(null)} aria-label="Tutup pesan" className="text-rose-400 hover:text-rose-600"><FiX size={14} /></button>
                             </div>
                         )}
 
                         <div className="space-y-3">
                             <div>
-                                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">Nama Lengkap</label>
-                                <input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none" required autoComplete="off" />
+                                <label htmlFor="staff-name" className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">Nama Lengkap</label>
+                                <input id="staff-name" type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none" required autoComplete="off" />
                             </div>
                             <div>
-                                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">Email</label>
-                                <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="w-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none" required autoComplete="off" />
+                                <label htmlFor="staff-email" className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">Email</label>
+                                <input id="staff-email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="w-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none" required autoComplete="off" />
                             </div>
+                            {editingUser && !editingUser.invitation_pending ? <div>
+                                <label htmlFor="staff-password" className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">Password {editId && '(kosongkan jika tidak diubah)'}</label>
+                                <input id="staff-password" type="password" value={form.password} minLength={8} onChange={(e) => setForm({ ...form, password: e.target.value })} className="w-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none" autoComplete="new-password" />
+                                <p className="text-xs text-slate-500 mt-1">Minimal 8 karakter, dengan huruf besar, huruf kecil, angka, dan simbol.</p>
+                            </div> : <p className="text-xs text-slate-500 dark:text-slate-400">Gunakan email milik staf. Staf membuat password sendiri melalui undangan aktivasi yang berlaku selama 24 jam.</p>}
                             <div>
-                                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">Password {editId && '(kosongkan jika tidak diubah)'}</label>
-                                <input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} className="w-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none" autoComplete="new-password" />
-                            </div>
-                            <div>
-                                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">Role / Peran</label>
+                                <label htmlFor="staff-role" className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">Role / Peran</label>
                                 <select 
+                                    id="staff-role"
                                     value={form.role} 
                                     onChange={(e) => setForm({ ...form, role: e.target.value })} 
                                     disabled={isSelf || isLastActiveOwner}
                                     title={isSelf ? "Anda tidak dapat mengubah role akun Anda sendiri" : (isLastActiveOwner ? "Minimal harus ada 1 owner aktif" : "")}
                                     className={`w-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none ${isSelf || isLastActiveOwner ? 'bg-slate-100 dark:bg-slate-850 text-slate-400 cursor-not-allowed' : ''}`}
                                 >
-                                    <option value="owner">Owner</option>
                                     <option value="cashier">Kasir</option>
+                                    <option value="owner">Owner</option>
                                 </select>
+                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">{form.role === 'owner' ? 'Owner mendapat akses penuh, termasuk keuangan, pengaturan, dan pengelolaan akun lain. Toko boleh memiliki lebih dari satu owner.' : 'Kasir dapat menggunakan POS dan menangani pesanan serta pembayaran.'}</p>
                                 {isSelf && (
                                     <p className="text-[10px] text-yellow-500 dark:text-yellow-400 font-semibold mt-1">Anda tidak dapat mengubah role akun Anda sendiri.</p>
                                 )}
@@ -413,12 +442,18 @@ export default function UserIndex({ initialUsers = {} }) {
                                     <p className="text-[10px] text-yellow-500 dark:text-yellow-400 font-semibold mt-1">Minimal harus ada 1 owner aktif dalam sistem.</p>
                                 )}
                             </div>
+                            {requiresConfirmation && (
+                                <div>
+                                    <label htmlFor="owner-password" className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">Konfirmasi dengan password akun Anda</label>
+                                    <input id="owner-password" type="password" value={form.owner_password} onChange={(e) => setForm({ ...form, owner_password: e.target.value })} required autoComplete="current-password" className="w-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-primary" />
+                                </div>
+                            )}
                         </div>
                         <div className="flex gap-2 pt-2">
-                            <button onClick={() => setModal(null)} className="flex-1 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800">Batal</button>
-                            <button onClick={handleSubmit} disabled={loading} className="flex-1 py-2.5 bg-accentYellow hover:bg-yellow-300 disabled:bg-slate-300 text-primaryDark rounded-xl text-sm font-bold">{loading ? 'Menyimpan...' : 'Simpan'}</button>
+                            <button type="button" onClick={() => setModal(null)} className="flex-1 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800">Batal</button>
+                            <button type="submit" disabled={loading} className="flex-1 py-2.5 bg-accentYellow hover:bg-yellow-300 disabled:bg-slate-300 text-primaryDark rounded-xl text-sm font-bold">{loading ? 'Menyimpan...' : editId ? 'Simpan' : 'Kirim Undangan'}</button>
                         </div>
-                    </div>
+                    </form>
                 </div>
             )}
             {modal === 'delete' && (

@@ -3,8 +3,12 @@
 namespace Tests\Feature\Report;
 
 use App\Models\Order;
+use App\Models\OrderItem;
 use App\Models\Payment;
+use App\Models\Product;
 use App\Models\User;
+use App\Services\DashboardService;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -13,12 +17,13 @@ class ReportTest extends TestCase
     use RefreshDatabase;
 
     private User $owner;
+
     private User $cashier;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $this->seed(RoleSeeder::class);
 
         $this->owner = User::factory()->create();
         $this->owner->assignRole('owner');
@@ -69,7 +74,7 @@ class ReportTest extends TestCase
             'paid_at' => now(),
         ]);
 
-        $response = $this->actingAs($this->owner)->getJson('/api/reports/daily?date=' . now()->toDateString());
+        $response = $this->actingAs($this->owner)->getJson('/api/reports/daily?date='.now()->toDateString());
 
         $response->assertStatus(200)
             ->assertJsonPath('data.total_revenue', 30000)
@@ -78,24 +83,24 @@ class ReportTest extends TestCase
 
     public function test_dashboard_service_top_selling_filters_today_and_non_cancelled(): void
     {
-        $productYesterday = \App\Models\Product::factory()->create(['name' => 'Yesterday Noodle']);
-        $productCancelled = \App\Models\Product::factory()->create(['name' => 'Cancelled Noodle']);
-        $productToday = \App\Models\Product::factory()->create(['name' => 'Today Noodle']);
+        $productYesterday = Product::factory()->create(['name' => 'Yesterday Noodle']);
+        $productCancelled = Product::factory()->create(['name' => 'Cancelled Noodle']);
+        $productToday = Product::factory()->create(['name' => 'Today Noodle']);
 
         // Order 1: Yesterday order (should be ignored)
         $oldOrder = Order::factory()->create(['created_at' => now()->subDays(2), 'order_status' => 'completed', 'payment_status' => 'paid']);
-        \App\Models\OrderItem::factory()->create(['order_id' => $oldOrder->id, 'product_id' => $productYesterday->id, 'quantity' => 99]);
+        OrderItem::factory()->create(['order_id' => $oldOrder->id, 'product_id' => $productYesterday->id, 'quantity' => 99]);
 
         // Order 2: Today cancelled order (should be ignored)
         $cancelledOrder = Order::factory()->create(['created_at' => now(), 'order_status' => 'cancelled', 'payment_status' => 'unpaid']);
-        \App\Models\OrderItem::factory()->create(['order_id' => $cancelledOrder->id, 'product_id' => $productCancelled->id, 'quantity' => 50]);
+        OrderItem::factory()->create(['order_id' => $cancelledOrder->id, 'product_id' => $productCancelled->id, 'quantity' => 50]);
 
         // Order 3: Today valid order (should be counted)
         $todayOrder = Order::factory()->create(['created_at' => now(), 'order_status' => 'pending', 'payment_status' => 'paid']);
         Payment::factory()->create(['order_id' => $todayOrder->id, 'paid_at' => now()]);
-        \App\Models\OrderItem::factory()->create(['order_id' => $todayOrder->id, 'product_id' => $productToday->id, 'quantity' => 5]);
+        OrderItem::factory()->create(['order_id' => $todayOrder->id, 'product_id' => $productToday->id, 'quantity' => 5]);
 
-        $stats = app(\App\Services\DashboardService::class)->getDashboardStats('today');
+        $stats = app(DashboardService::class)->getDashboardStats('today');
         $topSelling = $stats['top_selling'];
 
         $this->assertCount(1, $topSelling);

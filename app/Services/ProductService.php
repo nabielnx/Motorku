@@ -6,17 +6,13 @@ namespace App\Services;
 
 use App\Models\OrderItem;
 use App\Models\Product;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
-use Intervention\Image\ImageManager;
-use RuntimeException;
 
 class ProductService
 {
-    public function getProductsForWeb(?string $search = null, ?string $category = null, ?string $stockStatus = null, ?string $availability = null, ?string $sort = null, ?string $group = null)
+    public function getProductsForWeb(?string $search = null, ?string $category = null, ?string $stockStatus = null, ?string $availability = null, ?string $sort = null, ?string $group = null, int $perPage = 16)
     {
         $query = Product::with('category')->inCatalogGroup($group);
 
@@ -53,7 +49,7 @@ class ProductService
             default => $query->latest(),
         };
 
-        return $query->paginate(16)->withQueryString();
+        return $query->paginate(in_array($perPage, [16, 18, 20], true) ? $perPage : 16)->withQueryString();
     }
 
     public function getAllProducts($perPage = null, $search = null, $stockStatus = null)
@@ -79,12 +75,14 @@ class ProductService
 
     public function createProduct(array $data)
     {
-        if (isset($data['image'])) {
-            $data['image_path'] = $this->storeProductImage($data['image']);
-            unset($data['image']);
+        if (! isset($data['image'])) {
+            return Product::create($data);
         }
+        $file = $data['image'];
+        unset($data['image']);
 
-        return Product::create($data);
+        return app(ImageUploadService::class)->replace($file, 'products', null,
+            fn ($path) => Product::create([...$data, 'image_path' => $path]));
     }
 
     public function getProductById($id)
@@ -95,35 +93,17 @@ class ProductService
     public function updateProduct($id, array $data)
     {
         $product = Product::findOrFail($id);
-        $oldImagePath = null;
-
+        $data['sync_version'] = $product->sync_version + 1;
         if (isset($data['image'])) {
-            $oldImagePath = $product->image_path;
-            $data['image_path'] = $this->storeProductImage($data['image']);
+            $file = $data['image'];
             unset($data['image']);
-        }
-        if (isset($product->sync_version)) {
-            $data['sync_version'] = $product->sync_version + 1;
-        }
-        $product->update($data);
-
-        if ($oldImagePath && Storage::disk('public')->exists($oldImagePath)) {
-            Storage::disk('public')->delete($oldImagePath);
+            app(ImageUploadService::class)->replace($file, 'products', $product->image_path,
+                fn ($path) => $product->update([...$data, 'image_path' => $path]));
+        } else {
+            $product->update($data);
         }
 
         return $product;
-    }
-
-    private function storeProductImage(UploadedFile $file): string
-    {
-        $path = 'products/'.Str::uuid().'.webp';
-        $image = ImageManager::gd()->read($file->getRealPath())->toWebp(quality: 82, strip: true);
-
-        if (! Storage::disk('public')->put($path, (string) $image)) {
-            throw new RuntimeException('Gagal menyimpan gambar produk.');
-        }
-
-        return $path;
     }
 
     public function deleteProduct($id)
@@ -136,7 +116,11 @@ class ProductService
                 throw ValidationException::withMessages(['product' => 'Selesaikan atau batalkan pesanan aktif yang memakai produk ini sebelum menghapusnya.']);
             }
 
-            return $product->delete();
+            $path = $product->image_path;
+            $deleted = $product->delete();
+            DB::afterCommit(fn () => $path ? Storage::disk('public')->delete($path) : null);
+
+            return $deleted;
         });
     }
 

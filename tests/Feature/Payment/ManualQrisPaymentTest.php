@@ -7,6 +7,7 @@ use App\Models\Payment;
 use App\Models\Product;
 use App\Models\Setting;
 use App\Models\User;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -19,7 +20,7 @@ class ManualQrisPaymentTest extends TestCase
 
     private function staff(string $role): User
     {
-        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $this->seed(RoleSeeder::class);
         $user = User::factory()->create();
         $user->assignRole($role);
 
@@ -90,7 +91,7 @@ class ManualQrisPaymentTest extends TestCase
     }
 
     #[Test]
-    public function paying_an_old_order_does_not_modify_legacy_gateway_records(): void
+    public function paying_an_old_order_cancels_superseded_attempt_and_preserves_its_history(): void
     {
         $cashier = $this->staff('cashier');
         $order = Order::factory()->create(['total' => 25000, 'payment_status' => 'unpaid']);
@@ -106,6 +107,7 @@ class ManualQrisPaymentTest extends TestCase
             'amount_received' => 25000,
         ])->assertCreated();
 
-        $this->assertEquals('pending', $legacy->fresh()->status);
+        $this->assertEquals('cancelled', $legacy->fresh()->status);
+        $this->assertDatabaseHas('payments', ['id' => $legacy->id, 'payment_channel' => 'doku_checkout']);
     }
 }

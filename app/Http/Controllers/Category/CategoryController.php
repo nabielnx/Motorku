@@ -5,17 +5,17 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Category;
 
 use App\Http\Controllers\Controller;
-use App\Services\CategoryService;
 use App\Http\Requests\Category\StoreCategoryRequest;
 use App\Http\Requests\Category\UpdateCategoryRequest;
 use App\Http\Resources\CategoryResource;
+use App\Models\Category;
+use App\Services\CategoryService;
 use App\Traits\ApiResponseHelpers;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\Gate;
-use App\Models\Category;
-use Illuminate\Http\RedirectResponse;
 
 class CategoryController extends Controller implements HasMiddleware
 {
@@ -41,7 +41,7 @@ class CategoryController extends Controller implements HasMiddleware
     public function index(): JsonResponse
     {
         Gate::authorize('viewAny', Category::class);
-        
+
         $categories = $this->categoryService->getAllCategories();
 
         return $this->successResponse(
@@ -53,7 +53,7 @@ class CategoryController extends Controller implements HasMiddleware
     public function store(StoreCategoryRequest $request): JsonResponse
     {
         Gate::authorize('create', Category::class);
-        
+
         $category = $this->categoryService->createCategory($request->validated());
 
         return $this->successResponse(
@@ -67,7 +67,7 @@ class CategoryController extends Controller implements HasMiddleware
     {
         $category = $this->categoryService->getCategoryById($id);
 
-        if (!$category) {
+        if (! $category) {
             return $this->errorResponse('Kategori tidak ditemukan', 404);
         }
 
@@ -80,7 +80,7 @@ class CategoryController extends Controller implements HasMiddleware
     {
         $category = $this->categoryService->getCategoryById($id);
 
-        if (!$category) {
+        if (! $category) {
             return $this->errorResponse('Kategori tidak ditemukan', 404);
         }
 
@@ -98,7 +98,7 @@ class CategoryController extends Controller implements HasMiddleware
     {
         $category = $this->categoryService->getCategoryById($id);
 
-        if (!$category) {
+        if (! $category) {
             return $this->errorResponse('Kategori tidak ditemukan', 404);
         }
 
@@ -106,6 +106,7 @@ class CategoryController extends Controller implements HasMiddleware
 
         try {
             $this->categoryService->deleteCategory($id);
+
             return $this->successResponse('Kategori berhasil dihapus!');
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 422);

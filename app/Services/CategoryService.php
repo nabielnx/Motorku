@@ -17,25 +17,31 @@ class CategoryService
 
     public function createCategory(array $data)
     {
-        $subCategories = $data['sub_categories'] ?? null;
-        unset($data['sub_categories']);
+        $category = DB::transaction(function () use ($data) {
+            $subCategories = $data['sub_categories'] ?? null;
+            unset($data['sub_categories']);
 
-        $category = Category::create($data);
+            $category = Category::create($data);
 
-        if (is_array($subCategories)) {
-            foreach ($subCategories as $sub) {
-                $subName = trim($sub['name'] ?? '');
-                if ($subName === '') {
-                    continue;
+            if (is_array($subCategories)) {
+                foreach ($subCategories as $sub) {
+                    $subName = trim($sub['name'] ?? '');
+                    if ($subName === '') {
+                        continue;
+                    }
+                    Category::create([
+                        'name' => $subName,
+                        'parent_id' => $category->id,
+                        'catalog_group' => $category->catalog_group,
+                    ]);
                 }
-                Category::create([
-                    'name' => $subName,
-                    'parent_id' => $category->id,
-                ]);
             }
-        }
 
-        return $category->fresh(['children']);
+            return $category->fresh(['children']);
+        });
+        CacheService::flushMotorcycleParts();
+
+        return $category;
     }
 
     public function getCategoryById($id)
@@ -45,13 +51,14 @@ class CategoryService
 
     public function updateCategory($id, array $data)
     {
-        return DB::transaction(function () use ($id, $data) {
-            $category = Category::findOrFail($id);
+        $category = DB::transaction(function () use ($id, $data) {
+            $category = Category::whereKey($id)->lockForUpdate()->firstOrFail();
 
             $subCategories = $data['sub_categories'] ?? null;
             unset($data['sub_categories']);
 
             $category->update($data);
+            $category->children()->update(['catalog_group' => $category->catalog_group]);
 
             if (is_array($subCategories)) {
                 $existingChildIds = $category->children()->pluck('id')->toArray();
@@ -69,11 +76,13 @@ class CategoryService
                         Category::where('id', $subId)->update([
                             'name' => $subName,
                             'parent_id' => $category->id,
+                            'catalog_group' => $category->catalog_group,
                         ]);
                     } else {
                         $newSub = Category::create([
                             'name' => $subName,
                             'parent_id' => $category->id,
+                            'catalog_group' => $category->catalog_group,
                         ]);
                         $submittedIds[] = $newSub->id;
                     }
@@ -96,16 +105,22 @@ class CategoryService
 
             return $category->fresh(['children']);
         });
+        CacheService::flushMotorcycleParts();
+
+        return $category;
     }
 
     public function deleteCategory($id)
     {
         $category = Category::findOrFail($id);
 
-        if ($category->products()->count() > 0) {
-            throw new \Exception('Tidak bisa menghapus kategori karena masih memiliki produk.');
+        if ($category->products()->exists() || $category->children()->exists()) {
+            throw ValidationException::withMessages(['category' => 'Kategori masih memiliki produk atau subkategori. Pindahkan atau hapus isinya terlebih dahulu.']);
         }
 
-        return $category->delete();
+        $deleted = $category->delete();
+        CacheService::flushMotorcycleParts();
+
+        return $deleted;
     }
 }

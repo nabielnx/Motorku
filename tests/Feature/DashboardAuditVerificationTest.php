@@ -9,6 +9,7 @@ use App\Models\Payment;
 use App\Models\Product;
 use App\Models\User;
 use App\Services\DashboardService;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
@@ -22,7 +23,7 @@ class DashboardAuditVerificationTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $this->seed(RoleSeeder::class);
 
         $this->owner = User::factory()->create();
         $this->owner->assignRole('owner');
@@ -203,10 +204,37 @@ class DashboardAuditVerificationTest extends TestCase
         $response = $this->actingAs($this->owner)->get('/dashboard');
 
         $response->assertStatus(200);
-        $response->assertInertia(fn ($page) => 
-            $page->component('Dashboard/Owner/Index')
-                 ->where('filters.period', 'today')
-                 ->has('stats.pending_orders')
+        $response->assertInertia(fn ($page) => $page->component('Dashboard/Owner/Index')
+            ->where('filters.period', 'today')
+            ->has('stats.pending_orders')
         );
+    }
+
+    public function test_chart_labels_keep_every_period_and_include_the_full_date_range(): void
+    {
+        $this->travelTo(now()->setDate(2027, 1, 5)->setTime(12, 0));
+        $service = app(DashboardService::class);
+        $monthly = $service->getDashboardStats('30_days');
+
+        $this->assertCount(30, $monthly['sales_data']);
+        $this->assertSame(now()->subDays(29)->translatedFormat('d M Y').' – '.now()->translatedFormat('d M Y'), $monthly['sales_range']);
+        foreach ($monthly['sales_data'] as $index => $day) {
+            $date = now()->subDays(29 - $index);
+            $this->assertSame($date->format('d'), $day['label']);
+            $this->assertSame($date->translatedFormat('d M Y'), $day['full_label']);
+        }
+
+        $custom = $service->getDashboardStats('custom', '2027-01-29', '2027-02-02');
+        $this->assertSame(['29', '30', '31', '01', '02'], array_column($custom['sales_data'], 'label'));
+        $this->assertSame(now()->setDate(2027, 1, 29)->translatedFormat('d M Y').' – '.now()->setDate(2027, 2, 2)->translatedFormat('d M Y'), $custom['sales_range']);
+
+        $today = $service->getDashboardStats('today');
+        $this->assertSame(now()->translatedFormat('d M Y'), $today['sales_range']);
+        $this->assertSame('08:00', $today['sales_data'][0]['label']);
+        $this->assertSame(now()->setTime(8, 0)->translatedFormat('d M Y H:00'), $today['sales_data'][0]['full_label']);
+
+        $year = $service->getDashboardStats('this_year');
+        $this->assertSame(now()->translatedFormat('M'), $year['sales_data'][0]['label']);
+        $this->assertSame(now()->translatedFormat('F Y'), $year['sales_data'][0]['full_label']);
     }
 }

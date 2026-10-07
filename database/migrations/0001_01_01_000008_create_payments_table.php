@@ -39,7 +39,7 @@ return new class extends Migration
                 'failed',
                 'expired',
                 'cancelled',
-                'refunded'
+                'refunded',
             ])->default('pending');
 
             $table->timestamp('paid_at')->nullable();

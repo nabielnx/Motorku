@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Inventory;
 
 use App\Http\Controllers\Controller;
-use App\Services\InventoryService;
 use App\Http\Requests\Inventory\StoreInventoryRequest;
+use App\Services\InventoryService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
@@ -35,6 +35,7 @@ class InventoryController extends Controller implements HasMiddleware
     {
         $perPage = $request->integer('per_page', 15);
         $logs = $this->inventoryService->getAllLogs($perPage);
+
         return response()->json($logs);
     }
 
@@ -44,7 +45,7 @@ class InventoryController extends Controller implements HasMiddleware
 
         return response()->json([
             'message' => 'Penyesuaian stok berhasil dicatat!',
-            'data' => $log
+            'data' => $log,
         ], 201);
     }
 
@@ -52,7 +53,7 @@ class InventoryController extends Controller implements HasMiddleware
     {
         $log = $this->inventoryService->getLogById($id);
 
-        if (!$log) {
+        if (! $log) {
             return response()->json(['message' => 'Data tidak ditemukan'], 404);
         }
 
@@ -62,7 +63,7 @@ class InventoryController extends Controller implements HasMiddleware
     public function destroy($id): JsonResponse
     {
         return response()->json([
-            'message' => 'Log inventori tidak dapat dihapus. Buat entri koreksi baru untuk memperbaiki stok.'
+            'message' => 'Log inventori tidak dapat dihapus. Buat entri koreksi baru untuk memperbaiki stok.',
         ], 403);
     }
 }

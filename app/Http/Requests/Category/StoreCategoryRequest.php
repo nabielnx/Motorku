@@ -34,7 +34,11 @@ class StoreCategoryRequest extends FormRequest
             ],
             'description' => ['nullable', 'string'],
             'sub_categories' => ['nullable', 'array'],
-            'sub_categories.*.name' => ['required', 'string', 'max:255'],
+            'sub_categories.*.name' => ['required', 'string', 'max:255', 'distinct:ignore_case', Rule::unique('categories', 'name'), function ($attribute, $value, $fail) {
+                if (is_string($value) && is_string($this->input('name')) && strcasecmp(trim($value), trim($this->input('name'))) === 0) {
+                    $fail('Nama subkategori harus berbeda dari kategori induk.');
+                }
+            }],
         ];
     }
 }

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import Dropdown from '@/Components/Dropdown';
+import NotificationCenter from '@/Components/NotificationCenter';
 import { Link, usePage, router } from '@inertiajs/react';
 import { toast, Toaster } from 'sonner';
 import { getTranslation } from '@/i18n/translations';
@@ -13,6 +14,8 @@ import SettingSkeleton from '@/Components/Skeletons/SettingSkeleton';
 import MotorcyclePageSkeleton from '@/Components/Skeletons/MotorcyclePageSkeleton';
 import PosCardSkeleton from '@/Components/Skeletons/PosCardSkeleton';
 import Skeleton from '@/Components/Skeleton';
+import MotorIcon from '@/Components/MotorIcon';
+import { getNavigationDestination } from '@/Utils/navigation';
 import { 
     FiGrid, 
     FiCoffee, 
@@ -20,21 +23,28 @@ import {
     FiBarChart2, 
     FiSettings, 
     FiMenu, 
-    FiHelpCircle, 
+
     FiLogOut, 
     FiClipboard,
     FiLayers,
     FiPackage,
     FiUsers,
     FiX,
-    FiMonitor,
     FiSun,
-    FiMoon,
-    FiBell
+    FiMoon
 } from 'react-icons/fi';
 
-function getDestinationInfo(path, locale = 'id') {
-    if (!path) return null;
+const catalogGroups = [
+    ['automotive', 'Otomotif'],
+    ['electronics', 'Elektronik'],
+    ['hardware', 'Alat Bangunan'],
+    ['bicycle', 'Sepeda'],
+];
+
+function getDestinationInfo(url, locale = 'id') {
+    if (!url) return null;
+    const destination = new URL(url, 'http://localhost');
+    const path = destination.pathname;
     if (path.startsWith('/orders')) {
         return {
             title: locale === 'en' ? 'Orders List' : 'Daftar Pesanan',
@@ -50,15 +60,10 @@ function getDestinationInfo(path, locale = 'id') {
         };
     }
     if (path.startsWith('/products') || path.startsWith('/categories')) {
-        let viewMode = 'grid';
-        if (typeof window !== 'undefined') {
-            try {
-                viewMode = localStorage.getItem('product_view_mode') || 'grid';
-            } catch {}
-        }
+        const groupName = catalogGroups.find(([group]) => group === destination.searchParams.get('group'))?.[1];
         return {
-            title: locale === 'en' ? 'Product Management' : 'Manajemen Produk',
-            component: <ProductTableSkeleton fullPage={true} viewMode={viewMode} />,
+            title: groupName || (locale === 'en' ? 'Products' : 'Produk'),
+            component: <ProductTableSkeleton fullPage={true} />,
             noPadding: true,
         };
     }
@@ -134,29 +139,23 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
     const locale = props.app_settings?.locale || 'id';
 
     useEffect(() => {
-        const removeStart = router.on('start', (event) => {
-            try {
-                const rawUrl = event?.detail?.visit?.url;
-                let targetPath = '';
-                if (typeof rawUrl === 'string') {
-                    targetPath = new URL(rawUrl, window.location.origin).pathname;
-                } else if (rawUrl instanceof URL) {
-                    targetPath = rawUrl.pathname;
-                } else if (rawUrl?.pathname) {
-                    targetPath = rawUrl.pathname;
-                }
+        // Dialog portals also need the admin icon styling.
+        document.body.classList.add('admin-icons');
+        return () => document.body.classList.remove('admin-icons');
+    }, []);
 
-                const currentPath = window.location.pathname;
-                if (targetPath && targetPath !== currentPath) {
-                    setNavigatingDestination(targetPath);
-                }
+    useEffect(() => {
+        const removeStart = router.on('start', (event) => {
+            if (event.detail.visit.async) return;
+            try {
+                setNavigatingDestination(getNavigationDestination(event.detail.visit, window.location.href));
             } catch {
                 setNavigatingDestination(null);
             }
         });
 
-        const removeFinish = router.on('finish', () => {
-            setNavigatingDestination(null);
+        const removeFinish = router.on('finish', (event) => {
+            if (!event.detail.visit.async) setNavigatingDestination(null);
         });
 
         return () => {
@@ -164,6 +163,8 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
             removeFinish();
         };
     }, []);
+    useEffect(() => setNavigatingDestination(null), [url]);
+
     const user = props.auth?.user || { name: 'Admin', email: 'admin@tokosparepart.com' };
     const primaryRole = props.auth?.roles?.[0] ?? null;
     const userRoles = props.auth?.roles ?? (primaryRole ? [primaryRole] : []);
@@ -197,27 +198,6 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
     // ── Pesanan yang masih perlu ditangani ──
     const [activeOrderCount, setActiveOrderCount] = useState(0);
 
-    useEffect(() => {
-        let cancelled = false;
-        let timer;
-
-        const fetchCount = async () => {
-            try {
-                const res = await window.axios.get('/api/orders/active-count');
-                if (!cancelled) setActiveOrderCount(Number(res.data?.count ?? 0));
-            } catch {
-                // Jangan ganggu UI kalau fetch gagal; biarkan nilai lama.
-            }
-        };
-
-        fetchCount();
-        timer = setInterval(fetchCount, 10000);
-        return () => {
-            cancelled = true;
-            clearInterval(timer);
-        };
-    }, []);
-
 
     useEffect(() => {
         const flash = props.flash;
@@ -242,8 +222,9 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
 
     const homeHref = hasRole('cashier') ? '/pos' : '/dashboard';
     const destInfo = getDestinationInfo(navigatingDestination, locale);
-    const activePath = navigatingDestination || url;
-    const activeCatalogGroup = new URL(activePath, 'http://localhost').searchParams.get('group');
+    const activeUrl = new URL(navigatingDestination || url, 'http://localhost');
+    const activePath = activeUrl.pathname;
+    const activeCatalogGroup = activeUrl.searchParams.get('group');
 
     const isItemActive = (itemHref) => {
         if (!itemHref) return false;
@@ -291,12 +272,7 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                     active: (isItemActive('/products') && !activeCatalogGroup) || activePath.startsWith('/categories'),
                     roles: ['owner']
                 },
-                ...[
-                    ['automotive', 'Otomotif'],
-                    ['electronics', 'Elektronik'],
-                    ['hardware', 'Alat Bangunan'],
-                    ['bicycle', 'Sepeda'],
-                ].map(([group, name]) => ({
+                ...catalogGroups.map(([group, name]) => ({
                     name,
                     icon: FiPackage,
                     href: `${safeRoute('products.index', '/products')}?group=${group}`,
@@ -306,7 +282,7 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                 })),
                 {
                     name: 'Data Motor',
-                    icon: FiMonitor,
+                    icon: MotorIcon,
                     href: safeRoute('motorcycles.index', '/motorcycles'),
                     active: isItemActive('/motorcycles'),
                     roles: ['owner']
@@ -356,7 +332,7 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
 
     return (
         <div className="h-[100dvh] w-screen overflow-hidden bg-slate-50 dark:bg-slate-950 flex font-sans antialiased text-slate-800 dark:text-slate-100 transition-colors duration-200">
-            
+
             {/* OVERLAY MOBILE */}
             {isSidebarOpen && (
                 <div 
@@ -367,7 +343,7 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
 
             {/* SIDEBAR NAVIGATION */}
             <aside className={`fixed inset-y-0 left-0 bg-white dark:bg-slate-900 w-64 border-r border-slate-200 dark:border-slate-800 z-50 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:sticky lg:top-0 lg:h-full lg:inset-auto flex flex-col ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-                
+
                 {/* Brand Logo */}
                 <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between shrink-0">
                     <Link href={homeHref} className="flex items-center gap-3">
@@ -376,7 +352,7 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                             <h1 className="text-lg font-heading font-black text-primaryDark dark:text-white tracking-tight leading-none">
                                 {props.app_settings?.store_name || 'Motorku'}
                             </h1>
-                            <p className="text-[10px] font-bold text-primary dark:text-accentYellow uppercase tracking-widest mt-1">POS & Order</p>
+                            <p className="text-[10px] font-bold text-primary dark:text-accentYellow uppercase tracking-widest mt-1 max-w-[160px] truncate" title={props.app_settings?.store_tagline ?? 'POS & ORDER'}>{props.app_settings?.store_tagline ?? 'POS & ORDER'}</p>
                         </div>
                     </Link>
 
@@ -425,13 +401,6 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
 
                 {/* Sidebar Bottom — Support, Logout & Copyright */}
                 <div className="p-3 border-t border-slate-100 dark:border-slate-800 space-y-0.5 shrink-0">
-                    <a
-                        href="#support"
-                        className="flex items-center gap-3 -mx-3 px-6 py-2 text-[13px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors"
-                    >
-                        <FiHelpCircle size={17} className="text-slate-400 dark:text-slate-500" />
-                        <span>{locale === 'en' ? 'Help & Support' : 'Bantuan & Dukungan'}</span>
-                    </a>
 
                     <Link
                         href={safeRoute('logout', '/logout')}
@@ -456,7 +425,7 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
 
             {/* MAIN CONTENT AREA */}
             <div className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden">
-                
+
                 {/* TOP HEADER */}
                 <header className="h-14 sm:h-16 bg-white dark:bg-slate-900 border-b border-slate-300 dark:border-slate-800 flex items-center justify-between px-4 sm:px-6 lg:px-8 shrink-0 z-20 transition-colors duration-200">
                     <div className="flex items-center gap-3">
@@ -466,7 +435,7 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                         >
                             <FiMenu size={22} strokeWidth={2.5} />
                         </button>
-                        
+
                         <h2 className="text-lg sm:text-xl font-heading font-black text-primaryDark dark:text-white tracking-tight">
                             {destInfo?.title || pageTitle || header || getTranslation(locale, 'dashboard', 'Dashboard')}
                         </h2>
@@ -475,21 +444,7 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                     {/* Right Action Icons */}
                     <div className="flex items-center gap-1 sm:gap-1.5">
                         {/* Notification Bell Badge */}
-                        <Link
-                            href="/orders?status=action"
-                            title={activeOrderCount > 0
-                                ? `${activeOrderCount} pesanan perlu ditangani`
-                                : 'Notifikasi Pesanan'}
-                            aria-label={activeOrderCount > 0 ? `${activeOrderCount} pesanan perlu ditangani` : 'Notifikasi Pesanan'}
-                            className="relative p-2 rounded-lg text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer flex items-center justify-center shrink-0"
-                        >
-                            <FiBell size={19} className={activeOrderCount > 0 ? 'text-amber-500 dark:text-amber-400' : ''} />
-                            {activeOrderCount > 0 && (
-                                <span className="absolute top-1 right-1 bg-rose-600 text-white text-[9px] font-black min-w-4 h-4 px-1 rounded-full flex items-center justify-center border border-white dark:border-slate-900 shadow-2xs">
-                                    {activeOrderCount > 99 ? '99+' : activeOrderCount}
-                                </span>
-                            )}
-                        </Link>
+                        <NotificationCenter user={user} roles={userRoles} onActiveOrderCountChange={setActiveOrderCount} timezone={props.app_settings?.timezone} />
 
                         {/* Dark / Light Mode Toggle Button */}
                         <button

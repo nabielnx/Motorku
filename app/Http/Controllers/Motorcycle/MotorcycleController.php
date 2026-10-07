@@ -41,14 +41,14 @@ class MotorcycleController extends Controller implements HasMiddleware
      */
     public function indexWeb(): Response
     {
-        $motorcycles    = $this->motorcycleService->getAllMotorcycles();
-        $products       = $this->motorcycleService->getAvailableProducts();
+        $motorcycles = $this->motorcycleService->getAllMotorcycles();
+        $products = $this->motorcycleService->getAvailableProducts();
         $partCategories = $this->motorcycleService->getPartCategories();
         $categoryGroups = $this->motorcycleService->getCategoryGroups();
 
         return Inertia::render('Motorcycle/Index', [
-            'motorcycles'    => $motorcycles,
-            'products'       => $products,
+            'motorcycles' => $motorcycles,
+            'products' => $products,
             'partCategories' => $partCategories,
             'categoryGroups' => $categoryGroups,
         ]);
@@ -128,7 +128,6 @@ class MotorcycleController extends Controller implements HasMiddleware
             $part = $this->motorcycleService->attachPart($id, $request->validated());
 
             CacheService::flushMotorcycles();
-            CacheService::flushCatalog();
 
             return $this->successResponse(
                 'Part berhasil di-mapping.',
@@ -148,7 +147,6 @@ class MotorcycleController extends Controller implements HasMiddleware
         $result = $this->motorcycleService->bulkAttachParts($request->validated());
 
         CacheService::flushMotorcycles();
-        CacheService::flushCatalog();
 
         $msg = "Bulk mapping selesai. {$result['attached']} sparepart berhasil di-mapping.";
         if ($result['skipped'] > 0) {
@@ -166,7 +164,6 @@ class MotorcycleController extends Controller implements HasMiddleware
         $part = $this->motorcycleService->updatePart($motorcycleId, $partId, $request->validated());
 
         CacheService::flushMotorcycles();
-        CacheService::flushCatalog();
 
         return $this->successResponse('Mapping part berhasil diperbarui.', $part);
     }
@@ -179,7 +176,6 @@ class MotorcycleController extends Controller implements HasMiddleware
         $this->motorcycleService->detachPart($motorcycleId, $partId);
 
         CacheService::flushMotorcycles();
-        CacheService::flushCatalog();
 
         return $this->successResponse('Part berhasil dihapus dari motor.');
     }

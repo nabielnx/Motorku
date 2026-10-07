@@ -4,6 +4,7 @@ namespace Tests\Feature\Inventory;
 
 use App\Models\Product;
 use App\Models\User;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -18,12 +19,10 @@ class InventoryTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $this->seed(RoleSeeder::class);
 
         $this->owner = User::factory()->create();
         $this->owner->assignRole('owner');
-
-
 
         $this->cashier = User::factory()->create();
         $this->cashier->assignRole('cashier');

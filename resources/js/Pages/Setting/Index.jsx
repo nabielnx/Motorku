@@ -1,12 +1,14 @@
+import { IMAGE_ACCEPT, IMAGE_HELP, validImage } from '@/Utils/imageUpload';
 import { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import Modal from '@/Components/Modal';
 import { Head, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import { toast } from 'sonner';
-import { FiSave, FiCheck, FiHome, FiPercent, FiCreditCard, FiPrinter, FiSmartphone, FiClock, FiSettings, FiUpload, FiClipboard, FiTrash2, FiAlertTriangle, FiLock } from 'react-icons/fi';
+import { FiSave, FiCheck, FiHome, FiPercent, FiCreditCard, FiPrinter, FiSmartphone, FiClock, FiSettings, FiUpload, FiClipboard, FiTrash2, FiAlertTriangle } from 'react-icons/fi';
 
 const fieldMap = {
+  store_tagline: { group: 'store', key: 'tagline' },
   store_name:                  { group: 'store',          key: 'name' },
   store_phone:                 { group: 'store',          key: 'phone' },
   store_email:                 { group: 'store',          key: 'email' },
@@ -30,6 +32,7 @@ const fieldMap = {
 };
 
 const defaults = {
+  store_tagline: 'POS & ORDER',
   store_name: 'Motorku', store_phone: '081234567890',
   store_email: 'info@tokosparepart.com', store_address: 'Jl. Contoh No. 1',
   tax_enabled: 'true', tax_percentage: '10',
@@ -101,33 +104,6 @@ export default function SettingIndex() {
   const [loginImagePreview, setLoginImagePreview] = useState(null);
   const [loginImageUrl, setLoginImageUrl] = useState(props.loginImageUrl || null);
   const [uploadingLoginImage, setUploadingLoginImage] = useState(false);
-
-  // Reset transactions state
-  const [showResetModal, setShowResetModal] = useState(false);
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [isResetting, setIsResetting] = useState(false);
-
-  const handleResetTransactions = async (e) => {
-    e.preventDefault();
-    if (!confirmPassword) {
-      toast.error('Silakan masukkan kata sandi Anda!');
-      return;
-    }
-    setIsResetting(true);
-    try {
-      const res = await axios.post('/api/settings/reset-transactions', { password: confirmPassword });
-      toast.success(res.data.message || 'Data transaksi berhasil direset!');
-      setShowResetModal(false);
-      setConfirmPassword('');
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Gagal mereset data transaksi!');
-    } finally {
-      setIsResetting(false);
-    }
-  };
 
   // Banner promo state: { 1: { url, file, preview }, 2: {...}, 3: {...} }
   const [banners, setBanners] = useState(() => ({
@@ -300,7 +276,7 @@ export default function SettingIndex() {
   };
 
   const handleBannerFileSelect = (slot, file) => {
-    if (!file) return;
+    if (!validImage(file)) return;
     setBanners(prev => ({ ...prev, [slot]: { ...prev[slot], file, preview: URL.createObjectURL(file) } }));
   };
 
@@ -348,6 +324,7 @@ export default function SettingIndex() {
 
   const sections = [
     { title: 'Informasi Toko', icon: FiHome, fields: [
+      { field: 'store_tagline', label: 'Tagline Toko', type: 'text', maxLength: 120, placeholder: 'POS & ORDER' },
       { field: 'store_name', label: 'Nama Toko', type: 'text', maxLength: 100, placeholder: 'Nama toko Anda' },
       { field: 'store_phone', label: 'Telepon', type: 'tel', maxLength: 20, placeholder: '081234567890', inputMode: 'tel' },
       { field: 'store_email', label: 'Email', type: 'email', maxLength: 100, placeholder: 'email@contoh.com' },
@@ -418,9 +395,9 @@ export default function SettingIndex() {
               <div className="flex flex-wrap items-center gap-2">
                 <label className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg cursor-pointer transition-colors w-fit">
                   <FiUpload size={14} />
-                  <input type="file" accept="image/jpeg,image/png,image/jpg,image/webp" onChange={(e) => {
+                  <input type="file" accept={IMAGE_ACCEPT} onChange={(e) => {
                     const file = e.target.files?.[0];
-                    if (file) { setLogoFile(file); setLogoPreview(URL.createObjectURL(file)); }
+                    if (validImage(file)) { setLogoFile(file); setLogoPreview(URL.createObjectURL(file)); }
                   }} className="hidden" />
                   Pilih Gambar
                 </label>
@@ -437,7 +414,7 @@ export default function SettingIndex() {
                   </button>
                 )}
               </div>
-              <p className="text-[10px] text-slate-400 dark:text-slate-500">JPEG, PNG, WEBP. Maks 2MB.</p>
+              <p className="text-[10px] text-slate-400 dark:text-slate-500">{IMAGE_HELP}</p>
               {logoPreview && (
                 <div className="flex gap-2 pt-1">
                   <button onClick={handleUploadLogo} disabled={uploading} className="px-4 py-2 bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 dark:hover:bg-slate-700 disabled:bg-slate-300 text-white text-xs font-bold rounded-xl transition-colors cursor-pointer border border-slate-700">
@@ -465,12 +442,12 @@ export default function SettingIndex() {
             <div className="space-y-2">
               <label className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg cursor-pointer">
                 <FiUpload size={14} /> Pilih Gambar
-                <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => {
+                <input type="file" accept={IMAGE_ACCEPT} onChange={(event) => {
                   const file = event.target.files?.[0];
-                  if (file) { setQrisFile(file); setQrisPreview(URL.createObjectURL(file)); }
+                  if (validImage(file)) { setQrisFile(file); setQrisPreview(URL.createObjectURL(file)); }
                 }} className="hidden" />
               </label>
-              <p className="text-[10px] text-slate-400">JPEG, PNG, WEBP. Maks 2MB.</p>
+              <p className="text-[10px] text-slate-400">{IMAGE_HELP}</p>
               <div className="flex flex-wrap gap-2">
                 {qrisFile && <button type="button" onClick={handleUploadQris} disabled={uploadingQris} className="px-4 py-2 rounded-lg bg-slate-900 text-white text-xs font-bold disabled:opacity-50">{uploadingQris ? 'Menyimpan...' : 'Simpan QRIS'}</button>}
                 {qrisUrl && <button type="button" onClick={() => setDeleteConfirm({ type: 'qris' })} disabled={uploadingQris} className="px-4 py-2 rounded-lg border border-red-200 text-red-600 text-xs font-bold disabled:opacity-50">Hapus QRIS</button>}
@@ -497,12 +474,12 @@ export default function SettingIndex() {
             <div className="space-y-2">
               <label className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg cursor-pointer">
                 <FiUpload size={14} /> Pilih Gambar
-                <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => {
+                <input type="file" accept={IMAGE_ACCEPT} onChange={(event) => {
                   const file = event.target.files?.[0];
-                  if (file) { setLoginImageFile(file); setLoginImagePreview(URL.createObjectURL(file)); }
+                  if (validImage(file)) { setLoginImageFile(file); setLoginImagePreview(URL.createObjectURL(file)); }
                 }} className="hidden" />
               </label>
-              <p className="text-[10px] text-slate-400">JPEG, PNG, WEBP. Maks 4MB.</p>
+              <p className="text-[10px] text-slate-400">{IMAGE_HELP}</p>
               <div className="flex flex-wrap gap-2">
                 {loginImageFile && (
                   <button type="button" onClick={handleUploadLoginImage} disabled={uploadingLoginImage} className="px-4 py-2 rounded-lg bg-slate-900 dark:bg-slate-800 text-white text-xs font-bold disabled:opacity-50">
@@ -538,7 +515,7 @@ export default function SettingIndex() {
             <p className="text-xs text-slate-400 dark:text-slate-500 italic">Banner promo dinonaktifkan. Aktifkan toggle di atas untuk mengatur banner.</p>
           ) : (
           <>
-          <p className="text-xs text-slate-500 dark:text-slate-400">Upload hingga 3 foto banner promo yang akan tampil sebagai auto-slide carousel di halaman self-order pelanggan. Ratio ideal: 16:5 (misalnya 1600×500 px).</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">Upload hingga 3 foto banner promo. Rasio ideal 16:5 (1600×500 px). {IMAGE_HELP}</p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {[1, 2, 3].map(slot => {
               const b = banners[slot] || {};
@@ -561,7 +538,7 @@ export default function SettingIndex() {
                       <FiUpload size={12} />
                       <input
                         type="file"
-                        accept="image/jpeg,image/png,image/jpg,image/webp"
+                        accept={IMAGE_ACCEPT}
                         onChange={e => handleBannerFileSelect(slot, e.target.files?.[0])}
                         className="hidden"
                       />
@@ -677,47 +654,6 @@ export default function SettingIndex() {
           </div>
         </form>
 
-        {/* RESET DATA TRANSAKSI */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-4 transition-colors">
-          <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
-            <FiTrash2 className="text-red-600 dark:text-red-400" size={20} />
-            <h3 className="font-extrabold text-base text-slate-900 dark:text-white">Reset Data Transaksi</h3>
-          </div>
-          
-          <div className="text-xs text-slate-600 dark:text-slate-400 space-y-2">
-            <p className="font-semibold text-slate-700 dark:text-slate-300">Fitur ini digunakan untuk menghapus riwayat transaksi dan mengosongkan data pesanan sistem:</p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
-              <div className="bg-slate-50 dark:bg-slate-800 p-3.5 rounded-xl border border-slate-200/80 dark:border-slate-700 text-slate-700 dark:text-slate-300">
-                <span className="font-extrabold block text-slate-900 dark:text-white mb-1">Data Yang Akan Dihapus:</span>
-                <ul className="list-disc list-inside space-y-1 text-[11px] font-medium text-slate-600 dark:text-slate-400">
-                  <li>Riwayat Pesanan (Orders & Order Items)</li>
-                  <li>Riwayat Pembayaran (Payments)</li>
-                  <li>Log Riwayat Stok (Inventory Logs)</li>
-                </ul>
-              </div>
-              <div className="bg-slate-50 dark:bg-slate-800 p-3.5 rounded-xl border border-slate-200/80 dark:border-slate-700 text-slate-700 dark:text-slate-300">
-                <span className="font-extrabold block text-slate-900 dark:text-white mb-1">Data Yang Tidak Dihapus:</span>
-                <ul className="list-disc list-inside space-y-1 text-[11px] font-medium text-slate-600 dark:text-slate-400">
-                  <li>Katalog Produk & Kategori</li>
-                  <li>Akun Pengguna (Owner & Kasir)</li>
-                  <li>Pengaturan Toko & Sistem</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-
-          <div className="pt-2 flex justify-start">
-            <button
-              type="button"
-              onClick={() => setShowResetModal(true)}
-              className="px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold transition shadow-2xs flex items-center gap-2 cursor-pointer"
-            >
-              <FiTrash2 size={16} />
-              <span>Reset Data Transaksi</span>
-            </button>
-          </div>
-        </div>
-
         <Modal show={!!deleteConfirm} onClose={() => setDeleteConfirm(null)} maxWidth="sm">
           <div className="p-6 space-y-4 bg-white dark:bg-slate-900 text-slate-900 dark:text-white">
             <h3 className="font-bold">Hapus {deleteConfirm?.type === 'logo' ? 'logo toko' : deleteConfirm?.type === 'qris' ? 'gambar QRIS toko' : deleteConfirm?.type === 'login_image' ? 'gambar background login' : 'banner promo'}?</h3>
@@ -729,57 +665,7 @@ export default function SettingIndex() {
           </div>
         </Modal>
 
-        {/* Modal Konfirmasi Reset Transaksi */}
-        <Modal show={showResetModal} onClose={() => setShowResetModal(false)} maxWidth="md">
-          <form onSubmit={handleResetTransactions} className="p-6 space-y-4 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-2xl border border-slate-200 dark:border-slate-800">
-            <div className="flex items-center gap-3 text-red-600 dark:text-red-400 border-b border-slate-100 dark:border-slate-800 pb-3">
-              <div className="p-2 bg-red-50 dark:bg-red-950/60 rounded-lg text-red-600 dark:text-red-400">
-                <FiTrash2 size={22} />
-              </div>
-              <div>
-                <h3 className="text-base font-black text-slate-900 dark:text-white">Konfirmasi Reset Data Transaksi</h3>
-                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Tindakan ini tidak dapat dibatalkan</p>
-              </div>
-            </div>
 
-            <div className="bg-yellow-50 dark:bg-yellow-950/60 p-3.5 rounded-lg border border-yellow-200 dark:border-yellow-700 text-xs font-semibold text-yellow-800 dark:text-yellow-300 space-y-1">
-              <p>Seluruh riwayat pesanan dan pembayaran akan dihapus dari sistem. Data produk dan stok Anda akan tetap tersimpan.</p>
-            </div>
-
-            <div>
-              <label className="block text-xs font-extrabold text-slate-700 dark:text-slate-300 uppercase mb-1 flex items-center gap-1.5">
-                <FiLock size={13} className="text-slate-400 dark:text-slate-500" />
-                <span>Masukkan Kata Sandi untuk Konfirmasi:</span>
-              </label>
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Kata sandi Anda..."
-                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3.5 py-2.5 text-sm font-semibold text-slate-800 dark:text-slate-200 focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-red-500 focus:outline-none"
-                required
-              />
-            </div>
-
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-              <button
-                type="button"
-                onClick={() => { setShowResetModal(false); setConfirmPassword(''); }}
-                className="px-4 py-2 text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-slate-800 dark:hover:text-white transition cursor-pointer"
-              >
-                Batal
-              </button>
-              <button
-                type="submit"
-                disabled={isResetting || !confirmPassword}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-40 text-white rounded-lg text-xs font-extrabold transition shadow-2xs flex items-center gap-1.5 cursor-pointer"
-              >
-                <FiTrash2 size={14} />
-                <span>{isResetting ? 'Mereset Data...' : 'Reset Transaksi'}</span>
-              </button>
-            </div>
-          </form>
-        </Modal>
 
       </div>
     </AuthenticatedLayout>

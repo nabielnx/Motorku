@@ -110,6 +110,8 @@ class DashboardService
                 if ($total > 0 || $count > 0 || ($i >= 8 && $i <= 22)) {
                     $salesData->push([
                         'day' => sprintf('%02d:00', $i),
+                        'label' => sprintf('%02d:00', $i),
+                        'full_label' => $start->translatedFormat('d M Y H:00'),
                         'value' => (float) $total,
                         'count' => (int) $count,
                     ]);
@@ -127,6 +129,8 @@ class DashboardService
 
                 $salesData->push([
                     'day' => $monthStart->translatedFormat('M Y'),
+                    'label' => $monthStart->translatedFormat('M'),
+                    'full_label' => $monthStart->translatedFormat('F Y'),
                     'value' => (float) $total,
                     'count' => (int) $count,
                 ]);
@@ -144,6 +148,8 @@ class DashboardService
 
                 $salesData->push([
                     'day' => $dayStart->translatedFormat('d M'),
+                    'label' => $dayStart->format('d'),
+                    'full_label' => $dayStart->translatedFormat('d M Y'),
                     'value' => (float) $total,
                     'count' => (int) $count,
                     'is_today' => $dayStart->isSameDay($today),
@@ -162,6 +168,7 @@ class DashboardService
             'top_selling' => $topSelling,
             'low_stock' => $lowStock,
             'low_stock_count' => $lowStockCount,
+            'sales_range' => $startDate->translatedFormat('d M Y').($startDate->isSameDay($endDate) ? '' : ' – '.$endDate->translatedFormat('d M Y')),
             'sales_data' => $salesData->values()->toArray(),
         ];
     }

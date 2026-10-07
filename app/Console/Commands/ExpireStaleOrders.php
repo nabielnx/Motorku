@@ -4,9 +4,9 @@ namespace App\Console\Commands;
 
 use App\Enums\InventoryLogType;
 use App\Enums\OrderStatus;
-use App\Enums\PaymentStatus;
 use App\Models\Order;
 use App\Services\InventoryService;
+use App\Services\SettingService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -20,10 +20,12 @@ class ExpireStaleOrders extends Command
 
     public function handle(InventoryService $inventoryService): int
     {
+        app(SettingService::class)->applyRuntimeSettings();
         $staleOrders = Order::stale()->with('items')->get();
 
         if ($staleOrders->isEmpty()) {
             $this->info('Tidak ada order kadaluarsa yang ditemukan.');
+
             return self::SUCCESS;
         }
 
@@ -35,12 +37,13 @@ class ExpireStaleOrders extends Command
                 $staleOrders->map(fn (Order $o) => [
                     $o->order_number,
                     $o->customer_name,
-                    'Rp ' . number_format((float) $o->total, 0, ',', '.'),
+                    'Rp '.number_format((float) $o->total, 0, ',', '.'),
                     $o->ordered_at?->format('Y-m-d H:i'),
                     $o->expires_at?->format('Y-m-d H:i'),
                 ])
             );
             $this->warn('Dry-run mode: tidak ada perubahan yang dilakukan.');
+
             return self::SUCCESS;
         }
 
@@ -60,13 +63,13 @@ class ExpireStaleOrders extends Command
                         $inventoryService->adjustStock(
                             [
                                 'product_id' => $item->product_id,
-                                'type'       => InventoryLogType::StockReturn,
-                                'quantity'   => $item->quantity,
-                                'reference_type' => \App\Models\Order::class,
+                                'type' => InventoryLogType::StockReturn,
+                                'quantity' => $item->quantity,
+                                'reference_type' => Order::class,
                                 'reference_id' => $order->id,
                             ],
                             null, // system operation
-                            'Stok dikembalikan — order ' . $order->order_number . ' kadaluarsa otomatis'
+                            'Stok dikembalikan — order '.$order->order_number.' kadaluarsa otomatis'
                         );
                     }
 
@@ -74,6 +77,8 @@ class ExpireStaleOrders extends Command
                         'order_status' => OrderStatus::Cancelled,
                         'sync_version' => $order->sync_version + 1,
                     ]);
+                    $order->payments()->where('status', 'pending')->update(['status' => 'expired']);
+
                     return true;
                 });
 
@@ -86,7 +91,7 @@ class ExpireStaleOrders extends Command
                 $this->error("  ✗ {$order->order_number} — gagal: {$e->getMessage()}");
                 Log::error('ExpireStaleOrders failed', [
                     'order_id' => $order->id,
-                    'error'    => $e->getMessage(),
+                    'error' => $e->getMessage(),
                 ]);
             }
         }

@@ -1,12 +1,12 @@
 <?php
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Order\CustomerMenuController;
 use App\Http\Controllers\Setting\SettingController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 
-Route::get('/user', fn(Request $request) => $request->user())
-    ->middleware('auth:sanctum');
+Route::get('/user', fn (Request $request) => $request->user())
+    ->middleware(['auth:sanctum', 'verified']);
 
 // ─── PUBLIC: Customer QR Self-Order (no auth, no CSRF) ───
 Route::post('/customer/order', [CustomerMenuController::class, 'storeOrder'])
@@ -19,7 +19,7 @@ Route::post('/customer/order/{orderId}/cancel', [CustomerMenuController::class, 
     ->middleware('throttle:60,1')
     ->name('api.customer.order.cancel');
 
-$base = ['web', 'auth'];
+$base = ['web', 'auth', 'verified'];
 
 Route::middleware([...$base, 'role:owner|cashier'])
     ->get('/settings/qris-image', [SettingController::class, 'getQrisImage'])
@@ -27,29 +27,30 @@ Route::middleware([...$base, 'role:owner|cashier'])
 
 // ─── 1. OWNER — Admin & Laporan ───
 Route::middleware([...$base, 'role:owner'])->group(function () {
-    require __DIR__ . '/dashboard.php';
-    require __DIR__ . '/report.php';
+    require __DIR__.'/dashboard.php';
+    require __DIR__.'/report.php';
 });
 
 // ─── 1.5. OWNER — Admin User & Setting ───
 Route::middleware([...$base, 'role:owner'])->group(function () {
-    require __DIR__ . '/user.php';
-    require __DIR__ . '/setting.php';
+    require __DIR__.'/user.php';
+    require __DIR__.'/setting.php';
 });
 
 // ─── 2. OWNER & CASHIER — Operasional ───
 Route::middleware([...$base, 'role:owner|cashier'])->group(function () {
-    require __DIR__ . '/order.php';
-    require __DIR__ . '/payment.php';
+    require __DIR__.'/order.php';
+    require __DIR__.'/payment.php';
+    require __DIR__.'/notification.php';
 });
 
 // ─── 3. OWNER — Inventaris ───
 Route::middleware([...$base, 'role:owner'])->group(function () {
-    require __DIR__ . '/inventory.php';
+    require __DIR__.'/inventory.php';
 });
 
 // ─── 4. SEMUA KARYAWAN — Katalog (read), write owner ───
 Route::middleware([...$base])->group(function () {
-    require __DIR__ . '/product.php';
-    require __DIR__ . '/category.php';
+    require __DIR__.'/product.php';
+    require __DIR__.'/category.php';
 });

@@ -7,6 +7,7 @@ use App\Models\Motorcycle;
 use App\Models\Product;
 use App\Models\User;
 use App\Services\ProductService;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -17,14 +18,17 @@ class ProductSearchTest extends TestCase
     use RefreshDatabase;
 
     private User $owner;
+
     private User $cashier;
+
     private Category $category;
+
     private ProductService $productService;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $this->seed(RoleSeeder::class);
 
         $this->owner = User::factory()->create();
         $this->owner->assignRole('owner');

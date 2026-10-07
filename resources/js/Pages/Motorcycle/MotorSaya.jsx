@@ -23,6 +23,7 @@ import {
     FiTool,
     FiStar
 } from 'react-icons/fi';
+import OrderingUnavailable from '@/Components/Customer/OrderingUnavailable';
 import { MotorIcon, ProductPhoto, ProductCategoryIcon } from '@/Components/Customer/Storefront';
 import { fuzzyFilterProducts } from '@/Utils/fuzzySearch';
 
@@ -120,6 +121,8 @@ export default function MotorSaya({
     const [searchMotor, setSearchMotor] = useState('');
     const [selectedMotor, setSelectedMotor] = useState(() => initialPartsData?.motorcycle || null);
     const [partsData, setPartsData] = useState(() => initialPartsData || null);
+    const partsRequest = useRef(null);
+    useEffect(() => () => partsRequest.current?.abort(), []);
     const [loading, setLoading] = useState(false);
     const [activeCategoryPart, setActiveCategoryPart] = useState('semua');
     const [searchPart, setSearchPart] = useState('');
@@ -187,6 +190,9 @@ export default function MotorSaya({
     }, []);
 
     const selectMotor = async (motor, pushUrl = true) => {
+        partsRequest.current?.abort();
+        const controller = new AbortController();
+        partsRequest.current = controller;
         setSelectedMotor(motor);
 
         if (pushUrl && typeof window !== 'undefined') {
@@ -198,15 +204,17 @@ export default function MotorSaya({
         setSearchPart('');
         setLoading(true);
         try {
-            const res = await axios.get(`/api/motor-saya/${motor.id}/parts`);
-            setPartsData(res.data);
+            const res = await axios.get(`/api/motor-saya/${motor.id}/parts`, { signal: controller.signal });
+            if (!controller.signal.aborted) setPartsData(res.data);
         } catch {
-            setPartsData({ motorcycle: motor, parts: [] });
+            if (!controller.signal.aborted) setPartsData({ motorcycle: motor, parts: [] });
         }
-        setLoading(false);
+        if (!controller.signal.aborted) setLoading(false);
     };
 
     const changeMotor = () => {
+        partsRequest.current?.abort();
+        setLoading(false);
         setSelectedMotor(null);
         setPartsData(null);
         setSearchPart('');
@@ -250,6 +258,8 @@ export default function MotorSaya({
     }
 
     // ─── STEP 1: Pilih Motor ───
+    if (settings['qr_order.enabled'] === 'false') return <OrderingUnavailable />;
+
     if (!selectedMotor) {
         const allMotors = Object.values(motorcyclesByBrand).flat();
         const baseMotors = activeBrand === 'semua' ? allMotors : (motorcyclesByBrand[activeBrand] || []);

@@ -17,10 +17,10 @@ return new class extends Migration
             ->pluck('gateway_reference');
 
         if ($duplicates->isNotEmpty()) {
-            throw new \RuntimeException(
+            throw new RuntimeException(
                 'Migration dibatalkan: ditemukan gateway_reference duplikat: '
-                . $duplicates->implode(', ')
-                . '. Bersihkan data ini dulu secara manual sebelum menjalankan migration ini lagi.'
+                .$duplicates->implode(', ')
+                .'. Bersihkan data ini dulu secara manual sebelum menjalankan migration ini lagi.'
             );
         }
 

@@ -24,7 +24,6 @@ return Application::configure(basePath: dirname(__DIR__))
         web: __DIR__.'/../routes/web.php',
         api: __DIR__.'/../routes/api.php',
         commands: __DIR__.'/../routes/console.php',
-        channels: __DIR__.'/../routes/channels.php',
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
@@ -47,11 +46,15 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->redirectUsersTo(function (Request $request): string {
             $user = $request->user();
 
-            return $user?->hasRole('cashier') ? '/pos' : '/dashboard';
+            if ($user && ! $user->hasVerifiedEmail()) {
+                return '/verify-email';
+            }
+
+            return $user?->hasRole('owner') ? '/dashboard' : '/pos';
         });
 
+        $middleware->append(ApplySystemSettings::class);
         $middleware->web(append: [
-            ApplySystemSettings::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
             EnsureUserIsActive::class,
@@ -65,6 +68,7 @@ return Application::configure(basePath: dirname(__DIR__))
         //
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        $exceptions->dontFlash(['owner_password']);
         $exceptions->respond(function ($response, Throwable $exception, Request $request) {
             if ($response->getStatusCode() === 419) {
                 if ($request->header('X-Inertia')) {

@@ -3,8 +3,11 @@
 namespace App\Http\Controllers\Profile;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ImageUploadRequest;
 use App\Http\Requests\ProfileUpdateRequest;
 use App\Models\User;
+use App\Services\ImageUploadService;
+use App\Services\UserService;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -12,7 +15,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -34,36 +36,20 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $user = $request->user();
-        $validated = $request->validated();
-
-        unset($validated['avatar']);
-
-        $user->fill($validated);
-
-        if ($user->isDirty('email')) {
-            $user->email_verified_at = null;
-        }
-
-        $user->save();
+        app(UserService::class)->updateProfile($request->user(), $request->safe()->only(['name', 'email']));
 
         return Redirect::route('profile.edit');
     }
 
-    public function uploadAvatar(Request $request): JsonResponse
+    public function uploadAvatar(ImageUploadRequest $request): JsonResponse
     {
-        $request->validate([
-            'avatar' => ['required', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
-        ]);
-
         $user = $request->user();
+        $path = app(ImageUploadService::class)->replace($request->file('avatar'), 'avatars', $user->avatar,
+            function ($path) use ($user) {
+                $user->update(['avatar' => $path]);
 
-        if ($user->avatar) {
-            Storage::disk('public')->delete($user->avatar);
-        }
-
-        $path = $request->file('avatar')->store('avatars', 'public');
-        $user->update(['avatar' => $path]);
+                return $path;
+            }, 'avatar');
 
         return response()->json([
             'message' => 'Foto profil berhasil diupload!',
@@ -75,11 +61,10 @@ class ProfileController extends Controller
     {
         $user = $request->user();
 
-        if ($user->avatar) {
-            if (Storage::disk('public')->exists($user->avatar)) {
-                Storage::disk('public')->delete($user->avatar);
-            }
-            $user->update(['avatar' => null]);
+        $old = $user->avatar;
+        $user->update(['avatar' => null]);
+        if ($old) {
+            Storage::disk('public')->delete($old);
         }
 
         return response()->json([
@@ -98,18 +83,8 @@ class ProfileController extends Controller
 
         $user = $request->user();
 
-        if ($user->hasRole('owner') && User::role('owner')
-            ->where('is_active', true)
-            ->whereKeyNot($user->id)
-            ->doesntExist()) {
-            throw ValidationException::withMessages([
-                'password' => 'Owner terakhir yang aktif tidak dapat menghapus akunnya.',
-            ]);
-        }
-
+        app(UserService::class)->deleteEmployee($user->id, true);
         Auth::logout();
-
-        $user->delete();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();

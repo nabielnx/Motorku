@@ -9,7 +9,6 @@ use App\Models\MotorcyclePart;
 use App\Models\Product;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -85,23 +84,18 @@ class MotorcycleService
      */
     public function createMotorcycle(array $data): Motorcycle
     {
-        if (isset($data['image']) && $data['image'] instanceof UploadedFile) {
-            $path = $data['image']->store('motorcycles', 'public');
-            $data['image_url'] = '/storage/'.$path;
-            unset($data['image']);
-        }
-
+        $file = $data['image'] ?? null;
+        unset($data['image']);
         $data['slug'] = Str::slug(($data['brand'] ?? '').'-'.($data['model'] ?? '').'-'.($data['year_start'] ?? ''));
-
-        // Ensure slug uniqueness
-        $counter = 0;
         $baseSlug = $data['slug'];
+        $counter = 0;
         while (Motorcycle::where('slug', $data['slug'])->exists()) {
-            $counter++;
-            $data['slug'] = $baseSlug.'-'.$counter;
+            $data['slug'] = $baseSlug.'-'.++$counter;
         }
-
-        $motorcycle = Motorcycle::create($data);
+        $motorcycle = $file
+            ? app(ImageUploadService::class)->replace($file, 'motorcycles', null,
+                fn ($path) => Motorcycle::create([...$data, 'image_url' => '/storage/'.$path]))
+            : Motorcycle::create($data);
 
         return $motorcycle->loadCount('parts');
     }
@@ -112,22 +106,18 @@ class MotorcycleService
     public function updateMotorcycle(string $id, array $data): Motorcycle
     {
         $motorcycle = Motorcycle::findOrFail($id);
-        $oldPath = null;
-
-        if (isset($data['image']) && $data['image'] instanceof UploadedFile) {
-            if ($motorcycle->image_url && str_starts_with($motorcycle->image_url, '/storage/motorcycles/')) {
-                $oldPath = str_replace('/storage/', '', $motorcycle->image_url);
+        $file = $data['image'] ?? null;
+        unset($data['image']);
+        $old = str_starts_with($motorcycle->image_url ?? '', '/storage/motorcycles/')
+            ? substr($motorcycle->image_url, 9) : null;
+        if ($file) {
+            app(ImageUploadService::class)->replace($file, 'motorcycles', $old,
+                fn ($path) => $motorcycle->update([...$data, 'image_url' => '/storage/'.$path]));
+        } else {
+            $motorcycle->update($data);
+            if ($old && array_key_exists('image_url', $data) && $data['image_url'] !== '/storage/'.$old) {
+                Storage::disk('public')->delete($old);
             }
-
-            $path = $data['image']->store('motorcycles', 'public');
-            $data['image_url'] = '/storage/'.$path;
-            unset($data['image']);
-        }
-
-        $motorcycle->update($data);
-
-        if ($oldPath && Storage::disk('public')->exists($oldPath)) {
-            Storage::disk('public')->delete($oldPath);
         }
 
         return $motorcycle->fresh()->loadCount('parts');
@@ -140,7 +130,13 @@ class MotorcycleService
     {
         $motorcycle = Motorcycle::findOrFail($id);
 
-        return (bool) $motorcycle->delete();
+        $path = str_starts_with($motorcycle->image_url ?? '', '/storage/motorcycles/') ? substr($motorcycle->image_url, 9) : null;
+        $deleted = (bool) $motorcycle->delete();
+        if ($deleted && $path) {
+            Storage::disk('public')->delete($path);
+        }
+
+        return $deleted;
     }
 
     /**

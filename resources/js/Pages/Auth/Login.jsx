@@ -1,14 +1,12 @@
 import { useState } from 'react';
-import Checkbox from '@/Components/Checkbox';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
-import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import GuestLayout from '@/Layouts/GuestLayout';
-import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import { Head, useForm, usePage } from '@inertiajs/react';
 import { FiMail, FiLock, FiLogOut, FiX } from 'react-icons/fi';
 
-export default function Login({ status, canResetPassword }) {
+export default function Login({ status }) {
     const { props } = usePage();
     const queryParams = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
     const isExpired = queryParams.get('expired') === '1' || props.flash?.error === 'expired';
@@ -22,7 +20,6 @@ export default function Login({ status, canResetPassword }) {
     const { data, setData, post, processing, errors, reset } = useForm({
         email: '',
         password: '',
-        remember: false,
     });
 
     const submit = (e) => {
@@ -62,7 +59,7 @@ export default function Login({ status, canResetPassword }) {
             <form onSubmit={submit} className="space-y-6">
                 {/* Input Email */}
                 <div>
-                    <InputLabel htmlFor="email" value="Email / Username" className="font-bold text-gray-700" />
+                    <InputLabel htmlFor="email" value="Email" className="font-bold text-gray-700" />
                     <div className="relative mt-1">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
                             <FiMail size={18} />
@@ -76,7 +73,7 @@ export default function Login({ status, canResetPassword }) {
                             autoComplete="username"
                             isFocused={true}
                             onChange={(e) => setData('email', e.target.value)}
-                            placeholder="owner@tokosparepart.com"
+                            placeholder="Masukkan email"
                         />
                     </div>
                     <InputError message={errors.email} className="mt-2" />
@@ -96,33 +93,11 @@ export default function Login({ status, canResetPassword }) {
                             value={data.password}
                             className="block w-full pl-10 py-3 bg-gray-50 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-blue-500 transition-colors"
                             autoComplete="current-password"
-                            placeholder="••••••••"
+                            placeholder="Masukkan password"
                             onChange={(e) => setData('password', e.target.value)}
                         />
                     </div>
                     <InputError message={errors.password} className="mt-2" />
-                </div>
-
-                {/* Remember Me & Forgot Password */}
-                <div className="flex items-center justify-between mt-4">
-                    <label className="flex items-center">
-                        <Checkbox
-                            name="remember"
-                            checked={data.remember}
-                            onChange={(e) => setData('remember', e.target.checked)}
-                            className="text-blue-600 focus:ring-blue-500 rounded border-gray-300"
-                        />
-                        <span className="ms-2 text-sm text-gray-600 font-medium">Ingat Saya</span>
-                    </label>
-
-                    {canResetPassword && (
-                        <Link
-                            href={route('password.request')}
-                            className="text-sm font-bold text-blue-600 hover:text-blue-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                        >
-                            Lupa Password?
-                        </Link>
-                    )}
                 </div>
 
                 {/* Tombol Orange Login */}

@@ -19,15 +19,15 @@ class BulkAttachMotorcyclePartsRequest extends FormRequest
         $validCategories[] = 'auto';
 
         return [
-            'motorcycle_ids'    => ['required', 'array', 'min:1'],
-            'motorcycle_ids.*'  => ['required', 'uuid', 'exists:motorcycles,id'],
-            'product_ids'       => ['required', 'array', 'min:1'],
-            'product_ids.*'     => ['required', 'uuid', 'exists:products,id'],
-            'part_category'     => ['required', 'string', Rule::in($validCategories)],
-            'part_categories'   => ['nullable', 'array'],
+            'motorcycle_ids' => ['required', 'array', 'min:1'],
+            'motorcycle_ids.*' => ['required', 'uuid', 'exists:motorcycles,id'],
+            'product_ids' => ['required', 'array', 'min:1'],
+            'product_ids.*' => ['required', 'uuid', 'exists:products,id'],
+            'part_category' => ['required', 'string', Rule::in($validCategories)],
+            'part_categories' => ['nullable', 'array'],
             'part_categories.*' => ['nullable', 'string', Rule::in(array_keys(MotorcyclePart::categoryLabels()))],
-            'notes'             => ['nullable', 'string', 'max:255'],
-            'is_recommended'    => ['nullable', 'boolean'],
+            'notes' => ['nullable', 'string', 'max:255'],
+            'is_recommended' => ['nullable', 'boolean'],
         ];
     }
 
@@ -35,14 +35,14 @@ class BulkAttachMotorcyclePartsRequest extends FormRequest
     {
         return [
             'motorcycle_ids.required' => 'Minimal pilih 1 model motor.',
-            'motorcycle_ids.min'      => 'Minimal pilih 1 model motor.',
+            'motorcycle_ids.min' => 'Minimal pilih 1 model motor.',
             'motorcycle_ids.*.exists' => 'Salah satu motor yang dipilih tidak ditemukan.',
-            'product_ids.required'    => 'Minimal pilih 1 produk sparepart.',
-            'product_ids.min'         => 'Minimal pilih 1 produk sparepart.',
-            'product_ids.*.exists'    => 'Salah satu sparepart yang dipilih tidak ditemukan.',
-            'part_category.required'  => 'Kategori / tipe part wajib dipilih.',
-            'part_category.in'        => 'Kategori part tidak valid.',
-            'notes.max'               => 'Catatan maksimal 255 karakter.',
+            'product_ids.required' => 'Minimal pilih 1 produk sparepart.',
+            'product_ids.min' => 'Minimal pilih 1 produk sparepart.',
+            'product_ids.*.exists' => 'Salah satu sparepart yang dipilih tidak ditemukan.',
+            'part_category.required' => 'Kategori / tipe part wajib dipilih.',
+            'part_category.in' => 'Kategori part tidak valid.',
+            'notes.max' => 'Catatan maksimal 255 karakter.',
         ];
     }
 }

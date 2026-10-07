@@ -1,3 +1,5 @@
+import ThermalReceipt from '@/Components/ThermalReceipt';
+import MoneyInput from '@/Components/MoneyInput';
 import React, { useEffect, useState, useRef } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router, usePage } from '@inertiajs/react';
@@ -18,7 +20,7 @@ import {
 } from 'react-icons/fi';
 
 export default function OrderIndex({ initialOrders = {}, summary = {}, filters = {} }) {
-    const { auth, app_settings } = usePage().props;
+    const { auth, app_settings, summary: sharedSummary } = usePage().props;
     const locale = app_settings?.locale || 'id';
     const userName = auth?.user?.name || 'Kasir';
     // auth.roles is a flat string array (e.g. ['owner']) shared by HandleInertiaRequests
@@ -46,15 +48,15 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
     const [printOrderData, setPrintOrderData] = useState(null);
     const [isPrintingId, setIsPrintingId] = useState(null);
 
-    const initialSummaryProp = summary && Object.keys(summary).length > 0 ? summary : (usePage().props.summary || {});
+    const initialSummaryProp = summary && Object.keys(summary).length > 0 ? summary : (sharedSummary || {});
     const [localSummary, setLocalSummary] = useState(initialSummaryProp);
 
     useEffect(() => {
-        const propSummary = summary && Object.keys(summary).length > 0 ? summary : (usePage().props.summary || {});
+        const propSummary = summary && Object.keys(summary).length > 0 ? summary : (sharedSummary || {});
         if (propSummary && Object.keys(propSummary).length > 0) {
             setLocalSummary(propSummary);
         }
-    }, [summary, usePage().props.summary]);
+    }, [summary, sharedSummary]);
 
     const handlePrintOrder = async (order) => {
         const orderId = order.real_id || order.id;
@@ -334,11 +336,11 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                 payment_status: 'paid',
                 paid_at: payment?.paid_at || new Date().toISOString(),
             } : order));
-            
+
             if (app_settings?.auto_print_receipt) {
                 handlePrintOrder(paymentOrder);
             }
-            
+
             setPaymentOrder(null);
             toast.success('Pembayaran diterima. Pendapatan sudah masuk dashboard dan laporan.');
         } catch (err) {
@@ -354,7 +356,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
 
     const formatRp = (val) => `Rp ${Number(val || 0).toLocaleString('id-ID')}`;
 
-    const summaryData = localSummary && Object.keys(localSummary).length > 0 ? localSummary : (summary && Object.keys(summary).length > 0 ? summary : (usePage().props.summary || {}));
+    const summaryData = localSummary && Object.keys(localSummary).length > 0 ? localSummary : (summary && Object.keys(summary).length > 0 ? summary : (sharedSummary || {}));
 
     const todayOrderCount = summaryData.today_order_count ?? totalItems;
     const todayOrderValue = summaryData.today_order_value ?? 0;
@@ -395,7 +397,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
 
                 {/* Main Transaction Panel */}
                 <div className="bg-white dark:bg-slate-900 sm:rounded-xl sm:shadow-2xs sm:border sm:border-slate-200/80 dark:sm:border-slate-800 overflow-hidden transition-colors">
-                    
+
                     {/* Unified Control Bar */}
                     <div className="p-3 sm:p-4 border-b border-slate-200 dark:border-slate-800 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-2 sm:gap-3 sm:bg-slate-50 dark:sm:bg-slate-800">
                         <div className="flex w-full items-center justify-between gap-2 lg:w-auto">
@@ -404,7 +406,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                                 <FiRefreshCw size={15} />
                             </button>
                         </div>
-                        
+
                         <div className="flex w-full flex-wrap items-center gap-2 lg:w-auto">
                             {/* Filter Tabs */}
                             <div className="hidden sm:flex min-w-0 max-w-full items-center gap-1 overflow-x-auto no-scrollbar">
@@ -540,13 +542,13 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                                                 <span className="block whitespace-nowrap font-mono text-xs font-bold text-slate-700 dark:text-slate-300">{order.id}</span>
                                                 <span className="mt-0.5 block whitespace-nowrap text-[11px] text-slate-500 dark:text-slate-400">{order.channel} · {order.date} · {order.time}</span>
                                             </td>
-                                            
+
                                             {/* PELANGGAN */}
                                             <td className="px-3.5 py-2.5 text-xs font-bold text-slate-800 dark:text-slate-200">
                                                 {order.customer}
                                                 {order.matching_item && <span className="mt-0.5 block truncate text-[11px] font-medium text-blue-700 dark:text-blue-300">Barang: {order.matching_item}</span>}
                                             </td>
-                                            
+
                                             {/* JUMLAH ITEM */}
                                             <td className="px-3.5 py-2.5 text-xs font-bold text-slate-700 dark:text-slate-300">{order.items} item</td>
 
@@ -653,7 +655,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                                 <FiChevronLeft size={14} strokeWidth={2.5} />
                                 <span className="hidden sm:inline">Sebelumnya</span>
                             </button>
-                            
+
                             <span className="px-1.5 sm:px-3 py-1.5 font-bold text-slate-800 dark:text-slate-200 text-xs">
                                 {currentPage} / {totalPages}
                             </span>
@@ -685,8 +687,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
 
                             <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
                                 Nominal diterima
-                                <input
-                                    type="number"
+                                <MoneyInput
                                     min={paymentOrder.total}
                                     value={paymentMethod === 'cash' ? amountReceived : paymentOrder.total}
                                     onChange={(event) => setAmountReceived(event.target.value)}
@@ -724,105 +725,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
 
             {/* THERMAL PRINTABLE RECEIPT TEMPLATE FOR ORDER LIST */}
             {printOrderData && (
-                <div id="thermal-printable-receipt" className="hidden">
-                    <div className="text-center pb-2 border-b border-dashed border-black mb-2">
-                        <h2 className="font-bold text-sm uppercase tracking-wider">{app_settings?.store_name || 'MOTORKU'}</h2>
-                        <p className="text-[10px]">{app_settings?.store_name || 'Motorku'}</p>
-                        {app_settings?.store_address && <p className="text-[9px]">{app_settings.store_address}</p>}
-                        {app_settings?.store_phone && <p className="text-[9px]">Telp: {app_settings.store_phone}</p>}
-                    </div>
-
-                    <div className="py-1 border-b border-dashed border-black text-[10px] space-y-0.5 mb-2">
-                        <div className="flex justify-between">
-                            <span>No. Struk:</span>
-                            <span className="font-bold">{printOrderData.order_number || 'ORD-POS'}</span>
-                        </div>
-                        <div className="flex justify-between">
-                            <span>Waktu:</span>
-                            <span>{printOrderData.created_at ? new Date(printOrderData.created_at).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }) : '-'}</span>
-                        </div>
-                        <div className="flex justify-between">
-                            <span>Pelanggan:</span>
-                            <span className="font-bold">{printOrderData.customer_name || 'Walk-in Guest'}</span>
-                        </div>
-                        <div className="flex justify-between">
-                            <span>Tipe Order:</span>
-                            <span>Ambil di Toko</span>
-                        </div>
-                        <div className="flex justify-between">
-                            <span>Kasir:</span>
-                            <span>{printOrderData.cashier?.name || userName}</span>
-                        </div>
-                    </div>
-
-                    {/* ITEMS LIST */}
-                    <div className="py-1 border-b border-dashed border-black text-[10px] mb-2">
-                        <div className="flex justify-between font-bold border-b border-black pb-0.5 mb-1">
-                            <span>Item</span>
-                            <span>Total</span>
-                        </div>
-                        {printOrderData.items?.map((item, idx) => (
-                            <div key={idx} className="mb-1">
-                                <div className="flex justify-between font-bold">
-                                    <span>{item.product_name || item.name} x{item.quantity}</span>
-                                    <span>Rp {(Number(item.subtotal) || 0).toLocaleString('id-ID')}</span>
-                                </div>
-                                <div className="text-[9px] text-gray-600 pl-1">
-                                    @ Rp {(Number(item.unit_price) || 0).toLocaleString('id-ID')} {item.notes ? `(${item.notes})` : ''}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-
-                    {/* FINANCIAL TOTALS */}
-                    <div className="py-1 border-b border-dashed border-black text-[10px] space-y-0.5 mb-2">
-                        <div className="flex justify-between">
-                            <span>Subtotal</span>
-                            <span>Rp {(Number(printOrderData.subtotal) || 0).toLocaleString('id-ID')}</span>
-                        </div>
-                        {Number(printOrderData.tax_amount) > 0 && (
-                            <div className="flex justify-between">
-                                <span>Pajak</span>
-                                <span>Rp {(Number(printOrderData.tax_amount) || 0).toLocaleString('id-ID')}</span>
-                            </div>
-                        )}
-                        <div className="flex justify-between font-bold text-[12px] pt-1 border-t border-black">
-                            <span>TOTAL TAGIHAN</span>
-                            <span>Rp {(Number(printOrderData.total) || 0).toLocaleString('id-ID')}</span>
-                        </div>
-                        <div className="flex justify-between pt-1">
-                            <span>Status Bayar:</span>
-                            <span className="font-bold uppercase">{printOrderData.payment_status === 'paid' ? 'LUNAS' : 'BELUM BAYAR'}</span>
-                        </div>
-                        {printOrderData.payments && printOrderData.payments.length > 0 && (
-                            <>
-                                <div className="flex justify-between">
-                                    <span>Metode Bayar:</span>
-                                    <span className="font-bold uppercase">{printOrderData.payments[0].payment_method}</span>
-                                </div>
-                                {printOrderData.payments[0].payment_method === 'cash' && printOrderData.payments[0].amount_received != null && (
-                                    <>
-                                        <div className="flex justify-between">
-                                            <span>Uang Diterima:</span>
-                                            <span>Rp {(Number(printOrderData.payments[0].amount_received) || 0).toLocaleString('id-ID')}</span>
-                                        </div>
-                                        <div className="flex justify-between font-bold">
-                                            <span>Kembalian:</span>
-                                            <span>Rp {(Number(printOrderData.payments[0].change_amount) || 0).toLocaleString('id-ID')}</span>
-                                        </div>
-                                    </>
-                                )}
-                            </>
-                        )}
-                    </div>
-
-                    {/* FOOTER */}
-                    <div className="pt-2 text-center text-[9px] space-y-0.5">
-                        <p className="font-bold">*** TERIMA KASIH ***</p>
-                        <p>Terima kasih sudah berbelanja di Motorku</p>
-                        <p>Simpan Struk Ini Sebagai Bukti Pembayaran</p>
-                    </div>
-                </div>
+                <ThermalReceipt order={printOrderData} settings={app_settings} fallbackCashier={userName} />
             )}
         </AuthenticatedLayout>
     );
