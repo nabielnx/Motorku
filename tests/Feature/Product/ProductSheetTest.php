@@ -6,6 +6,7 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Models\User;
 use App\Services\ProductSheetService;
+use Database\Seeders\CategorySeeder;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -93,6 +94,91 @@ class ProductSheetTest extends TestCase
         $this->postJson('/api/products/sheets/commit', $this->commitInput($draft, $preview))->assertOk()->assertJson(['created' => 4, 'updated' => 0]);
         $this->assertDatabaseHas('products', ['name' => 'Ban 26', 'stock' => 0, 'unit' => 'pcs']);
         $this->assertDatabaseHas('categories', ['name' => 'Ban Sepeda', 'catalog_group' => 'bicycle']);
+    }
+
+    public function test_short_brake_category_names_use_existing_subcategories_without_creating_roots(): void
+    {
+        $this->seed(CategorySeeder::class);
+        $count = Category::count();
+        $mapping = [
+            'Kampas Rem Cakram' => 'Kampas Rem Cakram (Brake Pad)',
+            'Kampas Rem Tromol' => 'Kampas Rem Tromol (Brake Shoe)',
+            'Piringan Cakram' => 'Piringan Cakram (Disc)',
+            'Master Rem' => 'Master Rem & Kaliper (Kit Seal)',
+        ];
+        $csv = "Grup Barang,Kategori,Nama Barang,Harga Jual,Stok\n";
+        foreach (array_keys($mapping) as $index => $name) {
+            $csv .= "Otomotif,{$name},Barang Rem {$index},75000,12\n";
+        }
+        $draft = $this->inspect($this->csv($csv));
+        $preview = $this->preview($draft);
+        foreach (array_values($mapping) as $index => $canonical) {
+            $this->assertSame([], $preview['rows'][$index]['errors']);
+            $this->assertSame(Category::where('name', $canonical)->value('id'), $preview['rows'][$index]['category_id']);
+            $this->assertSame('Pengereman / '.$canonical, $preview['rows'][$index]['category_name']);
+        }
+        $this->postJson('/api/products/sheets/commit', $this->commitInput($draft, $preview))->assertOk()->assertJson(['created' => 4]);
+        $this->assertSame($count, Category::count());
+        foreach (array_values($mapping) as $index => $canonical) {
+            $this->assertDatabaseHas('products', ['name' => 'Barang Rem '.$index, 'category_id' => Category::where('name', $canonical)->value('id'), 'price' => 75000, 'stock' => 12]);
+        }
+    }
+
+    public function test_existing_duplicate_root_does_not_override_the_canonical_brake_subcategory(): void
+    {
+        $this->seed(CategorySeeder::class);
+        Category::create(['name' => 'Kampas Rem Cakram', 'catalog_group' => 'automotive']);
+        $draft = $this->inspect($this->csv("Kategori,Nama Barang,Harga Jual\nKampas Rem Cakram,Rem Baru,10000\n"));
+        $preview = $this->preview($draft);
+        $target = Category::where('name', 'Kampas Rem Cakram (Brake Pad)')->firstOrFail();
+        $this->assertSame($target->id, $preview['rows'][0]['category_id']);
+        $this->postJson('/api/products/sheets/commit', $this->commitInput($draft, $preview))->assertOk();
+        $this->assertDatabaseHas('products', ['name' => 'Rem Baru', 'category_id' => $target->id]);
+    }
+
+    public function test_brake_alias_matching_is_scoped_to_automotive_and_the_pengereman_parent(): void
+    {
+        $this->seed(CategorySeeder::class);
+        $draft = $this->inspect($this->csv("Grup Barang,Kategori,Nama Barang,Harga Jual\nSepeda,Master Rem,Rem Sepeda,10000\nElektronik,Kampas Rem Cakram,Perangkat Rem,10000\n"));
+        $preview = $this->preview($draft);
+        $this->assertNull($preview['rows'][0]['category_id']);
+        $this->assertNull($preview['rows'][1]['category_id']);
+        $this->postJson('/api/products/sheets/commit', $this->commitInput($draft, $preview))->assertOk();
+        $this->assertDatabaseHas('categories', ['name' => 'Master Rem', 'catalog_group' => 'bicycle', 'parent_id' => null]);
+        $this->assertDatabaseHas('categories', ['name' => 'Kampas Rem Cakram', 'catalog_group' => 'electronics', 'parent_id' => null]);
+    }
+
+    public function test_short_brake_alias_does_not_match_a_category_under_another_parent(): void
+    {
+        $parent = Category::create(['name' => 'Kategori Khusus', 'catalog_group' => 'automotive']);
+        Category::create(['name' => 'Master Rem & Kaliper (Kit Seal)', 'parent_id' => $parent->id, 'catalog_group' => 'automotive']);
+        $draft = $this->inspect($this->csv("Kategori,Nama Barang,Harga Jual\nMaster Rem,Rem Baru,10000\n"));
+        $preview = $this->preview($draft);
+        $this->assertNull($preview['rows'][0]['category_id']);
+        $this->postJson('/api/products/sheets/commit', $this->commitInput($draft, $preview))->assertOk();
+        $this->assertDatabaseHas('categories', ['name' => 'Master Rem', 'parent_id' => null]);
+    }
+
+    public function test_category_names_conflicting_across_groups_are_reported_before_save(): void
+    {
+        Category::create(['name' => 'Kategori Terpakai', 'catalog_group' => 'electronics']);
+        $draft = $this->inspect($this->csv("Grup Barang,Kategori,Nama Barang,Harga Jual\nSepeda,Kategori Terpakai,Barang A,10000\nSepeda,Kategori Baru,Barang B,10000\nElektronik,Kategori Baru,Barang C,10000\n"));
+        $preview = $this->preview($draft);
+        foreach ($preview['rows'] as $row) {
+            $this->assertNotEmpty($row['errors']);
+        }
+        $this->postJson('/api/products/sheets/commit', ['token' => $draft['token'], 'revision' => $preview['revision'], 'rows' => array_column($preview['rows'], 'id')])->assertUnprocessable();
+        $this->assertSame(0, Product::count());
+    }
+
+    public function test_renamed_category_after_preview_requires_a_new_preview(): void
+    {
+        $this->seed(CategorySeeder::class);
+        $draft = $this->inspect($this->csv("Kategori,Nama Barang,Harga Jual\nKampas Rem Cakram,Rem Baru,10000\n"));
+        $preview = $this->preview($draft);
+        Category::where('id', $preview['rows'][0]['category_id'])->update(['name' => 'Kategori Diubah']);
+        $this->postJson('/api/products/sheets/commit', $this->commitInput($draft, $preview))->assertUnprocessable();
+        $this->assertDatabaseMissing('products', ['name' => 'Rem Baru']);
     }
 
     public function test_estimated_cost_is_only_used_when_explicitly_selected(): void

@@ -207,13 +207,17 @@ class ProductSheetService
                     if (! $product && $row['data']['sku'] && $nameMatches->isNotEmpty()) {
                         $row['errors'][] = 'Nama sudah ada dengan kode lain. Gunakan kode dari ekspor sistem.';
                     }
-                    $categoryMatches = $categories->filter(fn ($category) => $this->group($category) === $row['group'] && $this->key($category->name) === $this->key($row['category']));
+                    $categoryMatches = app(ProductImportCategoryService::class)->matches($row['category'], $row['group'], $categories);
                     if (! $product && $categoryMatches->count() > 1) {
                         $row['errors'][] = 'Nama kategori ganda dalam grup ini. Rapikan kategori di sistem terlebih dahulu.';
                     }
                     $row['category_id'] = $categoryMatches->count() === 1 ? $categoryMatches->first()->id : null;
+                    $row['category_name'] = $row['category_id'] ? app(ProductImportCategoryService::class)->displayName($categoryMatches->first()) : $row['category'];
                     if (! $product && ! $row['category_id']) {
                         $row['warnings'][] = 'Kategori baru: '.$row['category'];
+                        if ($categories->contains(fn ($category) => $this->key($category->name) === $this->key($row['category']))) {
+                            $row['errors'][] = 'Nama kategori sudah dipakai di grup lain. Gunakan nama kategori khusus untuk grup ini.';
+                        }
                     }
                     if ($product) {
                         $row['warnings'][] = 'Hanya harga jual dan modal terpilih diperbarui. Stok, gambar, nama, dan kategori tetap.';
@@ -241,6 +245,18 @@ class ProductSheetService
                     }
                 }
             }
+            $newCategoryGroups = [];
+            foreach ($rows as $row) {
+                if ($row['action'] === 'create' && ! $row['category_id']) {
+                    $newCategoryGroups[$this->key($row['category'])][$row['group']] = true;
+                }
+            }
+            foreach ($rows as &$row) {
+                if ($row['action'] === 'create' && ! $row['category_id'] && count($newCategoryGroups[$this->key($row['category'])]) > 1) {
+                    $row['errors'][] = 'Nama kategori baru digunakan oleh beberapa grup dalam file. Beri nama kategori yang berbeda untuk setiap grup.';
+                }
+            }
+            unset($row);
             $preview = ['revision' => (string) Str::uuid(), 'rows' => $rows];
             DB::table('product_sheet_imports')->where('id', $draft->id)->update(['preview' => json_encode($preview, JSON_THROW_ON_ERROR)]);
 
@@ -291,16 +307,19 @@ class ProductSheetService
                         if ($existing) {
                             $this->fail('Barang baru sudah ditambahkan setelah pratinjau. Buat pratinjau ulang.');
                         }
-                        $category = $row['category_id'] ? Category::with('parent')->find($row['category_id']) : null;
-                        if ($row['category_id'] && (! $category || $this->group($category) !== $row['group'] || $this->key($category->name) !== $this->key($row['category']))) {
+                        $categories = app(ProductImportCategoryService::class)->matches($row['category'], $row['group'], Category::with('parent')->get());
+                        if ($categories->count() > 1) {
+                            $this->fail('Kategori ganda. Buat pratinjau ulang.');
+                        }
+                        $category = $categories->first();
+                        if ($row['category_id'] && (! $category || $category->id !== $row['category_id'])) {
                             $this->fail('Kategori berubah. Buat pratinjau ulang.');
                         }
                         if (! $category) {
-                            $categories = Category::with('parent')->get()->filter(fn ($c) => $this->group($c) === $row['group'] && $this->key($c->name) === $this->key($row['category']));
-                            if ($categories->count() > 1) {
-                                $this->fail('Kategori ganda. Buat pratinjau ulang.');
+                            if (Category::where('name', $row['category'])->exists()) {
+                                $this->fail('Nama kategori sudah dipakai di grup lain. Buat pratinjau ulang.');
                             }
-                            $category = $categories->first() ?? Category::create(['name' => $row['category'], 'catalog_group' => $row['group']]);
+                            $category = Category::create(['name' => $row['category'], 'catalog_group' => $row['group']]);
                         }
                         $data['sku'] = $data['sku'] ?: 'IMP-'.strtoupper(substr(hash('sha256', $draft->id.':'.$row['id']), 0, 16));
                         $created = app(ProductService::class)->createProduct([...$data, 'category_id' => $category->id, 'minimum_stock' => 0, 'is_available' => true]);
