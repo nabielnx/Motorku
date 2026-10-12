@@ -25,13 +25,15 @@ Excel `.xlsx` membaca semua tab yang terlihat; CSV UTF-8 membaca satu tab. Forma
 | Spesifikasi / Keterangan | Deskripsi umum; kecocokan motor tidak ditambahkan otomatis. |
 | Estimasi Modal (Rp) | Diabaikan kecuali pilihan penggunaan estimasi dicentang. |
 | Harga Beli (Rp) | Modal yang sudah dipastikan. Lebih diutamakan daripada estimasi modal. |
-| Harga Jual (Rp) | Nominal rupiah bulat. Sel numerik paling aman; teks `Rp 80.000` juga diterima. |
+| Harga Jual (Rp) | Nominal rupiah bulat. Sel numerik paling aman; teks `Rp 80.000` dan `Rp 80,000` juga diterima. |
 | Stok | Stok awal barang baru; kosong berarti 0. Stok barang lama tidak berubah. |
 | Satuan | Misalnya pcs, buah, botol, set, meter, sak. Kosong memakai pcs untuk barang baru. |
 | Kode Barang | SKU dari sistem untuk pembaruan yang pasti. Barang baru boleh kosong; kode dibuat otomatis. |
 | Margin (Rp) | Tidak diimpor. Ekspor menghitung harga jual dikurangi harga beli. |
 
 Sheet asli dengan kolom **Estimasi Modal** tetap dapat digunakan. Template/ekspor menggunakan **Harga Beli**, karena yang diekspor adalah modal tersimpan dalam sistem. Stok, satuan, dan modal kosong terlihat sebagai catatan sebelum disimpan.
+
+CSV dari Google Sheets mengikuti locale sheet: `Rp 52,000` dan `Rp 52.000` sama-sama dibaca sebagai 52000. Akhiran desimal nol (`52,000.00` / `52.000,00`) juga diterima. Pecahan bukan nol dan susunan pemisah yang tidak valid tetap ditolak agar nominal tidak berubah tanpa sengaja.
 
 ## Pembaruan barang lama
 

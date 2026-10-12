@@ -202,6 +202,48 @@ class ProductSheetTest extends TestCase
         }
     }
 
+    public function test_csv_prices_with_google_sheets_comma_grouping_are_imported_at_the_correct_value(): void
+    {
+        $draft = $this->inspect($this->csv("Grup Barang,Kategori,Merek,Nama Barang,Harga Jual (Rp)\nSepeda,Ban Luar Sepeda,Swallow,Ban Luar Sepeda 12 1/2 x 2 1/4,\"Rp 52,000\"\n"));
+        $preview = $this->preview($draft);
+        $this->assertSame([], $preview['rows'][0]['errors']);
+        $this->assertSame(52000, $preview['rows'][0]['data']['price']);
+        $this->postJson('/api/products/sheets/commit', $this->commitInput($draft, $preview))->assertOk()->assertJson(['created' => 1]);
+        $this->assertDatabaseHas('products', ['name' => 'Ban Luar Sepeda 12 1/2 x 2 1/4', 'price' => 52000]);
+    }
+
+    public function test_price_and_cost_formats_preserve_nominal_values_and_reject_fractions(): void
+    {
+        $values = [
+            ['Rp 52,000', 52000], ['52,000', 52000], ['Rp 52.000', 52000],
+            ['Rp 1,234,000.00', 1234000], ['Rp 1.234.000,00', 1234000],
+            ['52000.00', 52000], ['52000,00', 52000], ["Rp\u{00A0}52,000", 52000],
+            ["Rp\u{202F}52.000", 52000], ['Rp. 52.000', 52000], ['Rp 0.00', 0],
+            ['52,000.50', null], ['52.000,50', null], ['1,00,000', null],
+            ['1.00.000', null], ['1,234.567', null], ['1.234,567', null],
+            ['-52,000', null], ['5.2e4', null], ['52,000 extra', null],
+        ];
+        $stream = fopen('php://temp', 'w+');
+        fputcsv($stream, ['Kategori', 'Nama Barang', 'Harga Jual', 'Harga Beli'], ',', '"', '');
+        foreach ($values as $index => [$value]) {
+            fputcsv($stream, ['Oli', 'Format '.$index, $value, $value], ',', '"', '');
+        }
+        rewind($stream);
+        $draft = $this->inspect($this->csv(stream_get_contents($stream)));
+        fclose($stream);
+        $preview = $this->preview($draft);
+        foreach ($values as $index => [$value, $expected]) {
+            $row = $preview['rows'][$index];
+            $this->assertSame($expected, $row['data']['price'], $value);
+            $this->assertSame($expected, $row['data']['cost_price'], $value);
+            if ($expected === null) {
+                $this->assertNotEmpty($row['errors'], $value);
+            } else {
+                $this->assertSame([], $row['errors'], $value);
+            }
+        }
+    }
+
     public function test_cashiers_unverified_users_and_other_owners_cannot_access_private_drafts(): void
     {
         $draft = $this->inspect();
