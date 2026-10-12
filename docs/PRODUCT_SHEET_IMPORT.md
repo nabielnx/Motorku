@@ -35,6 +35,8 @@ Sheet asli dengan kolom **Estimasi Modal** tetap dapat digunakan. Template/ekspo
 
 CSV dari Google Sheets mengikuti locale sheet: `Rp 52,000` dan `Rp 52.000` sama-sama dibaca sebagai 52000. Akhiran desimal nol (`52,000.00` / `52.000,00`) juga diterima. Pecahan bukan nol dan susunan pemisah yang tidak valid tetap ditolak agar nominal tidak berubah tanpa sengaja.
 
+Nama kategori pendek pada daftar pengereman otomatis memakai subkategori yang sudah ada di bawah **Pengereman**: Kampas Rem Cakram → Kampas Rem Cakram (Brake Pad), Kampas Rem Tromol → Kampas Rem Tromol (Brake Shoe), Piringan Cakram → Piringan Cakram (Disc), dan Master Rem → Master Rem & Kaliper (Kit Seal). Pratinjau menampilkan kategori tujuan beserta induknya. Pencocokan ini dibatasi ke grup Otomotif; kategori dari grup lain tetap terpisah.
+
 ## Pembaruan barang lama
 
 - SKU dicocokkan terlebih dahulu. Jika kosong, pencocokan memakai nama lengkap dalam grup yang sama, termasuk variasi nama dengan merek di depannya. Merek yang berbeda tetap dipisahkan. Urutan kata/tanda baca diabaikan; ukuran dan volume tetap diperhitungkan.
@@ -55,4 +57,5 @@ Pilih seluruh katalog atau satu grup, kemudian Excel/CSV. Ekspor memuat seluruh 
 - Jalankan migration seperti alur deployment biasa. Tabel `product_sheet_imports` menyimpan pratinjau privat selama 30 menit.
 - Scheduler: `products:prune-imports` berjalan tiap jam untuk menghapus draft kedaluwarsa. Upload baru juga membersihkan draft kedaluwarsa.
 - File upload sementara tidak disimpan di `public`; pratinjau terikat pada owner yang mengupload.
+- Migration perbaikan kategori memindahkan barang dengan SKU impor otomatis `IMP-` dari empat kategori utama pendek di atas ke subkategori Pengereman yang sesuai, lalu menghapus kategori sumber yang kosong. Kategori dengan produk manual, anak kategori, atau tujuan yang tidak unik dilewati. Stok, harga, gambar, SKU, dan ID barang dipertahankan. Rollback kode tetap mempertahankan hasil perapian; backup deployment menyimpan data sebelumnya.
 - Rumus Excel tidak dihitung oleh server. Nilai harga harus mempunyai hasil tersimpan dari Excel/Google Sheets; jika belum, buka dan simpan ulang workbook.
