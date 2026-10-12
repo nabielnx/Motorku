@@ -446,9 +446,15 @@ class ProductSheetService
             return null;
         }
         if (is_string($value)) {
-            $value = trim(preg_replace('/^Rp\s*/i', '', $value));
+            $value = trim(str_replace(["\u{00A0}", "\u{202F}"], ' ', $value));
+            $value = trim(preg_replace('/^Rp\.?\s*/i', '', $value));
+            // Sheets exports CSV using its locale's displayed currency format.
+            // Validate grouping before removing separators, so a decimal fraction
+            // or malformed grouping can never silently become a different price.
             if (preg_match('/^\d{1,3}(\.\d{3})+(,00)?$/', $value)) {
                 $value = str_replace('.', '', explode(',', $value)[0]);
+            } elseif (preg_match('/^\d{1,3}(,\d{3})+(\.00)?$/', $value)) {
+                $value = str_replace(',', '', explode('.', $value)[0]);
             } elseif (preg_match('/^\d+(,00|\.00)$/', $value)) {
                 $value = substr($value, 0, -3);
             }
