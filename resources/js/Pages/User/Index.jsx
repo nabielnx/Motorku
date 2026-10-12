@@ -1,3 +1,5 @@
+import AdminDialog, { DialogTitle } from '@/Components/Admin/Dialog';
+import AdminButton from '@/Components/Admin/Button';
 import { useState, useEffect, useRef } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import UserTableSkeleton from '@/Components/Skeletons/UserTableSkeleton';
@@ -242,17 +244,17 @@ export default function UserIndex({ initialUsers = {}, activeOwnersCount = 0, ma
             <div className="space-y-4">
                 <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
                     <div>
-                        <h3 className="text-lg font-bold text-primaryDark dark:text-white">Daftar Staf <span className="ml-1 text-sm font-semibold text-slate-500 dark:text-slate-400">{totalUsers}</span></h3>
+                        <h3 className="admin-page-title">Daftar Staf <span className="ml-1 text-sm font-semibold text-slate-500 dark:text-slate-400">{totalUsers}</span></h3>
                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Akun dan hak akses toko</p>
                     </div>
                     <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full lg:w-auto">
                         <div className="relative w-full sm:flex-1 lg:flex-none lg:w-64">
                             <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" size={16} />
-                            <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Cari nama atau email..." className="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 rounded-lg pl-9 pr-3 py-2 text-xs focus:ring-2 focus:ring-primary" autoComplete="off" />
+                            <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Cari nama atau email..." className="w-full pl-9 pr-3 py-2 admin-control" autoComplete="off" />
                         </div>
-                        <button onClick={openAdd} className="bg-accentYellow hover:bg-yellow-300 text-primaryDark font-bold px-4 py-2 rounded-lg text-xs flex items-center justify-center gap-2 transition cursor-pointer">
+                        <AdminButton onClick={openAdd} variant="primary">
                             <FiPlus size={16} /> Tambah Staf Baru
-                        </button>
+                        </AdminButton>
                     </div>
                 </div>
 
@@ -335,9 +337,9 @@ export default function UserIndex({ initialUsers = {}, activeOwnersCount = 0, ma
                                             <td className="block lg:table-cell col-span-2 px-4 pb-3 lg:py-4 lg:px-5 text-right">
                                                 <div className="flex items-center justify-end gap-2">
                                                     {user.invitation_pending && user.is_active !== false && (
-                                                        <button onClick={() => resendInvitation(user)} disabled={loading} className="p-2 text-primary hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg disabled:opacity-40" title="Kirim ulang undangan" aria-label={`Kirim ulang undangan untuk ${user.name}`}><FiMail size={16} /></button>
+                                                        <button onClick={() => resendInvitation(user)} disabled={loading} className="p-2 text-primary hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg disabled:opacity-40 admin-icon-button" title="Kirim ulang undangan" aria-label={`Kirim ulang undangan untuk ${user.name}`}><FiMail size={16} /></button>
                                                     )}
-                                                    <button onClick={() => openEdit(user)} className="p-2 text-slate-500 hover:text-primaryDark dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg cursor-pointer" title="Edit Staf" aria-label={`Edit staf ${user.name}`}><FiEdit2 size={16} /></button>
+                                                    <button onClick={() => openEdit(user)} className="p-2 text-slate-500 hover:text-primaryDark dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg cursor-pointer admin-icon-button" title="Edit Staf" aria-label={`Edit staf ${user.name}`}><FiEdit2 size={16} /></button>
                                                     <button 
                                                         onClick={() => confirmDelete(user.id)} 
                                                         disabled={deleteDisabled}
@@ -393,11 +395,11 @@ export default function UserIndex({ initialUsers = {}, activeOwnersCount = 0, ma
             </div>
 
             {modal === 'form' && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-                    <form onSubmit={(event) => { event.preventDefault(); handleSubmit(); }} className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto p-6 space-y-4 shadow-2xl border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white">
+                <AdminDialog onClose={() => setModal(null)} closeable={!loading} className="max-w-md overflow-y-auto">
+                    <form onSubmit={(event) => { event.preventDefault(); handleSubmit(); }} className="p-4 sm:p-6 space-y-4">
                         <div className="flex justify-between items-center">
-                            <h3 className="font-black text-slate-800 dark:text-white">{editId ? 'Edit Data Staf' : 'Tambah Staf Baru'}</h3>
-                            <button type="button" onClick={() => setModal(null)} aria-label="Tutup" className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"><FiX size={18} /></button>
+                            <DialogTitle className="admin-dialog-title">{editId ? 'Edit Data Staf' : 'Tambah Staf Baru'}</DialogTitle>
+                            <button disabled={loading} type="button" onClick={() => setModal(null)} aria-label="Tutup" className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg admin-icon-button"><FiX size={18} /></button>
                         </div>
 
                         {formError && (
@@ -406,22 +408,22 @@ export default function UserIndex({ initialUsers = {}, activeOwnersCount = 0, ma
                                     <FiAlertCircle className="shrink-0 text-rose-600 dark:text-rose-400" size={16} />
                                     <span>{formError}</span>
                                 </div>
-                                <button type="button" onClick={() => setFormError(null)} aria-label="Tutup pesan" className="text-rose-400 hover:text-rose-600"><FiX size={14} /></button>
+                                <button disabled={loading} type="button" onClick={() => setFormError(null)} aria-label="Tutup pesan" className="text-rose-400 hover:text-rose-600 admin-icon-button"><FiX size={14} /></button>
                             </div>
                         )}
 
                         <div className="space-y-3">
                             <div>
                                 <label htmlFor="staff-name" className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">Nama Lengkap</label>
-                                <input id="staff-name" type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none" required autoComplete="off" />
+                                <input id="staff-name" type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full px-3 py-2 admin-control" required autoComplete="off" />
                             </div>
                             <div>
                                 <label htmlFor="staff-email" className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">Email</label>
-                                <input id="staff-email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="w-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none" required autoComplete="off" />
+                                <input id="staff-email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="w-full px-3 py-2 admin-control" required autoComplete="off" />
                             </div>
                             {editingUser && !editingUser.invitation_pending ? <div>
                                 <label htmlFor="staff-password" className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">Password {editId && '(kosongkan jika tidak diubah)'}</label>
-                                <input id="staff-password" type="password" value={form.password} minLength={8} onChange={(e) => setForm({ ...form, password: e.target.value })} className="w-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none" autoComplete="new-password" />
+                                <input id="staff-password" type="password" value={form.password} minLength={8} onChange={(e) => setForm({ ...form, password: e.target.value })} className="w-full px-3 py-2 admin-control" autoComplete="new-password" />
                                 <p className="text-xs text-slate-500 mt-1">Minimal 8 karakter, dengan huruf besar, huruf kecil, angka, dan simbol.</p>
                             </div> : <p className="text-xs text-slate-500 dark:text-slate-400">Gunakan email milik staf. Staf membuat password sendiri melalui undangan aktivasi yang berlaku selama 24 jam.</p>}
                             <div>
@@ -439,46 +441,46 @@ export default function UserIndex({ initialUsers = {}, activeOwnersCount = 0, ma
                                 </select>
                                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">{form.role === 'owner' ? 'Owner mendapat akses penuh, termasuk keuangan, pengaturan, dan pengelolaan akun lain. Toko boleh memiliki lebih dari satu owner.' : 'Kasir dapat menggunakan POS dan menangani pesanan serta pembayaran.'}</p>
                                 {isSelf && (
-                                    <p className="text-[10px] text-yellow-500 dark:text-yellow-400 font-semibold mt-1">Anda tidak dapat mengubah role akun Anda sendiri.</p>
+                                    <p className="text-xs text-amber-700 dark:text-yellow-400 font-semibold mt-1">Anda tidak dapat mengubah role akun Anda sendiri.</p>
                                 )}
                                 {!isSelf && isLastActiveOwner && (
-                                    <p className="text-[10px] text-yellow-500 dark:text-yellow-400 font-semibold mt-1">Minimal harus ada 1 owner aktif dalam sistem.</p>
+                                    <p className="text-xs text-amber-700 dark:text-yellow-400 font-semibold mt-1">Minimal harus ada 1 owner aktif dalam sistem.</p>
                                 )}
                             </div>
                             {requiresConfirmation && (
                                 <div>
                                     <label htmlFor="owner-password" className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">Konfirmasi dengan password akun Anda</label>
-                                    <input id="owner-password" type="password" value={form.owner_password} onChange={(e) => setForm({ ...form, owner_password: e.target.value })} required autoComplete="current-password" className="w-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-primary" />
+                                    <input id="owner-password" type="password" value={form.owner_password} onChange={(e) => setForm({ ...form, owner_password: e.target.value })} required autoComplete="current-password" className="w-full px-3 py-2 admin-control" />
                                 </div>
                             )}
                         </div>
                         <div className="flex gap-2 pt-2">
-                            <button type="button" onClick={() => setModal(null)} className="flex-1 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800">Batal</button>
-                            <button type="submit" disabled={loading} className="flex-1 py-2.5 bg-accentYellow hover:bg-yellow-300 disabled:bg-slate-300 text-primaryDark rounded-xl text-sm font-bold">{loading ? 'Menyimpan...' : editId ? 'Simpan' : 'Kirim Undangan'}</button>
+                            <AdminButton disabled={loading} type="button" onClick={() => setModal(null)} variant="secondary" className="flex-1">Batal</AdminButton>
+                            <AdminButton type="submit" disabled={loading} variant="primary" className="flex-1">{loading ? 'Menyimpan...' : editId ? 'Simpan' : 'Kirim Undangan'}</AdminButton>
                         </div>
                     </form>
-                </div>
+                </AdminDialog>
             )}
             {modal === 'delete' && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-                    <div className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-sm p-6 text-center shadow-2xl border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white">
+                <AdminDialog onClose={() => setModal(null)} closeable={!loading} className="max-w-sm overflow-y-auto">
+                    <div className="p-4 sm:p-6 text-center">
                         <div className="w-16 h-16 bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 rounded-full flex items-center justify-center mx-auto mb-4">
                             <FiTrash2 size={32} />
                         </div>
-                        <h3 className="text-lg font-black text-slate-800 dark:text-white mb-2">Hapus Staff?</h3>
+                        <DialogTitle className="admin-dialog-title">Hapus Staf?</DialogTitle>
                         <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
                             Apakah Anda yakin ingin menghapus <strong className="text-slate-900 dark:text-white">{userToDelete?.name}</strong>? Tindakan ini tidak dapat dibatalkan.
                         </p>
                         <div className="flex gap-3">
-                            <button onClick={() => setModal(null)} className="flex-1 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-sm font-bold transition-colors">
+                            <AdminButton disabled={loading} onClick={() => setModal(null)} variant="secondary" className="flex-1">
                                 Batal
-                            </button>
-                            <button onClick={executeDelete} disabled={loading} className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 text-white rounded-xl text-sm font-bold flex justify-center items-center gap-2 transition-colors">
+                            </AdminButton>
+                            <AdminButton onClick={executeDelete} disabled={loading} variant="danger" className="flex-1">
                                 {loading ? 'Menghapus...' : 'Ya, Hapus!'}
-                            </button>
+                            </AdminButton>
                         </div>
                     </div>
-                </div>
+                </AdminDialog>
             )}
         </AuthenticatedLayout>
     );

@@ -1,3 +1,4 @@
+import AdminButton from '@/Components/Admin/Button';
 import { cashSummary as fetchCashSummary, closeCash } from '@/Api/cashReports';
 import { storeDate, reportPeriods } from '@/Utils/dates';
 import MoneyInput from '@/Components/MoneyInput';
@@ -255,9 +256,9 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
                         <div key={i} className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 transition-colors">
                             <div className="flex items-start justify-between gap-2">
                                 <div className="min-w-0">
-                                    <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{kpi.label}</p>
+                                    <p className="font-bold uppercase tracking-wider admin-help">{kpi.label}</p>
                                     <p className={`text-lg font-black dark:text-white mt-1 leading-tight break-words ${i === 0 ? 'text-primaryDark' : 'text-slate-900'}`}>{kpi.value}</p>
-                                    {kpi.sub && <p className="text-[11px] font-medium text-slate-400 dark:text-slate-500 mt-1 break-words">{kpi.sub}</p>}
+                                    {kpi.sub && <p className="font-medium mt-1 break-words admin-help">{kpi.sub}</p>}
                                 </div>
                                 <div className="flex items-center justify-center shrink-0 text-primary dark:text-blue-300">
                                     <kpi.icon size={19} strokeWidth={2} />
@@ -273,23 +274,23 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
                             <h3 className="text-sm font-extrabold text-primaryDark dark:text-white">Cocokkan Kas Harian</h3>
                             <p className="text-xs text-slate-500">Rekap uang fisik per tanggal</p>
                         </div>
-                        <input type="date" aria-label="Tanggal rekap kas" max={today} value={cashDate} onChange={e => setCashDate(e.target.value)} className="min-w-0 max-w-full rounded-lg border-slate-300 dark:bg-slate-800 text-sm" />
+                        <input type="date" aria-label="Tanggal rekap kas" max={today} value={cashDate} onChange={e => setCashDate(e.target.value)} className="min-w-0 max-w-full admin-control" />
                     </div>
                     {cashSummary ? <>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
-                            <label>Uang awal (Rp)<MoneyInput  min="0" value={openingCash} disabled={!!cashSummary.closing} onChange={e => setOpeningCash(e.target.value)} className="mt-1 w-full rounded-lg border-slate-300 dark:bg-slate-800" /></label>
+                            <label>Uang awal (Rp)<MoneyInput  min="0" value={openingCash} disabled={!!cashSummary.closing} onChange={e => setOpeningCash(e.target.value)} className="mt-1 w-full admin-control" /></label>
                             <div>Penjualan tunai<p className="mt-2 font-bold">{formatRp(cashSummary.closing?.cash_sales ?? cashSummary.cash_sales)}</p></div>
                             <div>Retur tunai<p className="mt-2 font-bold">− {formatRp(cashSummary.closing?.cash_returns ?? cashSummary.cash_returns)}</p></div>
-                            <label>Pengeluaran kas (Rp)<MoneyInput  min="0" value={cashOut} disabled={!!cashSummary.closing} onChange={e => setCashOut(e.target.value)} className="mt-1 w-full rounded-lg border-slate-300 dark:bg-slate-800" /></label>
+                            <label>Pengeluaran kas (Rp)<MoneyInput  min="0" value={cashOut} disabled={!!cashSummary.closing} onChange={e => setCashOut(e.target.value)} className="mt-1 w-full admin-control" /></label>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 border-t border-slate-200 dark:border-slate-800 pt-3 text-xs">
                             <div>Seharusnya ada<p className="mt-1 text-lg font-black text-primaryDark dark:text-white">{formatRp(cashSummary.closing?.expected_cash ?? expectedCash)}</p></div>
-                            <label>Uang fisik terhitung (Rp)<MoneyInput  min="0" value={actualCash} disabled={!!cashSummary.closing} onChange={e => setActualCash(e.target.value)} className="mt-1 w-full rounded-lg border-slate-300 dark:bg-slate-800" /></label>
+                            <label>Uang fisik terhitung (Rp)<MoneyInput  min="0" value={actualCash} disabled={!!cashSummary.closing} onChange={e => setActualCash(e.target.value)} className="mt-1 w-full admin-control" /></label>
                             <div>Selisih<p className={`mt-1 text-lg font-black ${Number(cashSummary.closing?.difference ?? cashDifference) === 0 ? 'text-primaryDark dark:text-white' : 'text-red-600'}`}>{cashDifference === null && !cashSummary.closing ? '—' : formatRp(cashSummary.closing?.difference ?? cashDifference)}</p></div>
                         </div>
-                        <input type="text" maxLength="255" placeholder="Catatan selisih / pengeluaran (opsional)" value={cashNotes} disabled={!!cashSummary.closing} onChange={e => setCashNotes(e.target.value)} className="w-full rounded-lg border-slate-300 dark:bg-slate-800 text-xs" />
+                        <input type="text" maxLength="255" placeholder="Catatan selisih / pengeluaran (opsional)" value={cashNotes} disabled={!!cashSummary.closing} onChange={e => setCashNotes(e.target.value)} className="w-full admin-control" />
                         {cashSummary.closing ? <p className="text-xs font-bold text-primaryDark dark:text-white">Kas ditutup. Rekap terkunci; transaksi setelahnya tidak masuk rekap ini.</p> : (
-                            <button type="button" onClick={saveCashClosing} disabled={savingCash || actualCash === '' || Number(openingCash) < 0 || Number(cashOut) < 0 || Number(actualCash) < 0} className="rounded-lg bg-accentYellow hover:bg-yellow-300 px-4 py-2 text-xs font-bold text-primaryDark disabled:opacity-40">{savingCash ? 'Menyimpan...' : 'Simpan Tutup Kas'}</button>
+                            <AdminButton type="button" onClick={saveCashClosing} disabled={savingCash || actualCash === '' || Number(openingCash) < 0 || Number(cashOut) < 0 || Number(actualCash) < 0} variant="primary">{savingCash ? 'Menyimpan...' : 'Simpan Tutup Kas'}</AdminButton>
                         )}
                     </> : <p className="text-xs text-slate-500">{cashError ? 'Rekap kas gagal dimuat. Coba pilih tanggal kembali atau muat ulang halaman.' : 'Memuat rekap kas...'}</p>}
                 </section>
@@ -301,8 +302,8 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
                     <div className="lg:col-span-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden transition-colors">
                         <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
                             <h3 className="text-sm font-extrabold text-primaryDark dark:text-white">Produk Terlaris</h3>
-                            <p className="text-[11px] text-slate-400 dark:text-slate-500 font-medium mt-0.5">Top 5 berdasarkan porsi terjual</p>
-                            <p className="sm:hidden text-[11px] text-slate-500 mt-1">Geser tabel untuk melihat semua kolom.</p>
+                            <p className="font-medium mt-0.5 admin-help">Top 5 berdasarkan porsi terjual</p>
+                            <p className="sm:hidden mt-1 admin-help">Geser tabel untuk melihat semua kolom.</p>
                         </div>
                         <div className="overflow-x-auto">
                             <table className="w-full min-w-[560px] text-left text-xs">
@@ -344,7 +345,7 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
                     <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden transition-colors">
                         <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
                             <h3 className="text-sm font-extrabold text-primaryDark dark:text-white">Penjualan Kotor per Kategori</h3>
-                            <p className="text-[11px] text-slate-400 dark:text-slate-500 font-medium mt-0.5">
+                            <p className="font-medium mt-0.5 admin-help">
                                 Total {formatRp(categoryBreakdown.reduce((s, c) => s + c.amount, 0))}
                             </p>
                         </div>
@@ -375,7 +376,7 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
                         {/* Revenue note */}
                         {(totalTax > 0) && (
                             <div className="px-4 pb-3">
-                                <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium border-t border-slate-100 dark:border-slate-800 pt-2">
+                                <p className="font-medium border-t border-slate-100 dark:border-slate-800 pt-2 admin-help">
                                     * Kategori dihitung dari subtotal barang sebelum pajak dan retur.
                                 </p>
                             </div>

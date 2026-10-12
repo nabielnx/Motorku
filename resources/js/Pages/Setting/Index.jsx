@@ -1,7 +1,8 @@
+import AdminButton from '@/Components/Admin/Button';
 import { IMAGE_ACCEPT, IMAGE_HELP, validImage } from '@/Utils/imageUpload';
 import { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import Modal from '@/Components/Modal';
+import AdminDialog, { DialogTitle } from '@/Components/Admin/Dialog';
 import { Head, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import { toast } from 'sonner';
@@ -72,9 +73,7 @@ function Toggle({ value, onChange }) {
     return (
       <label className="relative inline-flex shrink-0 items-center cursor-pointer">
         <input type="checkbox" checked={on} onChange={onChange} className="sr-only peer" />
-        <div className="w-10 h-5 bg-slate-200 peer-checked:bg-blue-600 rounded-full after:content-['']
-after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all
-peer-checked:after:translate-x-5" />
+        <div className="w-10 h-5 bg-slate-200 peer-checked:bg-blue-600 rounded-full after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-5" />
       </label>
     );
 }
@@ -319,7 +318,7 @@ export default function SettingIndex() {
     }
   };
 
-  const inputCls = 'w-full min-w-0 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 rounded-xl px-3 py-2 text-sm focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-blue-500';
+  const inputCls = 'admin-control w-full min-w-0 px-3 py-2';
   const labelCls = 'block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1';
 
   const sections = [
@@ -403,26 +402,26 @@ export default function SettingIndex() {
                 </label>
 
                 {(logoUrl || logoPreview) && (
-                  <button
+                  <AdminButton
                     type="button"
                     onClick={handleDeleteLogo}
                     disabled={uploading}
-                    className="inline-flex items-center gap-1.5 px-3 py-2 bg-red-600 hover:bg-red-700 disabled:bg-slate-300 text-white text-xs font-bold rounded-lg transition border border-red-700 shadow-xs cursor-pointer"
+                    variant="danger"
                   >
                     <FiTrash2 size={14} />
                     <span>Hapus Logo</span>
-                  </button>
+                  </AdminButton>
                 )}
               </div>
-              <p className="text-[10px] text-slate-400 dark:text-slate-500">{IMAGE_HELP}</p>
+              <p className="admin-help">{IMAGE_HELP}</p>
               {logoPreview && (
                 <div className="flex flex-wrap gap-2 pt-1">
-                  <button onClick={handleUploadLogo} disabled={uploading} className="px-4 py-2 bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 dark:hover:bg-slate-700 disabled:bg-slate-300 text-white text-xs font-bold rounded-xl transition-colors cursor-pointer border border-slate-700">
+                  <AdminButton onClick={handleUploadLogo} disabled={uploading} variant="primary">
                     {uploading ? 'Mengupload...' : 'Simpan Logo Baru'}
-                  </button>
-                  <button onClick={() => { setLogoFile(null); setLogoPreview(null); }} className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold rounded-xl transition-colors cursor-pointer">
+                  </AdminButton>
+                  <AdminButton onClick={() => { setLogoFile(null); setLogoPreview(null); }} variant="secondary">
                     Batal
-                  </button>
+                  </AdminButton>
                 </div>
               )}
             </div>
@@ -447,9 +446,9 @@ export default function SettingIndex() {
                   if (validImage(file)) { setQrisFile(file); setQrisPreview(URL.createObjectURL(file)); }
                 }} className="hidden" />
               </label>
-              <p className="text-[10px] text-slate-400">{IMAGE_HELP}</p>
+              <p className="admin-help">{IMAGE_HELP}</p>
               <div className="flex flex-wrap gap-2">
-                {qrisFile && <button type="button" onClick={handleUploadQris} disabled={uploadingQris} className="px-4 py-2 rounded-lg bg-slate-900 text-white text-xs font-bold disabled:opacity-50">{uploadingQris ? 'Menyimpan...' : 'Simpan QRIS'}</button>}
+                {qrisFile && <AdminButton type="button" onClick={handleUploadQris} disabled={uploadingQris} variant="primary">{uploadingQris ? 'Menyimpan...' : 'Simpan QRIS'}</AdminButton>}
                 {qrisUrl && <button type="button" onClick={() => setDeleteConfirm({ type: 'qris' })} disabled={uploadingQris} className="px-4 py-2 rounded-lg border border-red-200 text-red-600 text-xs font-bold disabled:opacity-50">Hapus QRIS</button>}
               </div>
             </div>
@@ -479,12 +478,12 @@ export default function SettingIndex() {
                   if (validImage(file)) { setLoginImageFile(file); setLoginImagePreview(URL.createObjectURL(file)); }
                 }} className="hidden" />
               </label>
-              <p className="text-[10px] text-slate-400">{IMAGE_HELP}</p>
+              <p className="admin-help">{IMAGE_HELP}</p>
               <div className="flex flex-wrap gap-2">
                 {loginImageFile && (
-                  <button type="button" onClick={handleUploadLoginImage} disabled={uploadingLoginImage} className="px-4 py-2 rounded-lg bg-slate-900 dark:bg-slate-800 text-white text-xs font-bold disabled:opacity-50">
+                  <AdminButton type="button" onClick={handleUploadLoginImage} disabled={uploadingLoginImage} variant="primary">
                     {uploadingLoginImage ? 'Menyimpan...' : 'Simpan Gambar'}
-                  </button>
+                  </AdminButton>
                 )}
                 {loginImageUrl && (
                   <button type="button" onClick={() => setDeleteConfirm({ type: 'login_image' })} disabled={uploadingLoginImage} className="px-4 py-2 rounded-lg border border-red-200 text-red-600 text-xs font-bold disabled:opacity-50 hover:bg-red-50">
@@ -517,7 +516,7 @@ export default function SettingIndex() {
           <>
           <p className="text-xs text-slate-500 dark:text-slate-400">Upload hingga 3 foto banner promo. Banner yang terisi berganti otomatis setiap 5 detik di katalog pelanggan.</p>
           <p className="text-xs text-slate-500 dark:text-slate-400"><strong>Ukuran ideal: 600 × 1000 px (tegak, rasio 3:5).</strong> Banner mengikuti rasio asli gambar agar tampil utuh tanpa dipotong. Gunakan rasio yang sama untuk ketiga slot agar lebarnya konsisten saat berganti.</p>
-          <p className="text-[10px] text-slate-400 dark:text-slate-500">{IMAGE_HELP}</p>
+          <p className="admin-help">{IMAGE_HELP}</p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {[1, 2, 3].map(slot => {
               const b = banners[slot] || {};
@@ -547,31 +546,31 @@ export default function SettingIndex() {
                       Pilih
                     </label>
                     {b.preview && (
-                      <button
+                      <AdminButton
                         onClick={() => handleUploadBanner(slot)}
                         disabled={isUploading}
-                        className="px-3 py-1.5 bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 dark:hover:bg-slate-700 disabled:bg-slate-300 text-white text-[11px] font-bold rounded-lg transition-colors cursor-pointer border border-slate-700"
+                        variant="primary"
                       >
                         {isUploading ? 'Upload...' : 'Simpan'}
-                      </button>
+                      </AdminButton>
                     )}
                     {b.preview && (
-                      <button
+                      <AdminButton
                         onClick={() => setBanners(prev => ({ ...prev, [slot]: { ...prev[slot], file: null, preview: null } }))}
-                        className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 text-[11px] font-bold rounded-lg transition-colors cursor-pointer"
+                        variant="secondary"
                       >
                         Batal
-                      </button>
+                      </AdminButton>
                     )}
                     {b.url && !b.preview && (
-                      <button
+                      <AdminButton
                         onClick={() => handleDeleteBanner(slot)}
                         disabled={isUploading}
-                        className="flex items-center gap-1 px-3 py-1.5 bg-red-600 hover:bg-red-700 disabled:bg-slate-300 text-white text-[11px] font-bold rounded-lg transition-colors cursor-pointer"
+                        variant="danger"
                       >
                         <FiTrash2 size={11} />
                         {isUploading ? 'Menghapus...' : 'Hapus'}
-                      </button>
+                      </AdminButton>
                     )}
                   </div>
                 </div>
@@ -640,7 +639,7 @@ export default function SettingIndex() {
                       />
                     )}
                     {fieldErrors[field] && (
-                      <p className="text-[11px] text-red-500 font-semibold mt-1">{fieldErrors[field]}</p>
+                      <p className="text-xs text-red-500 font-semibold mt-1">{fieldErrors[field]}</p>
                     )}
                   </div>
                 ))}
@@ -649,23 +648,23 @@ export default function SettingIndex() {
           ))}
 
           <div className="flex justify-end sticky bottom-4">
-            <button type="submit" disabled={loading} className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white font-bold px-4 sm:px-8 py-3 rounded-xl flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer">
+            <AdminButton type="submit" disabled={loading} variant="primary" className="w-full sm:w-auto">
               <FiSave size={18} className="shrink-0" />
               {loading ? 'Menyimpan...' : 'Simpan Semua Pengaturan'}
-            </button>
+            </AdminButton>
           </div>
         </form>
 
-        <Modal show={!!deleteConfirm} onClose={() => setDeleteConfirm(null)} maxWidth="sm">
+        <AdminDialog show={!!deleteConfirm} onClose={() => setDeleteConfirm(null)} className="max-w-sm overflow-y-auto">
           <div className="p-6 space-y-4 bg-white dark:bg-slate-900 text-slate-900 dark:text-white">
-            <h3 className="font-bold">Hapus {deleteConfirm?.type === 'logo' ? 'logo toko' : deleteConfirm?.type === 'qris' ? 'gambar QRIS toko' : deleteConfirm?.type === 'login_image' ? 'gambar background login' : 'banner promo'}?</h3>
+            <DialogTitle className="admin-dialog-title">Hapus {deleteConfirm?.type === 'logo' ? 'logo toko' : deleteConfirm?.type === 'qris' ? 'gambar QRIS toko' : deleteConfirm?.type === 'login_image' ? 'gambar background login' : 'banner promo'}?</DialogTitle>
             <p className="text-sm text-slate-500 dark:text-slate-400">Gambar yang sedang dipakai akan dihapus.</p>
             <div className="flex justify-end gap-2">
-              <button type="button" onClick={() => setDeleteConfirm(null)} className="px-4 py-2 text-sm font-semibold">Batal</button>
-              <button type="button" onClick={executeDelete} className="px-4 py-2 rounded-lg bg-red-600 text-white text-sm font-bold">Hapus</button>
+              <AdminButton type="button" onClick={() => setDeleteConfirm(null)} variant="secondary">Batal</AdminButton>
+              <AdminButton type="button" onClick={executeDelete} variant="danger">Hapus</AdminButton>
             </div>
           </div>
-        </Modal>
+        </AdminDialog>
 
 
 
