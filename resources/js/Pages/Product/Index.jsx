@@ -1,3 +1,4 @@
+import AdminButton from '@/Components/Admin/Button';
 import useProductNavigation from '@/Hooks/useProductNavigation';
 import ProductFormModal from '@/Components/Product/ProductFormModal';
 import CategoryFormModal from '@/Components/Product/CategoryFormModal';
@@ -503,7 +504,7 @@ export default function MenuManagement({
                         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                             {/* Left: Title + Badge + Tabs */}
                             <div className="flex items-center gap-2">
-                                <h1 className="text-base sm:text-lg font-bold text-primaryDark dark:text-white tracking-tight shrink-0">
+                                <h1 className="text-base sm:text-lg font-bold text-primaryDark dark:text-white tracking-tight shrink-0 admin-page-title">
                                     {activeTab === 'products' ? (groupName || 'Daftar Produk') : 'Kategori Produk'}
                                 </h1>
                                 <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 shrink-0">
@@ -542,23 +543,23 @@ export default function MenuManagement({
                             <div className="ml-auto flex flex-wrap items-center gap-2">
                                 {activeTab === 'products' && <ProductSheetTools selectedGroup={selectedGroup} />}
                                 {activeTab === 'products' ? (
-                                    <button
+                                    <AdminButton
                                         type="button"
                                         onClick={openAddProductModal}
-                                        className="px-2.5 sm:px-3.5 py-1.5 bg-accentYellow hover:bg-yellow-300 active:scale-95 text-primaryDark font-bold rounded-lg text-xs shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+                                        variant="primary"
                                     >
                                         <FiPlus size={15} />
                                         <span className="hidden sm:inline">Tambah Produk</span><span className="sm:hidden">Tambah</span>
-                                    </button>
+                                    </AdminButton>
                                 ) : (
-                                    <button
+                                    <AdminButton
                                         type="button"
                                         onClick={openAddCategoryModal}
-                                        className="px-2.5 sm:px-3.5 py-1.5 bg-accentYellow hover:bg-yellow-300 active:scale-95 text-primaryDark font-bold rounded-lg text-xs shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+                                        variant="primary"
                                     >
                                         <FiPlus size={15} />
                                         <span className="hidden sm:inline">Tambah Kategori</span><span className="sm:hidden">Tambah</span>
-                                    </button>
+                                    </AdminButton>
                                 )}
                             </div>
                         </div>
@@ -579,10 +580,10 @@ export default function MenuManagement({
                                             placeholder="Cari produk..."
                                             value={searchQuery}
                                             onChange={e => setSearchQuery(e.target.value)}
-                                            className="w-full pl-9 pr-7 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-xs font-semibold text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500 transition sm:shadow-2xs"
+                                            className="w-full pl-9 pr-7 py-1.5 font-semibold placeholder-slate-400 transition admin-control"
                                         />
                                         {searchQuery && (
-                                             <button onClick={() => setSearchQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer">
+                                             <button aria-label="Tutup" onClick={() => setSearchQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer admin-icon-button">
                                                  <FiX size={13} />
                                              </button>
                                          )}
@@ -618,7 +619,7 @@ export default function MenuManagement({
                                              value={selectedCategoryFilter}
                                              onChange={e => handleCategoryFilterChange(e.target.value)}
                                              aria-label="Filter kategori produk"
-                                             className="w-full appearance-none bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-xs rounded-lg pl-2 sm:pl-3 pr-7 sm:pr-8 py-1.5 font-semibold sm:shadow-2xs focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500 cursor-pointer"
+                                             className="w-full appearance-none pl-2 sm:pl-3 pr-7 sm:pr-8 py-1.5 font-semibold cursor-pointer admin-control"
                                          >
                                              <option value="All">Semua Kategori</option>
                                              {categories.map(c => (
@@ -639,7 +640,7 @@ export default function MenuManagement({
                                              value={selectedStockFilter}
                                              onChange={e => handleStockFilterChange(e.target.value)}
                                              aria-label="Filter stok produk"
-                                             className="w-full appearance-none bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-xs rounded-lg pl-2 sm:pl-3 pr-7 sm:pr-8 py-1.5 font-semibold sm:shadow-2xs focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500 cursor-pointer"
+                                             className="w-full appearance-none pl-2 sm:pl-3 pr-7 sm:pr-8 py-1.5 font-semibold cursor-pointer admin-control"
                                          >
                                              <option value="all">Semua Stok</option>
                                              <option value="low">Perlu Kulak ({lowStockCount})</option>
@@ -672,7 +673,7 @@ export default function MenuManagement({
                                                  value={statusFilter}
                                                  onChange={e => handleStatusFilterChange(e.target.value)}
                                                  aria-label="Filter status POS"
-                                                 className="sm:hidden w-[calc(50%-0.1875rem)] border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 px-2 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-0 focus:border-slate-400"
+                                                 className="sm:hidden w-[calc(50%-0.1875rem)] px-2 py-1.5 font-semibold admin-control"
                                              >
                                                  <option value="all">Semua Status</option>
                                                  <option value="active">Aktif di POS</option>
@@ -682,7 +683,7 @@ export default function MenuManagement({
                                                  value={selectedSort}
                                                  onChange={e => handleSortValueChange(e.target.value)}
                                                  aria-label="Urutkan produk"
-                                                 className="sm:hidden w-[calc(50%-0.1875rem)] border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 px-2 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-0 focus:border-slate-400"
+                                                 className="sm:hidden w-[calc(50%-0.1875rem)] px-2 py-1.5 font-semibold admin-control"
                                              >
                                                  <option value="latest">Terbaru</option>
                                                  <option value="name_asc">Nama A–Z</option>
@@ -732,7 +733,7 @@ export default function MenuManagement({
                                              id="product-availability"
                                              value={statusFilter}
                                              onChange={e => handleStatusFilterChange(e.target.value)}
-                                             className="w-36 appearance-none rounded-lg border border-slate-300 bg-white py-1.5 pl-3 pr-8 text-xs font-semibold text-slate-800 focus:border-primary focus:outline-none focus:ring-0 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 cursor-pointer"
+                                             className="w-36 appearance-none py-1.5 pl-3 pr-8 font-semibold cursor-pointer admin-control"
                                          >
                                              <option value="all">Semua Status</option>
                                              <option value="active">Aktif di POS</option>
@@ -754,13 +755,13 @@ export default function MenuManagement({
                                     value={categorySearch}
                                     onChange={(e) => setCategorySearch(e.target.value)}
                                     placeholder="Cari nama kategori atau sub-kategori..."
-                                    className="w-full pl-9 pr-8 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-semibold text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-0 focus:border-primary focus:bg-white dark:focus:bg-slate-900 transition"
+                                    className="w-full pl-9 pr-8 py-2 font-semibold placeholder-slate-400 transition admin-control"
                                 />
                                 {categorySearch && (
-                                    <button
+                                    <button aria-label="Tutup"
                                         type="button"
                                         onClick={() => setCategorySearch('')}
-                                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-0.5 cursor-pointer"
+                                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-0.5 cursor-pointer admin-icon-button"
                                     >
                                         <FiX size={14} />
                                     </button>
@@ -802,13 +803,13 @@ export default function MenuManagement({
                                                         <button
                                                             type="button"
                                                             onClick={() => setPreviewProduct(item)}
-                                                            className="w-11 h-11 shrink-0 rounded-md overflow-hidden"
+                                                            className="w-11 h-11 shrink-0 rounded-md overflow-hidden admin-icon-button"
                                                             aria-label={`Lihat foto ${item.name}`}
                                                         >
                                                             <ProductPhoto src={item.image} name={item.name} category={item.category} className="w-full h-full" compact />
                                                         </button>
                                                         <button type="button" onClick={() => toggleRowExpand(item.id)} className="min-w-0 flex-1 text-left" aria-expanded={isExpanded}>
-                                                            <span className="block line-clamp-2 text-[11px] font-bold leading-snug text-slate-900 dark:text-white">{item.name}</span>
+                                                            <span className="block font-bold text-slate-900 dark:text-white admin-product-name">{item.name}</span>
                                                         </button>
                                                         <button type="button" onClick={() => toggleRowExpand(item.id)} className="shrink-0 p-1 text-slate-400" aria-label={`Detail ${item.name}`} aria-expanded={isExpanded}>
                                                             {isExpanded ? <FiChevronDown size={16} /> : <FiChevronRight size={16} />}
@@ -862,7 +863,7 @@ export default function MenuManagement({
                                                     </div>
                                                     <div className="min-w-0 mb-2">
                                                         <h3
-                                                            className="font-bold text-slate-900 dark:text-white text-[11px] md:text-xs leading-snug line-clamp-2 hover:underline cursor-pointer transition"
+                                                            className="font-bold text-slate-900 dark:text-white hover:underline cursor-pointer transition admin-product-name"
                                                             title={item.name}
                                                             onClick={() => openEditProductModal(item)}
                                                         >
@@ -873,7 +874,7 @@ export default function MenuManagement({
                                                         <p className="font-black text-slate-900 dark:text-white text-xs md:text-base">
                                                             Rp {Number(item.price).toLocaleString('id-ID')}
                                                         </p>
-                                                        <p className="text-[10px] md:text-[11px] mt-1 truncate">
+                                                        <p className="text-xs md:text-xs mt-1 truncate">
                                                             <span className={`font-semibold ${
                                                                 item.stock <= 0 
                                                                     ? 'text-red-600 dark:text-red-400 font-bold' 
@@ -901,7 +902,7 @@ export default function MenuManagement({
                                                     <button
                                                         type="button"
                                                         onClick={() => openEditProductModal(item)}
-                                                        className="p-1.5 text-slate-500 hover:text-primaryDark dark:hover:text-white hover:bg-white dark:hover:bg-slate-800 rounded-lg transition cursor-pointer"
+                                                        className="p-1.5 text-slate-500 hover:text-primaryDark dark:hover:text-white hover:bg-white dark:hover:bg-slate-800 rounded-lg transition cursor-pointer admin-icon-button"
                                                         title="Edit Produk"
                                                     >
                                                         <FiEdit2 size={13} />
@@ -909,7 +910,7 @@ export default function MenuManagement({
                                                     <button
                                                         type="button"
                                                         onClick={() => handleDeleteProduct(item)}
-                                                        className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-white dark:hover:bg-slate-800 rounded-lg transition cursor-pointer"
+                                                        className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-white dark:hover:bg-slate-800 rounded-lg transition cursor-pointer admin-icon-button"
                                                         title="Hapus Produk"
                                                     >
                                                         <FiTrash2 size={13} />
@@ -979,7 +980,7 @@ export default function MenuManagement({
                                                                     {/* Product Image Thumbnail - Clickable for Lightbox */}
                                                                     <button type="button"
                                                                         onClick={(e) => { e.stopPropagation(); setPreviewProduct(item); }}
-                                                                        className="w-10 h-10 rounded-md border border-slate-200 dark:border-slate-700 overflow-hidden shrink-0 cursor-pointer hover:border-slate-400 transition"
+                                                                        className="w-10 h-10 rounded-md border border-slate-200 dark:border-slate-700 overflow-hidden shrink-0 cursor-pointer hover:border-slate-400 transition admin-icon-button"
                                                                         title={item.image ? 'Lihat foto produk' : 'Foto belum ada'}
                                                                     >
                                                                         <ProductPhoto src={item.image} name={item.name} category={item.category} className="w-full h-full" compact />
@@ -989,7 +990,7 @@ export default function MenuManagement({
                                                                     <div className="min-w-0">
                                                                         <button type="button"
                                                                             onClick={() => toggleRowExpand(item.id)}
-                                                                            className="font-semibold text-left text-slate-900 dark:text-white text-xs block line-clamp-2 hover:underline transition cursor-pointer"
+                                                                            className="font-semibold text-left text-slate-900 dark:text-white block admin-product-name hover:underline transition cursor-pointer"
                                                                             title={item.name}
                                                                         >
                                                                             {item.name}
@@ -1045,7 +1046,7 @@ export default function MenuManagement({
                                                                     <button
                                                                         type="button"
                                                                         onClick={() => openAdjustModal(item)}
-                                                                        className="p-1.5 text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition cursor-pointer"
+                                                                        className="p-1.5 text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition cursor-pointer admin-icon-button"
                                                                         title="Tambah / Atur Stok"
                                                                     >
                                                                         <FiPlus size={15} />
@@ -1053,7 +1054,7 @@ export default function MenuManagement({
                                                                     <button
                                                                         type="button"
                                                                         onClick={() => openEditProductModal(item)}
-                                                                        className="p-1.5 text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition cursor-pointer"
+                                                                        className="p-1.5 text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition cursor-pointer admin-icon-button"
                                                                         title="Edit Produk"
                                                                     >
                                                                         <FiEdit2 size={14} />
@@ -1061,7 +1062,7 @@ export default function MenuManagement({
                                                                     <button
                                                                         type="button"
                                                                         onClick={() => handleDeleteProduct(item)}
-                                                                        className="p-1 text-red-500 hover:text-red-600 transition cursor-pointer"
+                                                                        className="p-1 text-red-500 hover:text-red-600 transition cursor-pointer admin-icon-button"
                                                                         title="Hapus Produk"
                                                                     >
                                                                         <FiTrash2 size={14} />
@@ -1210,14 +1211,14 @@ export default function MenuManagement({
                                             Reset Pencarian
                                         </button>
                                     ) : (
-                                        <button
+                                        <AdminButton
                                             type="button"
                                             onClick={openAddCategoryModal}
-                                            className="px-4 py-2 bg-accentYellow hover:bg-yellow-300 active:scale-95 text-primaryDark font-bold rounded-lg text-xs shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+                                            variant="primary"
                                         >
                                             <FiPlus size={15} />
                                             <span>Tambah Kategori Baru</span>
-                                        </button>
+                                        </AdminButton>
                                     )}
                                 </div>
                             ) : (
@@ -1243,8 +1244,8 @@ export default function MenuManagement({
                                                         <p className="text-xs text-slate-500 dark:text-slate-400">{cat.count} produk · {cat.children.length} subkategori</p>
                                                     </div>
                                                     <button type="button" onClick={() => { setActiveTab('products'); handleCategoryFilterChange(cat.name); }} className="text-xs font-semibold text-primary dark:text-blue-300 hover:underline whitespace-nowrap">Lihat produk</button>
-                                                    <button type="button" onClick={() => openEditCategoryModal(cat)} className="p-2 text-slate-500 hover:text-slate-900 dark:hover:text-white" title="Edit kategori dan subkategori" aria-label={`Edit ${cat.name}`}><FiEdit2 size={15} /></button>
-                                                    <button type="button" onClick={() => handleDeleteCategory(cat)} className="p-2 text-slate-400 hover:text-red-600" title="Hapus kategori" aria-label={`Hapus ${cat.name}`}><FiTrash2 size={15} /></button>
+                                                    <button type="button" onClick={() => openEditCategoryModal(cat)} className="p-2 text-slate-500 hover:text-slate-900 dark:hover:text-white admin-icon-button" title="Edit kategori dan subkategori" aria-label={`Edit ${cat.name}`}><FiEdit2 size={15} /></button>
+                                                    <button type="button" onClick={() => handleDeleteCategory(cat)} className="p-2 text-slate-400 hover:text-red-600 admin-icon-button" title="Hapus kategori" aria-label={`Hapus ${cat.name}`}><FiTrash2 size={15} /></button>
                                                 </div>
                                                 {isExpanded && (
                                                     <div className="pl-11 pr-4 pb-2">

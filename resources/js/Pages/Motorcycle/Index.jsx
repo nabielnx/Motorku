@@ -1,3 +1,4 @@
+import AdminButton from '@/Components/Admin/Button';
 
 import { getBrandConfig } from '@/Components/Motorcycle/presentation';
 import useMotorcycleParts from '@/Hooks/useMotorcycleParts';
@@ -579,7 +580,7 @@ export default function MotorcycleIndex({
                 }`}>
                     {notification.type === 'success' ? <FiCheckCircle size={18} className="text-emerald-600 dark:text-emerald-400 shrink-0" /> : <FiAlertCircle size={18} className="text-rose-600 dark:text-rose-400 shrink-0" />}
                     <span>{notification.message}</span>
-                    <button onClick={() => setNotification(null)} className="ml-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><FiX size={16} /></button>
+                    <button aria-label="Tutup" onClick={() => setNotification(null)} className="ml-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 admin-icon-button"><FiX size={16} /></button>
                 </div>
             )}
 
@@ -592,7 +593,7 @@ export default function MotorcycleIndex({
                         <div className="flex items-center justify-between gap-2">
                             {/* Left: Title + Badge */}
                             <div className="flex items-center gap-2 sm:gap-3">
-                                <h1 className="text-base sm:text-lg font-bold text-primaryDark dark:text-white tracking-tight shrink-0">
+                                <h1 className="text-base sm:text-lg font-bold text-primaryDark dark:text-white tracking-tight shrink-0 admin-page-title">
                                     Daftar Motor
                                 </h1>
                                 <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 sm:px-2 sm:py-0.5 sm:rounded-full sm:bg-slate-100 dark:sm:bg-slate-800 sm:border border-slate-200 dark:border-slate-700 shrink-0">
@@ -612,15 +613,15 @@ export default function MotorcycleIndex({
                                     <span className="sm:hidden">Massal</span><span className="hidden sm:inline">Kompatibilitas Massal</span>
                                 </button>
 
-                                <button
+                                <AdminButton
                                     type="button"
                                     onClick={() => { resetMotorForm(); setEditMotorcycle(null); setShowAddModal(true); }}
-                                    className="px-2.5 sm:px-3.5 py-2 sm:py-1.5 bg-accentYellow hover:bg-yellow-300 active:scale-95 text-primaryDark font-bold rounded-lg text-xs shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+                                    variant="primary"
                                     title="Tambah Data Motor Baru"
                                 >
                                     <FiPlus size={15} />
                                     <span className="sm:hidden">Tambah</span><span className="hidden sm:inline">Tambah Motor</span>
-                                </button>
+                                </AdminButton>
                             </div>
                         </div>
 
@@ -634,11 +635,11 @@ export default function MotorcycleIndex({
                                     placeholder="Cari motor..."
                                     value={searchMotor}
                                     onChange={e => { setSearchMotor(e.target.value); setPage(1); }}
-                                    className="w-full pl-9 pr-7 py-1.5 bg-transparent sm:bg-white dark:sm:bg-slate-800 border-0 border-b sm:border border-slate-200 dark:border-slate-700 rounded-none sm:rounded-lg text-sm sm:text-xs font-semibold text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-slate-400 dark:focus:border-slate-500 focus:ring-0 transition sm:shadow-2xs"
+                                    className="w-full pl-9 pr-7 py-1.5 font-semibold placeholder-slate-400 transition admin-control"
                                     aria-label="Cari data motor"
                                 />
                                 {searchMotor && (
-                                    <button onClick={() => { setSearchMotor(''); setPage(1); }} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer" title="Hapus pencarian">
+                                    <button aria-label="Tutup" onClick={() => { setSearchMotor(''); setPage(1); }} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer admin-icon-button" title="Hapus pencarian">
                                         <FiX size={13} />
                                     </button>
                                 )}
@@ -662,7 +663,7 @@ export default function MotorcycleIndex({
                                     value={activeBrand}
                                     onChange={e => { setActiveBrand(e.target.value); setPage(1); }}
                                     aria-label="Filter merek motor"
-                                    className="min-w-0 w-full rounded-none border-0 border-b border-slate-200 dark:border-slate-700 bg-transparent px-1 py-1.5 text-sm font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500"
+                                    className="min-w-0 w-full px-1 py-1.5 font-semibold admin-control"
                                 >
                                     <option value="semua">Semua merek</option>
                                     {brands.map(brand => <option key={brand} value={brand}>{brand}</option>)}
@@ -671,7 +672,7 @@ export default function MotorcycleIndex({
                                     value={activeType}
                                     onChange={e => { setActiveType(e.target.value); setPage(1); }}
                                     aria-label="Filter tipe motor"
-                                    className="min-w-0 w-full rounded-none border-0 border-b border-slate-200 dark:border-slate-700 bg-transparent px-1 py-1.5 text-sm font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500"
+                                    className="min-w-0 w-full px-1 py-1.5 font-semibold admin-control"
                                 >
                                     <option value="semua">Semua tipe</option>
                                     {engineTypes.map(type => <option key={type} value={type}>{getEngineConfig(type).label}</option>)}
@@ -832,7 +833,7 @@ export default function MotorcycleIndex({
                                                         <button
                                                             type="button"
                                                             onClick={(e) => { e.stopPropagation(); openEditMotor(m); }}
-                                                            className="p-1.5 text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition cursor-pointer"
+                                                            className="p-1.5 text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition cursor-pointer admin-icon-button"
                                                             title="Edit Data Motor"
                                                             aria-label="Edit Data Motor"
                                                         >
@@ -841,7 +842,7 @@ export default function MotorcycleIndex({
                                                         <button
                                                             type="button"
                                                             onClick={(e) => { e.stopPropagation(); handleDeleteMotor(m.id, `${m.brand} ${m.model}`); }}
-                                                            className="p-1 text-red-500 hover:text-red-600 transition cursor-pointer"
+                                                            className="p-1 text-red-500 hover:text-red-600 transition cursor-pointer admin-icon-button"
                                                             title="Hapus Data Motor"
                                                             aria-label="Hapus Data Motor"
                                                         >
@@ -882,13 +883,13 @@ export default function MotorcycleIndex({
                                                                 placeholder="Cari sparepart..."
                                                                 value={filter.search || ''}
                                                                 onChange={(e) => handleSearchParts(m.id, e.target.value)}
-                                                                className="w-full pl-8 pr-7 py-1.5 text-sm md:text-xs bg-transparent md:bg-white dark:md:bg-slate-700 border-0 border-b md:border border-slate-200 dark:border-slate-700 rounded-none md:rounded-md text-slate-800 dark:text-slate-200 focus:outline-none focus:border-slate-400 dark:focus:border-slate-500 focus:ring-0 font-medium"
+                                                                className="w-full pl-8 pr-7 py-1.5 font-medium admin-control"
                                                                 aria-label={`Cari sparepart untuk ${m.brand} ${m.model}`}
                                                             />
                                                             {filter.search && (
-                                                                <button
+                                                                <button aria-label="Tutup"
                                                                     onClick={() => handleClearSearch(m.id)}
-                                                                    className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                                                                    className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer admin-icon-button"
                                                                     title="Hapus pencarian"
                                                                 >
                                                                     <FiX size={12} />
@@ -927,7 +928,7 @@ export default function MotorcycleIndex({
                                                                     }));
                                                                     fetchParts(m.id, { group: g, category: 'semua', page: 1 });
                                                                 }}
-                                                                className="w-full md:w-auto py-1.5 pl-1 md:pl-2.5 pr-7 text-sm md:text-xs bg-transparent md:bg-white dark:md:bg-slate-800 border-0 border-b md:border border-slate-200 md:border-slate-300 dark:border-slate-700 rounded-none md:rounded-md text-slate-800 dark:text-slate-200 font-semibold focus:outline-none focus:border-slate-400 dark:focus:border-slate-500 focus:ring-0 cursor-pointer"
+                                                                className="w-full md:w-auto py-1.5 pl-1 md:pl-2.5 pr-7 font-semibold cursor-pointer admin-control"
                                                                 title="Filter berdasarkan Grup Part"
                                                                 aria-label="Filter grup sparepart"
                                                             >
@@ -953,7 +954,7 @@ export default function MotorcycleIndex({
                                                                     }));
                                                                     fetchParts(m.id, { category: c, page: 1 });
                                                                 }}
-                                                                className="w-full md:w-auto py-1.5 pl-1 md:pl-2.5 pr-7 text-sm md:text-xs bg-transparent md:bg-white dark:md:bg-slate-800 border-0 border-b md:border border-slate-200 md:border-slate-300 dark:border-slate-700 rounded-none md:rounded-md text-slate-800 dark:text-slate-200 font-semibold focus:outline-none focus:border-slate-400 dark:focus:border-slate-500 focus:ring-0 cursor-pointer"
+                                                                className="w-full md:w-auto py-1.5 pl-1 md:pl-2.5 pr-7 font-semibold cursor-pointer admin-control"
                                                                 title="Filter berdasarkan Jenis Part"
                                                                 aria-label="Filter jenis sparepart"
                                                             >
@@ -995,19 +996,19 @@ export default function MotorcycleIndex({
 
                                                     {/* Right: Tambah Part Button */}
                                                     <div className="shrink-0 md:ml-auto md:pl-2">
-                                                        <button
+                                                        <AdminButton
                                                             onClick={() => {
                                                                 setShowPartModal(m.id);
                                                                 setPartSearch('');
                                                                 setPartFormData({ product_id: '', part_category: 'oli_mesin', notes: '', is_recommended: false });
                                                                 setPartFormErrors({});
                                                             }}
-                                                            className="text-xs bg-accentYellow hover:bg-yellow-300 active:scale-95 text-primaryDark px-2 py-1.5 md:px-3 rounded-md font-bold flex items-center justify-center gap-1.5 cursor-pointer transition"
+                                                            variant="primary"
                                                             title="Tambah sparepart baru ke motor ini"
                                                             aria-label="Tambah sparepart"
                                                         >
                                                             <FiPlus size={14} /> <span className="hidden md:inline">Tambah Part</span>
-                                                        </button>
+                                                        </AdminButton>
                                                     </div>
                                                 </div>
 
@@ -1030,7 +1031,7 @@ export default function MotorcycleIndex({
                                                                 ? 'Tidak ada sparepart yang sesuai dengan filter pencarian.'
                                                                 : 'Belum ada sparepart yang di-mapping ke motor ini.'}
                                                         </p>
-                                                        <p className="text-[11px] text-slate-400 mt-1">
+                                                        <p className="mt-1 admin-help">
                                                             {filter.search || filter.category !== 'semua' || filter.group !== 'semua' || filter.is_recommended
                                                                 ? 'Coba ganti kata kunci pencarian atau reset filter di atas.'
                                                                 : 'Klik tombol "Tambah Part" di atas untuk menambahkan sparepart kompatibel.'}
@@ -1118,16 +1119,16 @@ export default function MotorcycleIndex({
 
                                                                     {/* Col 5 (1 col): Actions */}
                                                                     <div className="md:col-span-1 flex items-center justify-end gap-0.5 md:gap-1 shrink-0 -translate-y-1 md:translate-y-0">
-                                                                        <button
+                                                                        <AdminButton
                                                                             type="button"
                                                                             onClick={() => addPartToPosCart(part.product)}
                                                                             disabled={!part.product?.id || stock <= 0 || part.product.is_available === false}
-                                                                            className="p-1.5 rounded-md bg-accentYellow text-primaryDark hover:bg-yellow-300 transition cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
+                                                                            variant="primary"
                                                                             title={stock <= 0 ? 'Stok habis' : part.product?.is_available === false ? 'Produk nonaktif di POS' : 'Tambah 1 ke keranjang POS'}
                                                                             aria-label={`Tambahkan ${part.product?.name || 'produk'} ke keranjang POS`}
                                                                         >
                                                                             <FiPlus size={14} strokeWidth={2.5} />
-                                                                        </button>
+                                                                        </AdminButton>
                                                                         <button
                                                                             onClick={() => togglePartRecommendation(m.id, part)}
                                                                             className={`p-1.5 rounded-md transition cursor-pointer ${
@@ -1142,7 +1143,7 @@ export default function MotorcycleIndex({
                                                                         </button>
                                                                         <button
                                                                             onClick={() => openEditPart(m.id, part)}
-                                                                            className="p-1.5 text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition cursor-pointer"
+                                                                            className="p-1.5 text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition cursor-pointer admin-icon-button"
                                                                             title="Edit Mapping Part"
                                                                             aria-label="Edit Mapping Part"
                                                                         >
@@ -1150,7 +1151,7 @@ export default function MotorcycleIndex({
                                                                         </button>
                                                                         <button
                                                                             onClick={() => handleDetachPart(m.id, part.id, part.product?.name)}
-                                                                            className="p-1 text-red-500 hover:text-red-600 transition cursor-pointer"
+                                                                            className="p-1 text-red-500 hover:text-red-600 transition cursor-pointer admin-icon-button"
                                                                             title="Hapus Mapping Part"
                                                                             aria-label="Hapus Mapping Part"
                                                                         >
@@ -1181,7 +1182,7 @@ export default function MotorcycleIndex({
                                                                     }));
                                                                     fetchParts(m.id, { per_page: pp, page: 1 });
                                                                 }}
-                                                                className="pl-1 sm:pl-2 pr-5 sm:pr-6 py-1 bg-transparent sm:bg-white dark:sm:bg-slate-800 border-0 sm:border border-slate-300 dark:border-slate-700 rounded-none sm:rounded-md text-xs font-bold text-slate-700 dark:text-slate-200 focus:bg-slate-100 dark:focus:bg-slate-700 focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500 cursor-pointer"
+                                                                className="pl-1 sm:pl-2 pr-5 sm:pr-6 py-1 font-bold cursor-pointer admin-control"
                                                                 aria-label="Jumlah sparepart per halaman"
                                                             >
                                                                 <option value={5}>5 / hal</option>

@@ -1,17 +1,16 @@
 import { useState } from 'react';
-import { DialogTitle } from '@headlessui/react';
+import AdminDialog, { DialogTitle } from '@/Components/Admin/Dialog';
 import { router } from '@inertiajs/react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { FiDownload, FiUpload, FiX } from 'react-icons/fi';
-import Modal from '@/Components/Modal';
 import { sheetError, sheetFileSchema, sheetPreviewSchema, selectableSheetRows } from '@/Utils/productSheet';
 
 const groups = { automotive: 'Otomotif', bicycle: 'Sepeda', electronics: 'Elektronik', hardware: 'Alat Bangunan' };
 const money = value => value == null ? '—' : new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(value);
-const control = 'w-full rounded-lg border-slate-300 text-sm dark:border-slate-600 dark:bg-slate-800';
-const secondary = 'inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50';
-const primary = 'rounded-lg bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-50';
+const control = 'admin-control w-full';
+const secondary = 'admin-button admin-button-secondary';
+const primary = 'admin-button admin-button-primary';
 
 export default function ProductSheetTools({ selectedGroup }) {
     const [dialog, setDialog] = useState(null);
@@ -64,11 +63,11 @@ export default function ProductSheetTools({ selectedGroup }) {
     return <>
         <button type="button" className={secondary} onClick={() => { setDialog('import'); setError(''); }}><FiUpload aria-hidden="true" />Impor</button>
         <button type="button" className={secondary} onClick={() => { setDialog('export'); setError(''); }}><FiDownload aria-hidden="true" />Ekspor</button>
-        <Modal show={dialog !== null} onClose={close} closeable={!busy} maxWidth="5xl">
+        <AdminDialog show={dialog !== null} onClose={close} closeable={!busy} className="max-w-5xl overflow-hidden">
             <div className="max-h-[85dvh] w-full overflow-y-auto p-4 sm:p-6">
                 <div className="mb-4 flex items-start justify-between gap-3">
-                    <DialogTitle className="text-lg font-bold">{dialog === 'export' ? 'Ekspor daftar barang' : 'Impor daftar barang'}</DialogTitle>
-                    <button type="button" onClick={close} disabled={busy} aria-label="Tutup" className="rounded p-2 hover:bg-slate-100 dark:hover:bg-slate-800"><FiX /></button>
+                    <DialogTitle className="admin-dialog-title">{dialog === 'export' ? 'Ekspor daftar barang' : 'Impor daftar barang'}</DialogTitle>
+                    <button type="button" onClick={close} disabled={busy} aria-label="Tutup" className="rounded p-2 hover:bg-slate-100 dark:hover:bg-slate-800 admin-icon-button"><FiX /></button>
                 </div>
                 {error && <p role="alert" className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700 dark:bg-red-950 dark:text-red-200">{error}</p>}
                 {dialog === 'export' ? <div className="space-y-4">
@@ -112,6 +111,6 @@ export default function ProductSheetTools({ selectedGroup }) {
                     <div className="flex flex-wrap gap-2"><button className={secondary} type="button" disabled={busy} onClick={() => { setPreview(null); setError(''); }}>Ubah pencocokan</button><button className={primary} type="button" disabled={busy || selected.length === 0} onClick={commit}>{busy ? 'Menyimpan…' : `Simpan ${selected.length} barang`}</button></div>
                 </div>}
             </div>
-        </Modal>
+        </AdminDialog>
     </>;
 }

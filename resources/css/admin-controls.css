@@ -1,0 +1,51 @@
+/* Shared admin controls. Customer storefront and printed reports retain their own sizing. */
+.admin-button {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border px-4 py-2 text-sm font-semibold leading-5 transition-colors sm:min-h-10;
+}
+.admin-button:focus-visible,
+.admin-icon-button:focus-visible {
+    @apply outline-none ring-2 ring-primary ring-offset-2 dark:ring-offset-slate-900;
+}
+.admin-button:disabled {
+    @apply cursor-not-allowed opacity-50;
+}
+.admin-button-primary {
+    @apply border-transparent bg-accentYellow text-primaryDark enabled:hover:bg-yellow-300;
+}
+.admin-button-secondary {
+    @apply border-slate-300 bg-white text-slate-700 enabled:hover:bg-slate-100 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:enabled:hover:bg-slate-700;
+}
+.admin-button-danger {
+    @apply border-transparent bg-red-600 text-white enabled:hover:bg-red-700;
+}
+.admin-icon-button {
+    @apply inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-lg sm:min-h-9 sm:min-w-9;
+}
+.admin-control {
+    @apply min-h-11 rounded-lg border border-slate-300 bg-white text-base text-slate-900 sm:min-h-10 sm:text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100;
+}
+.admin-control:focus {
+    @apply border-primary outline-none ring-2 ring-primary/30;
+}
+.admin-control:disabled {
+    @apply cursor-not-allowed bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400;
+}
+.admin-dialog {
+    @apply rounded-xl border border-slate-200 shadow-xl dark:border-slate-700;
+    max-height: calc(100dvh - 1.5rem);
+}
+.admin-dialog-title {
+    @apply text-base font-bold leading-snug text-primaryDark dark:text-white sm:text-lg;
+}
+.admin-page-title {
+    @apply text-lg font-bold leading-snug text-primaryDark dark:text-white;
+}
+.admin-help {
+    @apply text-xs leading-relaxed text-slate-600 dark:text-slate-400;
+}
+.admin-product-name {
+    @apply whitespace-normal break-words text-sm font-semibold leading-relaxed;
+    display: block;
+    overflow: visible;
+    -webkit-line-clamp: unset;
+}
