@@ -1,19 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { createCustomerOrder } from '@/Api/customerOrders';
+import { useState, useEffect, useRef } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
-import axios from 'axios';
+
 import { checkoutRequestId } from '@/Utils/checkout';
 import useForceLightTheme from '@/Utils/useForceLightTheme';
 import PaymentSkeleton from '@/Components/Skeletons/PaymentSkeleton';
-import {
-    FiArrowLeft,
-    FiCheck,
-    FiShoppingBag,
-    FiUser,
-    FiMapPin,
-    FiAlertCircle,
-    FiDollarSign,
-    FiTrash2
-} from 'react-icons/fi';
+import { FiArrowLeft, FiCheck, FiShoppingBag, FiUser, FiAlertCircle, FiDollarSign, FiTrash2 } from 'react-icons/fi';
 
 const ORDER_KEY = 'motorku_pending_order';
 const CART_KEY = 'motorku_cart';
@@ -87,8 +79,7 @@ export default function Payment() {
 
         try {
             const requestId = checkoutRequestId(localStorage, 'customer_checkout', payload);
-            const res = await axios.post('/api/customer/order', { ...payload, request_id: requestId });
-            const order = res.data?.data ?? res.data;
+            const order = await createCustomerOrder({ ...payload, request_id: requestId });
             if (!order?.id || !order?.customer_token) throw new Error('Respons pesanan tidak lengkap.');
             submittedRef.current = true;
             localStorage.removeItem('customer_checkout');

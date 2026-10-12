@@ -1,29 +1,11 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Head, Link, router } from '@inertiajs/react';
+import { cancelCustomerOrder, customerOrderStatus } from '@/Api/customerOrders';
+import { useState, useEffect, useRef } from 'react';
+import { Head, Link } from '@inertiajs/react';
 import useForceLightTheme from '@/Utils/useForceLightTheme';
 import OrderStatusSkeleton from '@/Components/Skeletons/OrderStatusSkeleton';
-import axios from 'axios';
+
 import { mergeOrderUpdates } from '@/Utils/orderHistory';
-import {
-    FiCheck,
-    FiClock,
-    FiTool,
-    FiPackage,
-    FiCheckCircle,
-    FiXCircle,
-    FiMapPin,
-    FiUser,
-    FiShoppingBag,
-    FiArrowRight,
-    FiFileText,
-    FiAlertCircle,
-    FiAlertTriangle,
-    FiCopy,
-    FiChevronDown,
-    FiChevronUp,
-    FiRefreshCw,
-    FiShoppingCart,
-} from 'react-icons/fi';
+import { FiCheck, FiClock, FiTool, FiPackage, FiCheckCircle, FiXCircle, FiMapPin, FiUser, FiShoppingBag, FiFileText, FiAlertCircle, FiAlertTriangle, FiCopy, FiChevronDown, FiChevronUp, FiRefreshCw, FiShoppingCart } from 'react-icons/fi';
 import clsx from 'clsx';
 
 const HISTORY_KEY = 'motorku_orders_history';
@@ -416,11 +398,9 @@ export default function OrderStatus() {
         setCancelError(null);
 
         try {
-            const res = await axios.post(`/api/customer/order/${targetOrderToCancel.order_id}/cancel`, {
-                customer_token: targetOrderToCancel.customer_token,
-            });
+            const cancelled = await cancelCustomerOrder(targetOrderToCancel.order_id, targetOrderToCancel.customer_token);
 
-            const updatedStatus = (res.data?.data ?? res.data)?.order_status || 'cancelled';
+            const updatedStatus = cancelled?.order_status || 'cancelled';
 
             const updatedList = ordersRef.current.map(o => o.order_id === targetOrderToCancel.order_id ? { ...o, order_status: updatedStatus } : o);
             ordersRef.current = updatedList;
@@ -479,10 +459,7 @@ export default function OrderStatus() {
             try {
                 const updates = await Promise.all(active.map(async ord => {
                     try {
-                        const res = await axios.get(`/api/customer/order/${ord.order_id}/status`, {
-                            params: { customer_token: ord.customer_token }, signal: controller.signal,
-                        });
-                        const latest = res.data?.data ?? res.data;
+                        const latest = await customerOrderStatus(ord.order_id, ord.customer_token, controller.signal);
                         return latest?.order_status ? { ...ord, ...latest, order_id: ord.order_id, customer_token: ord.customer_token } : null;
                     } catch (error) {
                         return [401, 404].includes(error.response?.status) ? { ...ord, unavailable: true } : null;
