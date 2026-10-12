@@ -14,7 +14,7 @@ POS dan katalog sparepart motor berbasis Laravel 12, React, dan Inertia.js.
 
 ## Teknologi
 
-- Backend: PHP 8.2+, Laravel 12, Eloquent ORM
+- Backend: PHP 8.3+, Laravel 12, Eloquent ORM (extension ZIP untuk impor/ekspor Excel)
 - Frontend: React 18, Inertia.js, Vite, Tailwind CSS
 - Database: MySQL sesuai konfigurasi `.env`
 - Authorization: Laravel Sanctum dan Spatie Permission
