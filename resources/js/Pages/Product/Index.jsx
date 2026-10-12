@@ -2,6 +2,7 @@ import { IMAGE_ACCEPT, IMAGE_HELP, validImage } from '@/Utils/imageUpload';
 import MoneyInput from '@/Components/MoneyInput';
 import { productPageSize } from '@/Utils/productPagination';
 import React, { useState, useEffect, useRef } from 'react';
+import ProductSheetTools from '@/Components/ProductSheetTools';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import ProductTableSkeleton from '@/Components/Skeletons/ProductTableSkeleton';
 import { Head, router, usePage } from '@inertiajs/react';
@@ -625,7 +626,8 @@ export default function MenuManagement({
                             </div>
 
                             {/* Right: Action Button */}
-                            <div className="ml-auto flex items-center gap-2 shrink-0">
+                            <div className="ml-auto flex flex-wrap items-center gap-2">
+                                {activeTab === 'products' && <ProductSheetTools selectedGroup={selectedGroup} />}
                                 {activeTab === 'products' ? (
                                     <button
                                         type="button"
