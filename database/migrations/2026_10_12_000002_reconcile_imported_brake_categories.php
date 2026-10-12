@@ -1,13 +1,13 @@
 <?php
 
-use App\Services\ProductImportCategoryService;
+use App\Services\Migrations\ReconcileImportedBrakeCategories20261012;
 use Illuminate\Database\Migrations\Migration;
 
 return new class extends Migration
 {
     public function up(): void
     {
-        app(ProductImportCategoryService::class)->repairImportedBrakeCategories();
+        app(ReconcileImportedBrakeCategories20261012::class)->run();
     }
 
     public function down(): void

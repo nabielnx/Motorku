@@ -1,22 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { cancelCustomerOrder, customerOrderStatus } from '@/Api/customerOrders';
+import { useState, useEffect, useRef } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
-import { toast } from 'sonner';
+
 import useForceLightTheme from '@/Utils/useForceLightTheme';
 import WaitingSkeleton from '@/Components/Skeletons/WaitingSkeleton';
-import axios from 'axios';
-import {
-    FiCheck,
-    FiClock,
-    FiMapPin,
-    FiShoppingBag,
-    FiUser,
-    FiArrowRight,
-    FiAlertCircle,
-    FiRefreshCw,
-    FiFileText,
-    FiXCircle,
-    FiAlertTriangle
-} from 'react-icons/fi';
+
+import { FiCheck, FiClock, FiMapPin, FiShoppingBag, FiUser, FiArrowRight, FiAlertCircle, FiFileText, FiXCircle, FiAlertTriangle } from 'react-icons/fi';
 
 const PAYMENT_KEY = 'motorku_order_for_payment';
 const CURRENT_ORDER_KEY = 'motorku_current_order';
@@ -45,9 +34,7 @@ export default function WaitingConfirmation() {
         setCancelling(true);
         setCancelError(null);
         try {
-            await axios.post(`/api/customer/order/${orderInfo.order_id}/cancel`, {
-                customer_token: orderInfo.customer_token,
-            });
+            await cancelCustomerOrder(orderInfo.order_id, orderInfo.customer_token);
 
             const updatedInfo = { ...orderInfo, order_status: 'cancelled' };
             setOrderInfo(updatedInfo);
@@ -90,10 +77,7 @@ export default function WaitingConfirmation() {
             if (busy || document.hidden || ['completed', 'cancelled'].includes(orderRef.current?.order_status)) return;
             busy = true;
             try {
-                const res = await axios.get(`/api/customer/order/${orderInfo.order_id}/status`, {
-                    params: { customer_token: orderInfo.customer_token }, signal: controller.signal
-                });
-                const d = res.data?.data ?? res.data;
+                const d = await customerOrderStatus(orderInfo.order_id, orderInfo.customer_token, controller.signal);
                 if (!d?.order_status || controller.signal.aborted || orderRef.current?.order_status === 'cancelled') return;
                 const info = {
                     ...orderRef.current,

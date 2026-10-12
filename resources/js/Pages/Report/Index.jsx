@@ -1,10 +1,11 @@
+import { cashSummary as fetchCashSummary, closeCash } from '@/Api/cashReports';
 import { storeDate, reportPeriods } from '@/Utils/dates';
 import MoneyInput from '@/Components/MoneyInput';
 import { useState, useEffect } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import ReportSkeleton from '@/Components/Skeletons/ReportSkeleton';
 import { Head, usePage, router } from '@inertiajs/react';
-import axios from 'axios';
+
 import { toast } from 'sonner';
 import {
     FiCalendar, FiDollarSign, FiShoppingBag, FiTrendingUp,
@@ -53,9 +54,8 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
         setCashOut('0');
         setActualCash('');
         setCashNotes('');
-        axios.get('/api/reports/cash', { params: { date: cashDate }, signal: controller.signal }).then(({ data }) => {
+        fetchCashSummary(cashDate, controller.signal).then(summary => {
             if (!active) return;
-            const summary = data.data ?? data;
             setCashSummary(summary);
             if (summary.closing) {
                 setOpeningCash(String(summary.closing.opening_cash));
@@ -98,14 +98,14 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
         if (savingCash || cashSummary?.closing || actualCash === '') return;
         setSavingCash(true);
         try {
-            const { data } = await axios.post('/api/reports/cash/close', {
+            const closing = await closeCash({
                 date: cashDate,
                 opening_cash: Number(openingCash),
                 cash_out: Number(cashOut),
                 actual_cash: Number(actualCash),
                 notes: cashNotes,
             });
-            setCashSummary(prev => ({ ...prev, closing: data.data ?? data }));
+            setCashSummary(prev => ({ ...prev, closing }));
             toast.success('Tutup kas harian tersimpan.');
         } catch (error) {
             toast.error(error.response?.data?.message || 'Gagal menyimpan tutup kas.');

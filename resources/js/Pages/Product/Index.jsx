@@ -1,33 +1,23 @@
-import { IMAGE_ACCEPT, IMAGE_HELP, validImage } from '@/Utils/imageUpload';
-import MoneyInput from '@/Components/MoneyInput';
+import useProductNavigation from '@/Hooks/useProductNavigation';
+import ProductFormModal from '@/Components/Product/ProductFormModal';
+import CategoryFormModal from '@/Components/Product/CategoryFormModal';
+import DeleteProductModal from '@/Components/Product/DeleteProductModal';
+import ProductPreviewModal from '@/Components/Product/ProductPreviewModal';
+import StockAdjustmentModal from '@/Components/Product/StockAdjustmentModal';
+
+
 import { productPageSize } from '@/Utils/productPagination';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import ProductSheetTools from '@/Components/ProductSheetTools';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import ProductTableSkeleton from '@/Components/Skeletons/ProductTableSkeleton';
 import { Head, router, usePage } from '@inertiajs/react';
 import { getProductImage } from '@/Utils/productImage';
 import { ProductPhoto } from '@/Components/Customer/Storefront';
-import { getTranslation } from '@/i18n/translations';
+
 import axios from 'axios';
 import { toast } from 'sonner';
-import { 
-    FiPlus, 
-    FiEdit2, 
-    FiTrash2, 
-    FiChevronDown, 
-    FiChevronLeft,
-    FiChevronRight,
-    FiX, 
-    FiCheck, 
-    FiPackage,
-    FiSearch,
-    FiAlertTriangle,
-    FiGrid,
-    FiList,
-    FiFilter,
-    FiFolder
-} from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2, FiChevronDown, FiChevronLeft, FiChevronRight, FiX, FiPackage, FiSearch, FiAlertTriangle, FiGrid, FiList, FiFilter, FiFolder } from 'react-icons/fi';
 
 
 
@@ -194,107 +184,30 @@ export default function MenuManagement({
         return () => breakpoints.forEach(query => query.removeEventListener('change', syncPageSize));
     }, [viewMode, perPage]);
 
-    const changeProductPage = (newPage) => {
-        if (newPage < 1 || newPage > totalPages) return;
-        router.get('/products', {
-            per_page: perPage,
-            group: selectedGroup || undefined,
-            page: newPage,
-            category: selectedCategoryFilter === 'All' ? undefined : selectedCategoryFilter,
-            search: searchQuery || undefined,
-            stock_status: selectedStockFilter === 'all' ? undefined : selectedStockFilter,
-            availability: statusFilter === 'all' ? undefined : statusFilter,
-            sort: selectedSort === 'latest' ? undefined : selectedSort
-        }, { preserveState: true, preserveScroll: true });
-    };
+    const { visitProducts, changeProductPage } = useProductNavigation({
+        perPage, selectedGroup, selectedCategoryFilter, searchQuery,
+        selectedStockFilter, statusFilter, selectedSort,
+    }, totalPages);
 
-    const handleCategoryFilterChange = (cat) => {
-        setSelectedCategoryFilter(cat);
-        router.get('/products', {
-            per_page: perPage,
-            group: selectedGroup || undefined,
-            page: 1,
-            category: cat === 'All' ? undefined : cat,
-            search: searchQuery || undefined,
-            stock_status: selectedStockFilter === 'all' ? undefined : selectedStockFilter,
-            availability: statusFilter === 'all' ? undefined : statusFilter,
-            sort: selectedSort === 'latest' ? undefined : selectedSort
-        }, { preserveState: true, preserveScroll: true });
+    const handleCategoryFilterChange = (category) => {
+        setSelectedCategoryFilter(category);
+        visitProducts({ category: category === 'All' ? undefined : category });
     };
-
     const handleStockFilterChange = (status) => {
         setSelectedStockFilter(status);
-        router.get('/products', {
-            per_page: perPage,
-            group: selectedGroup || undefined,
-            page: 1,
-            category: selectedCategoryFilter === 'All' ? undefined : selectedCategoryFilter,
-            search: searchQuery || undefined,
-            stock_status: status === 'all' ? undefined : status,
-            availability: statusFilter === 'all' ? undefined : statusFilter,
-            sort: selectedSort === 'latest' ? undefined : selectedSort
-        }, { preserveState: true, preserveScroll: true });
+        visitProducts({ stock_status: status === 'all' ? undefined : status });
     };
-
     const handleStatusFilterChange = (status) => {
         setStatusFilter(status);
-        router.get('/products', {
-            per_page: perPage,
-            group: selectedGroup || undefined,
-            page: 1,
-            category: selectedCategoryFilter === 'All' ? undefined : selectedCategoryFilter,
-            search: searchQuery || undefined,
-            stock_status: selectedStockFilter === 'all' ? undefined : selectedStockFilter,
-            availability: status === 'all' ? undefined : status,
-            sort: selectedSort === 'latest' ? undefined : selectedSort
-        }, { preserveState: true, preserveScroll: true });
+        visitProducts({ availability: status === 'all' ? undefined : status });
     };
-
-    const handleSortValueChange = (nextSort) => {
-        setSelectedSort(nextSort);
-        router.get('/products', {
-            per_page: perPage,
-            group: selectedGroup || undefined,
-            page: 1,
-            category: selectedCategoryFilter === 'All' ? undefined : selectedCategoryFilter,
-            search: searchQuery || undefined,
-            stock_status: selectedStockFilter === 'all' ? undefined : selectedStockFilter,
-            availability: statusFilter === 'all' ? undefined : statusFilter,
-            sort: nextSort
-        }, { preserveState: true, preserveScroll: true });
+    const handleSortValueChange = (sort) => {
+        setSelectedSort(sort);
+        visitProducts({ sort });
     };
-
     const handleSortChange = (field) => {
         handleSortValueChange(selectedSort === `${field}_asc` ? `${field}_desc` : `${field}_asc`);
     };
-
-    // Search yang di-debounce → refetch dari server agar mencari SEMUA produk
-    const categoryFilterRef = useRef(selectedCategoryFilter);
-    useEffect(() => { categoryFilterRef.current = selectedCategoryFilter; }, [selectedCategoryFilter]);
-
-    const stockFilterRef = useRef(selectedStockFilter);
-    useEffect(() => { stockFilterRef.current = selectedStockFilter; }, [selectedStockFilter]);
-
-    const isFirstSearchRender = useRef(true);
-    useEffect(() => {
-        if (isFirstSearchRender.current) {
-            isFirstSearchRender.current = false;
-            return;
-        }
-        const t = setTimeout(() => {
-            router.get('/products', {
-                per_page: perPage,
-                group: selectedGroup || undefined,
-                page: 1,
-                category: categoryFilterRef.current === 'All' ? undefined : categoryFilterRef.current,
-                search: searchQuery || undefined,
-                stock_status: stockFilterRef.current === 'all' ? undefined : stockFilterRef.current,
-                availability: statusFilter === 'all' ? undefined : statusFilter,
-                sort: selectedSort === 'latest' ? undefined : selectedSort
-            }, { preserveState: true, preserveScroll: true });
-        }, 400);
-        return () => clearTimeout(t);
-    }, [searchQuery]);
 
     // Stock Adjustment Modal State (Kulakan / Barang Masuk / Opname)
     const [selectedProductForAdjust, setSelectedProductForAdjust] = useState(null);
@@ -1355,586 +1268,62 @@ export default function MenuManagement({
 
             {/* PRODUCT MODAL (Add / Edit) */}
             {isProductModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/80 p-2 sm:p-4">
-                    <div className="bg-white dark:bg-slate-900 rounded-xl shadow-xl w-full max-w-lg max-h-[calc(100svh-1rem)] sm:max-h-[calc(100dvh-2rem)] flex flex-col overflow-hidden border border-slate-300 dark:border-slate-800 animate-in fade-in zoom-in duration-150 text-slate-900 dark:text-white">
-                        <div className="shrink-0 px-4 py-3 sm:px-6 sm:py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
-                            <h3 className="font-extrabold text-slate-900 dark:text-white text-sm">
-                                {editingItem ? 'Edit Produk' : 'Tambah Produk Baru'}
-                            </h3>
-                            <button
-                                type="button"
-                                onClick={() => setIsProductModalOpen(false)}
-                                aria-label="Tutup formulir produk"
-                                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition"
-                            >
-                                <FiX className="w-5 h-5" />
-                            </button>
-                        </div>
-
-                        <form onSubmit={handleSaveProduct} className="min-h-0 flex flex-1 flex-col">
-                            <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3 sm:p-6 space-y-3 sm:space-y-4">
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Nama Produk</label>
-                                    <input
-                                        type="text"
-                                        required
-                                        value={productFormData.name}
-                                        onChange={(e) => setProductFormData({...productFormData, name: e.target.value})}
-                                        placeholder="Contoh: Ban Luar Federal 70/90-14"
-                                        className="w-full px-3.5 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500 transition"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Kategori</label>
-                                    <div className="relative">
-                                        <select
-                                            value={productFormData.category_id}
-                                            onChange={(e) => setProductFormData({...productFormData, category_id: e.target.value})}
-                                            className="w-full appearance-none pl-3.5 pr-9 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500 transition cursor-pointer"
-                                        >
-                                            <option value="">Pilih Kategori</option>
-                                            {categories.map(c => (
-                                                <optgroup key={c.id} label={c.name}>
-                                                    <option value={c.id}>{c.name}</option>
-                                                    {c.children && c.children.map(child => (
-                                                        <option key={child.id} value={child.id}>{child.name}</option>
-                                                    ))}
-                                                </optgroup>
-                                            ))}
-                                        </select>
-                                        <FiChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 dark:text-slate-500" size={15} />
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-3">
-                                    <div>
-                                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">SKU</label>
-                                        <input
-                                            type="text"
-                                            value={productFormData.sku}
-                                            onChange={(e) => setProductFormData({...productFormData, sku: e.target.value})}
-                                            placeholder="PRD-001"
-                                            className="w-full px-3.5 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500 transition"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Status penjualan</label>
-                                        <div className="relative">
-                                            <select
-                                                value={productFormData.status}
-                                                onChange={(e) => setProductFormData({...productFormData, status: e.target.value})}
-                                                className="w-full appearance-none pl-3 pr-8 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500 transition cursor-pointer"
-                                            >
-                                                <option value="Active">Aktif dijual</option>
-                                                <option value="Inactive">Nonaktif</option>
-                                            </select>
-                                            <FiChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 dark:text-slate-500" size={15} />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-3">
-                                    <div>
-                                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Merek (opsional)</label>
-                                        <input type="text" value={productFormData.brand} onChange={(e) => setProductFormData({...productFormData, brand: e.target.value})} placeholder="Contoh: IRC" className="w-full px-3.5 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500" />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Lokasi Rak (opsional)</label>
-                                        <input type="text" value={productFormData.rack_location} onChange={(e) => setProductFormData({...productFormData, rack_location: e.target.value})} placeholder="Contoh: B2" className="w-full px-3.5 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500" />
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Deskripsi / Spesifikasi</label>
-                                    <input
-                                        type="text"
-                                        value={productFormData.subtitle}
-                                        onChange={(e) => setProductFormData({...productFormData, subtitle: e.target.value})}
-                                        placeholder="Contoh: Ban luar tubeless matic ring 14 berkualitas tinggi"
-                                        className="w-full px-3.5 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500 transition"
-                                    />
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-3">
-                                    <div>
-                                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Harga modal (Rp)</label>
-                                        <MoneyInput
-                                            value={productFormData.cost_price}
-                                            onChange={(e) => setProductFormData({...productFormData, cost_price: e.target.value})}
-                                            placeholder="Opsional"
-                                            className="w-full px-3.5 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500 transition"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Harga jual (Rp)</label>
-                                        <MoneyInput
-                                            required
-                                            value={productFormData.price}
-                                            onChange={(e) => setProductFormData({...productFormData, price: e.target.value})}
-                                            placeholder="20000"
-                                            className="w-full px-3.5 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500 transition"
-                                        />
-                                    </div>
-
-                                </div>
-
-                                {/* Stock & Minimum Stock Row */}
-                                <div className="grid grid-cols-2 gap-3">
-                                    <div>
-                                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                                            {editingItem ? 'Stok saat ini (pcs)' : 'Stok awal (pcs)'}
-                                        </label>
-                                        <input
-                                            type="number"
-                                            min="0"
-                                            value={productFormData.stock}
-                                            onChange={(e) => setProductFormData({...productFormData, stock: e.target.value})}
-                                            disabled={!!editingItem}
-                                            placeholder="0"
-                                            className="w-full px-3.5 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500 transition"
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                                            Min. stok (pcs)
-                                        </label>
-                                        <input
-                                            type="number"
-                                            min="0"
-                                            value={productFormData.minimum_stock}
-                                            onChange={(e) => setProductFormData({...productFormData, minimum_stock: e.target.value})}
-                                            placeholder="3"
-                                            className="w-full px-3.5 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500 transition"
-                                        />
-                                    </div>
-                                </div>
-                                {editingItem && <p className="text-[10px] text-slate-500 dark:text-slate-400">Ubah stok lewat tombol Stok agar riwayat tercatat.</p>}
-
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Gambar Produk</label>
-                                    <label className="flex items-center gap-3 p-2.5 border border-dashed border-slate-300 dark:border-slate-700 rounded-lg cursor-pointer hover:border-slate-400 transition-colors bg-slate-50 dark:bg-slate-800">
-                                        <input
-                                            type="file"
-                                            accept={IMAGE_ACCEPT}
-                                            onChange={(e) => {
-                                                const file = e.target.files?.[0];
-                                                if (validImage(file)) {
-                                                    setProductFormData({
-                                                        ...productFormData,
-                                                        imageFile: file,
-                                                        imagePreview: URL.createObjectURL(file)
-                                                    });
-                                                }
-                                            }}
-                                            className="hidden"
-                                        />
-                                        {productFormData.imagePreview ? (
-                                            <img src={productFormData.imagePreview} alt="preview" className="w-12 h-12 rounded-lg object-cover border border-slate-300 dark:border-slate-700 shadow-2xs" />
-                                        ) : productFormData.image ? (
-                                            <img src={productFormData.image} alt="current" className="w-12 h-12 rounded-lg object-cover border border-slate-300 dark:border-slate-700 shadow-2xs" />
-                                        ) : (
-                                            <div className="w-12 h-12 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500 text-xs font-bold border border-slate-300 dark:border-slate-700">Foto</div>
-                                        )}
-                                        <div className="text-xs text-slate-500 dark:text-slate-400">
-                                            <span className="font-bold text-primary dark:text-blue-300">Upload foto</span>
-                                            <br />{IMAGE_HELP}
-                                        </div>
-                                    </label>
-                                </div>
-                            </div>
-
-                            <div className="shrink-0 flex items-center gap-3 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-3 sm:px-6">
-                                <button
-                                    type="button"
-                                    onClick={() => setIsProductModalOpen(false)}
-                                    className="min-h-10 flex-1 px-3.5 py-2 border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-lg transition"
-                                >
-                                    Batal
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={isLoading}
-                                    className="min-h-10 flex-1 px-3.5 py-2 bg-accentYellow hover:bg-yellow-300 text-primaryDark text-xs font-bold rounded-lg shadow-xs transition cursor-pointer disabled:opacity-50"
-                                >
-                                    {isLoading ? 'Menyimpan...' : editingItem ? 'Simpan Perubahan' : 'Tambah Produk'}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
+                <ProductFormModal
+                editingItem={editingItem}
+                setIsProductModalOpen={setIsProductModalOpen}
+                handleSaveProduct={handleSaveProduct}
+                productFormData={productFormData}
+                setProductFormData={setProductFormData}
+                categories={categories}
+                isLoading={isLoading}
+            />
             )}
 
             {/* CATEGORY MODAL (Add / Edit) */}
             {isCategoryModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/80 p-2 sm:p-4">
-                    <div className="bg-white dark:bg-slate-900 rounded-xl shadow-xl w-full max-w-lg max-h-[calc(100svh-1rem)] sm:max-h-[calc(100dvh-2rem)] flex flex-col overflow-hidden border border-slate-300 dark:border-slate-800 animate-in fade-in zoom-in duration-150 text-slate-900 dark:text-white">
-                        <div className="shrink-0 px-4 py-3 sm:px-6 sm:py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
-                            <h3 className="font-extrabold text-slate-900 dark:text-white text-sm">
-                                {editingCategory ? 'Edit Kategori' : 'Tambah Kategori'}
-                            </h3>
-                            <button
-                                type="button"
-                                onClick={() => setIsCategoryModalOpen(false)}
-                                aria-label="Tutup formulir kategori"
-                                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer"
-                            >
-                                <FiX className="w-5 h-5" />
-                            </button>
-                        </div>
-
-                        <form onSubmit={handleSaveCategory} className="min-h-0 flex flex-1 flex-col">
-                            <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:p-6 space-y-5">
-                                <div>
-                                    <label htmlFor="category-group" className="block text-xs font-bold text-primaryDark mb-1">Kelompok barang</label>
-                                    <select id="category-group" value={categoryFormData.catalog_group} onChange={(e) => setCategoryFormData({ ...categoryFormData, catalog_group: e.target.value })} className="mb-2 w-full rounded-lg border-slate-300 text-sm text-primaryDark">
-                                        {Object.entries(catalogGroups).map(([key, name]) => <option key={key} value={key}>{name}</option>)}
-                                    </select>
-                                    <p className="mb-3 text-xs text-slate-500">Produk dan subkategori mengikuti kelompok ini.</p>
-                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Nama kategori *</label>
-                                    <input
-                                        type="text"
-                                        required
-                                        value={categoryFormData.name}
-                                        onChange={(e) => setCategoryFormData({...categoryFormData, name: e.target.value})}
-                                        placeholder="Contoh: Oli, Pelumas & Kimia"
-                                        className="w-full px-3.5 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500 transition"
-                                    />
-                                </div>
-
-                                <div>
-                                    <div className="flex items-center justify-between gap-3 mb-2">
-                                        <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                                            Subkategori ({categoryFormData.sub_categories?.length || 0}) <span className="font-normal text-slate-400">· opsional</span>
-                                        </span>
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                setCategoryFormData({
-                                                    ...categoryFormData,
-                                                    sub_categories: [...(categoryFormData.sub_categories || []), { name: '' }]
-                                                });
-                                            }}
-                                            className="shrink-0 text-xs font-bold text-primary dark:text-blue-300 hover:text-primaryDark dark:hover:text-white flex items-center gap-1 cursor-pointer"
-                                        >
-                                            <FiPlus size={13} />
-                                            <span>Tambah</span>
-                                        </button>
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        {(categoryFormData.sub_categories || []).map((sub, idx) => (
-                                            <div key={idx} className="flex items-center gap-2">
-                                                <input
-                                                    type="text"
-                                                    value={sub.name}
-                                                    onChange={(e) => {
-                                                        const updated = [...categoryFormData.sub_categories];
-                                                        updated[idx] = { ...updated[idx], name: e.target.value };
-                                                        setCategoryFormData({ ...categoryFormData, sub_categories: updated });
-                                                    }}
-                                                    placeholder="Nama subkategori"
-                                                    aria-label={`Nama subkategori ${idx + 1}`}
-                                                    className="min-w-0 flex-1 px-3 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500"
-                                                />
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        const updated = categoryFormData.sub_categories.filter((_, i) => i !== idx);
-                                                        setCategoryFormData({ ...categoryFormData, sub_categories: updated });
-                                                    }}
-                                                    className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/50 rounded-lg transition shrink-0 cursor-pointer"
-                                                    aria-label={`Hapus subkategori ${idx + 1}`}
-                                                >
-                                                    <FiTrash2 size={15} />
-                                                </button>
-                                            </div>
-                                        ))}
-
-                                        {(!categoryFormData.sub_categories || categoryFormData.sub_categories.length === 0) && (
-                                            <p className="text-xs text-slate-400 dark:text-slate-500">Belum ada subkategori.</p>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="shrink-0 flex items-center gap-3 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-3 sm:px-6">
-                                <button
-                                    type="button"
-                                    onClick={() => setIsCategoryModalOpen(false)}
-                                    className="min-h-10 flex-1 px-3.5 py-2 border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-lg transition cursor-pointer"
-                                >
-                                    Batal
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={isLoading}
-                                    className="min-h-10 flex-1 px-3.5 py-2 bg-accentYellow hover:bg-yellow-300 text-primaryDark text-xs font-bold rounded-lg shadow-xs transition cursor-pointer disabled:opacity-50"
-                                >
-                                    {isLoading ? 'Menyimpan...' : 'Simpan Kategori'}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
+                <CategoryFormModal
+                editingCategory={editingCategory}
+                setIsCategoryModalOpen={setIsCategoryModalOpen}
+                handleSaveCategory={handleSaveCategory}
+                categoryFormData={categoryFormData}
+                setCategoryFormData={setCategoryFormData}
+                catalogGroups={catalogGroups}
+                isLoading={isLoading}
+            />
             )}
 
             {/* CUSTOM VISUAL DELETE CONFIRMATION MODAL */}
             {deleteTarget && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/80 p-4">
-                    <div className="bg-white dark:bg-slate-900 rounded-xl max-w-sm w-full p-5 space-y-4 shadow-xl border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white">
-                        <div className="flex items-center gap-3 border-b border-slate-100 dark:border-slate-800 pb-3">
-                            <div className="p-2 bg-red-50 dark:bg-red-950/60 rounded-lg shrink-0">
-                                <FiAlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" strokeWidth={2.5} />
-                            </div>
-                            <div>
-                                <h3 className="text-sm font-black text-slate-900 dark:text-white">
-                                    Hapus {deleteTarget.type === 'product' ? 'Produk' : 'Kategori'}
-                                </h3>
-                                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Konfirmasi Penghapusan</p>
-                            </div>
-                        </div>
-                        <p className="text-xs font-medium text-slate-600 dark:text-slate-300 leading-relaxed">
-                            Apakah Anda yakin ingin menghapus {deleteTarget.type === 'product' ? 'produk' : 'kategori'}{' '}
-                            <span className="font-bold text-slate-900 dark:text-white">"{deleteTarget.name}"</span>? Perubahan ini tidak dapat dibatalkan.
-                        </p>
-                        <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-                            <button
-                                type="button"
-                                onClick={() => setDeleteTarget(null)}
-                                disabled={isLoading}
-                                className="px-3.5 py-2 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-lg transition"
-                            >
-                                Batal
-                            </button>
-                            <button
-                                type="button"
-                                onClick={executeDeleteTarget}
-                                disabled={isLoading}
-                                className="px-3.5 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg transition border border-red-700 shadow-xs"
-                            >
-                                {isLoading ? 'Menghapus...' : 'Ya, Hapus'}
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <DeleteProductModal
+                deleteTarget={deleteTarget}
+                setDeleteTarget={setDeleteTarget}
+                isLoading={isLoading}
+                executeDeleteTarget={executeDeleteTarget}
+            />
             )}
 
             {/* PRODUCT IMAGE LIGHTBOX PREVIEW MODAL */}
             {previewProduct && (
-                <div 
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-xs p-4 animate-in fade-in duration-200"
-                    onClick={() => setPreviewProduct(null)}
-                >
-                    <div 
-                        className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 max-w-lg w-full overflow-hidden flex flex-col animate-in zoom-in-95 duration-200"
-                        onClick={e => e.stopPropagation()}
-                    >
-                        {/* Modal Header */}
-                        <div className="p-3.5 sm:p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                            <div className="min-w-0 pr-2">
-                                <h3 className="font-bold text-slate-900 dark:text-white text-sm sm:text-base truncate">
-                                    {previewProduct.name}
-                                </h3>
-                                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium truncate mt-0.5">
-                                    {previewProduct.category} {previewProduct.sku ? `· ${previewProduct.sku}` : ''}
-                                </p>
-                            </div>
-                            <button
-                                type="button"
-                                onClick={() => setPreviewProduct(null)}
-                                className="p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer shrink-0"
-                            >
-                                <FiX size={18} />
-                            </button>
-                        </div>
-
-                        {/* Full Size Image */}
-                        <div className="p-4 bg-slate-50 dark:bg-slate-950 flex items-center justify-center min-h-[260px] max-h-[380px] overflow-hidden text-slate-300 dark:text-slate-600">
-                            {previewProduct.image ? (
-                                <img
-                                    src={previewProduct.image}
-                                    alt={previewProduct.name}
-                                    className="max-h-[360px] max-w-full object-contain rounded-lg shadow-xs"
-                                />
-                            ) : (
-                                <div className="flex flex-col items-center justify-center py-10 opacity-60">
-                                    <FiPackage size={80} className="mb-4" />
-                                    <span className="text-sm font-semibold">Tidak Ada Foto</span>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Modal Info Footer */}
-                        <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 space-y-2">
-                            <div className="flex items-center justify-between">
-                                <span className="text-base sm:text-lg font-black text-primaryDark dark:text-blue-300">
-                                    Rp {Number(previewProduct.price).toLocaleString('id-ID')}
-                                </span>
-                                <span className={`text-xs font-semibold ${
-                                    previewProduct.stock <= 0 
-                                        ? 'text-red-600 font-bold'
-                                        : previewProduct.stock <= 5 
-                                            ? 'text-primaryDark dark:text-accentYellow'
-                                            : 'text-slate-700 dark:text-slate-300'
-                                }`}>
-                                    Stok: {previewProduct.stock <= 0 ? 'Habis' : `${previewProduct.stock} pcs`}
-                                </span>
-                            </div>
-                            {previewProduct.subtitle && (
-                                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                                    {previewProduct.subtitle}
-                                </p>
-                            )}
-                        </div>
-                    </div>
-                </div>
+                <ProductPreviewModal
+                setPreviewProduct={setPreviewProduct}
+                previewProduct={previewProduct}
+            />
             )}
 
             {/* STOCK ADJUSTMENT MODAL (Kulakan / Opname / Keluar) */}
             {selectedProductForAdjust && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/80 p-4">
-                    <div className="bg-white dark:bg-slate-900 rounded-xl shadow-xl w-full max-w-md max-h-[calc(100dvh-2rem)] flex flex-col overflow-hidden border border-slate-300 dark:border-slate-800 animate-in fade-in zoom-in duration-150 text-slate-900 dark:text-white">
-                        <div className="shrink-0 px-4 py-3 border-b border-slate-200 dark:border-slate-800 flex items-start gap-3 bg-slate-50 dark:bg-slate-800/80">
-                            <div className="min-w-0 flex-1">
-                                <h3 className="font-extrabold text-slate-900 dark:text-white text-sm">
-                                    Atur Stok
-                                </h3>
-                                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium truncate mt-0.5">
-                                    {selectedProductForAdjust.name}
-                                </p>
-                            </div>
-                            <button 
-                                type="button"
-                                onClick={() => setSelectedProductForAdjust(null)}
-                                aria-label="Tutup pengaturan stok"
-                                className="shrink-0 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer"
-                            >
-                                <FiX className="w-5 h-5" />
-                            </button>
-                        </div>
-
-                        <form onSubmit={handleAdjustSubmit} className="min-h-0 flex-1 overflow-y-auto p-4 space-y-4">
-                            <div className="flex items-center justify-between text-xs">
-                                <span className="text-slate-600 dark:text-slate-400 font-semibold">Stok saat ini</span>
-                                <span className="font-extrabold text-primaryDark dark:text-blue-300 text-sm">
-                                    {selectedProductForAdjust.stock} pcs
-                                </span>
-                            </div>
-
-                            {/* Adjustment Type Selector */}
-                            <div>
-                                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                                    Jenis Perubahan
-                                </label>
-                                <div className="grid grid-cols-3 gap-1 rounded-lg bg-slate-100 dark:bg-slate-800 p-1" role="group" aria-label="Jenis perubahan stok">
-                                    <button
-                                        type="button"
-                                        onClick={() => setAdjustForm(prev => prev.type === 'stock_in' ? prev : { ...prev, type: 'stock_in', quantity: '' })}
-                                        aria-pressed={adjustForm.type === 'stock_in'}
-                                        className={`min-w-0 py-2 rounded-md text-xs font-bold transition text-center cursor-pointer ${
-                                            adjustForm.type === 'stock_in'
-                                                ? 'bg-primary text-white shadow-xs'
-                                                : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
-                                        }`}
-                                    >
-                                        + Masuk
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => setAdjustForm(prev => prev.type === 'stock_out' ? prev : { ...prev, type: 'stock_out', quantity: '' })}
-                                        aria-pressed={adjustForm.type === 'stock_out'}
-                                        className={`min-w-0 py-2 rounded-md text-xs font-bold transition text-center cursor-pointer ${
-                                            adjustForm.type === 'stock_out'
-                                                ? 'bg-primary text-white shadow-xs'
-                                                : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
-                                        }`}
-                                    >
-                                        − Keluar
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => setAdjustForm(prev => prev.type === 'adjustment' ? prev : { ...prev, type: 'adjustment', quantity: '' })}
-                                        aria-pressed={adjustForm.type === 'adjustment'}
-                                        className={`min-w-0 py-2 rounded-md text-xs font-bold transition text-center cursor-pointer ${
-                                            adjustForm.type === 'adjustment'
-                                                ? 'bg-primary text-white shadow-xs'
-                                                : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
-                                        }`}
-                                    >
-                                        = Opname
-                                    </button>
-                                </div>
-                            </div>
-
-                            {/* Quantity Input */}
-                            <div>
-                                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                                    {adjustForm.type === 'adjustment' ? 'Stok fisik (pcs)' : adjustForm.type === 'stock_in' ? 'Jumlah masuk (pcs)' : 'Jumlah keluar (pcs)'}
-                                </label>
-                                <input
-                                    type="number"
-                                    min={adjustForm.type === 'adjustment' ? '0' : '1'}
-                                    max={adjustForm.type === 'stock_out' ? currentStock : undefined}
-                                    step="1"
-                                    inputMode="numeric"
-                                    required
-                                    value={adjustForm.quantity}
-                                    onChange={(e) => setAdjustForm(prev => ({ ...prev, quantity: e.target.value }))}
-                                    placeholder="0"
-                                    className="w-full px-3.5 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500 transition"
-                                />
-                                {stockOutTooLarge ? (
-                                    <p className="text-[11px] font-semibold text-rose-600 dark:text-rose-400 mt-1">Maksimal {currentStock} pcs tersedia.</p>
-                                ) : validAdjustmentQuantity && (
-                                    <p className="text-[11px] text-slate-600 dark:text-slate-300 mt-1">Stok setelah disimpan: <strong>{projectedStock} pcs</strong></p>
-                                )}
-                            </div>
-
-                            {/* Note / Reference */}
-                            <div>
-                                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                                    Catatan / Referensi (Opsional)
-                                </label>
-                                <input
-                                    type="text"
-                                    value={adjustForm.note}
-                                    onChange={(e) => setAdjustForm(prev => ({ ...prev, note: e.target.value }))}
-                                    placeholder="Contoh: Kulakan dari Toko Jaya"
-                                    maxLength={255}
-                                    className="w-full px-3.5 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500 transition"
-                                />
-                            </div>
-
-                            {/* Modal Actions */}
-                            <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end space-x-2">
-                                <button
-                                    type="button"
-                                    onClick={() => setSelectedProductForAdjust(null)}
-                                    disabled={adjustLoading}
-                                    className="px-3.5 py-2 border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-lg transition cursor-pointer"
-                                >
-                                    Batal
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={adjustLoading || stockOutTooLarge}
-                                    className="px-4 py-2 bg-primary hover:bg-primaryDark disabled:opacity-50 text-white text-xs font-bold rounded-lg border border-primary shadow-xs transition cursor-pointer flex items-center gap-1.5"
-                                >
-                                    {adjustLoading ? (
-                                        <span>Menyimpan...</span>
-                                    ) : (
-                                        <>
-                                            <FiCheck size={14} />
-                                            <span>Simpan Stok</span>
-                                        </>
-                                    )}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
+                <StockAdjustmentModal
+                selectedProductForAdjust={selectedProductForAdjust}
+                setSelectedProductForAdjust={setSelectedProductForAdjust}
+                handleAdjustSubmit={handleAdjustSubmit}
+                setAdjustForm={setAdjustForm}
+                adjustForm={adjustForm}
+                currentStock={currentStock}
+                stockOutTooLarge={stockOutTooLarge}
+                validAdjustmentQuantity={validAdjustmentQuantity}
+                projectedStock={projectedStock}
+                adjustLoading={adjustLoading}
+            />
             )}
         </AuthenticatedLayout>
     );

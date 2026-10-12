@@ -22,7 +22,8 @@ class OrderService
     public function __construct(
         protected InventoryService $inventoryService,
         protected PaymentService $paymentService,
-        protected DocumentNumberService $documentNumbers
+        protected DocumentNumberService $documentNumbers,
+        protected OrderCancellationService $cancellation
     ) {}
 
     public function createPosSale(array $data): array
@@ -310,7 +311,8 @@ class OrderService
             }
 
             if ($order->order_status === OrderStatus::Pending) {
-                $this->restoreReservedStock($order);
+                $this->cancellation->restoreReservedStock($order, auth()->id(),
+                    'Stok dikembalikan — order '.$order->order_number.' dibatalkan');
             }
             $order->delete();
         });
@@ -364,8 +366,8 @@ class OrderService
             }
 
             if ($nextStatus === OrderStatus::Cancelled && $order->order_status !== OrderStatus::Cancelled) {
-                $this->restoreReservedStock($order);
-                $order->payments()->where('status', 'pending')->update(['status' => 'cancelled']);
+                $this->cancellation->releaseReservation($order, auth()->id(),
+                    'Stok dikembalikan — order '.$order->order_number.' dibatalkan');
             }
 
             // Convert enum to string for the update array
@@ -387,28 +389,6 @@ class OrderService
     private function nextOrderNumber(): string
     {
         return $this->documentNumbers->next('order');
-    }
-
-    /**
-     * Restore stock for a cancelled/deleted order via InventoryService.
-     */
-    private function restoreReservedStock(Order $order): void
-    {
-        $order->loadMissing('items');
-
-        foreach ($order->items as $item) {
-            $this->inventoryService->adjustStock(
-                [
-                    'product_id' => $item->product_id,
-                    'type' => InventoryLogType::StockReturn,
-                    'quantity' => $item->quantity,
-                    'reference_type' => Order::class,
-                    'reference_id' => $order->id,
-                ],
-                auth()->id(),
-                'Stok dikembalikan — order '.$order->order_number.' dibatalkan'
-            );
-        }
     }
 
     private function setting(string $group, string $key, mixed $default): mixed

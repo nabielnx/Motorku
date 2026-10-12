@@ -1,5 +1,15 @@
-import { IMAGE_ACCEPT, IMAGE_HELP, validImage } from '@/Utils/imageUpload';
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+
+import { getBrandConfig } from '@/Components/Motorcycle/presentation';
+import useMotorcycleParts from '@/Hooks/useMotorcycleParts';
+import BulkMappingModal from '@/Components/Motorcycle/BulkMappingModal';
+import MotorcycleFormModal from '@/Components/Motorcycle/MotorcycleFormModal';
+import AttachPartModal from '@/Components/Motorcycle/AttachPartModal';
+import EditPartModal from '@/Components/Motorcycle/EditPartModal';
+import MotorcyclePreviewModal from '@/Components/Motorcycle/MotorcyclePreviewModal';
+import PartPreviewModal from '@/Components/Motorcycle/PartPreviewModal';
+import DeleteMappingModal from '@/Components/Motorcycle/DeleteMappingModal';
+
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import MotorcycleSkeleton from '@/Components/Skeletons/MotorcycleSkeleton';
 import { Head, router } from '@inertiajs/react';
@@ -8,75 +18,7 @@ import { POS_CART_KEY, formatPosProduct, readPosCart, addToPosCart } from '@/Uti
 import { ProductPhoto } from '@/Components/Customer/Storefront';
 import MotorIcon from '@/Components/MotorIcon';
 import { toast } from 'sonner';
-import {
-    FiPlus, FiEdit2, FiTrash2, FiLink, FiX, FiSearch,
-    FiCheck, FiStar, FiChevronDown, FiChevronUp, FiFilter,
-    FiRefreshCw, FiBox, FiAlertCircle, FiCheckCircle,
-    FiLayers, FiCheckSquare, FiSquare, FiMaximize2, FiChevronLeft, FiChevronRight
-} from 'react-icons/fi';
-
-function ProductThumbnail({ path, name = '', category = '', size = 'w-8 h-8' }) {
-    return (
-        <div className={`${size} rounded-md border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 overflow-hidden shrink-0 flex items-center justify-center`}>
-            <ProductPhoto
-                src={getProductImage(path)}
-                name={name}
-                category={category}
-                className="w-full h-full"
-                compact
-            />
-        </div>
-    );
-}
-
-// Category group badge colors (Clean neutral slate badges with high text contrast)
-const GROUP_COLORS = {
-    pelumas_cairan: 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 font-medium',
-    kaki_kaki_roda: 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 font-medium',
-    pengereman: 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 font-medium',
-    transmisi_penggerak: 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 font-medium',
-    kelistrikan_pengapian: 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 font-medium',
-    lampu_saklar: 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 font-medium',
-    mesin_filter: 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 font-medium',
-    bodi_aksesoris: 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 font-medium',
-    lainnya: 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 font-medium',
-};
-
-// Brand Identity Config (Neutral slate base, Red reserved for Honda branding)
-const BRAND_CONFIG = {
-    Honda: {
-        badge: 'bg-red-50 text-red-700 border-red-200 dark:bg-red-950/60 dark:text-red-300 dark:border-red-900/60 font-bold',
-        activeBtn: 'bg-blue-600 text-white border-blue-600 shadow-xs font-semibold',
-        inactiveBtn: 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-750',
-    },
-    Yamaha: {
-        badge: 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-700 font-bold',
-        activeBtn: 'bg-blue-600 text-white border-blue-600 shadow-xs font-semibold',
-        inactiveBtn: 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-750',
-    },
-    Kawasaki: {
-        badge: 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-700 font-bold',
-        activeBtn: 'bg-blue-600 text-white border-blue-600 shadow-xs font-semibold',
-        inactiveBtn: 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-750',
-    },
-    Suzuki: {
-        badge: 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-700 font-bold',
-        activeBtn: 'bg-blue-600 text-white border-blue-600 shadow-xs font-semibold',
-        inactiveBtn: 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-750',
-    },
-    Vespa: {
-        badge: 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-700 font-bold',
-        activeBtn: 'bg-blue-600 text-white border-blue-600 shadow-xs font-semibold',
-        inactiveBtn: 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-750',
-    },
-    default: {
-        badge: 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-700 font-bold',
-        activeBtn: 'bg-blue-600 text-white border-blue-600 shadow-xs font-semibold',
-        inactiveBtn: 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-750',
-    }
-};
-
-const getBrandConfig = (brand) => BRAND_CONFIG[brand] || BRAND_CONFIG.default;
+import { FiPlus, FiEdit2, FiTrash2, FiX, FiSearch, FiStar, FiChevronDown, FiChevronUp, FiFilter, FiAlertCircle, FiCheckCircle, FiLayers, FiMaximize2, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 
 // Engine Type Badges & Segmented Buttons
 const ENGINE_CONFIG = {
@@ -128,23 +70,8 @@ export default function MotorcycleIndex({
 
     // Expanded Motorcycle & Per-Motorcycle Spareparts State
     const [expandedMotor, setExpandedMotor] = useState(null);
-    const [partsData, setPartsData] = useState({}); // { [motorId]: { data, current_page, last_page, total, ... } }
-    const [partsFilter, setPartsFilter] = useState({}); // { [motorId]: { search, category, group, is_recommended, page, per_page } }
     const [showPartsFilters, setShowPartsFilters] = useState(false);
-    const [loadingParts, setLoadingParts] = useState({}); // { [motorId]: boolean }
-
-    // Refs for race-condition prevention & search debouncing
-    const searchTimersRef = useRef({});
-    const fetchSeqRef = useRef({});
-    const partsFilterRef = useRef(partsFilter);
-    useEffect(() => { partsFilterRef.current = partsFilter; }, [partsFilter]);
-
-    // Clean up debounced timers on unmount
-    useEffect(() => {
-        return () => {
-            Object.values(searchTimersRef.current).forEach(t => clearTimeout(t));
-        };
-    }, []);
+    const { partsData, partsFilter, setPartsFilter, loadingParts, fetchParts, handleSearchParts, handleClearSearch } = useMotorcycleParts();
 
     // Mapping Modals (Add / Edit Single Part Mapping)
     const [showPartModal, setShowPartModal] = useState(null); // motorId or null
@@ -234,106 +161,6 @@ export default function MotorcycleIndex({
         }
         return 'lainnya';
     }, [categoryGroups]);
-
-    // Helper to fetch parts for a motorcycle with sequence race-condition guard
-    const fetchParts = useCallback(async (motorId, overrideParams = {}) => {
-        setLoadingParts(prev => ({ ...prev, [motorId]: true }));
-
-        // Track request sequence to prevent out-of-order race conditions
-        const seq = (fetchSeqRef.current[motorId] || 0) + 1;
-        fetchSeqRef.current[motorId] = seq;
-
-        try {
-            const currentFilter = partsFilterRef.current[motorId] || {
-                search: '',
-                category: 'semua',
-                group: 'semua',
-                is_recommended: false,
-                page: 1,
-                per_page: 5
-            };
-
-            const query = {
-                page: overrideParams.page !== undefined ? overrideParams.page : currentFilter.page,
-                per_page: overrideParams.per_page !== undefined ? overrideParams.per_page : currentFilter.per_page,
-                search: overrideParams.search !== undefined ? overrideParams.search : currentFilter.search,
-                part_category: overrideParams.category !== undefined ? overrideParams.category : currentFilter.category,
-                group: overrideParams.group !== undefined ? overrideParams.group : currentFilter.group,
-                is_recommended: overrideParams.is_recommended !== undefined ? (overrideParams.is_recommended ? 1 : '') : (currentFilter.is_recommended ? 1 : ''),
-            };
-
-            // Clean up 'semua' values
-            if (query.part_category === 'semua') delete query.part_category;
-            if (query.group === 'semua') delete query.group;
-            if (!query.search) delete query.search;
-            if (!query.is_recommended) delete query.is_recommended;
-
-            const res = await window.axios.get(`/motorcycles/${motorId}/parts`, { params: query });
-
-            // Discard response if a newer request was made while this was in flight
-            if (fetchSeqRef.current[motorId] !== seq) return;
-
-            setPartsData(prev => ({ ...prev, [motorId]: res.data }));
-            setPartsFilter(prev => {
-                const prevM = prev[motorId] || {};
-                return {
-                    ...prev,
-                    [motorId]: {
-                        ...prevM,
-                        ...(overrideParams.category !== undefined && { category: overrideParams.category }),
-                        ...(overrideParams.group !== undefined && { group: overrideParams.group }),
-                        ...(overrideParams.is_recommended !== undefined && { is_recommended: overrideParams.is_recommended }),
-                        page: res.data.current_page || 1,
-                        per_page: res.data.per_page || 5,
-                    }
-                };
-            });
-        } catch (err) {
-            if (fetchSeqRef.current[motorId] === seq) {
-                console.error("Gagal memuat sparepart motor", err);
-            }
-        } finally {
-            if (fetchSeqRef.current[motorId] === seq) {
-                setLoadingParts(prev => ({ ...prev, [motorId]: false }));
-            }
-        }
-    }, []);
-
-    // Debounced search handler for motorcycle spareparts
-    const handleSearchParts = useCallback((motorId, val) => {
-        setPartsFilter(prev => ({
-            ...prev,
-            [motorId]: {
-                ...(prev[motorId] || { category: 'semua', group: 'semua', is_recommended: false, page: 1, per_page: 5 }),
-                search: val,
-                page: 1,
-            }
-        }));
-
-        if (searchTimersRef.current[motorId]) {
-            clearTimeout(searchTimersRef.current[motorId]);
-        }
-
-        searchTimersRef.current[motorId] = setTimeout(() => {
-            fetchParts(motorId, { search: val, page: 1 });
-        }, 300);
-    }, [fetchParts]);
-
-    // Instant clear search handler
-    const handleClearSearch = useCallback((motorId) => {
-        if (searchTimersRef.current[motorId]) {
-            clearTimeout(searchTimersRef.current[motorId]);
-        }
-        setPartsFilter(prev => ({
-            ...prev,
-            [motorId]: {
-                ...(prev[motorId] || { category: 'semua', group: 'semua', is_recommended: false, page: 1, per_page: 5 }),
-                search: '',
-                page: 1,
-            }
-        }));
-        fetchParts(motorId, { search: '', page: 1 });
-    }, [fetchParts]);
 
     // Toggle expand motorcycle row
     const toggleExpandMotor = (motorId) => {
@@ -1452,796 +1279,113 @@ export default function MotorcycleIndex({
             {/* BULK COMPATIBILITY MODAL (Atur Kompatibilitas Massal) */}
             {/* ======================================================== */}
             {showBulkModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs sm:p-4" onClick={() => setShowBulkModal(false)}>
-                    <div className="bg-white dark:bg-slate-900 sm:rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-5xl h-dvh sm:h-[94vh] sm:max-h-[900px] p-4 sm:p-6 lg:p-8 gap-3 sm:gap-5 flex flex-col" onClick={(e) => e.stopPropagation()}>
-                        {/* Header */}
-                        <div className="flex items-start justify-between pb-1">
-                            <div>
-                                <h3 className="font-black text-lg sm:text-xl text-slate-900 dark:text-white">
-                                    Kompatibilitas Massal
-                                </h3>
-                            </div>
-                            <button onClick={() => setShowBulkModal(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer p-1" title="Tutup">
-                                <FiX size={20} />
-                            </button>
-                        </div>
-
-                        {bulkErrors.general && (
-                            <div className="p-3 bg-red-50 dark:bg-red-950/60 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-xs rounded-md font-semibold flex items-center gap-2">
-                                <FiAlertCircle size={15} /> {bulkErrors.general}
-                            </div>
-                        )}
-
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 overflow-y-auto min-h-0 flex-1 pr-1">
-                            <section className="flex flex-col min-h-0">
-                                <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-                                    <div className="text-xs font-bold text-slate-700 dark:text-slate-300">Motor * <span className="text-blue-600 dark:text-blue-400 ml-1">{bulkMotorIds.length} dipilih</span></div>
-                                    <div className="flex items-center gap-3 text-xs">
-                                        <button type="button" onClick={() => setBulkMotorIds(prev => Array.from(new Set([...prev, ...filteredMotorcyclesForBulk.map(m => m.id)])))} className="text-blue-600 dark:text-blue-400 font-semibold hover:underline">Pilih semua</button>
-                                        <button type="button" onClick={() => setBulkMotorIds([])} className="text-slate-500 dark:text-slate-400 hover:underline">Kosongkan</button>
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-2 gap-2 mb-2">
-                                    <input type="search" aria-label="Cari motor" placeholder="Cari motor..." value={bulkMotorSearch} onChange={e => setBulkMotorSearch(e.target.value)} className="w-full min-w-0 px-2 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500" />
-                                    <select aria-label="Filter merek motor" value={bulkBrandFilter} onChange={e => setBulkBrandFilter(e.target.value)} className="w-full min-w-0 px-2 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500">
-                                        <option value="semua">Semua merek</option>
-                                        {brands.map(brand => <option key={brand} value={brand}>{brand}</option>)}
-                                    </select>
-                                </div>
-                                <div className="max-h-48 lg:max-h-80 overflow-y-auto border border-slate-200 dark:border-slate-700 rounded-lg divide-y divide-slate-100 dark:divide-slate-700">
-                                    {filteredMotorcyclesForBulk.map(motor => {
-                                        const selected = bulkMotorIds.includes(motor.id);
-                                        return (
-                                            <label key={motor.id} className={'flex items-center gap-2.5 p-2 text-xs cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 ' + (selected ? 'bg-slate-100 dark:bg-slate-800 border-l-2 border-primary' : '')}>
-                                                <input type="checkbox" checked={selected} onChange={() => setBulkMotorIds(prev => selected ? prev.filter(id => id !== motor.id) : [...prev, motor.id])} className="w-4 h-4 shrink-0 rounded text-blue-600 border-slate-300 dark:border-slate-600" />
-                                                <div className="w-8 h-8 rounded-md bg-slate-100 dark:bg-slate-800 overflow-hidden shrink-0 flex items-center justify-center">
-                                                    {motor.image_url ? <img src={motor.image_url} alt="" className="w-full h-full object-cover" /> : <MotorIcon size={16} className="text-slate-400" />}
-                                                </div>
-                                                <div className="min-w-0">
-                                                    <p className="font-bold text-slate-900 dark:text-white truncate">{motor.brand} {motor.model}</p>
-                                                    <p className="text-slate-500 dark:text-slate-400 truncate">{motor.engine_cc}cc · {motor.year_start}{motor.year_end ? '-' + motor.year_end : '-sekarang'}</p>
-                                                </div>
-                                            </label>
-                                        );
-                                    })}
-                                    {filteredMotorcyclesForBulk.length === 0 && <p className="text-xs text-slate-400 text-center py-6">Motor tidak ditemukan.</p>}
-                                </div>
-                                {bulkErrors.motorcycles && <p className="text-[11px] text-red-500 font-bold mt-1">{bulkErrors.motorcycles}</p>}
-                            </section>
-
-                            <section className="flex flex-col min-h-0">
-                                <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-                                    <div className="text-xs font-bold text-slate-700 dark:text-slate-300">Sparepart * <span className="text-blue-600 dark:text-blue-400 ml-1">{bulkProductIds.length} dipilih</span></div>
-                                    <div className="flex items-center gap-3 text-xs">
-                                        <button type="button" onClick={() => setBulkProductIds(prev => Array.from(new Set([...prev, ...filteredProductsForBulk.map(p => p.id)])))} className="text-blue-600 dark:text-blue-400 font-semibold hover:underline">Pilih semua</button>
-                                        <button type="button" onClick={() => setBulkProductIds([])} className="text-slate-500 dark:text-slate-400 hover:underline">Kosongkan</button>
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-2 gap-2 mb-2">
-                                    <input type="search" aria-label="Cari sparepart" placeholder="Cari part..." value={bulkProductSearch} onChange={e => setBulkProductSearch(e.target.value)} className="w-full min-w-0 px-2 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500" />
-                                    <select aria-label="Filter kategori sparepart" value={bulkCategoryFilter} onChange={e => setBulkCategoryFilter(e.target.value)} className="w-full min-w-0 px-2 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500">
-                                        <option value="semua">Semua kategori</option>
-                                        {productCategoriesList.map(category => <option key={category} value={category}>{category}</option>)}
-                                    </select>
-                                </div>
-                                <div className="max-h-48 lg:max-h-80 overflow-y-auto border border-slate-200 dark:border-slate-700 rounded-lg divide-y divide-slate-100 dark:divide-slate-700">
-                                    {filteredProductsForBulk.map(product => {
-                                        const selected = bulkProductIds.includes(product.id);
-                                        return (
-                                            <label key={product.id} className={'flex items-center gap-2.5 p-2 text-xs cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 ' + (selected ? 'bg-slate-100 dark:bg-slate-800 border-l-2 border-primary' : '')}>
-                                                <input type="checkbox" checked={selected} onChange={() => setBulkProductIds(prev => selected ? prev.filter(id => id !== product.id) : [...prev, product.id])} className="w-4 h-4 shrink-0 rounded text-blue-600 border-slate-300 dark:border-slate-600" />
-                                                <ProductThumbnail path={product.image_path} name={product.name} category={product.category?.name || product.category} size="w-8 h-8" />
-                                                <div className="min-w-0">
-                                                    <p className="font-bold text-slate-900 dark:text-white whitespace-normal break-words leading-snug">{product.name}</p>
-                                                    <p className="text-slate-500 dark:text-slate-400 truncate">{product.sku || '-'} · {formatRp(product.price)}</p>
-                                                </div>
-                                            </label>
-                                        );
-                                    })}
-                                    {filteredProductsForBulk.length === 0 && <p className="text-xs text-slate-400 text-center py-6">Sparepart tidak ditemukan.</p>}
-                                </div>
-                                {bulkErrors.products && <p className="text-[11px] text-red-500 font-bold mt-1">{bulkErrors.products}</p>}
-                            </section>
-                            {/* Common Bulk Fields (Category, Notes, Recommendation) */}
-                            <div className="lg:col-span-2 pt-3 border-t border-slate-200 dark:border-slate-700 space-y-3">
-                                <div>
-                                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 block">
-                                        Kategori part *
-                                    </label>
-                                    <select
-                                        value={bulkCategory}
-                                        onChange={e => setBulkCategory(e.target.value)}
-                                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500"
-                                    >
-                                        <option value="auto">Otomatis dari nama</option>
-                                        {Object.entries(categoryGroups).map(([gKey, group]) => (
-                                            <optgroup key={gKey} label={group.name}>
-                                                {Object.entries(group.items || {}).map(([cKey, cLabel]) => (
-                                                    <option key={cKey} value={cKey}>{cLabel}</option>
-                                                ))}
-                                            </optgroup>
-                                        ))}
-                                    </select>
-                                    {bulkCategory !== 'auto' && (
-                                        <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-1 font-medium">
-                                            Kategori ini berlaku untuk semua pilihan.
-                                        </p>
-                                    )}
-                                    {bulkErrors.part_category && <p className="text-[11px] text-red-500 font-bold mt-1">{bulkErrors.part_category}</p>}
-                                </div>
-
-                                <details className="group">
-                                    <summary className="cursor-pointer text-xs font-semibold text-primary dark:text-blue-300 list-none flex items-center gap-1">
-                                        <FiChevronDown size={14} className="transition group-open:rotate-180" /> Catatan & rekomendasi
-                                    </summary>
-                                    <div className="grid grid-cols-1 gap-3 pt-3">
-                                    <div>
-                                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 block">
-                                            Catatan
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={bulkNotes}
-                                            onChange={e => setBulkNotes(e.target.value)}
-                                            placeholder="Contoh: Varian racing"
-                                            className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs font-medium focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500"
-                                        />
-                                    </div>
-                                    <div className="pb-2">
-                                        <label className="flex items-center gap-2 cursor-pointer select-none">
-                                            <input
-                                                type="checkbox"
-                                                checked={bulkIsRecommended}
-                                                onChange={e => setBulkIsRecommended(e.target.checked)}
-                                                className="w-4 h-4 rounded text-primary focus:ring-accentYellow cursor-pointer border-slate-300 dark:border-slate-600"
-                                            />
-                                            <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                                                <FiStar size={13} className="text-[#b58f00] fill-accentYellow shrink-0" />
-                                                Rekomendasikan
-                                            </span>
-                                        </label>
-                                    </div>
-                                    </div>
-                                </details>
-                            </div>
-                        </div>
-
-                        {/* Footer Action */}
-                        <div className="flex items-center justify-between gap-2 pt-3 border-t border-slate-200 dark:border-slate-800">
-                            <div className="hidden sm:block text-sm text-slate-600 dark:text-slate-400 font-semibold">
-                                Pilihan:{' '}
-                                <span className="font-bold text-blue-600 dark:text-blue-400">
-                                    {bulkMotorIds.length} motor × {bulkProductIds.length} sparepart
-                                </span>
-                            </div>
-                            <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-                                <button
-                                    type="button"
-                                    onClick={() => setShowBulkModal(false)}
-                                    className="px-3 py-2 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 text-xs font-semibold transition cursor-pointer"
-                                >
-                                    Batal
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => handleSaveBulkMapping()}
-                                    disabled={bulkSaving}
-                                    className="flex-1 sm:flex-none px-5 py-2.5 bg-accentYellow hover:bg-yellow-300 disabled:opacity-50 text-primaryDark rounded-md text-sm font-semibold flex items-center justify-center gap-2 transition cursor-pointer shadow-xs"
-                                >
-                                    {bulkSaving ? (
-                                        <>
-                                            <FiRefreshCw size={14} className="animate-spin" />
-                                            <span>Menyimpan...</span>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <FiCheck size={16} />
-                                            <span>Simpan</span>
-                                        </>
-                                    )}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <BulkMappingModal
+                setShowBulkModal={setShowBulkModal}
+                bulkErrors={bulkErrors}
+                bulkMotorIds={bulkMotorIds}
+                setBulkMotorIds={setBulkMotorIds}
+                filteredMotorcyclesForBulk={filteredMotorcyclesForBulk}
+                bulkMotorSearch={bulkMotorSearch}
+                setBulkMotorSearch={setBulkMotorSearch}
+                bulkBrandFilter={bulkBrandFilter}
+                setBulkBrandFilter={setBulkBrandFilter}
+                brands={brands}
+                bulkProductIds={bulkProductIds}
+                setBulkProductIds={setBulkProductIds}
+                filteredProductsForBulk={filteredProductsForBulk}
+                bulkProductSearch={bulkProductSearch}
+                setBulkProductSearch={setBulkProductSearch}
+                bulkCategoryFilter={bulkCategoryFilter}
+                setBulkCategoryFilter={setBulkCategoryFilter}
+                productCategoriesList={productCategoriesList}
+                formatRp={formatRp}
+                bulkCategory={bulkCategory}
+                setBulkCategory={setBulkCategory}
+                categoryGroups={categoryGroups}
+                bulkNotes={bulkNotes}
+                setBulkNotes={setBulkNotes}
+                bulkIsRecommended={bulkIsRecommended}
+                setBulkIsRecommended={setBulkIsRecommended}
+                handleSaveBulkMapping={handleSaveBulkMapping}
+                bulkSaving={bulkSaving}
+            />
             )}
 
             {/* ADD/EDIT MOTORCYCLE MODAL */}
             {showAddModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4" onClick={() => setShowAddModal(false)}>
-                    <div className="bg-white dark:bg-slate-900 rounded-lg shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-md p-5 sm:p-6 space-y-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
-                            <h3 className="font-black text-lg text-slate-900 dark:text-white">
-                                {editMotorcycle ? 'Edit Data Motor' : 'Tambah Motor Baru'}
-                            </h3>
-                            <button onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"><FiX size={20} /></button>
-                        </div>
-
-                        {formErrors.general && (
-                            <div className="p-3 bg-red-50 dark:bg-red-950/60 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-xs rounded-md font-semibold flex items-center gap-2">
-                                <FiAlertCircle size={15} /> {formErrors.general}
-                            </div>
-                        )}
-
-                        <div className="space-y-3">
-                            <div className="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 block">Brand *</label>
-                                    <input
-                                        type="text"
-                                        list="motorcycle-brands-list"
-                                        value={formData.brand}
-                                        onChange={e => setFormData({ ...formData, brand: e.target.value })}
-                                        placeholder="Ketik atau pilih brand..."
-                                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:bg-white dark:focus:bg-slate-850 focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500 transition"
-                                    />
-                                    <datalist id="motorcycle-brands-list">
-                                        {brands.map(b => (
-                                            <option key={b} value={b} />
-                                        ))}
-                                    </datalist>
-                                    {formErrors.brand && <p className="text-[11px] text-red-500 font-bold mt-1">{formErrors.brand}</p>}
-                                </div>
-                                <div>
-                                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 block">Model *</label>
-                                    <input
-                                        type="text"
-                                        value={formData.model}
-                                        onChange={e => setFormData({ ...formData, model: e.target.value })}
-                                        placeholder="Beat, Vario 160..."
-                                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:bg-white dark:focus:bg-slate-850 focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500 transition"
-                                    />
-                                    {formErrors.model && <p className="text-[11px] text-red-500 font-bold mt-1">{formErrors.model}</p>}
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-3 gap-3">
-                                <div>
-                                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 block">Tahun Mulai *</label>
-                                    <input
-                                        type="number"
-                                        value={formData.year_start}
-                                        onChange={e => setFormData({ ...formData, year_start: parseInt(e.target.value) || '' })}
-                                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:bg-white dark:focus:bg-slate-850 focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500 transition"
-                                    />
-                                    {formErrors.year_start && <p className="text-[11px] text-red-500 font-bold mt-1">{formErrors.year_start}</p>}
-                                </div>
-                                <div>
-                                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 block">Tahun Akhir</label>
-                                    <input
-                                        type="number"
-                                        value={formData.year_end}
-                                        onChange={e => setFormData({ ...formData, year_end: e.target.value ? parseInt(e.target.value) : '' })}
-                                        placeholder="Sekarang"
-                                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:bg-white dark:focus:bg-slate-850 focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500 transition"
-                                    />
-                                    {formErrors.year_end && <p className="text-[11px] text-red-500 font-bold mt-1">{formErrors.year_end}</p>}
-                                </div>
-                                <div>
-                                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 block">CC Mesin *</label>
-                                    <input
-                                        type="number"
-                                        value={formData.engine_cc}
-                                        onChange={e => setFormData({ ...formData, engine_cc: parseInt(e.target.value) || '' })}
-                                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:bg-white dark:focus:bg-slate-850 focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500 transition"
-                                    />
-                                    {formErrors.engine_cc && <p className="text-[11px] text-red-500 font-bold mt-1">{formErrors.engine_cc}</p>}
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 block">Tipe Mesin *</label>
-                                <input
-                                    type="text"
-                                    list="motorcycle-types-list"
-                                    value={formData.engine_type}
-                                    onChange={e => setFormData({ ...formData, engine_type: e.target.value.toLowerCase() })}
-                                    placeholder="Ketik atau pilih tipe mesin (matic, bebek, sport, trail, listrik...)"
-                                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:bg-white dark:focus:bg-slate-850 focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500 transition"
-                                />
-                                <datalist id="motorcycle-types-list">
-                                    {engineTypes.map(t => (
-                                        <option key={t} value={t} />
-                                    ))}
-                                </datalist>
-                                {formErrors.engine_type && <p className="text-[11px] text-red-500 font-bold mt-1">{formErrors.engine_type}</p>}
-                            </div>
-
-                            <div>
-                                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 block">Foto Motor (Upload File / URL Gambar)</label>
-                                <div className="flex items-center gap-3">
-                                    {(formData.image_file || formData.image_url) && (
-                                        <div className="w-12 h-12 rounded-md bg-slate-100 dark:bg-slate-800 overflow-hidden shrink-0 border border-slate-300 dark:border-slate-700 flex items-center justify-center">
-                                            <img
-                                                src={formData.image_file ? URL.createObjectURL(formData.image_file) : formData.image_url}
-                                                alt="Preview"
-                                                className="w-full h-full object-cover"
-                                            />
-                                        </div>
-                                    )}
-                                    <div className="flex-1 space-y-1.5">
-                                        <input
-                                            type="file"
-                                            accept={IMAGE_ACCEPT}
-                                            onChange={e => { const file = e.target.files[0]; if (validImage(file)) setFormData({ ...formData, image_file: file }); }}
-                                            className="w-full text-xs text-slate-600 dark:text-slate-400 file:mr-2 file:py-1 file:px-2.5 file:rounded-md file:border-0 file:text-xs file:font-bold file:bg-slate-200 dark:file:bg-slate-700 file:text-slate-800 dark:file:text-slate-200 hover:file:bg-slate-300 cursor-pointer"
-                                        />
-                                        <p className="text-xs text-slate-500">{IMAGE_HELP}</p>
-                                        <input
-                                            type="text"
-                                            value={formData.image_url}
-                                            onChange={e => setFormData({ ...formData, image_url: e.target.value })}
-                                            placeholder="Atau masukkan URL gambar (https://...)"
-                                            className="w-full px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs font-medium"
-                                        />
-                                    </div>
-                                </div>
-                                {formErrors.image && <p className="text-[11px] text-red-500 font-bold mt-1">{formErrors.image}</p>}
-                            </div>
-                        </div>
-
-                        <div className="flex gap-3 pt-3 border-t border-slate-200 dark:border-slate-800">
-                            <button
-                                onClick={() => setShowAddModal(false)}
-                                className="flex-1 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 rounded-md text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 cursor-pointer transition"
-                            >
-                                Batal
-                            </button>
-                            <button
-                                onClick={handleSaveMotor}
-                                disabled={saving}
-                                className="flex-1 py-2.5 bg-accentYellow hover:bg-yellow-300 text-primaryDark rounded-md text-xs sm:text-sm font-bold cursor-pointer disabled:opacity-50 transition shadow-xs"
-                            >
-                                {saving ? 'Menyimpan...' : editMotorcycle ? 'Simpan Perubahan' : 'Tambah Motor'}
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <MotorcycleFormModal
+                setShowAddModal={setShowAddModal}
+                editMotorcycle={editMotorcycle}
+                formErrors={formErrors}
+                formData={formData}
+                setFormData={setFormData}
+                brands={brands}
+                engineTypes={engineTypes}
+                handleSaveMotor={handleSaveMotor}
+                saving={saving}
+            />
             )}
 
             {/* ADD SINGLE PART MAPPING MODAL */}
             {showPartModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3 sm:p-4" onClick={() => setShowPartModal(null)}>
-                    <div className="bg-white dark:bg-slate-900 rounded-lg shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-lg h-[90dvh] sm:h-auto max-h-[90dvh] p-4 sm:p-6 flex flex-col gap-3" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex shrink-0 items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
-                            <h3 className="font-black text-base sm:text-lg text-slate-900 dark:text-white">Tambah Sparepart</h3>
-                            <button onClick={() => setShowPartModal(null)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"><FiX size={20} /></button>
-                        </div>
-
-                        {partFormErrors.general && (
-                            <div className="p-3 bg-red-50 dark:bg-red-950/60 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-xs rounded-md font-semibold flex items-center gap-2">
-                                <FiAlertCircle size={15} /> {partFormErrors.general}
-                            </div>
-                        )}
-
-                        <div className="flex min-h-0 flex-1 flex-col gap-2.5 sm:flex-none">
-                            {/* Kategori / Tipe Part Dropdown with Optgroups */}
-                            <div>
-                                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 block">Kategori *</label>
-                                <select
-                                    value={partFormData.part_category}
-                                    onChange={e => setPartFormData({ ...partFormData, part_category: e.target.value })}
-                                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs sm:text-sm font-semibold focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500"
-                                >
-                                    {Object.entries(categoryGroups).map(([gKey, group]) => (
-                                        <optgroup key={gKey} label={group.name}>
-                                            {Object.entries(group.items || {}).map(([cKey, cLabel]) => (
-                                                <option key={cKey} value={cKey}>{cLabel}</option>
-                                            ))}
-                                        </optgroup>
-                                    ))}
-                                </select>
-                                {partFormErrors.part_category && <p className="text-[11px] text-red-500 font-bold mt-1">{partFormErrors.part_category}</p>}
-                            </div>
-
-                            {/* Search Product */}
-                            <div>
-                                <div className="flex items-center justify-between mb-1">
-                                    <label htmlFor="part-product-search" className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                                        Pilih sparepart *
-                                    </label>
-                                    <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
-                                        {partSearch.trim()
-                                            ? `${filteredProductsForModal.length} / ${products.length} sparepart`
-                                            : `${products.length} sparepart`}
-                                    </span>
-                                </div>
-                                <div className="relative">
-                                    <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
-                                    <input
-                                        id="part-product-search"
-                                        type="text"
-                                        value={partSearch}
-                                        onChange={e => setPartSearch(e.target.value)}
-                                        placeholder="Cari nama atau SKU..."
-                                        className="w-full pl-9 pr-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs sm:text-sm font-medium focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500"
-                                    />
-                                    {partSearch && (
-                                        <button onClick={() => setPartSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer">
-                                            <FiX size={13} />
-                                        </button>
-                                    )}
-                                </div>
-                                {partFormErrors.product_id && <p className="text-[11px] text-red-500 font-bold mt-1">{partFormErrors.product_id}</p>}
-                            </div>
-
-                            {/* Product Select List */}
-                            <div className="min-h-0 flex-1 overflow-y-auto border border-slate-200 dark:border-slate-700 rounded-md divide-y divide-slate-100 dark:divide-slate-750 sm:max-h-64 sm:flex-none">
-                                {filteredProductsForModal.map(p => (
-                                    <div
-                                        key={p.id}
-                                        onClick={() => setPartFormData({
-                                            ...partFormData,
-                                            product_id: p.id,
-                                            part_category: p.default_part_category || partFormData.part_category
-                                        })}
-                                        className={`flex flex-col sm:flex-row sm:items-center justify-between gap-1 p-2.5 text-xs cursor-pointer transition ${
-                                            partFormData.product_id === p.id ? 'bg-slate-100 dark:bg-slate-800 border-l-4 border-l-primary' : 'hover:bg-slate-50 dark:hover:bg-slate-800'
-                                        }`}
-                                    >
-                                        <div className="flex items-center gap-3 flex-1 min-w-0 pr-2">
-                                            <div className="w-11 h-11 rounded-md shrink-0 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden flex items-center justify-center p-0.5 shadow-2xs">
-                                                <ProductPhoto
-                                                    src={getProductImage(p.image_path)}
-                                                    name={p.name}
-                                                    category={p.category?.name || p.category}
-                                                    className="w-full h-full object-cover rounded"
-                                                    compact
-                                                />
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-1 sm:gap-2">
-                                                    <span className="min-w-0 font-black text-slate-900 dark:text-white whitespace-normal break-words leading-snug">{p.name}</span>
-                                                    {p.sku && <span className="shrink-0 text-[10px] font-mono text-slate-500 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-1 py-0.5 rounded">{p.sku}</span>}
-                                                </div>
-                                                <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5 text-[11px] text-slate-500">
-                                                    <span className="font-semibold text-slate-700 dark:text-slate-300">{p.category?.name || 'Katalog'}</span>
-                                                    <span>·</span>
-                                                    <span className={`whitespace-nowrap font-semibold ${p.stock <= 0 ? 'text-red-500' : 'text-slate-600 dark:text-slate-400'}`}>Stok: {p.stock} {p.unit || 'pcs'}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-2 shrink-0 pl-14 sm:pl-0">
-                                            <span className="font-black text-blue-600 dark:text-blue-400">{formatRp(p.price)}</span>
-                                            {partFormData.product_id === p.id && <FiCheck size={16} className="text-blue-600" />}
-                                        </div>
-                                    </div>
-                                ))}
-                                {filteredProductsForModal.length === 0 && (
-                                    <p className="text-xs text-slate-400 text-center py-6">
-                                        Tidak ada sparepart ditemukan untuk kata kunci &quot;{partSearch}&quot;.
-                                    </p>
-                                )}
-                            </div>
-
-                            <details className="shrink-0 text-xs text-slate-600 dark:text-slate-300">
-                                <summary className="cursor-pointer font-semibold">Opsi tambahan</summary>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2">
-                                    <div>
-                                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 block">
-                                            Catatan
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={partFormData.notes}
-                                            onChange={e => setPartFormData({ ...partFormData, notes: e.target.value })}
-                                            placeholder="Contoh: Cocok untuk varian CBS & ABS"
-                                            className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs font-medium focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500"
-                                        />
-                                        {partFormErrors.notes && <p className="text-[11px] text-red-500 font-bold mt-1">{partFormErrors.notes}</p>}
-                                    </div>
-                                    <div className="sm:self-end">
-                                        <label className="flex items-center gap-2 cursor-pointer bg-slate-50 dark:bg-slate-800 px-3 py-2 h-[38px] rounded-md border border-slate-300 dark:border-slate-700 w-full hover:bg-slate-100 dark:hover:bg-slate-750 transition">
-                                            <input
-                                                type="checkbox"
-                                                checked={partFormData.is_recommended}
-                                                onChange={e => setPartFormData({ ...partFormData, is_recommended: e.target.checked })}
-                                                className="rounded text-primary focus:ring-accentYellow cursor-pointer"
-                                            />
-                                            <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 select-none">
-                                                <FiStar size={13} className="text-[#b58f00] fill-accentYellow shrink-0" /> Tandai Rekomendasi
-                                            </span>
-                                        </label>
-                                    </div>
-                                </div>
-                            </details>
-                        </div>
-
-                        <div className="flex shrink-0 gap-3 pt-2 border-t border-slate-200 dark:border-slate-800">
-                            <button
-                                onClick={() => setShowPartModal(null)}
-                                className="flex-1 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 rounded-md text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 cursor-pointer transition"
-                            >
-                                Batal
-                            </button>
-                            <button
-                                onClick={handleAttachPart}
-                                disabled={saving || !partFormData.product_id}
-                                className="flex-1 py-2.5 bg-accentYellow hover:bg-yellow-300 text-primaryDark rounded-md text-xs sm:text-sm font-bold cursor-pointer disabled:opacity-50 transition shadow-xs"
-                            >
-                                {saving ? 'Menyimpan...' : 'Tambah Mapping'}
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <AttachPartModal
+                setShowPartModal={setShowPartModal}
+                partFormErrors={partFormErrors}
+                partFormData={partFormData}
+                setPartFormData={setPartFormData}
+                categoryGroups={categoryGroups}
+                partSearch={partSearch}
+                filteredProductsForModal={filteredProductsForModal}
+                products={products}
+                setPartSearch={setPartSearch}
+                formatRp={formatRp}
+                handleAttachPart={handleAttachPart}
+                saving={saving}
+            />
             )}
 
             {/* EDIT SINGLE PART MAPPING MODAL */}
             {editPartModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4" onClick={() => setEditPartModal(null)}>
-                    <div className="bg-white dark:bg-slate-900 rounded-lg shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-md p-5 sm:p-6 space-y-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
-                            <div>
-                                <h3 className="font-black text-base sm:text-lg text-slate-900 dark:text-white">Edit Mapping Sparepart</h3>
-                                <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">{editPartModal.productName}</p>
-                            </div>
-                            <button onClick={() => setEditPartModal(null)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"><FiX size={20} /></button>
-                        </div>
-
-                        {partFormErrors.general && (
-                            <div className="p-3 bg-red-50 dark:bg-red-950/60 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-xs rounded-md font-semibold flex items-center gap-2">
-                                <FiAlertCircle size={15} /> {partFormErrors.general}
-                            </div>
-                        )}
-
-                        <div className="space-y-3">
-                            <div>
-                                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 block">Tipe / Kategori Part *</label>
-                                <select
-                                    value={partFormData.part_category}
-                                    onChange={e => setPartFormData({ ...partFormData, part_category: e.target.value })}
-                                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs sm:text-sm font-semibold focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500"
-                                >
-                                    {Object.entries(categoryGroups).map(([gKey, group]) => (
-                                        <optgroup key={gKey} label={group.name}>
-                                            {Object.entries(group.items || {}).map(([cKey, cLabel]) => (
-                                                <option key={cKey} value={cKey}>{cLabel}</option>
-                                            ))}
-                                        </optgroup>
-                                    ))}
-                                </select>
-                                {partFormErrors.part_category && <p className="text-[11px] text-red-500 font-bold mt-1">{partFormErrors.part_category}</p>}
-                            </div>
-
-                            <div>
-                                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 block">Catatan Kompatibilitas</label>
-                                <input
-                                    type="text"
-                                    value={partFormData.notes}
-                                    onChange={e => setPartFormData({ ...partFormData, notes: e.target.value })}
-                                    placeholder="Contoh: Cocok untuk varian CBS & ABS"
-                                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs font-medium focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500"
-                                />
-                                {partFormErrors.notes && <p className="text-[11px] text-red-500 font-bold mt-1">{partFormErrors.notes}</p>}
-                            </div>
-
-                            <div>
-                                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 block">Rekomendasi</label>
-                                <label className="flex items-center gap-2 cursor-pointer bg-slate-50 dark:bg-slate-800 px-3 py-2 h-[38px] rounded-md border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-750 transition">
-                                    <input
-                                        type="checkbox"
-                                        checked={partFormData.is_recommended}
-                                        onChange={e => setPartFormData({ ...partFormData, is_recommended: e.target.checked })}
-                                        className="rounded text-primary focus:ring-accentYellow cursor-pointer"
-                                    />
-                                    <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 select-none">
-                                        <FiStar size={13} className="text-[#b58f00] fill-accentYellow shrink-0" /> Tandai Rekomendasi
-                                    </span>
-                                </label>
-                            </div>
-                        </div>
-
-                        <div className="flex gap-3 pt-3 border-t border-slate-200 dark:border-slate-800">
-                            <button
-                                onClick={() => setEditPartModal(null)}
-                                className="flex-1 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 rounded-md text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 cursor-pointer transition"
-                            >
-                                Batal
-                            </button>
-                            <button
-                                onClick={handleUpdatePart}
-                                disabled={saving}
-                                className="flex-1 py-2.5 bg-accentYellow hover:bg-yellow-300 text-primaryDark rounded-md text-xs sm:text-sm font-bold cursor-pointer disabled:opacity-50 transition shadow-xs"
-                            >
-                                {saving ? 'Menyimpan...' : 'Simpan Perubahan'}
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <EditPartModal
+                setEditPartModal={setEditPartModal}
+                editPartModal={editPartModal}
+                partFormErrors={partFormErrors}
+                partFormData={partFormData}
+                setPartFormData={setPartFormData}
+                categoryGroups={categoryGroups}
+                handleUpdatePart={handleUpdatePart}
+                saving={saving}
+            />
             )}
 
             {/* ======================================================== */}
             {/* MOTORCYCLE IMAGE PREVIEW MODAL (LIGHTBOX)               */}
             {/* ======================================================== */}
             {previewMotor && (
-                <div
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-xs p-4 animate-in fade-in duration-150"
-                    onClick={() => setPreviewMotor(null)}
-                >
-                    <div
-                        className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 max-w-lg w-full overflow-hidden flex flex-col"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        {/* Modal Header */}
-                        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800">
-                            <div>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
-                                        {previewMotor.brand}
-                                    </span>
-                                    <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white leading-tight">
-                                        {previewMotor.model}
-                                    </h3>
-                                </div>
-                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-medium">
-                                    {previewMotor.engine_cc}cc • <span className="capitalize">{previewMotor.engine_type}</span> • {previewMotor.year_start}{previewMotor.year_end ? ` - ${previewMotor.year_end}` : ' - sekarang'}
-                                </p>
-                            </div>
-                            <button
-                                onClick={() => setPreviewMotor(null)}
-                                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
-                                title="Tutup (Esc)"
-                            >
-                                <FiX size={20} />
-                            </button>
-                        </div>
-
-                        {/* Modal Body: Large Image Display */}
-                        <div className="p-6 bg-slate-50/70 dark:bg-slate-950/50 flex items-center justify-center min-h-[260px] max-h-[60vh] overflow-hidden">
-                            <img
-                                src={previewMotor.image_url}
-                                alt={`${previewMotor.brand} ${previewMotor.model}`}
-                                className="max-h-[50vh] w-auto max-w-full object-contain rounded-lg drop-shadow-md select-none"
-                            />
-                        </div>
-
-                        {/* Modal Footer */}
-                        <div className="px-5 py-3 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-                            <span className="font-medium">Foto referensi model motor untuk pembeli di lapangan</span>
-                            <button
-                                onClick={() => setPreviewMotor(null)}
-                                className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold rounded-md transition cursor-pointer"
-                            >
-                                Tutup
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <MotorcyclePreviewModal
+                setPreviewMotor={setPreviewMotor}
+                previewMotor={previewMotor}
+            />
             )}
 
             {/* ======================================================== */}
             {/* SPAREPART IMAGE PREVIEW MODAL (LIGHTBOX)                 */}
             {/* ======================================================== */}
             {previewPart && (
-                <div
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-xs p-4 animate-in fade-in duration-150"
-                    onClick={() => setPreviewPart(null)}
-                >
-                    <div
-                        className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 max-w-lg w-full overflow-hidden flex flex-col"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        {/* Modal Header */}
-                        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800">
-                            <div className="min-w-0 pr-2">
-                                <div className="flex items-center gap-2">
-                                    <span className="text-xs font-bold text-blue-600 dark:text-blue-400">
-                                        {previewPart.categoryLabel || previewPart.category?.name || 'Sparepart'}
-                                    </span>
-                                    {previewPart.sku && (
-                                        <span className="text-[11px] font-mono text-slate-400 dark:text-slate-500">
-                                            · {previewPart.sku}
-                                        </span>
-                                    )}
-                                    {previewPart.is_recommended && (
-                                        <span title="Rekomendasi untuk motor ini" className="shrink-0 inline-flex items-center text-[#b58f00]">
-                                            <FiStar size={14} className="fill-accentYellow text-[#b58f00]" />
-                                        </span>
-                                    )}
-                                </div>
-                                <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white leading-tight whitespace-normal break-words mt-0.5" title={previewPart.name}>
-                                    {previewPart.name}
-                                </h3>
-                            </div>
-                            <button
-                                onClick={() => setPreviewPart(null)}
-                                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer shrink-0"
-                                title="Tutup (Esc)"
-                            >
-                                <FiX size={20} />
-                            </button>
-                        </div>
-
-                        {/* Modal Body: Large Image Display */}
-                        <div className="p-6 bg-slate-50/70 dark:bg-slate-950/50 flex items-center justify-center min-h-[260px] max-h-[60vh] overflow-hidden">
-                            {previewPart.image_url ? (
-                                <img
-                                    src={previewPart.image_url}
-                                    alt={previewPart.name}
-                                    className="max-h-[50vh] w-auto max-w-full object-contain rounded-lg drop-shadow-md select-none"
-                                />
-                            ) : (
-                                <ProductPhoto
-                                    src={null}
-                                    name={previewPart.name}
-                                    category={previewPart.categoryLabel || previewPart.category?.name || previewPart.category}
-                                    className="w-48 h-48 rounded-xl"
-                                />
-                            )}
-                        </div>
-
-                        {/* Modal Footer */}
-                        <div className="px-5 py-3.5 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
-                            <div>
-                                <span className="text-base font-extrabold text-blue-600 dark:text-blue-400 block">
-                                    Rp {Number(previewPart.price || 0).toLocaleString('id-ID')}
-                                </span>
-                                <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-                                    Persediaan: {previewPart.stock ?? 0} pcs {previewPart.notes ? `• ${previewPart.notes}` : ''}
-                                </span>
-                            </div>
-                            <button
-                                onClick={() => setPreviewPart(null)}
-                                className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold rounded-md transition cursor-pointer"
-                            >
-                                Tutup
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <PartPreviewModal
+                setPreviewPart={setPreviewPart}
+                previewPart={previewPart}
+            />
             )}
 
             {/* CUSTOM CONFIRMATION MODAL POPUP */}
             {deleteConfirm && (
-                <div 
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/80 p-4 animate-in fade-in duration-150 backdrop-blur-xs"
-                    onClick={() => !isDeleting && setDeleteConfirm(null)}
-                >
-                    <div 
-                        className="bg-white dark:bg-slate-900 rounded-xl max-w-sm w-full p-5 space-y-4 shadow-2xl border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white transform transition-all animate-in zoom-in-95 duration-150"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <div className="flex items-center gap-3 border-b border-slate-100 dark:border-slate-800 pb-3">
-                            <FiTrash2 size={22} className="text-red-500 shrink-0" />
-                            <div className="min-w-0 flex-1">
-                                <h3 className="text-sm font-black text-slate-900 dark:text-white truncate">
-                                    {deleteConfirm.title}
-                                </h3>
-                                <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">Konfirmasi Tindakan</p>
-                            </div>
-                        </div>
-
-                        <p className="text-xs font-medium text-slate-600 dark:text-slate-300 leading-relaxed">
-                            {deleteConfirm.message}
-                        </p>
-
-                        <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-                            <button
-                                type="button"
-                                onClick={() => setDeleteConfirm(null)}
-                                disabled={isDeleting}
-                                className="px-3.5 py-2 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-750 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-lg transition cursor-pointer disabled:opacity-50"
-                            >
-                                Batal
-                            </button>
-                            <button
-                                type="button"
-                                onClick={executeDeleteConfirm}
-                                disabled={isDeleting}
-                                className="px-4 py-2 bg-red-600 hover:bg-red-700 active:scale-95 text-white text-xs font-bold rounded-lg transition border border-red-700 shadow-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
-                            >
-                                {isDeleting ? (
-                                    <>
-                                        <FiRefreshCw size={13} className="animate-spin" />
-                                        <span>Menghapus...</span>
-                                    </>
-                                ) : (
-                                    <span>Ya, Hapus</span>
-                                )}
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <DeleteMappingModal
+                isDeleting={isDeleting}
+                setDeleteConfirm={setDeleteConfirm}
+                deleteConfirm={deleteConfirm}
+                executeDeleteConfirm={executeDeleteConfirm}
+            />
             )}
         </AuthenticatedLayout>
     );
