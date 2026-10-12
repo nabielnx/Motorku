@@ -231,7 +231,8 @@ class ProductSheetTest extends TestCase
     public function test_upload_extension_size_and_row_limits(): void
     {
         $this->post('/api/products/sheets/inspect', ['file' => UploadedFile::fake()->create('bad.xls', 1)], ['Accept' => 'application/json'])->assertUnprocessable();
-        $this->post('/api/products/sheets/inspect', ['file' => UploadedFile::fake()->create('big.csv', 4097, 'text/csv')], ['Accept' => 'application/json'])->assertUnprocessable();
+        $this->post('/api/products/sheets/inspect', ['file' => $this->csv("Kategori,Nama Barang,Harga Jual\nOli,Oli Baru,10000\n")->size(10240)], ['Accept' => 'application/json'])->assertOk();
+        $this->post('/api/products/sheets/inspect', ['file' => UploadedFile::fake()->create('big.csv', 10241, 'text/csv')], ['Accept' => 'application/json'])->assertUnprocessable();
         $file = $this->csv("Kategori,Nama Barang,Harga Jual\n".str_repeat("Oli,Barang,10000\n", 2001));
         $this->post('/api/products/sheets/inspect', ['file' => $file], ['Accept' => 'application/json'])->assertUnprocessable();
     }

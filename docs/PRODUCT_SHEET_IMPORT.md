@@ -12,7 +12,7 @@ Menu **Produk → Impor / Ekspor**, hanya untuk owner yang sudah verifikasi emai
 6. Klik **Lihat pratinjau**, periksa nama hasil pencocokan, harga, dan catatan tiap baris.
 7. Pilih baris valid yang ingin disimpan, lalu klik **Simpan**.
 
-Excel `.xlsx` membaca semua tab yang terlihat; CSV UTF-8 membaca satu tab. Format lama `.xls` harus disimpan ulang sebagai `.xlsx`. Batas file 4 MB, 16 tab, 40 kolom, dan 2.000 barang. Baris kosong diabaikan. Nama/kategori/harga jual wajib dicocokkan.
+Excel `.xlsx` membaca semua tab yang terlihat; CSV UTF-8 membaca satu tab. Format lama `.xls` harus disimpan ulang sebagai `.xlsx`. Batas file 10 MB, 16 tab, 40 kolom, dan 2.000 barang. Baris kosong diabaikan. Nama/kategori/harga jual wajib dicocokkan.
 
 ## Kolom bahasa Indonesia
 

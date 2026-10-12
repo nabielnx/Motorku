@@ -5,7 +5,8 @@ import { sheetFileSchema, sheetPreviewSchema, selectableSheetRows } from '../../
 test('file validator rejects old Excel formats and oversized files', () => {
     assert.equal(sheetFileSchema.safeParse({ name: 'all.xlsx', size: 1000 }).success, true);
     assert.equal(sheetFileSchema.safeParse({ name: 'all.xls', size: 1000 }).success, false);
-    assert.equal(sheetFileSchema.safeParse({ name: 'all.csv', size: 5000000 }).success, false);
+    assert.equal(sheetFileSchema.safeParse({ name: 'all.csv', size: 10 * 1024 * 1024 }).success, true);
+    assert.equal(sheetFileSchema.safeParse({ name: 'all.csv', size: 10 * 1024 * 1024 + 1 }).success, false);
     assert.equal(sheetFileSchema.safeParse(null).success, false);
 });
 

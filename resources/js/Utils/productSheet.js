@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const sheetFileSchema = z.custom(value => value && typeof value.name === 'string', 'Pilih file terlebih dahulu.')
     .refine(file => /\.(xlsx|csv)$/i.test(file.name), 'Gunakan Excel (.xlsx) atau CSV (.csv).')
-    .refine(file => file.size > 0 && file.size <= 4 * 1024 * 1024, 'Ukuran file maksimal 4 MB.');
+    .refine(file => file.size > 0 && file.size <= 10 * 1024 * 1024, 'Ukuran file maksimal 10 MB.');
 
 export const sheetPreviewSchema = z.object({
     token: z.uuid(),

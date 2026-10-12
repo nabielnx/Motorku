@@ -18,7 +18,7 @@ class ProductSheetRequest extends FormRequest
     public function rules(): array
     {
         return match ($this->route()->getActionMethod()) {
-            'inspect' => ['file' => ['required', 'file', 'max:4096', 'extensions:xlsx,csv', 'mimes:xlsx,csv,txt']],
+            'inspect' => ['file' => ['required', 'file', 'max:10240', 'extensions:xlsx,csv', 'mimes:xlsx,csv,txt']],
             'preview' => [
                 'token' => ['required', 'uuid'],
                 'sheets' => ['required', 'array', 'min:1', 'max:16'],
