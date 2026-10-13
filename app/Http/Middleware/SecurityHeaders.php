@@ -24,6 +24,7 @@ class SecurityHeaders
             "script-src 'self' 'nonce-{$nonce}'",
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.bunny.net",
             "img-src 'self' data: blob: https:",
+            "media-src 'self' blob:",
             "font-src 'self' data: https://fonts.gstatic.com https://fonts.bunny.net",
             "connect-src 'self'",
             "object-src 'none'",
@@ -42,7 +43,8 @@ class SecurityHeaders
         if (! $response->headers->has('Referrer-Policy')) {
             $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
         }
-        $response->headers->set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+        // The image picker requests camera access only after an explicit user action.
+        $response->headers->set('Permissions-Policy', 'camera=(self), microphone=(), geolocation=()');
         if ($request->isSecure() && app()->environment(['production', 'staging'])) {
             // Do not impose a policy on sibling subdomains of a shared hosting domain.
             $response->headers->set('Strict-Transport-Security', 'max-age=86400');
