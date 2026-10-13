@@ -1,5 +1,6 @@
 import AdminButton from '@/Components/Admin/Button';
-import { IMAGE_ACCEPT, IMAGE_HELP, validImage } from '@/Utils/imageUpload';
+import ImagePicker from '@/Components/ImagePicker';
+import { IMAGE_HELP, validImage } from '@/Utils/imageUpload';
 import { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import AdminDialog, { DialogTitle } from '@/Components/Admin/Dialog';
@@ -392,14 +393,9 @@ export default function SettingIndex() {
             </div>
             <div className="space-y-2">
               <div className="flex flex-wrap items-center gap-2">
-                <label className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg cursor-pointer transition-colors w-fit">
-                  <FiUpload size={14} />
-                  <input type="file" accept={IMAGE_ACCEPT} onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (validImage(file)) { setLogoFile(file); setLogoPreview(URL.createObjectURL(file)); }
-                  }} className="hidden" />
-                  Pilih Gambar
-                </label>
+                <ImagePicker label="logo toko" disabled={uploading} onSelect={file => {
+                  if (validImage(file)) { setLogoFile(file); setLogoPreview(URL.createObjectURL(file)); }
+                }} />
 
                 {(logoUrl || logoPreview) && (
                   <AdminButton
@@ -439,13 +435,9 @@ export default function SettingIndex() {
               {qrisPreview || qrisUrl ? <img src={qrisPreview || qrisUrl} alt="QRIS toko" className="w-full h-full object-contain" /> : <span className="text-xs text-slate-400">Belum ada QRIS</span>}
             </div>
             <div className="space-y-2">
-              <label className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg cursor-pointer">
-                <FiUpload size={14} /> Pilih Gambar
-                <input type="file" accept={IMAGE_ACCEPT} onChange={(event) => {
-                  const file = event.target.files?.[0];
-                  if (validImage(file)) { setQrisFile(file); setQrisPreview(URL.createObjectURL(file)); }
-                }} className="hidden" />
-              </label>
+              <ImagePicker label="QRIS toko" disabled={uploadingQris} onSelect={file => {
+                if (validImage(file)) { setQrisFile(file); setQrisPreview(URL.createObjectURL(file)); }
+              }} />
               <p className="admin-help">{IMAGE_HELP}</p>
               <div className="flex flex-wrap gap-2">
                 {qrisFile && <AdminButton type="button" onClick={handleUploadQris} disabled={uploadingQris} variant="primary">{uploadingQris ? 'Menyimpan...' : 'Simpan QRIS'}</AdminButton>}
@@ -471,13 +463,9 @@ export default function SettingIndex() {
               )}
             </div>
             <div className="space-y-2">
-              <label className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg cursor-pointer">
-                <FiUpload size={14} /> Pilih Gambar
-                <input type="file" accept={IMAGE_ACCEPT} onChange={(event) => {
-                  const file = event.target.files?.[0];
-                  if (validImage(file)) { setLoginImageFile(file); setLoginImagePreview(URL.createObjectURL(file)); }
-                }} className="hidden" />
-              </label>
+              <ImagePicker label="halaman login" disabled={uploadingLoginImage} onSelect={file => {
+                if (validImage(file)) { setLoginImageFile(file); setLoginImagePreview(URL.createObjectURL(file)); }
+              }} />
               <p className="admin-help">{IMAGE_HELP}</p>
               <div className="flex flex-wrap gap-2">
                 {loginImageFile && (
@@ -535,16 +523,7 @@ export default function SettingIndex() {
                   </div>
                   {/* Actions */}
                   <div className="flex flex-wrap gap-1.5">
-                    <label className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold rounded-lg cursor-pointer transition-colors">
-                      <FiUpload size={12} />
-                      <input
-                        type="file"
-                        accept={IMAGE_ACCEPT}
-                        onChange={e => handleBannerFileSelect(slot, e.target.files?.[0])}
-                        className="hidden"
-                      />
-                      Pilih
-                    </label>
+                    <ImagePicker label={`banner slot ${slot}`} disabled={isUploading} onSelect={file => handleBannerFileSelect(slot, file)} />
                     {b.preview && (
                       <AdminButton
                         onClick={() => handleUploadBanner(slot)}
