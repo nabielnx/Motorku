@@ -613,11 +613,11 @@ return (
                     </div>
 
                     {/* Grid ringkas untuk melihat foto, daftar untuk detail produk */}
-                    <div className="flex-1 min-h-0 overflow-y-auto p-3">
+                    <div className="flex-1 min-h-0 overflow-y-auto [scrollbar-gutter:stable] p-3">
                         {isNavigating ? (
                             <PosCardSkeleton count={8} mode={viewMode} />
                         ) : (
-                        <div className={`grid auto-rows-fr gap-2 ${viewMode === 'grid' ? 'grid-cols-[repeat(auto-fill,minmax(144px,1fr))]' : 'grid-cols-1 2xl:grid-cols-2'}`}>
+                        <div className={`grid items-start gap-2 ${viewMode === 'grid' ? 'grid-cols-[repeat(auto-fill,minmax(144px,1fr))]' : 'grid-cols-1 2xl:grid-cols-2'}`}>
                             {filteredMenu.map(item => {
                                 const isOutOfStock = item.stock <= 0;
                                 const isInCart = cart.some(cartItem => cartItem.id === item.id);
@@ -637,10 +637,15 @@ return (
                                         <span className={`${viewMode === 'grid' ? 'aspect-square w-full shrink-0' : 'h-14 w-14 shrink-0 rounded-lg border border-slate-200 dark:border-slate-700'} overflow-hidden bg-slate-100 dark:bg-slate-800 flex items-center justify-center`}>
                                             <ProductPhoto src={item.image} name={item.name} category={item.category} className="h-full w-full" compact />
                                         </span>
-                                        <span className={`flex min-w-0 flex-1 self-stretch flex-col ${viewMode === 'grid' ? 'w-full p-2.5' : ''}`}>
-                                            <span className="flex flex-1 flex-col justify-between gap-2">
-                                                <span className={`block min-w-0 whitespace-normal break-words [overflow-wrap:anywhere] font-semibold leading-snug text-slate-900 dark:text-white ${viewMode === 'grid' ? 'min-h-8 text-xs' : 'text-sm'}`} title={item.name}>{item.name}</span>
-                                                <span className={`shrink-0 whitespace-nowrap font-bold text-slate-900 dark:text-white ${viewMode === 'grid' ? 'text-xs' : 'text-sm'}`}>{formatRp(item.price)}</span>
+                                        <span className={`flex min-w-0 flex-1 flex-col ${viewMode === 'grid' ? 'w-full p-2.5' : ''}`}>
+                                            <span className="flex flex-col gap-2">
+                                                <span className={`block min-w-0 whitespace-normal break-words [overflow-wrap:anywhere] font-semibold text-slate-900 dark:text-white ${viewMode === 'grid' ? 'min-h-20 text-xs leading-4' : 'text-sm leading-5'}`} title={item.name}>{item.name}</span>
+                                                <span className="flex items-center justify-between gap-2">
+                                                    <span className={`shrink-0 whitespace-nowrap font-bold text-slate-900 dark:text-white ${viewMode === 'grid' ? 'text-xs leading-4' : 'text-sm leading-5'}`}>{formatRp(item.price)}</span>
+                                                    {viewMode === 'list' && <span className={`shrink-0 whitespace-nowrap text-[11px] leading-4 font-semibold ${isOutOfStock ? 'text-rose-600 dark:text-rose-400' : 'text-slate-600 dark:text-slate-300'}`}>
+                                                        {isOutOfStock ? 'Stok habis' : `Stok ${Math.floor(item.stock)}`}
+                                                    </span>}
+                                                </span>
                                             </span>
                                             {viewMode === 'grid' ? (
                                                 <span className={`mt-0.5 block text-[10px] font-semibold ${isOutOfStock ? 'text-rose-600 dark:text-rose-400' : 'text-slate-500 dark:text-slate-400'}`}>
@@ -651,9 +656,6 @@ return (
                                                     <span className="mt-1 flex items-center justify-between gap-3 text-[11px] leading-4 text-slate-500 dark:text-slate-400">
                                                         <span className="min-w-0 truncate">
                                                             {[!selectedChildId ? item.category : null, item.sku ? `SKU ${item.sku}` : null, item.rack_location ? `Rak ${item.rack_location}` : null].filter(Boolean).join(' · ')}
-                                                        </span>
-                                                        <span className={`shrink-0 font-semibold ${isOutOfStock ? 'text-rose-600 dark:text-rose-400' : 'text-slate-600 dark:text-slate-300'}`}>
-                                                            {isOutOfStock ? 'Stok habis' : `Stok ${Math.floor(item.stock)}`}
                                                         </span>
                                                     </span>
                                                     <span className="mt-0.5 block min-h-4 truncate text-[11px] leading-4 text-slate-600 dark:text-slate-300" title={fitment ? `Cocok: ${fitment}` : undefined} aria-hidden={!fitment}>
