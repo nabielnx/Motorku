@@ -80,7 +80,7 @@ export default function UpdateProfileInformation({
                 {/* Foto Profil Section */}
                 <div className="bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg p-4">
                     <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-3">Foto Profil</label>
-                    <div className="flex items-center gap-4">
+                    <div className="flex flex-wrap items-center gap-3 sm:gap-4">
                         <div className="w-16 h-16 rounded-lg overflow-hidden bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 ring-2 ring-slate-200/60 dark:ring-slate-700 flex items-center justify-center shrink-0 shadow-xs relative group">
                             {avatarPreview ? (
                                 <img src={avatarPreview} alt="preview" className="w-full h-full object-cover" />
@@ -90,7 +90,7 @@ export default function UpdateProfileInformation({
                                 <span className="text-xl font-black text-slate-400 dark:text-slate-500">{user.name.charAt(0)}</span>
                             )}
                         </div>
-                        <div className="flex items-center gap-2 flex-wrap">
+                        <div className="min-w-0 flex flex-1 basis-[220px] items-center gap-2 flex-wrap">
                             <ImagePicker label="profil" facingMode="user" disabled={uploading} onSelect={file => {
                                 if (validImage(file)) { setAvatarFile(file); setAvatarPreview(URL.createObjectURL(file)); }
                             }} />
@@ -139,7 +139,7 @@ export default function UpdateProfileInformation({
                             onChange={(e) => setData('name', e.target.value)}
                             required
                             autoComplete="name"
-                            className="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
+                            className="admin-control w-full px-3 py-2 font-semibold"
                         />
                         <InputError className="mt-1.5" message={errors.name} />
                     </div>
@@ -155,7 +155,7 @@ export default function UpdateProfileInformation({
                             onChange={(e) => setData('email', e.target.value)}
                             required
                             autoComplete="username"
-                            className="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
+                            className="admin-control w-full px-3 py-2 font-semibold"
                         />
                         <InputError className="mt-1.5" message={errors.email} />
                     </div>

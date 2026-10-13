@@ -10,17 +10,17 @@ export default function MotorcyclePreviewModal({
             onClick={() => setPreviewMotor(null)}
         >
             <div
-                className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 max-w-lg w-full overflow-hidden flex flex-col"
+                className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 max-w-lg w-full max-h-[calc(100dvh-1.5rem)] overflow-y-auto flex flex-col"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Modal Header */}
-                <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800">
-                    <div>
-                        <div className="flex items-center gap-2">
+                <div className="flex items-center justify-between gap-2 px-4 py-3 sm:px-5 sm:py-4 border-b border-slate-100 dark:border-slate-800">
+                    <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2 break-words">
                             <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
                                 {previewMotor.brand}
                             </span>
-                            <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white leading-tight">
+                            <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white leading-tight break-words">
                                 {previewMotor.model}
                             </h3>
                         </div>
@@ -30,7 +30,8 @@ export default function MotorcyclePreviewModal({
                     </div>
                     <button
                         onClick={() => setPreviewMotor(null)}
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+                        aria-label="Tutup pratinjau foto"
+                        className="admin-icon-button shrink-0 p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
                         title="Tutup (Esc)"
                     >
                         <FiX size={20} />
@@ -47,11 +48,11 @@ export default function MotorcyclePreviewModal({
                 </div>
 
                 {/* Modal Footer */}
-                <div className="px-5 py-3 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+                <div className="px-5 py-3 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">
                     <span className="font-medium">Foto referensi model motor untuk pembeli di lapangan</span>
                     <button
                         onClick={() => setPreviewMotor(null)}
-                        className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold rounded-md transition cursor-pointer"
+                        className="min-h-8 shrink-0 px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold rounded-md transition cursor-pointer"
                     >
                         Tutup
                     </button>

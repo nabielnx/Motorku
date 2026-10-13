@@ -174,7 +174,7 @@ export default function ProductFormModal({
 
                     <div>
                         <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Gambar Produk</label>
-                        <div className="flex items-start gap-3 p-2.5 border border-dashed border-slate-300 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800">
+                        <div className="flex flex-wrap items-start gap-3 p-2.5 border border-dashed border-slate-300 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800">
                             {productFormData.imagePreview ? (
                                 <img src={productFormData.imagePreview} alt="preview" className="w-12 h-12 rounded-lg object-cover border border-slate-300 dark:border-slate-700 shadow-2xs" />
                             ) : productFormData.image ? (
@@ -182,7 +182,7 @@ export default function ProductFormModal({
                             ) : (
                                 <div className="w-12 h-12 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500 text-xs font-bold border border-slate-300 dark:border-slate-700">Foto</div>
                             )}
-                            <div className="min-w-0 flex-1 space-y-2">
+                            <div className="min-w-0 flex-1 basis-[220px] space-y-2">
                                 <ImagePicker label="produk" disabled={isLoading} onSelect={file => {
                                     if (validImage(file)) setProductFormData({ ...productFormData, imageFile: file, imagePreview: URL.createObjectURL(file) });
                                 }} />
@@ -203,7 +203,7 @@ export default function ProductFormModal({
                     <AdminButton
                         type="submit"
                         disabled={isLoading}
-                        variant="primary" className="flex-1"
+                        variant="primary" className="flex-1 whitespace-nowrap !px-2"
                     >
                         {isLoading ? 'Menyimpan...' : editingItem ? 'Simpan Perubahan' : 'Tambah Produk'}
                     </AdminButton>

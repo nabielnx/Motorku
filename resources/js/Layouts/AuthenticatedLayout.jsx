@@ -428,21 +428,22 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
 
                 {/* TOP HEADER */}
                 <header className="h-14 sm:h-16 bg-white dark:bg-slate-900 border-b border-slate-300 dark:border-slate-800 flex items-center justify-between px-4 sm:px-6 lg:px-8 shrink-0 z-20 transition-colors duration-200">
-                    <div className="flex items-center gap-3">
+                    <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
                         <button 
                             onClick={() => setIsSidebarOpen(true)}
-                            className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 lg:hidden focus:outline-none"
+                            aria-label="Buka menu navigasi"
+                            className="shrink-0 p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 lg:hidden focus:outline-none"
                         >
                             <FiMenu size={22} strokeWidth={2.5} />
                         </button>
 
-                        <h2 className="text-lg sm:text-xl font-heading font-black text-primaryDark dark:text-white tracking-tight">
+                        <h2 className="min-w-0 break-words text-base leading-5 sm:text-xl sm:leading-7 font-heading font-black text-primaryDark dark:text-white tracking-tight">
                             {destInfo?.title || pageTitle || header || getTranslation(locale, 'dashboard', 'Dashboard')}
                         </h2>
                     </div>
 
                     {/* Right Action Icons */}
-                    <div className="flex items-center gap-1 sm:gap-1.5">
+                    <div className="flex shrink-0 items-center gap-1 sm:gap-1.5">
                         {/* Notification Bell Badge */}
                         <NotificationCenter user={user} roles={userRoles} onActiveOrderCountChange={setActiveOrderCount} timezone={props.app_settings?.timezone} />
 
@@ -463,15 +464,15 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                         {/* User Profile Avatar Dropdown */}
                         <Dropdown>
                             <Dropdown.Trigger>
-                                <button className="flex items-center gap-3 px-3 py-1.5 rounded-xl hover:bg-slate-100/80 dark:hover:bg-slate-800 border border-transparent hover:border-slate-200 dark:hover:border-slate-700 transition focus:outline-none">
+                                <button aria-label={`Menu profil ${user.name}`} className="flex items-center gap-2 px-1 py-0.5 sm:gap-3 sm:px-3 sm:py-1.5 rounded-xl hover:bg-slate-100/80 dark:hover:bg-slate-800 border border-transparent hover:border-slate-200 dark:hover:border-slate-700 transition focus:outline-none">
                                     {user.avatar ? (
                                         <img 
                                             src={'/storage/' + user.avatar} 
                                             alt={user.name} 
-                                            className="w-10 h-10 shrink-0 rounded-full border-2 border-slate-300 dark:border-slate-700 object-cover shadow-xs"
+                                            className="w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-full border-2 border-slate-300 dark:border-slate-700 object-cover shadow-xs"
                                         />
                                     ) : (
-                                        <div className="w-10 h-10 shrink-0 rounded-full bg-primary text-white font-black text-sm flex items-center justify-center border-2 border-primaryDark shadow-xs">
+                                        <div className="w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-full bg-primary text-white font-black text-sm flex items-center justify-center border-2 border-primaryDark shadow-xs">
                                             {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
                                         </div>
                                     )}
@@ -497,7 +498,7 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                 </header>
 
                 {/* SCROLLABLE CONTENT BODY */}
-                <main className={`flex-1 min-h-0 ${(destInfo ? (destInfo.noPadding ?? false) : noPadding) ? 'p-0 flex flex-col overflow-hidden' : 'p-6 lg:p-8 overflow-y-auto'}`}>
+                <main className={`flex-1 min-h-0 ${(destInfo ? (destInfo.noPadding ?? false) : noPadding) ? 'p-0 flex flex-col overflow-hidden' : 'p-3 sm:p-6 lg:p-8 overflow-y-auto'}`}>
                     {destInfo ? destInfo.component : children}
                 </main>
                 <Toaster position="top-right" richColors closeButton />

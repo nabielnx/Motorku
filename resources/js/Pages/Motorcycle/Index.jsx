@@ -602,11 +602,11 @@ export default function MotorcycleIndex({
                                     placeholder="Cari motor..."
                                     value={searchMotor}
                                     onChange={e => { setSearchMotor(e.target.value); setPage(1); }}
-                                    className="w-full pl-9 pr-7 py-1.5 font-semibold placeholder-slate-400 transition admin-control"
+                                    className="w-full pl-9 pr-11 py-1.5 font-semibold placeholder-slate-400 transition admin-control"
                                     aria-label="Cari data motor"
                                 />
                                 {searchMotor && (
-                                    <button aria-label="Tutup" onClick={() => { setSearchMotor(''); setPage(1); }} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer admin-icon-button" title="Hapus pencarian">
+                                    <button aria-label="Tutup" onClick={() => { setSearchMotor(''); setPage(1); }} className="absolute right-1 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer admin-icon-button" title="Hapus pencarian">
                                         <FiX size={13} />
                                     </button>
                                 )}
@@ -841,22 +841,22 @@ export default function MotorcycleIndex({
                                         {isExpanded && (
                                             <div id={`motor-parts-${m.id}`} className="border-t border-primary/20 dark:border-accentYellow/20 bg-white dark:bg-slate-900">
                                                 {/* Unified Single-Row Control Bar */}
-                                                <div className="px-2 sm:px-4 py-1 md:py-2 bg-white md:bg-slate-50 dark:bg-slate-900 dark:md:bg-slate-800 border-b border-slate-100 md:border-slate-200 dark:border-slate-800 flex flex-wrap md:flex-nowrap items-center gap-1.5 md:gap-2">
+                                                <div className="px-2 sm:px-4 py-1 xl:py-2 bg-white xl:bg-slate-50 dark:bg-slate-900 dark:xl:bg-slate-800 border-b border-slate-100 xl:border-slate-200 dark:border-slate-800 flex flex-wrap  items-center gap-1.5 xl:gap-2">
                                                         {/* Search inside motorcycle parts */}
-                                                        <div className="relative flex-1 min-w-0 md:flex-none md:w-44 lg:w-52">
+                                                        <div className="relative flex-1 min-w-0 xl:flex-none xl:w-44 lg:w-52">
                                                             <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" size={13} />
                                                             <input
                                                                 type="text"
                                                                 placeholder="Cari sparepart..."
                                                                 value={filter.search || ''}
                                                                 onChange={(e) => handleSearchParts(m.id, e.target.value)}
-                                                                className="w-full pl-8 pr-7 py-1.5 font-medium admin-control"
+                                                                className="w-full pl-8 pr-11 py-1.5 font-medium admin-control"
                                                                 aria-label={`Cari sparepart untuk ${m.brand} ${m.model}`}
                                                             />
                                                             {filter.search && (
                                                                 <button aria-label="Tutup"
                                                                     onClick={() => handleClearSearch(m.id)}
-                                                                    className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer admin-icon-button"
+                                                                    className="absolute right-1 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer admin-icon-button"
                                                                     title="Hapus pencarian"
                                                                 >
                                                                     <FiX size={12} />
@@ -869,7 +869,7 @@ export default function MotorcycleIndex({
                                                             onClick={() => setShowPartsFilters(value => !value)}
                                                             aria-expanded={showPartsFilters}
                                                             aria-controls={`part-filters-${m.id}`}
-                                                            className={`md:hidden inline-flex items-center gap-1 px-1.5 py-1.5 text-xs font-semibold ${showPartsFilters || filter.group !== 'semua' || filter.category !== 'semua' || filter.is_recommended
+                                                            className={`xl:hidden inline-flex items-center gap-1 px-1.5 py-1.5 text-xs font-semibold ${showPartsFilters || filter.group !== 'semua' || filter.category !== 'semua' || filter.is_recommended
                                                                 ? 'text-blue-700 dark:text-blue-300'
                                                                 : 'text-slate-600 dark:text-slate-200'}`}
                                                         >
@@ -879,9 +879,9 @@ export default function MotorcycleIndex({
                                                             )}
                                                         </button>
 
-                                                        <div id={`part-filters-${m.id}`} className={`${showPartsFilters ? 'grid' : 'hidden'} order-last grid-cols-2 gap-1.5 w-full md:order-none md:w-auto md:flex md:items-center md:gap-2`}>
+                                                        <div id={`part-filters-${m.id}`} className={`${showPartsFilters ? 'grid' : 'hidden'} order-last grid-cols-2 gap-1.5 w-full xl:order-none xl:w-auto xl:flex xl:items-center xl:gap-2`}>
                                                         {/* Group Filter */}
-                                                        <div className="min-w-0 md:shrink-0">
+                                                        <div className="min-w-0 xl:shrink-0">
                                                             <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider shrink-0 hidden lg:inline">
                                                                 Grup:
                                                             </span>
@@ -895,7 +895,7 @@ export default function MotorcycleIndex({
                                                                     }));
                                                                     fetchParts(m.id, { group: g, category: 'semua', page: 1 });
                                                                 }}
-                                                                className="w-full md:w-auto py-1.5 pl-1 md:pl-2.5 pr-7 font-semibold cursor-pointer admin-control"
+                                                                className="w-full xl:w-auto py-1.5 pl-1 xl:pl-2.5 pr-7 font-semibold cursor-pointer admin-control"
                                                                 title="Filter berdasarkan Grup Part"
                                                                 aria-label="Filter grup sparepart"
                                                             >
@@ -907,7 +907,7 @@ export default function MotorcycleIndex({
                                                         </div>
 
                                                         {/* Specific Category Filter */}
-                                                        <div className="min-w-0 md:shrink-0">
+                                                        <div className="min-w-0 xl:shrink-0">
                                                             <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider shrink-0 hidden lg:inline">
                                                                 Jenis:
                                                             </span>
@@ -921,7 +921,7 @@ export default function MotorcycleIndex({
                                                                     }));
                                                                     fetchParts(m.id, { category: c, page: 1 });
                                                                 }}
-                                                                className="w-full md:w-auto py-1.5 pl-1 md:pl-2.5 pr-7 font-semibold cursor-pointer admin-control"
+                                                                className="w-full xl:w-auto py-1.5 pl-1 xl:pl-2.5 pr-7 font-semibold cursor-pointer admin-control"
                                                                 title="Filter berdasarkan Jenis Part"
                                                                 aria-label="Filter jenis sparepart"
                                                             >
@@ -949,10 +949,10 @@ export default function MotorcycleIndex({
                                                                 }));
                                                                 fetchParts(m.id, { is_recommended: nextRec, page: 1 });
                                                             }}
-                                                            className={`col-span-2 w-full md:w-auto py-1.5 px-2.5 rounded-md text-xs font-semibold flex items-center justify-center gap-1.5 transition border-0 md:border shrink-0 cursor-pointer ${
+                                                            className={`col-span-2 w-full xl:w-auto py-1.5 px-2.5 rounded-md text-xs font-semibold flex items-center justify-center gap-1.5 transition border-0 xl:border shrink-0 cursor-pointer ${
                                                                 filter.is_recommended
-                                                                    ? 'text-primaryDark md:bg-accentYellow md:border-accentYellow md:shadow-2xs'
-                                                                    : 'text-slate-600 dark:text-slate-300 md:bg-white dark:md:bg-slate-800 md:border-slate-300 dark:md:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-750'
+                                                                    ? 'text-primaryDark xl:bg-accentYellow xl:border-accentYellow xl:shadow-2xs'
+                                                                    : 'text-slate-600 dark:text-slate-300 xl:bg-white dark:xl:bg-slate-800 xl:border-slate-300 dark:xl:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-750'
                                                             }`}
                                                             title="Filter sparepart rekomendasi"
                                                         >
@@ -962,7 +962,7 @@ export default function MotorcycleIndex({
                                                     </div>
 
                                                     {/* Right: Tambah Part Button */}
-                                                    <div className="shrink-0 md:ml-auto md:pl-2">
+                                                    <div className="shrink-0 xl:ml-auto xl:pl-2">
                                                         <AdminButton
                                                             onClick={() => {
                                                                 setShowPartModal(m.id);
@@ -974,13 +974,13 @@ export default function MotorcycleIndex({
                                                             title="Tambah sparepart baru ke motor ini"
                                                             aria-label="Tambah sparepart"
                                                         >
-                                                            <FiPlus size={14} /> <span className="hidden md:inline">Tambah Part</span>
+                                                            <FiPlus size={14} /> <span className="hidden xl:inline">Tambah Part</span>
                                                         </AdminButton>
                                                     </div>
                                                 </div>
 
                                                 {/* Table Header for clear tabular scanning on md+ screens */}
-                                                <div className="hidden md:grid md:grid-cols-[repeat(11,minmax(0,1fr))_116px] gap-3 px-4 py-2 bg-slate-100 dark:bg-slate-800 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">
+                                                <div className="hidden xl:grid xl:grid-cols-[repeat(11,minmax(0,1fr))_160px] gap-3 px-4 py-2 bg-slate-100 dark:bg-slate-800 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">
                                                     <div className="col-span-5">Produk Sparepart</div>
                                                     <div className="col-span-2">Kategori</div>
                                                     <div className="col-span-2 text-right">Harga Jual</div>
@@ -1014,10 +1014,10 @@ export default function MotorcycleIndex({
                                                             return (
                                                                 <div
                                                                     key={part.id}
-                                                                    className="px-2.5 sm:px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800 transition grid grid-cols-[minmax(0,1fr)_auto_auto] md:grid-cols-[repeat(11,minmax(0,1fr))_116px] md:items-center gap-x-2 gap-y-1.5 md:gap-3 text-xs"
+                                                                    className="px-2.5 sm:px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800 transition grid grid-cols-[minmax(0,1fr)_auto] min-[360px]:grid-cols-[minmax(0,1fr)_auto_auto] xl:grid-cols-[repeat(11,minmax(0,1fr))_160px] xl:items-center gap-x-2 gap-y-2 xl:gap-3 text-xs"
                                                                 >
                                                                     {/* Col 1 (5 cols): Thumbnail & Product Info */}
-                                                                    <div className="col-span-3 md:col-span-5 flex items-center gap-2.5 md:gap-3 min-w-0">
+                                                                    <div className="col-span-2 min-[360px]:col-span-3 xl:col-span-5 flex items-center gap-2.5 xl:gap-3 min-w-0">
                                                                         {/* Product Image Thumbnail (Clickable Lightbox) */}
                                                                         <div 
                                                                             onClick={(e) => {
@@ -1031,7 +1031,7 @@ export default function MotorcycleIndex({
                                                                                     image_url: getProductImage(part.product?.image_path, part.product?.category?.name)
                                                                                 });
                                                                             }}
-                                                                            className="w-10 h-10 rounded-md shrink-0 border-0 md:border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 overflow-hidden flex items-center justify-center cursor-pointer hover:border-slate-400 hover:shadow-xs transition group"
+                                                                            className="w-10 h-10 rounded-md shrink-0 border-0 xl:border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 overflow-hidden flex items-center justify-center cursor-pointer hover:border-slate-400 hover:shadow-xs transition group"
                                                                             title="Klik untuk melihat foto sparepart resolusi penuh"
                                                                         >
                                                                             <ProductPhoto
@@ -1058,21 +1058,21 @@ export default function MotorcycleIndex({
                                                                     </div>
 
                                                                     {/* Col 2 (2 cols): Category (Clean plain text, no box) */}
-                                                                    <div className="hidden md:block md:col-span-2">
+                                                                    <div className="hidden xl:block xl:col-span-2 min-w-0 [overflow-wrap:anywhere]">
                                                                         <span className="text-xs text-slate-600 dark:text-slate-400 font-medium">
                                                                             {categoryLabel}
                                                                         </span>
                                                                     </div>
 
                                                                     {/* Col 3 (2 cols): Price */}
-                                                                    <div className="min-w-0 md:col-span-2 md:text-right">
-                                                                        <span className="font-semibold text-slate-900 dark:text-slate-100 text-xs sm:text-sm tabular-nums">
+                                                                    <div className="min-w-0 xl:col-span-2 xl:text-right">
+                                                                        <span className="whitespace-nowrap font-semibold text-slate-900 dark:text-slate-100 text-xs sm:text-sm tabular-nums">
                                                                             {formatRp(part.product?.price)}
                                                                         </span>
                                                                     </div>
 
                                                                     {/* Col 4 (2 cols): Stock Status (Clean plain text, no box, no dot) */}
-                                                                    <div className="md:col-span-2 md:text-center">
+                                                                    <div className="xl:col-span-2 xl:text-center">
                                                                         <span className={`text-xs font-semibold ${
                                                                             stock <= 0
                                                                                 ? 'text-red-600 dark:text-red-400'
@@ -1085,20 +1085,21 @@ export default function MotorcycleIndex({
                                                                     </div>
 
                                                                     {/* Col 5 (1 col): Actions */}
-                                                                    <div className="md:col-span-1 flex items-center justify-end gap-0.5 md:gap-1 shrink-0 -translate-y-1 md:translate-y-0">
+                                                                    <div className="col-span-2 min-[360px]:col-span-1 xl:col-span-1 flex items-center justify-end gap-1 shrink-0">
                                                                         <AdminButton
                                                                             type="button"
                                                                             onClick={() => addPartToPosCart(part.product)}
                                                                             disabled={!part.product?.id || stock <= 0 || part.product.is_available === false}
                                                                             variant="primary"
                                                                             title={stock <= 0 ? 'Stok habis' : part.product?.is_available === false ? 'Produk nonaktif di POS' : 'Tambah 1 ke keranjang POS'}
+                                                                            className="min-w-9 !min-h-9 !px-2"
                                                                             aria-label={`Tambahkan ${part.product?.name || 'produk'} ke keranjang POS`}
                                                                         >
                                                                             <FiPlus size={14} strokeWidth={2.5} />
                                                                         </AdminButton>
                                                                         <button
                                                                             onClick={() => togglePartRecommendation(m.id, part)}
-                                                                            className={`p-1.5 rounded-md transition cursor-pointer ${
+                                                                            className={`p-1.5 rounded-md transition cursor-pointer admin-icon-button ${
                                                                                 part.is_recommended
                                                                                     ? 'text-[#b58f00] hover:bg-slate-100 dark:hover:bg-slate-800'
                                                                                     : 'text-slate-400 hover:text-[#b58f00] hover:bg-slate-100 dark:hover:bg-slate-800'

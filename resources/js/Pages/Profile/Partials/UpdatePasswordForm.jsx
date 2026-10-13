@@ -73,7 +73,7 @@ export default function UpdatePasswordForm({ className = '' }) {
         });
     };
 
-    const inputCls = 'w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg pr-10 pl-3 py-2 text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none';
+    const inputCls = 'admin-control w-full pr-10 pl-3 py-2 font-semibold';
 
     return (
         <section className={className}>
@@ -104,7 +104,7 @@ export default function UpdatePasswordForm({ className = '' }) {
                             className={inputCls}
                             autoComplete="current-password"
                         />
-                        <button type="button" onClick={() => setShowCurrent(!showCurrent)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition cursor-pointer">
+                        <button type="button" aria-label={showCurrent ? 'Sembunyikan password saat ini' : 'Lihat password saat ini'} onClick={() => setShowCurrent(!showCurrent)} className="absolute right-1 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition cursor-pointer">
                             {showCurrent ? <FiEyeOff className="w-4 h-4" strokeWidth={2.5} /> : <FiEye className="w-4 h-4" strokeWidth={2.5} />}
                         </button>
                     </div>
@@ -125,7 +125,7 @@ export default function UpdatePasswordForm({ className = '' }) {
                             className={inputCls}
                             autoComplete="new-password"
                         />
-                        <button type="button" onClick={() => setShowNew(!showNew)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition cursor-pointer">
+                        <button type="button" aria-label={showNew ? 'Sembunyikan password baru' : 'Lihat password baru'} onClick={() => setShowNew(!showNew)} className="absolute right-1 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition cursor-pointer">
                             {showNew ? <FiEyeOff className="w-4 h-4" strokeWidth={2.5} /> : <FiEye className="w-4 h-4" strokeWidth={2.5} />}
                         </button>
                     </div>
@@ -168,7 +168,7 @@ export default function UpdatePasswordForm({ className = '' }) {
                             className={inputCls}
                             autoComplete="new-password"
                         />
-                        <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition cursor-pointer">
+                        <button type="button" aria-label={showConfirm ? 'Sembunyikan konfirmasi password' : 'Lihat konfirmasi password'} onClick={() => setShowConfirm(!showConfirm)} className="absolute right-1 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition cursor-pointer">
                             {showConfirm ? <FiEyeOff className="w-4 h-4" strokeWidth={2.5} /> : <FiEye className="w-4 h-4" strokeWidth={2.5} />}
                         </button>
                     </div>

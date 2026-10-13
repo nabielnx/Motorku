@@ -343,7 +343,7 @@ export default function UserIndex({ initialUsers = {}, activeOwnersCount = 0, ma
                                                     <button 
                                                         onClick={() => confirmDelete(user.id)} 
                                                         disabled={deleteDisabled}
-                                                        className={`p-2 rounded-lg transition-colors cursor-pointer ${deleteDisabled ? 'text-slate-200 dark:text-slate-700 cursor-not-allowed' : 'text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/50'}`} 
+                                                        className={`p-2 rounded-lg transition-colors cursor-pointer admin-icon-button ${deleteDisabled ? 'text-slate-200 dark:text-slate-700 cursor-not-allowed' : 'text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/50'}`}
                                                         title={deleteTooltip}
                                                         aria-label={`Hapus staf ${user.name}`}
                                                     >

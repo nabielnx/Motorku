@@ -31,7 +31,7 @@ export default function AttachPartModal({
                 </div>
             )}
 
-            <div className="flex min-h-0 flex-1 flex-col gap-2.5 sm:flex-none">
+            <div className="flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto">
                 {/* Kategori / Tipe Part Dropdown with Optgroups */}
                 <div>
                     <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 block">Kategori *</label>
@@ -71,7 +71,7 @@ export default function AttachPartModal({
                             value={partSearch}
                             onChange={e => setPartSearch(e.target.value)}
                             placeholder="Cari nama atau SKU..."
-                            className="w-full pl-9 pr-3 py-2 font-medium admin-control"
+                            className="w-full pl-9 pr-11 py-2 font-medium admin-control"
                         />
                         {partSearch && (
                             <button disabled={saving} aria-label="Hapus pencarian sparepart" onClick={() => setPartSearch('')} className="absolute right-1 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer admin-icon-button">
@@ -83,7 +83,7 @@ export default function AttachPartModal({
                 </div>
 
                 {/* Product Select List */}
-                <div className="min-h-0 flex-1 overflow-y-auto border border-slate-200 dark:border-slate-700 rounded-md divide-y divide-slate-100 dark:divide-slate-750 sm:max-h-64 sm:flex-none">
+                <div className="min-h-32 max-h-64 shrink-0 overflow-y-auto border border-slate-200 dark:border-slate-700 rounded-md divide-y divide-slate-100 dark:divide-slate-750">
                     {filteredProductsForModal.map(p => (
                         <div
                             key={p.id}
@@ -167,14 +167,14 @@ export default function AttachPartModal({
             <div className="flex shrink-0 gap-3 pt-2 border-t border-slate-200 dark:border-slate-800">
                 <AdminButton disabled={saving}
                     onClick={() => setShowPartModal(null)}
-                    variant="secondary" className="flex-1"
+                    variant="secondary" className="flex-1 !px-2"
                 >
                     Batal
                 </AdminButton>
                 <AdminButton
                     onClick={handleAttachPart}
                     disabled={saving || !partFormData.product_id}
-                    variant="primary" className="flex-1"
+                    variant="primary" className="flex-1 !px-2"
                 >
                     {saving ? 'Menyimpan...' : 'Tambah Mapping'}
                 </AdminButton>

@@ -506,12 +506,13 @@ return (
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                     placeholder="Cari produk, motor, atau SKU..."
-                                    className="w-full pl-10 pr-9 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200 focus:bg-white dark:focus:bg-slate-800 focus:ring-0 focus:border-primary focus:outline-none transition"
+                                    className="w-full min-h-10 pl-10 pr-10 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-base sm:text-sm font-semibold text-slate-800 dark:text-slate-200 focus:bg-white dark:focus:bg-slate-800 focus:ring-0 focus:border-primary focus:outline-none transition"
                                 />
                                 {searchQuery && (
                                     <button 
                                         onClick={() => setSearchQuery('')}
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                                        aria-label="Hapus pencarian produk"
+                                        className="absolute right-1 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
                                     >
                                         <FiX size={16} />
                                     </button>
@@ -563,7 +564,7 @@ return (
                                                 onClick={() => setViewMode(mode)}
                                                 aria-pressed={viewMode === mode}
                                                 title={label}
-                                                className={`flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold transition ${viewMode === mode ? 'bg-primary text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white'}`}
+                                                className={`flex min-h-8 min-w-8 items-center justify-center gap-1 rounded-md px-2 py-1 text-xs font-semibold transition ${viewMode === mode ? 'bg-primary text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white'}`}
                                             >
                                                 <Icon size={14} aria-hidden="true" />
                                                 <span className="hidden sm:inline">{label}</span>
@@ -708,7 +709,7 @@ return (
                                 onChange={(e) => setCustomerName(e.target.value)}
                                 placeholder="Nama pelanggan (opsional)"
                                 aria-label="Nama pelanggan (opsional)"
-                                        className="text-xs sm:text-sm font-semibold bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1.5 w-full focus:ring-0 focus:border-primary focus:outline-none text-slate-800 dark:text-slate-200"
+                                className="admin-control w-full px-2.5 py-1.5 font-semibold"
                             />
                         </div>
                     </div>
@@ -724,7 +725,7 @@ return (
                                         onClick={() => removeFromCart(item)}
                                         aria-label={`Hapus ${item.name} dari keranjang`}
                                         title="Hapus produk"
-                                        className="shrink-0 text-slate-400 hover:text-red-600 dark:hover:text-red-400 p-1 rounded hover:bg-red-50 dark:hover:bg-red-950/40 transition cursor-pointer"
+                                        className="inline-flex h-8 w-8 shrink-0 items-center justify-center text-slate-400 hover:text-red-600 dark:hover:text-red-400 p-1 rounded hover:bg-red-50 dark:hover:bg-red-950/40 transition cursor-pointer"
                                     >
                                         <FiTrash2 className="w-3.5 h-3.5" />
                                     </button>

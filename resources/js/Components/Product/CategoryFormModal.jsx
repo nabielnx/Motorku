@@ -59,7 +59,7 @@ export default function CategoryFormModal({
                                         sub_categories: [...(categoryFormData.sub_categories || []), { name: '' }]
                                     });
                                 }}
-                                className="shrink-0 text-xs font-bold text-primary dark:text-blue-300 hover:text-primaryDark dark:hover:text-white flex items-center gap-1 cursor-pointer"
+                                className="min-h-8 shrink-0 px-1 text-xs font-bold text-primary dark:text-blue-300 hover:text-primaryDark dark:hover:text-white flex items-center gap-1 cursor-pointer"
                             >
                                 <FiPlus size={13} />
                                 <span>Tambah</span>
