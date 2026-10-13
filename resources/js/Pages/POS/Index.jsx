@@ -549,59 +549,63 @@ return (
                                     )}
                                 </div>
 
-                                {selectedParentId && childCategories.length > 0 && (
-                                    <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5" role="group" aria-label="Subkategori produk">
-                                        <button
-                                            onClick={() => setSelectedChildId(null)}
-                                            aria-pressed={!selectedChildId}
-                                            className={`px-3 py-1 rounded-lg text-xs font-semibold whitespace-nowrap border cursor-pointer ${!selectedChildId ? 'border-accentYellow bg-accentYellow text-primaryDark' : 'border-slate-300 text-slate-600 dark:border-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
-                                        >
-                                            Semua subkategori
-                                        </button>
-                                        {childCategories.map(category => (
+                                <div className="flex w-full min-w-0 items-center gap-2">
+                                    {selectedParentId && childCategories.length > 0 && (
+                                        <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5" role="group" aria-label="Subkategori produk">
                                             <button
-                                                key={category.id}
-                                                onClick={() => setSelectedChildId(category.id)}
-                                                aria-pressed={selectedChildId === category.id}
-                                                className={`px-3 py-1 rounded-lg text-xs font-semibold whitespace-nowrap border cursor-pointer ${selectedChildId === category.id ? 'border-accentYellow bg-accentYellow text-primaryDark' : 'border-slate-300 text-slate-600 dark:border-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+                                                onClick={() => setSelectedChildId(null)}
+                                                aria-pressed={!selectedChildId}
+                                                className={`px-3 py-1 rounded-lg text-xs font-semibold whitespace-nowrap border cursor-pointer ${!selectedChildId ? 'border-accentYellow bg-accentYellow text-primaryDark' : 'border-slate-300 text-slate-600 dark:border-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
                                             >
-                                                {category.name}
+                                                Semua subkategori
                                             </button>
-                                        ))}
-                                    </div>
-                                )}
+                                            {childCategories.map(category => (
+                                                <button
+                                                    key={category.id}
+                                                    onClick={() => setSelectedChildId(category.id)}
+                                                    aria-pressed={selectedChildId === category.id}
+                                                    className={`px-3 py-1 rounded-lg text-xs font-semibold whitespace-nowrap border cursor-pointer ${selectedChildId === category.id ? 'border-accentYellow bg-accentYellow text-primaryDark' : 'border-slate-300 text-slate-600 dark:border-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+                                                >
+                                                    {category.name}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
 
-                                <div className="flex shrink-0 items-center gap-2 self-end">
-                                    <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
-                                        {filteredMenu.length} produk
-                                    </span>
-                                    <div className="flex rounded-lg border border-slate-300 bg-slate-100 p-0.5 dark:border-slate-700 dark:bg-slate-800" role="group" aria-label="Tampilan produk">
-                                        {[
-                                            { mode: 'list', label: 'Daftar', Icon: FiList },
-                                            { mode: 'grid', label: 'Grid', Icon: FiGrid },
-                                        ].map(({ mode, label, Icon }) => (
-                                            <button
-                                                key={mode}
-                                                type="button"
-                                                onClick={() => setViewMode(mode)}
-                                                aria-pressed={viewMode === mode}
-                                                title={label}
-                                                className={`flex min-h-8 min-w-8 items-center justify-center gap-1 rounded-md px-2 py-1 text-xs font-semibold transition ${viewMode === mode ? 'bg-primary text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white'}`}
-                                            >
-                                                <Icon size={14} aria-hidden="true" />
-                                                <span className="hidden sm:inline">{label}</span>
-                                            </button>
-                                        ))}
+                                    <div className="ml-auto flex shrink-0 items-center gap-2">
+                                        <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
+                                            {filteredMenu.length} produk
+                                        </span>
+                                        <div className="flex rounded-lg border border-slate-300 bg-slate-100 p-0.5 dark:border-slate-700 dark:bg-slate-800" role="group" aria-label="Tampilan produk">
+                                            {[
+                                                { mode: 'list', label: 'Daftar', Icon: FiList },
+                                                { mode: 'grid', label: 'Grid', Icon: FiGrid },
+                                            ].map(({ mode, label, Icon }) => (
+                                                <button
+                                                    key={mode}
+                                                    type="button"
+                                                    onClick={() => setViewMode(mode)}
+                                                    aria-pressed={viewMode === mode}
+                                                    title={label}
+                                                    aria-label={label}
+                                                    className={`flex min-h-8 min-w-8 items-center justify-center gap-1 rounded-md px-2 py-1 text-xs font-semibold transition ${viewMode === mode ? 'bg-primary text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white'}`}
+                                                >
+                                                    <Icon size={14} aria-hidden="true" />
+                                                    <span className="hidden xl:inline">{label}</span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                        <button
+                                            onClick={() => setIsShortcutModalOpen(true)}
+                                            className="hidden min-h-8 min-w-8 md:flex items-center justify-center gap-1 px-2 py-0.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-bold transition border border-slate-300 dark:border-slate-700 cursor-pointer"
+                                            title="Petunjuk Keyboard Shortcut (F1)"
+                                            aria-label="Petunjuk keyboard shortcut (F1)"
+                                        >
+                                            <FiHelpCircle className="w-3.5 h-3.5 text-blue-600 dark:text-yellow-400" strokeWidth={2.5} />
+                                            <span className="hidden xl:inline">Shortcut</span>
+                                            <kbd className="hidden xl:inline px-1 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-200 rounded text-[9px] font-mono">F1</kbd>
+                                        </button>
                                     </div>
-                                    <button
-                                        onClick={() => setIsShortcutModalOpen(true)}
-                                        className="hidden md:flex items-center gap-1 px-2 py-0.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-bold transition border border-slate-300 dark:border-slate-700 cursor-pointer"
-                                        title="Petunjuk Keyboard Shortcut (F1)"
-                                    >
-                                        <FiHelpCircle className="w-3.5 h-3.5 text-blue-600 dark:text-yellow-400" strokeWidth={2.5} />
-                                        <span className="hidden md:inline">Shortcut</span>
-                                        <kbd className="px-1 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-200 rounded text-[9px] font-mono">F1</kbd>
-                                    </button>
                                 </div>
                             </div>
 
