@@ -49,3 +49,23 @@
     overflow: visible;
     -webkit-line-clamp: unset;
 }
+
+@media (max-width: 639px) {
+    .product-toolbar .admin-button {
+        min-height: 36px;
+        min-width: 36px;
+        padding: 6px 8px;
+    }
+    .product-toolbar .admin-page-title {
+        font-size: 16px;
+        line-height: 20px;
+    }
+}
+
+@media (max-width: 767px) {
+    .product-mobile-list .admin-product-name {
+        font-size: 13px;
+        line-height: 18px;
+        overflow-wrap: anywhere;
+    }
+}
