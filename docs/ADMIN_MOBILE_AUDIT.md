@@ -47,6 +47,7 @@ Interaksi yang diperiksa meliputi tambah/edit produk, pengaturan stok, kategori,
 | Tombol simpan pengaturan sticky dapat menimpa field saat halaman digulir | Tombol berada dalam aliran form di bagian bawah. |
 | Nama barang POS dibatasi dua baris sehingga ukuran/varian pada nama panjang hilang | Nama tampil lengkap pada daftar dan grid. Harga berada di bawah nama supaya tidak menyempitkan ruang teks; kata tanpa spasi juga dapat membungkus. |
 | Nama pendek/panjang membuat tinggi kartu dan posisi harga POS tidak sejajar | Baris kartu mengikuti tinggi konten terpanjang secara otomatis. Nama berada di atas, harga dan stok sejajar di bawah; area foto tetap, ruang info kecocokan tersedia, dan tanda barang di keranjang tidak mengubah lebar kartu. |
+| Subkategori POS terpisah dari kategori utama oleh jumlah produk dan tombol tampilan | Urutan menjadi kategori utama, subkategori, lalu jumlah produk/pilihan daftar-grid. Urutan dan filter diperiksa pada mobile, tablet, serta desktop. |
 
 ## Verifikasi dan batas pemeriksaan
 

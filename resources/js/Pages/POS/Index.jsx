@@ -522,7 +522,7 @@ return (
 
                         {/* Kategori induk menampilkan seluruh produk subkategorinya */}
                         <div className="space-y-2 border-t border-slate-200 pt-2 sm:pt-3 dark:border-slate-800">
-                            <div className="flex flex-col gap-1 2xl:flex-row 2xl:items-center 2xl:justify-between">
+                            <div className="flex flex-col gap-2">
                                 <div className="flex w-full min-w-0 items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
                                     {categories.length > 0 ? (
                                         <>
@@ -548,6 +548,28 @@ return (
                                         <span className="text-xs text-slate-400 dark:text-slate-500 italic">Belum ada kategori</span>
                                     )}
                                 </div>
+
+                                {selectedParentId && childCategories.length > 0 && (
+                                    <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5" role="group" aria-label="Subkategori produk">
+                                        <button
+                                            onClick={() => setSelectedChildId(null)}
+                                            aria-pressed={!selectedChildId}
+                                            className={`px-3 py-1 rounded-lg text-xs font-semibold whitespace-nowrap border cursor-pointer ${!selectedChildId ? 'border-accentYellow bg-accentYellow text-primaryDark' : 'border-slate-300 text-slate-600 dark:border-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+                                        >
+                                            Semua subkategori
+                                        </button>
+                                        {childCategories.map(category => (
+                                            <button
+                                                key={category.id}
+                                                onClick={() => setSelectedChildId(category.id)}
+                                                aria-pressed={selectedChildId === category.id}
+                                                className={`px-3 py-1 rounded-lg text-xs font-semibold whitespace-nowrap border cursor-pointer ${selectedChildId === category.id ? 'border-accentYellow bg-accentYellow text-primaryDark' : 'border-slate-300 text-slate-600 dark:border-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+                                            >
+                                                {category.name}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
 
                                 <div className="flex shrink-0 items-center gap-2 self-end">
                                     <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
@@ -582,27 +604,7 @@ return (
                                     </button>
                                 </div>
                             </div>
-                            {selectedParentId && childCategories.length > 0 && (
-                                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5" role="group" aria-label="Subkategori produk">
-                                    <button
-                                        onClick={() => setSelectedChildId(null)}
-                                        aria-pressed={!selectedChildId}
-                                        className={`px-3 py-1 rounded-lg text-xs font-semibold whitespace-nowrap border cursor-pointer ${!selectedChildId ? 'border-accentYellow bg-accentYellow text-primaryDark' : 'border-slate-300 text-slate-600 dark:border-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
-                                    >
-                                        Semua subkategori
-                                    </button>
-                                    {childCategories.map(category => (
-                                        <button
-                                            key={category.id}
-                                            onClick={() => setSelectedChildId(category.id)}
-                                            aria-pressed={selectedChildId === category.id}
-                                            className={`px-3 py-1 rounded-lg text-xs font-semibold whitespace-nowrap border cursor-pointer ${selectedChildId === category.id ? 'border-accentYellow bg-accentYellow text-primaryDark' : 'border-slate-300 text-slate-600 dark:border-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
-                                        >
-                                            {category.name}
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
+
                         </div>
                     </div>
 
