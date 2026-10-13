@@ -1,6 +1,7 @@
 import { createPosSale } from '@/Api/posSales';
 import PaymentModal from '@/Components/POS/PaymentModal';
 import ShortcutModal from '@/Components/POS/ShortcutModal';
+import PartPreviewModal from '@/Components/Motorcycle/PartPreviewModal';
 import ThermalReceipt from '@/Components/ThermalReceipt';
 
 import { checkoutRequestId } from '@/Utils/checkout';
@@ -68,6 +69,7 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
     const [selectedChildId, setSelectedChildId] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [isMobileCartOpen, setIsMobileCartOpen] = useState(false);
+    const [previewProduct, setPreviewProduct] = useState(null);
     const [viewMode, setViewMode] = useState(() => localStorage.getItem('pos_view_mode') === 'grid' ? 'grid' : 'list');
     const [customerName, setCustomerName] = useState(() => localStorage.getItem('pos_customer_name') || '');
 
@@ -381,7 +383,7 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
     useEffect(() => {
         const handleKeyDown = (e) => {
             // Modal mengurus Escape dan fokus; shortcut POS tidak aktif di belakangnya.
-            if (itemToDelete) return;
+            if (itemToDelete || previewProduct) return;
 
             // F1: Toggle Shortcut Helper Modal
             if (e.key === 'F1') {
@@ -486,7 +488,7 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [cart, isPaymentModalOpen, isOrderComplete, paymentMethod, cashReceived, total, customerName, isSubmittingOrder, isShortcutModalOpen, searchQuery, filteredMenu, itemToDelete]);
+    }, [cart, isPaymentModalOpen, isOrderComplete, paymentMethod, cashReceived, total, customerName, isSubmittingOrder, isShortcutModalOpen, searchQuery, filteredMenu, itemToDelete, previewProduct]);
 return (
         <AuthenticatedLayout pageTitle="POS Kasir" noPadding={true}>
             <Head title="POS Kasir">
@@ -626,21 +628,30 @@ return (
                                 const label = getProductLabel(item);
                                 const applicationText = fitment ? `Cocok: ${fitment}${item.motorcycles.length > 2 ? ` +${item.motorcycles.length - 2} motor` : ''}` : label.application ? `Peruntukan: ${label.application}` : '';
                                 return (
-                                    <button
-                                        type="button"
+                                    <div
                                         key={item.id}
-                                        onClick={() => addToCart(item)}
-                                        disabled={isOutOfStock}
-                                        className={`group flex w-full border bg-white text-left shadow-xs transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accentYellow dark:bg-slate-900 ${viewMode === 'grid' ? 'flex-col rounded-xl overflow-hidden' : 'items-start gap-3 rounded-xl p-2.5'} ${
+                                        className={`group flex w-full border bg-white text-left shadow-xs transition dark:bg-slate-900 ${viewMode === 'grid' ? 'flex-col rounded-xl overflow-hidden' : 'items-start gap-3 rounded-xl p-2.5'} ${
                                             isOutOfStock
-                                                ? 'cursor-not-allowed border-slate-200 opacity-55 dark:border-slate-800'
+                                                ? 'border-slate-200 opacity-55 dark:border-slate-800'
                                                 : 'cursor-pointer border-slate-200 hover:border-slate-400 hover:bg-slate-50 dark:border-slate-700 dark:hover:border-slate-500 dark:hover:bg-slate-800'
                                         } ${isInCart ? '!shadow-[inset_3px_0_0_#FFDD00]' : ''}`}
                                     >
-                                        <span className={`${viewMode === 'grid' ? 'aspect-square w-full shrink-0' : 'h-14 w-14 shrink-0 rounded-lg border border-slate-200 dark:border-slate-700'} overflow-hidden bg-slate-100 dark:bg-slate-800 flex items-center justify-center`}>
+                                        <button
+                                            type="button"
+                                            onClick={() => setPreviewProduct(item)}
+                                            aria-label={`Lihat detail ${item.name}`}
+                                            aria-haspopup="dialog"
+                                            className={`${viewMode === 'grid' ? 'aspect-square w-full shrink-0' : 'h-14 w-14 shrink-0 rounded-lg border border-slate-200 dark:border-slate-700'} overflow-hidden bg-slate-100 dark:bg-slate-800 flex items-center justify-center cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accentYellow`}
+                                        >
                                             <ProductPhoto src={item.image} name={item.name} category={item.category} className="h-full w-full" compact />
-                                        </span>
-                                        <span className={`flex min-w-0 flex-1 flex-col ${viewMode === 'grid' ? 'w-full p-2.5' : ''}`}>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => addToCart(item)}
+                                            disabled={isOutOfStock}
+                                            aria-label={`Tambah ${item.name} ke keranjang`}
+                                            className={`flex min-w-0 flex-1 flex-col text-left rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accentYellow ${isOutOfStock ? 'cursor-not-allowed' : 'cursor-pointer'} ${viewMode === 'grid' ? 'w-full p-2.5' : ''}`}
+                                        >
                                             <span className="flex flex-col gap-2">
                                                 <span className={`block min-w-0 whitespace-normal break-words [overflow-wrap:anywhere] font-semibold text-slate-900 dark:text-white ${viewMode === 'grid' ? 'min-h-20 text-xs leading-4' : 'text-sm leading-5'}`} title={label.name}>{label.name}</span>
                                                 <span className="flex items-center justify-between gap-2">
@@ -669,8 +680,8 @@ return (
                                                     </span>
                                                 </>
                                             )}
-                                        </span>
-                                    </button>
+                                        </button>
+                                    </div>
                                 );
                             })}
 
@@ -857,6 +868,13 @@ return (
                     </div>
                 </div>
             </div>
+
+            {previewProduct && (
+                <PartPreviewModal
+                    previewPart={{ ...previewProduct, categoryLabel: previewProduct.category, image_url: previewProduct.image }}
+                    setPreviewPart={setPreviewProduct}
+                />
+            )}
 
             {/* PAYMENT MODAL */}
             {isPaymentModalOpen && (
