@@ -8,6 +8,7 @@ import StockAdjustmentModal from '@/Components/Product/StockAdjustmentModal';
 
 
 import { productPageSize } from '@/Utils/productPagination';
+import { catalogGroupLabels } from '@/Utils/catalogGroupLabels';
 import React, { useState, useEffect } from 'react';
 import ProductSheetTools from '@/Components/ProductSheetTools';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
@@ -33,7 +34,8 @@ export default function MenuManagement({
     const { props } = usePage();
     const locale = props.app_settings?.locale || 'id';
     const selectedGroup = filters.group || '';
-    const groupName = catalogGroups[selectedGroup];
+    const displayCatalogGroups = { ...catalogGroups, ...catalogGroupLabels };
+    const groupName = displayCatalogGroups[selectedGroup];
     const hasProductFilters = Boolean(
         filters.search?.trim()
         || (filters.category && filters.category !== 'All')
@@ -1293,7 +1295,7 @@ export default function MenuManagement({
                 handleSaveCategory={handleSaveCategory}
                 categoryFormData={categoryFormData}
                 setCategoryFormData={setCategoryFormData}
-                catalogGroups={catalogGroups}
+                catalogGroups={displayCatalogGroups}
                 isLoading={isLoading}
             />
             )}

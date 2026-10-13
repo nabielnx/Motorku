@@ -223,7 +223,7 @@ export default function ProductTableSkeleton({ rows = 16, fullPage = false, view
                     <div className="flex flex-row sm:flex-wrap items-center justify-between gap-1.5 sm:gap-2.5">
                         {/* Search + Category Dropdown + Stock Dropdown */}
                         <div className="flex min-w-0 flex-wrap items-center gap-2 flex-1 max-w-2xl">
-                            <Skeleton className="h-10 flex-1 min-w-[140px] rounded-lg sm:min-w-[180px]" />
+                            <Skeleton className="h-9 flex-1 min-w-[140px] rounded-lg sm:h-10 sm:min-w-[180px]" />
                             <Skeleton className="hidden h-10 w-44 rounded-lg shrink-0 sm:block" />
                             <Skeleton className="hidden h-10 w-40 rounded-lg shrink-0 sm:block" />
                         </div>

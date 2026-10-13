@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { catalogGroupLabels } from '@/Utils/catalogGroupLabels';
 import AdminDialog, { DialogTitle } from '@/Components/Admin/Dialog';
 import { router } from '@inertiajs/react';
 import axios from 'axios';
@@ -6,7 +7,7 @@ import { toast } from 'sonner';
 import { FiDownload, FiUpload, FiX } from 'react-icons/fi';
 import { sheetError, sheetFileSchema, sheetPreviewSchema, selectableSheetRows } from '@/Utils/productSheet';
 
-const groups = { automotive: 'Otomotif', bicycle: 'Sepeda', electronics: 'Elektronik', hardware: 'Alat Bangunan' };
+const groups = catalogGroupLabels;
 const money = value => value == null ? '—' : new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(value);
 const control = 'admin-control w-full';
 const secondary = 'admin-button admin-button-secondary';

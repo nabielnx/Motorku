@@ -509,7 +509,7 @@ return (
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                     placeholder="Cari produk, motor, atau SKU..."
-                                    className="w-full min-h-10 pl-10 pr-10 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-base sm:text-sm font-semibold text-slate-800 dark:text-slate-200 focus:bg-white dark:focus:bg-slate-800 focus:ring-0 focus:border-primary focus:outline-none transition"
+                                    className="admin-control w-full pl-10 pr-10 py-1.5 font-semibold placeholder-slate-400 transition"
                                 />
                                 {searchQuery && (
                                     <button 

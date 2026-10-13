@@ -54,7 +54,7 @@ export default function BulkMappingModal({
                 </div>
             )}
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 overflow-y-auto min-h-0 flex-1 pr-1">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 overflow-y-auto min-h-0 flex-1 pr-1">
                 <section className="flex flex-col">
                     <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
                         <div className="text-xs font-bold text-slate-700 dark:text-slate-300">Motor * <span className="text-blue-600 dark:text-blue-400 ml-1">{bulkMotorIds.length} dipilih</span></div>
@@ -63,9 +63,9 @@ export default function BulkMappingModal({
                             <button type="button" onClick={() => setBulkMotorIds([])} className="min-h-8 px-1 text-slate-500 dark:text-slate-400 hover:underline">Kosongkan</button>
                         </div>
                     </div>
-                    <div className="grid grid-cols-1 min-[400px]:grid-cols-2 gap-2 mb-2">
+                    <div className="grid grid-cols-1 min-[360px]:grid-cols-[minmax(0,1fr)_minmax(150px,1fr)] gap-2 mb-2">
                         <input type="search" aria-label="Cari motor" placeholder="Cari motor..." value={bulkMotorSearch} onChange={e => setBulkMotorSearch(e.target.value)} className="w-full min-w-0 px-2 py-1.5 admin-control" />
-                        <select aria-label="Filter merek motor" value={bulkBrandFilter} onChange={e => setBulkBrandFilter(e.target.value)} className="w-full min-w-0 px-2 py-1.5 admin-control">
+                        <select aria-label="Filter merek motor" value={bulkBrandFilter} onChange={e => setBulkBrandFilter(e.target.value)} className="w-full min-w-0 pl-2 pr-8 py-1.5 admin-control">
                             <option value="semua">Semua merek</option>
                             {brands.map(brand => <option key={brand} value={brand}>{brand}</option>)}
                         </select>
@@ -99,9 +99,9 @@ export default function BulkMappingModal({
                             <button type="button" onClick={() => setBulkProductIds([])} className="min-h-8 px-1 text-slate-500 dark:text-slate-400 hover:underline">Kosongkan</button>
                         </div>
                     </div>
-                    <div className="grid grid-cols-1 min-[400px]:grid-cols-2 gap-2 mb-2">
+                    <div className="grid grid-cols-1 min-[360px]:grid-cols-[minmax(0,1fr)_minmax(150px,1fr)] gap-2 mb-2">
                         <input type="search" aria-label="Cari sparepart" placeholder="Cari part..." value={bulkProductSearch} onChange={e => setBulkProductSearch(e.target.value)} className="w-full min-w-0 px-2 py-1.5 admin-control" />
-                        <select aria-label="Filter kategori sparepart" value={bulkCategoryFilter} onChange={e => setBulkCategoryFilter(e.target.value)} className="w-full min-w-0 px-2 py-1.5 admin-control">
+                        <select aria-label="Filter kategori sparepart" value={bulkCategoryFilter} onChange={e => setBulkCategoryFilter(e.target.value)} className="w-full min-w-0 pl-2 pr-8 py-1.5 admin-control">
                             <option value="semua">Semua kategori</option>
                             {productCategoriesList.map(category => <option key={category} value={category}>{category}</option>)}
                         </select>
