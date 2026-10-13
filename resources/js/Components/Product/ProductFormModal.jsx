@@ -1,8 +1,9 @@
 import AdminButton from '@/Components/Admin/Button';
+import ImagePicker from '@/Components/ImagePicker';
 import AdminDialog, { DialogTitle } from '@/Components/Admin/Dialog';
 import { FiX, FiChevronDown } from 'react-icons/fi';
 import MoneyInput from '@/Components/MoneyInput';
-import { IMAGE_ACCEPT, validImage, IMAGE_HELP } from '@/Utils/imageUpload';
+import { validImage, IMAGE_HELP } from '@/Utils/imageUpload';
 
 export default function ProductFormModal({
     editingItem,
@@ -173,22 +174,7 @@ export default function ProductFormModal({
 
                     <div>
                         <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Gambar Produk</label>
-                        <label className="flex items-center gap-3 p-2.5 border border-dashed border-slate-300 dark:border-slate-700 rounded-lg cursor-pointer hover:border-slate-400 transition-colors bg-slate-50 dark:bg-slate-800">
-                            <input
-                                type="file"
-                                accept={IMAGE_ACCEPT}
-                                onChange={(e) => {
-                                    const file = e.target.files?.[0];
-                                    if (validImage(file)) {
-                                        setProductFormData({
-                                            ...productFormData,
-                                            imageFile: file,
-                                            imagePreview: URL.createObjectURL(file)
-                                        });
-                                    }
-                                }}
-                                className="hidden"
-                            />
+                        <div className="flex items-start gap-3 p-2.5 border border-dashed border-slate-300 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800">
                             {productFormData.imagePreview ? (
                                 <img src={productFormData.imagePreview} alt="preview" className="w-12 h-12 rounded-lg object-cover border border-slate-300 dark:border-slate-700 shadow-2xs" />
                             ) : productFormData.image ? (
@@ -196,11 +182,13 @@ export default function ProductFormModal({
                             ) : (
                                 <div className="w-12 h-12 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500 text-xs font-bold border border-slate-300 dark:border-slate-700">Foto</div>
                             )}
-                            <div className="text-xs text-slate-500 dark:text-slate-400">
-                                <span className="font-bold text-primary dark:text-blue-300">Upload foto</span>
-                                <br />{IMAGE_HELP}
+                            <div className="min-w-0 flex-1 space-y-2">
+                                <ImagePicker label="produk" disabled={isLoading} onSelect={file => {
+                                    if (validImage(file)) setProductFormData({ ...productFormData, imageFile: file, imagePreview: URL.createObjectURL(file) });
+                                }} />
+                                <p className="admin-help">{IMAGE_HELP}</p>
                             </div>
-                        </label>
+                        </div>
                     </div>
                 </div>
 

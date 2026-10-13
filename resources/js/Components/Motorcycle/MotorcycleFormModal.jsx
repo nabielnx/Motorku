@@ -1,7 +1,8 @@
 import AdminButton from '@/Components/Admin/Button';
+import ImagePicker from '@/Components/ImagePicker';
 import AdminDialog, { DialogTitle } from '@/Components/Admin/Dialog';
 import { FiX, FiAlertCircle } from 'react-icons/fi';
-import { IMAGE_ACCEPT, validImage, IMAGE_HELP } from '@/Utils/imageUpload';
+import { validImage, IMAGE_HELP } from '@/Utils/imageUpload';
 
 export default function MotorcycleFormModal({
     setShowAddModal,
@@ -126,12 +127,9 @@ export default function MotorcycleFormModal({
                             </div>
                         )}
                         <div className="flex-1 space-y-1.5">
-                            <input
-                                type="file"
-                                accept={IMAGE_ACCEPT}
-                                onChange={e => { const file = e.target.files[0]; if (validImage(file)) setFormData({ ...formData, image_file: file }); }}
-                                className="w-full text-xs text-slate-600 dark:text-slate-400 file:mr-2 file:py-1 file:px-2.5 file:rounded-md file:border-0 file:text-xs file:font-bold file:bg-slate-200 dark:file:bg-slate-700 file:text-slate-800 dark:file:text-slate-200 hover:file:bg-slate-300 cursor-pointer"
-                            />
+                            <ImagePicker label="motor" disabled={saving} onSelect={file => {
+                                if (validImage(file)) setFormData({ ...formData, image_file: file });
+                            }} />
                             <p className="text-xs text-slate-500">{IMAGE_HELP}</p>
                             <input
                                 type="text"

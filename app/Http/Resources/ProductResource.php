@@ -17,6 +17,10 @@ class ProductResource extends JsonResource
         return [
             'id' => $this->id,
             'sku' => $this->sku,
+            'brand' => $this->brand,
+            'barcode' => $this->barcode,
+            'rack_location' => $this->rack_location,
+            'category_parent' => $this->when($this->relationLoaded('category'), fn () => $this->category?->parent?->name),
             'name' => $this->name,
             'description' => $this->description,
             'price' => (float) $this->price,

@@ -14,7 +14,8 @@ class SecurityHeadersTest extends TestCase
         $first = $this->get('/login')->assertOk()
             ->assertHeader('X-Content-Type-Options', 'nosniff')
             ->assertHeader('Referrer-Policy', 'strict-origin-when-cross-origin')
-            ->assertHeader('X-Frame-Options', 'SAMEORIGIN');
+            ->assertHeader('X-Frame-Options', 'SAMEORIGIN')
+            ->assertHeader('Permissions-Policy', 'camera=(self), microphone=(), geolocation=()');
         $policy = $first->headers->get('Content-Security-Policy');
         preg_match("/'nonce-([^']+)'/", $policy, $match);
         $this->assertNotEmpty($match[1] ?? null);
@@ -25,6 +26,7 @@ class SecurityHeadersTest extends TestCase
         }
         $this->assertStringNotContainsString('onload=', $first->getContent());
         $this->assertStringContainsString("object-src 'none'", $policy);
+        $this->assertStringContainsString("media-src 'self' blob:", $policy);
         $second = $this->get('/login')->assertOk();
         $this->assertStringNotContainsString($match[1], $second->headers->get('Content-Security-Policy'));
     }

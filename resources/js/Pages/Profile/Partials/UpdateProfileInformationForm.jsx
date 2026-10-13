@@ -1,9 +1,10 @@
-import { IMAGE_ACCEPT, IMAGE_HELP, validImage } from '@/Utils/imageUpload';
+import ImagePicker from '@/Components/ImagePicker';
+import { IMAGE_HELP, validImage } from '@/Utils/imageUpload';
 import { useState } from 'react';
 import InputError from '@/Components/InputError';
 import { Transition } from '@headlessui/react';
 import { Link, useForm, usePage, router } from '@inertiajs/react';
-import { FiUpload, FiCheck, FiUser, FiSave, FiCamera, FiTrash2, FiAlertTriangle } from 'react-icons/fi';
+import { FiUpload, FiCheck, FiUser, FiSave, FiTrash2, FiAlertTriangle } from 'react-icons/fi';
 import axios from 'axios';
 
 export default function UpdateProfileInformation({
@@ -90,22 +91,9 @@ export default function UpdateProfileInformation({
                             )}
                         </div>
                         <div className="flex items-center gap-2 flex-wrap">
-                            <label className="inline-flex items-center gap-1.5 px-3 py-2 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-lg cursor-pointer transition shadow-xs">
-                                <FiCamera className="w-4 h-4 text-slate-600 dark:text-slate-300" strokeWidth={2.5} />
-                                <input
-                                    type="file"
-                                    accept={IMAGE_ACCEPT}
-                                    onChange={(e) => {
-                                        const file = e.target.files[0];
-                                        if (validImage(file)) {
-                                            setAvatarFile(file);
-                                            setAvatarPreview(URL.createObjectURL(file));
-                                        }
-                                    }}
-                                    className="hidden"
-                                />
-                                <span>Pilih Foto Baru</span>
-                            </label>
+                            <ImagePicker label="profil" facingMode="user" disabled={uploading} onSelect={file => {
+                                if (validImage(file)) { setAvatarFile(file); setAvatarPreview(URL.createObjectURL(file)); }
+                            }} />
 
                             {avatarFile && (
                                 <button
