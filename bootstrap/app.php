@@ -3,6 +3,7 @@
 use App\Http\Middleware\ApplySystemSettings;
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -54,6 +55,7 @@ return Application::configure(basePath: dirname(__DIR__))
             return $user?->hasRole('owner') ? '/dashboard' : '/pos';
         });
 
+        $middleware->prepend(SecurityHeaders::class);
         $middleware->append([ApplySystemSettings::class, FrameGuard::class]);
         $middleware->web(append: [
             HandleInertiaRequests::class,
@@ -73,13 +75,13 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->respond(function ($response, Throwable $exception, Request $request) {
             if ($response->getStatusCode() === 419) {
                 if ($request->header('X-Inertia')) {
-                    return back()->with([
+                    return SecurityHeaders::apply($request, back()->with([
                         'error' => 'Sesi telah kadaluarsa & diperbarui. Silakan coba kembali.',
-                    ]);
+                    ]));
                 }
             }
 
-            return $response;
+            return SecurityHeaders::apply($request, $response);
         });
 
         // Force JSON format for any API errors

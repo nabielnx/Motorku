@@ -13,7 +13,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
-use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 
@@ -42,7 +41,6 @@ class AppServiceProvider extends ServiceProvider
         OrderReturn::created(fn (OrderReturn $return) => app(NotificationService::class)->returned($return));
         CashClosing::created(fn (CashClosing $closing) => app(NotificationService::class)->cashClosed($closing));
         Event::listen(DiagnosingHealth::class, fn () => DB::select('SELECT 1'));
-        Vite::prefetch(concurrency: 3);
 
         Password::defaults(function () {
             return Password::min(8)

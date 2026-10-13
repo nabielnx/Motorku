@@ -1,4 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import CustomerProductCard from '@/Components/Customer/CustomerProductCard';
+import ProgressiveProducts from '@/Components/Customer/ProgressiveProducts';
+import React, { useState, useEffect, useRef, useDeferredValue } from 'react';
 import OrderingUnavailable from '@/Components/Customer/OrderingUnavailable';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import useForceLightTheme from '@/Utils/useForceLightTheme';
@@ -108,10 +110,12 @@ export default function CustomerMenu({
 
     const formatCategories = (rawCats) => rawCats || [];
 
-    const [menuItems, setMenuItems] = useState(formatProducts(initialProducts));
+    const [menuItems, setMenuItems] = useState(() => formatProducts(initialProducts));
     const [categories, setCategories] = useState(formatCategories(initialCategories));
     const [cart, setCart] = useState(loadCart);
     const [searchQuery, setSearchQuery] = useState('');
+    const deferredSearch = useDeferredValue(searchQuery);
+    const catalogProps = useRef({ initialProducts, initialCategories });
     const [selectedMainCategory, setSelectedMainCategory] = useState(null);
     const [selectedSubCategory, setSelectedSubCategory] = useState(null);
     const [hasAnyOrders, setHasAnyOrders] = useState(false);
@@ -121,8 +125,11 @@ export default function CustomerMenu({
     const searchInputRef = useRef(null);
 
     useEffect(() => {
-        setMenuItems(formatProducts(initialProducts));
-        setCategories(formatCategories(initialCategories));
+        if (catalogProps.current.initialProducts !== initialProducts || catalogProps.current.initialCategories !== initialCategories) {
+            setMenuItems(formatProducts(initialProducts));
+            setCategories(formatCategories(initialCategories));
+            catalogProps.current = { initialProducts, initialCategories };
+        }
 
         // Bersihkan otomatis item keranjang jika ID produk tidak ada lagi di database
         if (initialProducts && initialProducts.length > 0) {
@@ -229,20 +236,19 @@ export default function CustomerMenu({
     };
 
     // ── Filter & Grouping ──
-    const categoryFilterPredicate = (item) => {
-        if (!selectedMainCategory) return true;
-        const mainCat = categories.find(c => c.name === selectedMainCategory);
-        if (!mainCat) return false;
-        if (selectedSubCategory) {
-            return item.category === selectedSubCategory;
-        }
-        const childrenNames = mainCat.children ? mainCat.children.map(c => c.name) : [];
-        return childrenNames.includes(item.category) || item.category === mainCat.name;
-    };
+    const filteredMenu = React.useMemo(() => {
+        const main = categories.find(category => category.name === selectedMainCategory);
+        const allowed = new Set(main?.children?.map(child => child.name) || []);
+        if (main) allowed.add(main.name);
+        return fuzzyFilterProducts(menuItems, deferredSearch, {
+            filterPredicate: item => !selectedMainCategory || (selectedSubCategory ? item.category === selectedSubCategory : allowed.has(item.category)),
+        });
+    }, [menuItems, categories, selectedMainCategory, selectedSubCategory, deferredSearch]);
 
-    const filteredMenu = fuzzyFilterProducts(menuItems, searchQuery, {
-        filterPredicate: categoryFilterPredicate
-    });
+    const categorySections = React.useMemo(() => categories.map(category => {
+        const names = new Set([category.name, ...(category.children || []).map(child => child.name)]);
+        return { category, items: filteredMenu.filter(item => names.has(item.category)) };
+    }).filter(section => section.items.length), [categories, filteredMenu]);
 
     const promoSlots = React.useMemo(() => [1, 2, 3].map(slot => promoBanners?.[slot]).filter(Boolean), [promoBanners]);
 
@@ -256,10 +262,10 @@ export default function CustomerMenu({
         setSelectedSubCategory(null);
         setSearchQuery('');
     };
-    const openDetail = (item) => {
+    const openDetail = React.useCallback((item) => {
         setSelectedDetailProduct(item);
         setDetailQty(1);
-    };
+    }, []);
 
     // Prioritize best selling products for the promo section
     const promoProducts = React.useMemo(() => {
@@ -276,53 +282,9 @@ export default function CustomerMenu({
         return [...best, ...others];
     }, [filteredMenu, bestSellerProductIds]);
 
-    const renderProductCard = (item, isGrid = false) => {
-        const outOfStock = item.stock <= 0;
-        const isBest = bestSellerProductIds.includes(item.id);
-
-        return (
-            <article key={item.id}
-                onClick={() => openDetail(item)}
-                className={clsx(
-                    "group flex flex-col justify-between rounded-xl sm:rounded-2xl border border-slate-200/90 bg-white shadow-2xs hover:border-slate-300 hover:shadow-xs transition-all relative overflow-hidden cursor-pointer active:scale-[0.99]",
-                    isGrid
-                        ? "w-full h-full"
-                        : "w-[calc((100%-20px)/3.25)] sm:w-[calc((100%-24px)/3.35)] md:w-[155px] shrink-0 snap-start"
-                )}>
-                <div>
-                    <div className="relative block w-full overflow-hidden text-left bg-slate-50/80">
-                        <ProductPhoto src={item.image} name={item.name} category={item.category} compact className="aspect-square w-full transition-transform group-hover:scale-102" />
-                        {outOfStock && (
-                            <div className="absolute inset-0 bg-white/70 backdrop-blur-[1px] flex items-center justify-center">
-                                <span className="rounded bg-slate-800/85 px-1.5 py-0.5 text-[9px] font-bold text-white shadow-xs">
-                                    Habis
-                                </span>
-                            </div>
-                        )}
-                    </div>
-                    <div className="p-1.5 sm:p-2">
-                        <h3 className="text-[10px] sm:text-[11px] font-bold leading-tight text-slate-900 transition-colors line-clamp-2">
-                            {item.name}
-                        </h3>
-                        <div className="mt-0.5 flex items-center gap-1">
-                            <span className="rounded-[3px] bg-red-600 text-white px-1 py-[1.5px] text-[8px] sm:text-[8.5px] font-black tracking-tight leading-none">25%</span>
-                            <span className="text-[8.5px] sm:text-[9.5px] font-medium text-slate-400 line-through tabular-nums">{formatRp(Math.round(item.price * 1.33))}</span>
-                        </div>
-                        <div className="mt-0.5 flex items-center justify-between gap-1">
-                            <p className="text-xs sm:text-[13px] font-extrabold tracking-tight text-slate-900 tabular-nums">
-                                {formatRp(item.price)}
-                            </p>
-                            {item.is_recommended && (
-                                <span title="Rekomendasi" className="inline-flex items-center shrink-0">
-                                    <FiStar size={12} className="fill-[#FFDD00] text-[#FFDD00]" />
-                                </span>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            </article>
-        );
-    };
+    const renderProductCard = React.useCallback((item, isGrid = false) => (
+        <CustomerProductCard key={item.id} item={item} isGrid={isGrid} onOpen={openDetail} />
+    ), [openDetail]);
 
     if (isNavigating || isSkeletonPreview) {
         return <MenuSkeleton fullPage={true} isGrid={selectedMainCategory !== null} showPromo={!searchQuery.trim() && selectedMainCategory === null} hasCart={cart.length > 0} />;
@@ -474,10 +436,7 @@ export default function CustomerMenu({
                         {filteredMenu.length > 0 ? (
                             selectedMainCategory === null ? (
                                 <div className="flex flex-col gap-5 pb-4">
-                                    {categories.map(category => {
-                                        const childrenNames = category.children ? category.children.map(c => c.name) : [];
-                                        const catItems = filteredMenu.filter(item => childrenNames.includes(item.category) || item.category === category.name);
-                                        if (catItems.length === 0) return null;
+                                    {categorySections.map(({ category, items: catItems }) => {
                                         return (
                                             <section key={category.id}>
                                                 <div className="mb-2 flex items-center justify-between">
@@ -487,17 +446,13 @@ export default function CustomerMenu({
                                                         <FiChevronRight size={12} />
                                                     </button>
                                                 </div>
-                                                <div className="flex gap-2 sm:gap-2.5 overflow-x-auto pb-2 snap-x snap-mandatory no-scrollbar">
-                                                    {catItems.map(item => renderProductCard(item, false))}
-                                                </div>
+                                                <ProgressiveProducts items={catItems} renderCard={renderProductCard} />
                                             </section>
                                         );
                                     })}
                                 </div>
                             ) : (
-                                <div className="grid grid-cols-3 gap-2 sm:gap-2.5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 pb-4">
-                                    {filteredMenu.map(item => renderProductCard(item, true))}
-                                </div>
+                                <ProgressiveProducts items={filteredMenu} renderCard={renderProductCard} grid />
                             )
                         ) : (
                             <div className="rounded-2xl border border-slate-200/80 bg-white px-5 py-14 text-center shadow-2xs">
