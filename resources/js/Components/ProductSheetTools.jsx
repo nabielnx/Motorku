@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { catalogGroupLabels } from '@/Utils/catalogGroupLabels';
 import AdminDialog, { DialogTitle } from '@/Components/Admin/Dialog';
 import { router } from '@inertiajs/react';
 import axios from 'axios';
@@ -6,13 +7,13 @@ import { toast } from 'sonner';
 import { FiDownload, FiUpload, FiX } from 'react-icons/fi';
 import { sheetError, sheetFileSchema, sheetPreviewSchema, selectableSheetRows } from '@/Utils/productSheet';
 
-const groups = { automotive: 'Otomotif', bicycle: 'Sepeda', electronics: 'Elektronik', hardware: 'Alat Bangunan' };
+const groups = catalogGroupLabels;
 const money = value => value == null ? '—' : new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(value);
 const control = 'admin-control w-full';
 const secondary = 'admin-button admin-button-secondary';
 const primary = 'admin-button admin-button-primary';
 
-export default function ProductSheetTools({ selectedGroup }) {
+export default function ProductSheetTools({ selectedGroup, compact = false }) {
     const [dialog, setDialog] = useState(null);
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState('');
@@ -61,8 +62,8 @@ export default function ProductSheetTools({ selectedGroup }) {
     const eligible = preview ? selectableSheetRows(preview.rows) : [];
 
     return <>
-        <button type="button" className={secondary} onClick={() => { setDialog('import'); setError(''); }}><FiUpload aria-hidden="true" />Impor</button>
-        <button type="button" className={secondary} onClick={() => { setDialog('export'); setError(''); }}><FiDownload aria-hidden="true" />Ekspor</button>
+        <button type="button" className={secondary} aria-label="Impor daftar barang" title="Impor daftar barang" onClick={() => { setDialog('import'); setError(''); }}><FiUpload aria-hidden="true" /><span className={compact ? 'hidden min-[360px]:inline' : ''}>Impor</span></button>
+        <button type="button" className={secondary} aria-label="Ekspor daftar barang" title="Ekspor daftar barang" onClick={() => { setDialog('export'); setError(''); }}><FiDownload aria-hidden="true" /><span className={compact ? 'hidden min-[360px]:inline' : ''}>Ekspor</span></button>
         <AdminDialog show={dialog !== null} onClose={close} closeable={!busy} className="max-w-5xl overflow-hidden">
             <div className="max-h-[85dvh] w-full overflow-y-auto p-4 sm:p-6">
                 <div className="mb-4 flex items-start justify-between gap-3">

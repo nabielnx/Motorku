@@ -16,6 +16,7 @@ import PosCardSkeleton from '@/Components/Skeletons/PosCardSkeleton';
 import Skeleton from '@/Components/Skeleton';
 import MotorIcon from '@/Components/MotorIcon';
 import { getNavigationDestination } from '@/Utils/navigation';
+import { catalogGroupLabels } from '@/Utils/catalogGroupLabels';
 import { 
     FiGrid, 
     FiCoffee, 
@@ -34,12 +35,7 @@ import {
     FiMoon
 } from 'react-icons/fi';
 
-const catalogGroups = [
-    ['automotive', 'Otomotif'],
-    ['electronics', 'Elektronik'],
-    ['hardware', 'Alat Bangunan'],
-    ['bicycle', 'Sepeda'],
-];
+const catalogGroups = Object.entries(catalogGroupLabels);
 
 function getDestinationInfo(url, locale = 'id') {
     if (!url) return null;

@@ -8,6 +8,7 @@ import StockAdjustmentModal from '@/Components/Product/StockAdjustmentModal';
 
 
 import { productPageSize } from '@/Utils/productPagination';
+import { catalogGroupLabels } from '@/Utils/catalogGroupLabels';
 import React, { useState, useEffect } from 'react';
 import ProductSheetTools from '@/Components/ProductSheetTools';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
@@ -33,7 +34,8 @@ export default function MenuManagement({
     const { props } = usePage();
     const locale = props.app_settings?.locale || 'id';
     const selectedGroup = filters.group || '';
-    const groupName = catalogGroups[selectedGroup];
+    const displayCatalogGroups = { ...catalogGroups, ...catalogGroupLabels };
+    const groupName = displayCatalogGroups[selectedGroup];
     const hasProductFilters = Boolean(
         filters.search?.trim()
         || (filters.category && filters.category !== 'All')
@@ -499,13 +501,14 @@ export default function MenuManagement({
                 {/* UNIFIED PRODUCT MANAGEMENT CONTAINER */}
                 <div className="bg-white dark:bg-slate-900 sm:rounded-xl sm:border border-slate-200 dark:border-slate-800 sm:shadow-xs flex-1 min-h-0 flex flex-col overflow-hidden">
                     {/* Compact Header & Filter Section */}
-                    <div className="p-2.5 sm:p-3.5 space-y-2 sm:space-y-2.5 border-b border-slate-200 dark:border-slate-800 shrink-0 bg-white dark:bg-slate-900 z-10">
+                    <div className="product-toolbar p-2.5 sm:p-3.5 space-y-2 sm:space-y-2.5 border-b border-slate-200 dark:border-slate-800 shrink-0 bg-white dark:bg-slate-900 z-10">
                         {/* Top Row: Title, Badge, Tabs & Action */}
                         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                             {/* Left: Title + Badge + Tabs */}
-                            <div className="flex items-center gap-2">
-                                <h1 className="text-base sm:text-lg font-bold text-primaryDark dark:text-white tracking-tight shrink-0 admin-page-title">
-                                    {activeTab === 'products' ? (groupName || 'Daftar Produk') : 'Kategori Produk'}
+                            <div className="flex min-w-0 flex-1 items-center gap-1.5 sm:flex-none sm:gap-2">
+                                <h1 className="min-w-0 break-words font-bold text-primaryDark dark:text-white tracking-tight admin-page-title">
+                                    <span className="sm:hidden">{activeTab === 'products' ? (groupName || 'Produk') : 'Kategori'}</span>
+                                    <span className="hidden sm:inline">{activeTab === 'products' ? (groupName || 'Daftar Produk') : 'Kategori Produk'}</span>
                                 </h1>
                                 <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 shrink-0">
                                     {activeTab === 'products' ? totalProducts : categories.length}
@@ -540,8 +543,8 @@ export default function MenuManagement({
                             </div>
 
                             {/* Right: Action Button */}
-                            <div className="ml-auto flex flex-wrap items-center gap-2">
-                                {activeTab === 'products' && <ProductSheetTools selectedGroup={selectedGroup} />}
+                            <div className="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-2">
+                                {activeTab === 'products' && <ProductSheetTools selectedGroup={selectedGroup} compact />}
                                 {activeTab === 'products' ? (
                                     <AdminButton
                                         type="button"
@@ -794,11 +797,11 @@ export default function MenuManagement({
                                     </div>
                                 ) : (
                                     <>
-                                    {viewMode === 'list' && <div className="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
+                                    {viewMode === 'list' && <div className="product-mobile-list md:hidden divide-y divide-slate-100 dark:divide-slate-800">
                                         {filteredItems.map(item => {
                                             const isExpanded = expandedRows.includes(item.id);
                                             return (
-                                                <article key={item.id} className="px-3 py-2.5">
+                                                <article key={item.id} className="px-3 py-2">
                                                     <div className="flex items-start gap-2.5">
                                                         <button
                                                             type="button"
@@ -808,18 +811,22 @@ export default function MenuManagement({
                                                         >
                                                             <ProductPhoto src={item.image} name={item.name} category={item.category} className="w-full h-full" compact />
                                                         </button>
-                                                        <button type="button" onClick={() => toggleRowExpand(item.id)} className="min-w-0 flex-1 text-left" aria-expanded={isExpanded}>
-                                                            <span className="block font-bold text-slate-900 dark:text-white admin-product-name">{item.name}</span>
-                                                        </button>
-                                                        <button type="button" onClick={() => toggleRowExpand(item.id)} className="shrink-0 p-1 text-slate-400" aria-label={`Detail ${item.name}`} aria-expanded={isExpanded}>
-                                                            {isExpanded ? <FiChevronDown size={16} /> : <FiChevronRight size={16} />}
-                                                        </button>
-                                                    </div>
-                                                    <div className="mt-1.5 flex items-center justify-between gap-2 pl-[3.375rem] text-xs">
-                                                        <span className="font-bold text-slate-900 dark:text-white whitespace-nowrap">Rp {Number(item.price).toLocaleString('id-ID')}</span>
-                                                        <span className={`font-semibold whitespace-nowrap ${item.stock <= 0 ? 'text-red-600' : item.stock <= (item.minimum_stock ?? 3) ? 'text-primaryDark dark:text-accentYellow' : 'text-slate-700 dark:text-slate-300'}`}>
-                                                            {item.stock <= 0 ? 'Stok habis' : item.stock <= (item.minimum_stock ?? 3) ? `${item.stock} pcs · Perlu kulak` : `${item.stock} pcs`}
-                                                        </span>
+                                                        <div className="min-w-0 flex-1">
+                                                            <div className="flex items-start gap-1">
+                                                                <button type="button" onClick={() => toggleRowExpand(item.id)} className="min-w-0 flex-1 text-left" aria-expanded={isExpanded}>
+                                                                    <span className="block font-bold text-slate-900 dark:text-white admin-product-name">{item.name}</span>
+                                                                </button>
+                                                                <button type="button" onClick={() => toggleRowExpand(item.id)} className="shrink-0 p-1 text-slate-400" aria-label={`Detail ${item.name}`} aria-expanded={isExpanded}>
+                                                                    {isExpanded ? <FiChevronDown size={16} /> : <FiChevronRight size={16} />}
+                                                                </button>
+                                                            </div>
+                                                            <div className="mt-1 flex flex-wrap items-center justify-between gap-x-2 gap-y-0.5 text-xs">
+                                                                <span className="font-bold text-slate-900 dark:text-white whitespace-nowrap">Rp {Number(item.price).toLocaleString('id-ID')}</span>
+                                                                <span className={`font-semibold whitespace-nowrap ${item.stock <= 0 ? 'text-red-600' : item.stock <= (item.minimum_stock ?? 3) ? 'text-primaryDark dark:text-accentYellow' : 'text-slate-700 dark:text-slate-300'}`}>
+                                                                    {item.stock <= 0 ? 'Stok habis' : item.stock <= (item.minimum_stock ?? 3) ? `${item.stock} pcs · Perlu kulak` : `${item.stock} pcs`}
+                                                                </span>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                     {isExpanded && (
                                                         <div className="mt-2 space-y-2 pl-[3.375rem] text-[11px] text-slate-600 dark:text-slate-300">
@@ -1288,7 +1295,7 @@ export default function MenuManagement({
                 handleSaveCategory={handleSaveCategory}
                 categoryFormData={categoryFormData}
                 setCategoryFormData={setCategoryFormData}
-                catalogGroups={catalogGroups}
+                catalogGroups={displayCatalogGroups}
                 isLoading={isLoading}
             />
             )}

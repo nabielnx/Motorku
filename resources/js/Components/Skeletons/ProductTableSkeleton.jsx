@@ -90,7 +90,7 @@ export default function ProductTableSkeleton({ rows = 16, fullPage = false, view
     const tableContent = (
         <div className="flex-1 min-h-0 overflow-y-auto overflow-x-auto flex flex-col justify-between">
             <div className="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
-                {Array.from({ length: rows }).map((_, i) => <div key={i} className="px-3 py-2.5"><div className="flex gap-3"><Skeleton className="h-11 w-11 shrink-0 rounded-md" /><div className="flex-1 space-y-1.5"><Skeleton className="h-3.5 w-3/4" /><Skeleton className="h-3 w-20" /><div className="flex justify-between"><Skeleton className="h-4 w-24" /><Skeleton className="h-3 w-14" /></div></div></div></div>)}
+                {Array.from({ length: rows }).map((_, i) => <div key={i} className="px-3 py-2"><div className="flex gap-2.5"><Skeleton className="h-11 w-11 shrink-0 rounded-md" /><div className="min-w-0 flex-1 space-y-1"><div className="flex items-center justify-between gap-1"><Skeleton className="h-4 w-3/4" /><Skeleton className="h-4 w-4" /></div><div className="flex justify-between"><Skeleton className="h-4 w-24" /><Skeleton className="h-3 w-14" /></div></div></div></div>)}
             </div>
             <table className="hidden md:table w-full text-left border-collapse min-w-[900px]">
                 {/* Table headers */}
@@ -204,37 +204,40 @@ export default function ProductTableSkeleton({ rows = 16, fullPage = false, view
                 <div className="p-2.5 sm:p-3.5 space-y-2 sm:space-y-2.5 border-b border-slate-200 dark:border-slate-800 shrink-0 bg-white dark:bg-slate-900 z-10">
                     {/* Top Row: Title, Badge, Tabs & Action */}
                     <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                        <div className="flex items-center gap-2">
-                            <Skeleton className="h-6 w-32 rounded-md" />
-                            <Skeleton className="h-4 w-8" />
+                        <div className="flex min-w-0 flex-1 items-center gap-1.5 sm:flex-none sm:gap-2">
+                            <Skeleton className="h-5 w-16 rounded-md sm:h-6 sm:w-32" />
+                            <Skeleton className="h-3 w-6" />
                         </div>
                             <div className="order-3 flex w-full gap-1.5 sm:order-none sm:w-auto">
-                                <Skeleton className="h-6 w-24 rounded-md" />
-                                <Skeleton className="h-6 w-20 rounded-md" />
+                                <Skeleton className="h-7 flex-1 rounded-md sm:flex-none sm:w-24" />
+                                <Skeleton className="h-7 flex-1 rounded-md sm:flex-none sm:w-20" />
                             </div>
-                        <Skeleton className="ml-auto h-8 w-32 rounded-lg shrink-0" />
+                        <div className="ml-auto flex shrink-0 gap-1.5 sm:gap-2">
+                            <Skeleton className="h-9 w-9 rounded-lg sm:w-16" />
+                            <Skeleton className="h-9 w-9 rounded-lg sm:w-16" />
+                            <Skeleton className="h-9 w-20 rounded-lg" />
+                        </div>
                     </div>
 
-                    <div className="flex items-center justify-between gap-2 border-l-2 border-slate-200 pl-2"><Skeleton className="h-3 w-28" /><Skeleton className="h-3 w-10" /></div>
-
                     {/* Filter Bar */}
-                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 pt-0.5">
+                    <div className="flex flex-row sm:flex-wrap items-center justify-between gap-1.5 sm:gap-2.5">
                         {/* Search + Category Dropdown + Stock Dropdown */}
-                        <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 flex-1 max-w-2xl">
-                            <Skeleton className="h-8 flex-1 min-w-[180px] rounded-lg" />
-                            <Skeleton className="h-8 w-36 sm:w-44 rounded-lg shrink-0" />
-                            <Skeleton className="h-8 w-36 sm:w-40 rounded-lg shrink-0" />
+                        <div className="flex min-w-0 flex-wrap items-center gap-2 flex-1 max-w-2xl">
+                            <Skeleton className="h-9 flex-1 min-w-[140px] rounded-lg sm:h-10 sm:min-w-[180px]" />
+                            <Skeleton className="hidden h-10 w-44 rounded-lg shrink-0 sm:block" />
+                            <Skeleton className="hidden h-10 w-40 rounded-lg shrink-0 sm:block" />
                         </div>
 
                         {/* View toggle and status filter */}
-                        <div className="flex flex-row items-center gap-2 self-start sm:self-auto shrink-0">
+                        <div className="flex flex-row items-center gap-1 shrink-0">
+                            <Skeleton className="h-7 w-12 sm:hidden" />
                             {/* View Toggle (Grid / List) */}
                             <div className="inline-flex items-center bg-white dark:bg-slate-800 p-0.5 rounded-lg border border-slate-300 dark:border-slate-700 shadow-2xs">
                                 <Skeleton className="w-7 h-7 rounded-md" />
                                 <Skeleton className="w-7 h-7 rounded-md" />
                             </div>
 
-                            <Skeleton className="h-8 w-28 rounded-lg" />
+                            <Skeleton className="hidden h-8 w-28 rounded-lg sm:block" />
                         </div>
                     </div>
                 </div>
