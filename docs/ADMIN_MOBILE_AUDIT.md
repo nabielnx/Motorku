@@ -48,13 +48,15 @@ Interaksi yang diperiksa meliputi tambah/edit produk, pengaturan stok, kategori,
 | Nama barang POS dibatasi dua baris sehingga ukuran/varian pada nama panjang hilang | Nama tampil lengkap pada daftar dan grid. Harga berada di bawah nama supaya tidak menyempitkan ruang teks; kata tanpa spasi juga dapat membungkus. |
 | Tinggi kartu POS dan jarak nama ke harga berubah ketika kategori difilter | Tinggi kartu mengikuti isinya sendiri. Jarak nama ke harga tetap 8 px; harga dan stok berada pada satu baris di daftar. Area foto dan ruang info kecocokan konsisten, scrollbar disediakan tetap, serta tanda barang di keranjang tidak mengubah lebar kartu. Nama panjang tetap membungkus penuh dan hanya menambah tinggi kartu tersebut. |
 | Subkategori POS terpisah dari kategori utama oleh jumlah produk dan tombol tampilan | Kategori utama berada di baris atas. Baris berikutnya menempatkan subkategori di kiri serta jumlah produk/pilihan daftar-grid di kanan; subkategori dapat digulir tanpa menggeser kontrol tampilan. |
+| Nama ban mencampur identitas barang dengan peruntukan seperti Nouvo/Skywave | Akhiran yang dikonfirmasi oleh `Peruntukan:` pada deskripsi dipindah ke informasi bawah pada daftar/grid/keranjang. Ukuran, TR, jenis ban, dan volume tetap bagian nama. Data katalog dan pencarian tetap memakai nama asli. Pedoman ada di [PRODUCT_NAMING.md](PRODUCT_NAMING.md). |
 
 ## Verifikasi dan batas pemeriksaan
 
 - Build produksi berhasil.
-- 59 tes JavaScript lulus.
+- 63 tes JavaScript lulus, termasuk perlindungan ukuran/volume/varian, peruntukan bertingkat, pencarian model motor, dan identitas keranjang.
 - Nama POS diperiksa ulang pada daftar dan grid di 320, 375, serta 768 px menggunakan 28 nama panjang. Tidak ada nama terpotong, nominal bertabrakan, atau halaman melebar. Pencarian dengan frasa di bagian akhir nama juga menampilkan hasil dengan nama lengkap.
 - Konsistensi kartu diuji dengan campuran nama pendek dan panjang, barang dalam keranjang, stok habis, serta informasi kecocokan yang ada/kosong. Barang yang sama dibandingkan antara semua produk dan filter kategori pada daftar/grid di 375 dan 768 px: ukuran dan jarak nama ke harga tetap sama, tidak ada nama terpotong. Nama panjang dapat menambah tinggi kartunya sendiri tanpa meregangkan kartu lain.
+- Pemisahan peruntukan diperiksa memakai tiga nama ban dari katalog (Matic Ring 14, TR, Nouvo/Skywave). Pada daftar 375/768 px, ketiganya setinggi 128 px; nama lengkap dan informasi motor berada di bawahnya. Mapping `Cocok:` tetap diprioritaskan jika tersedia. Grid 320 px serta pencarian `skywave` diperiksa tanpa nama terpotong atau overflow halaman.
 - Pemeriksaan binding seluruh frontend berhasil; tidak ada identifier tanpa deklarasi yang baru.
 - Perbandingan AST menunjukkan 266 handler interaksi tetap sama pada 19 file React yang berubah.
 - Tidak ada perubahan controller, service, database, route, atau validasi bisnis.
