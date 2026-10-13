@@ -107,7 +107,7 @@ export default function AttachPartModal({
                                     />
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-1 sm:gap-2">
+                                    <div className="flex flex-col items-start gap-1">
                                         <span className="min-w-0 font-black text-slate-900 dark:text-white whitespace-normal break-words leading-snug">{p.name}</span>
                                         {p.sku && <span className="shrink-0 text-[10px] font-mono text-slate-500 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-1 py-0.5 rounded">{p.sku}</span>}
                                     </div>

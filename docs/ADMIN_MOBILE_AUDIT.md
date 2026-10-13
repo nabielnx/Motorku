@@ -36,6 +36,7 @@ Interaksi yang diperiksa meliputi tambah/edit produk, pengaturan stok, kategori,
 | Harga sparepart terpisah antara Rp dan angka pada mobile sempit | Nominal tidak membungkus; aksi dipindah ke baris tersendiri di bawah 360 px. |
 | Konten form mapping massal menimpa kontrol berikutnya pada layar pendek | Tinggi minimum section tidak dipaksa nol; isi modal bergulir tanpa menekan bagian form. |
 | Opsi tambahan mapping dapat melampaui area isi | Area isi dapat bergulir, dengan daftar produk dibatasi tingginya dan footer tetap tersedia. |
+| SKU di samping nama pada daftar pilihan sparepart membuat nama terlalu sempit di tablet | SKU ditempatkan di bawah nama agar baris lebih mudah dibaca. |
 | Tombol upload membungkus dalam kolom kecil di samping foto | Kontrol upload dapat berpindah ke baris penuh pada produk, motor, dan profil. |
 | Tombol stok/edit/hapus produk hanya sekitar 17 px; ikon hapus staf berbeda ukuran | Aksi produk 32 px, ikon staf konsisten 36 px. |
 | Tombol lihat password 16 × 16 px | Area sentuh 36 × 36 px dan label aksesibel ditambahkan. |
