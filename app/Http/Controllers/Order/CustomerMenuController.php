@@ -81,8 +81,8 @@ class CustomerMenuController extends Controller
             ->toArray();
 
         $products = Product::query()
-            ->select(['id', 'category_id', 'sku', 'name', 'description', 'price', 'stock', 'image_path', 'is_available'])
-            ->with(['category:id,name', 'motorcycles:id,brand,model,year_start,year_end'])
+            ->select(['id', 'category_id', 'sku', 'barcode', 'brand', 'unit', 'name', 'description', 'price', 'stock', 'image_path', 'is_available'])
+            ->with(['category:id,name,parent_id', 'category.parent:id,name', 'motorcycles:id,brand,model,engine_type,year_start,year_end'])
             ->where('is_available', true)
             ->get()
             ->map(function ($product) use ($totalSoldMap, $recommendedProductIds) {

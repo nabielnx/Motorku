@@ -65,7 +65,7 @@ class ProductController extends Controller implements HasMiddleware
             }])->whereNull('parent_id')->when($group, fn ($query) => $query->where('catalog_group', $group))->withCount('products')->get(),
             'filters' => [
                 'group' => $group ?: '',
-                'search' => $search ?: '',
+                'search' => $search,
                 'category' => $category ?: 'All',
                 'stock_status' => $stockStatus ?: 'all',
                 'availability' => $availability ?: 'all',
@@ -89,7 +89,7 @@ class ProductController extends Controller implements HasMiddleware
         $search = $request->string('search')->value();
         $stockStatus = $request->string('stock_status')->value();
 
-        $products = $this->productService->getAllProducts($perPage, $search ?: null, $stockStatus ?: null);
+        $products = $this->productService->getAllProducts($perPage, $search !== '' ? $search : null, $stockStatus ?: null);
 
         $totalProducts = Product::count();
         $lowStock = Product::whereColumn('stock', '<=', 'minimum_stock')->count();

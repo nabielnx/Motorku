@@ -1,3 +1,4 @@
+import { fuzzyFilterProducts } from '@/Utils/fuzzySearch';
 import AdminButton from '@/Components/Admin/Button';
 
 import { getBrandConfig } from '@/Components/Motorcycle/presentation';
@@ -492,44 +493,16 @@ export default function MotorcycleIndex({
         }
     };
 
-    // Filtered products for single mapping modal search
-    const filteredProductsForModal = useMemo(() => {
-        if (!partSearch.trim()) return products;
-        const q = partSearch.toLowerCase();
-        return products.filter(p =>
-            p.name.toLowerCase().includes(q) ||
-            (p.sku && p.sku.toLowerCase().includes(q)) ||
-            (p.category?.name && p.category.name.toLowerCase().includes(q))
-        );
-    }, [products, partSearch]);
+    const filteredProductsForModal = useMemo(() => fuzzyFilterProducts(products, partSearch), [products, partSearch]);
 
-    // Filtered products for bulk mapping modal
-    const filteredProductsForBulk = useMemo(() => {
-        return products.filter(p => {
-            const matchesCategory = bulkCategoryFilter !== 'semua' ? (p.category?.name === bulkCategoryFilter) : true;
-            const q = bulkProductSearch.trim().toLowerCase();
-            const matchesSearch = q ? (
-                p.name.toLowerCase().includes(q) ||
-                (p.sku && p.sku.toLowerCase().includes(q)) ||
-                (p.category?.name && p.category.name.toLowerCase().includes(q))
-            ) : true;
-            return matchesCategory && matchesSearch;
-        });
-    }, [products, bulkCategoryFilter, bulkProductSearch]);
+    const filteredProductsForBulk = useMemo(() => fuzzyFilterProducts(products, bulkProductSearch, {
+        filterPredicate: product => bulkCategoryFilter === 'semua' || product.category?.name === bulkCategoryFilter,
+    }), [products, bulkCategoryFilter, bulkProductSearch]);
 
     // Filtered motorcycles for bulk mapping modal
-    const filteredMotorcyclesForBulk = useMemo(() => {
-        return motorcycles.filter(m => {
-            const matchesBrand = bulkBrandFilter !== 'semua' ? (m.brand === bulkBrandFilter) : true;
-            const q = bulkMotorSearch.trim().toLowerCase();
-            const matchesSearch = q ? (
-                m.model.toLowerCase().includes(q) ||
-                m.brand.toLowerCase().includes(q) ||
-                (m.engine_type || '').toLowerCase().includes(q)
-            ) : true;
-            return matchesBrand && matchesSearch;
-        });
-    }, [motorcycles, bulkBrandFilter, bulkMotorSearch]);
+    const filteredMotorcyclesForBulk = useMemo(() => fuzzyFilterProducts(motorcycles, bulkMotorSearch, {
+        filterPredicate: m => bulkBrandFilter === 'semua' || m.brand === bulkBrandFilter,
+    }), [motorcycles, bulkBrandFilter, bulkMotorSearch]);
 
     // Distinct product categories for bulk filter
     const productCategoriesList = useMemo(() => {
@@ -550,16 +523,10 @@ export default function MotorcycleIndex({
     }, [motorcycles]);
 
     // Filtered motorcycle list
-    const filteredMotorcycles = useMemo(() => {
-        return motorcycles.filter(m => {
-            const matchesBrand = activeBrand && activeBrand !== 'semua' ? m.brand === activeBrand : true;
-            const matchesType = activeType !== 'semua' ? m.engine_type === activeType : true;
-            const query = searchMotor.trim().toLowerCase();
-            const matchesSearch = !query || [m.model, m.brand, m.engine_type, m.engine_cc, m.year_start, m.year_end]
-                .some(value => String(value ?? '').toLowerCase().includes(query));
-            return matchesBrand && matchesType && matchesSearch;
-        });
-    }, [motorcycles, activeBrand, activeType, searchMotor]);
+    const filteredMotorcycles = useMemo(() => fuzzyFilterProducts(motorcycles, searchMotor, {
+        filterPredicate: m => (!activeBrand || activeBrand === 'semua' || m.brand === activeBrand)
+            && (activeType === 'semua' || m.engine_type === activeType),
+    }), [motorcycles, activeBrand, activeType, searchMotor]);
 
     const totalMotorItems = filteredMotorcycles.length;
     const totalMotorPages = Math.ceil(totalMotorItems / perPage) || 1;

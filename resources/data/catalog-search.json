@@ -1,0 +1,506 @@
+{
+    "stopwords": [
+        "cari",
+        "carikan",
+        "mencari",
+        "mau",
+        "ingin",
+        "butuh",
+        "saya",
+        "aku",
+        "dong",
+        "tolong",
+        "untuk",
+        "buat",
+        "yang",
+        "dengan",
+        "dan",
+        "produk",
+        "barang",
+        "sparepart",
+        "suku",
+        "cadang",
+        "the",
+        "a",
+        "an",
+        "for",
+        "with",
+        "and",
+        "of",
+        "please",
+        "adakah",
+        "apakah",
+        "punya",
+        "ada",
+        "di",
+        "ke",
+        "ini",
+        "itu",
+        "yg",
+        "utk",
+        "belikan",
+        "beli",
+        "membeli",
+        "dibutuhkan"
+    ],
+    "aliases": {
+        "kampas rem cakram": [
+            "brake pad",
+            "brake pads",
+            "brakepad",
+            "disc brake pad",
+            "disk brake pad",
+            "kampas cakram"
+        ],
+        "kampas rem tromol": [
+            "brake shoe",
+            "brake shoes",
+            "brakeshoe",
+            "drum brake shoe",
+            "kampas tromol"
+        ],
+        "kampas rem": [
+            "brake lining",
+            "kampasrem"
+        ],
+        "piringan cakram": [
+            "brake disc",
+            "brake disk",
+            "disc rotor",
+            "brake rotor"
+        ],
+        "rem": [
+            "brake",
+            "brakes",
+            "pengereman"
+        ],
+        "cakram": [
+            "disc",
+            "disk"
+        ],
+        "tromol": [
+            "drum"
+        ],
+        "busi": [
+            "spark plug",
+            "sparkplug",
+            "spark plugs"
+        ],
+        "oli mesin": [
+            "engine oil",
+            "motor oil",
+            "minyak mesin"
+        ],
+        "oli gardan": [
+            "gear oil",
+            "transmission oil",
+            "minyak gardan"
+        ],
+        "oli": [
+            "oil",
+            "pelumas",
+            "lubricant"
+        ],
+        "gemuk": [
+            "grease",
+            "stempet"
+        ],
+        "ban dalam": [
+            "inner tube",
+            "innertube",
+            "inner tubes"
+        ],
+        "ban luar": [
+            "outer tire",
+            "outer tyre"
+        ],
+        "ban": [
+            "tire",
+            "tyre",
+            "tires",
+            "tyres"
+        ],
+        "velg": [
+            "rim",
+            "rims",
+            "pelek"
+        ],
+        "roda": [
+            "wheel",
+            "wheels"
+        ],
+        "rantai": [
+            "chain",
+            "chains"
+        ],
+        "gear": [
+            "sprocket",
+            "sprockets",
+            "gir"
+        ],
+        "sabuk v": [
+            "v belt",
+            "vbelt",
+            "van belt",
+            "vanbelt"
+        ],
+        "sok": [
+            "shock absorber",
+            "shockbreaker",
+            "shock",
+            "suspensi",
+            "skok",
+            "sokbreker"
+        ],
+        "laher": [
+            "bearing",
+            "bearings",
+            "bantalan"
+        ],
+        "aki": [
+            "accu",
+            "accumulator",
+            "motorcycle battery",
+            "car battery"
+        ],
+        "baterai": [
+            "battery",
+            "batteries",
+            "batere"
+        ],
+        "pengisi daya": [
+            "charger",
+            "charging",
+            "pengecas",
+            "cas"
+        ],
+        "adaptor": [
+            "adapter",
+            "adapters"
+        ],
+        "saklar": [
+            "switch",
+            "switches"
+        ],
+        "kapasitor": [
+            "capacitor",
+            "capacitors",
+            "kondensator"
+        ],
+        "lampu": [
+            "lamp",
+            "lamps",
+            "bulb",
+            "bulbs"
+        ],
+        "kabel": [
+            "cable",
+            "cables",
+            "wire",
+            "wires"
+        ],
+        "kunci sok": [
+            "socket wrench"
+        ],
+        "stop kontak": [
+            "electric socket",
+            "power socket",
+            "stopkontak"
+        ],
+        "bor": [
+            "drill",
+            "drills",
+            "drilling"
+        ],
+        "palu": [
+            "hammer",
+            "hammers"
+        ],
+        "obeng": [
+            "screwdriver",
+            "screwdrivers"
+        ],
+        "sekrup": [
+            "screw",
+            "screws",
+            "skrup"
+        ],
+        "baut": [
+            "bolt",
+            "bolts"
+        ],
+        "mur": [
+            "nut",
+            "nuts"
+        ],
+        "kunci": [
+            "wrench",
+            "wrenches",
+            "spanner"
+        ],
+        "ampelas": [
+            "sandpaper",
+            "amplas"
+        ],
+        "selang": [
+            "hose",
+            "hoses"
+        ],
+        "pipa": [
+            "pipe",
+            "pipes"
+        ],
+        "sepeda": [
+            "bicycle",
+            "bike",
+            "bicycles"
+        ],
+        "depan": [
+            "front"
+        ],
+        "belakang": [
+            "rear",
+            "back"
+        ],
+        "kiri": [
+            "left"
+        ],
+        "kanan": [
+            "right"
+        ],
+        "hitam": [
+            "black"
+        ],
+        "putih": [
+            "white"
+        ],
+        "merah": [
+            "red"
+        ],
+        "biru": [
+            "blue"
+        ],
+        "batu": [
+            "stone",
+            "stones"
+        ],
+        "paku": [
+            "nail",
+            "nails"
+        ],
+        "semen": [
+            "cement"
+        ],
+        "cat": [
+            "paint"
+        ],
+        "kuas": [
+            "paint brush",
+            "paintbrush"
+        ],
+        "gergaji": [
+            "saw",
+            "saws"
+        ],
+        "gerinda": [
+            "grinder",
+            "angle grinder"
+        ],
+        "tang": [
+            "pliers"
+        ],
+        "meteran": [
+            "tape measure",
+            "measuring tape"
+        ],
+        "engsel": [
+            "hinge",
+            "hinges"
+        ],
+        "keran": [
+            "tap",
+            "faucet",
+            "kran"
+        ],
+        "lem": [
+            "glue",
+            "adhesive"
+        ],
+        "saringan udara": [
+            "air filter",
+            "filter udara"
+        ],
+        "saringan oli": [
+            "oil filter",
+            "filter oli"
+        ],
+        "seher": [
+            "piston",
+            "pistons"
+        ],
+        "kopling": [
+            "clutch"
+        ],
+        "knalpot": [
+            "exhaust"
+        ],
+        "spion": [
+            "mirror",
+            "mirrors"
+        ],
+        "radiator": [
+            "radiators"
+        ],
+        "pendingin": [
+            "coolant"
+        ],
+        "seal": [
+            "seals"
+        ],
+        "gasket": [
+            "gaskets",
+            "paking"
+        ],
+        "pedal": [
+            "pedals"
+        ],
+        "sadel": [
+            "saddle",
+            "saddles"
+        ],
+        "setang": [
+            "handlebar",
+            "handlebars",
+            "stang"
+        ],
+        "dinamo": [
+            "dynamo"
+        ],
+        "speaker": [
+            "speakers",
+            "pengeras suara"
+        ],
+        "sekering": [
+            "fuse",
+            "fuses",
+            "sekring"
+        ],
+        "resistor": [
+            "resistors",
+            "hambatan"
+        ],
+        "dioda": [
+            "diode",
+            "diodes"
+        ],
+        "transistor": [
+            "transistors"
+        ],
+        "konektor": [
+            "connector",
+            "connectors"
+        ],
+        "televisi": [
+            "television",
+            "tv"
+        ],
+        "kulkas": [
+            "refrigerator"
+        ],
+        "kipas angin": [
+            "fan",
+            "fans"
+        ],
+        "lampu led": [
+            "led lamp",
+            "led bulb"
+        ],
+        "nirkabel": [
+            "cordless",
+            "wireless",
+            "tanpa kabel"
+        ],
+        "tubeless": [
+            "tanpa ban dalam"
+        ]
+    },
+    "units": {
+        "ml": [
+            1,
+            "ml",
+            "ml",
+            "mililiter",
+            "milliliter",
+            "milliliters"
+        ],
+        "l": [
+            1000,
+            "ml",
+            "l",
+            "lt",
+            "liter",
+            "litre",
+            "liters",
+            "litres"
+        ],
+        "mm": [
+            1,
+            "mm",
+            "mm",
+            "milimeter",
+            "millimeter"
+        ],
+        "cm": [
+            10,
+            "mm",
+            "cm",
+            "centimeter",
+            "sentimeter"
+        ],
+        "m": [
+            1000,
+            "mm",
+            "m",
+            "meter",
+            "meters",
+            "metre"
+        ],
+        "g": [
+            1,
+            "g",
+            "g",
+            "gr",
+            "gram",
+            "grams"
+        ],
+        "kg": [
+            1000,
+            "g",
+            "kg",
+            "kilogram",
+            "kilograms"
+        ],
+        "v": [
+            1,
+            "v",
+            "v",
+            "volt",
+            "volts"
+        ],
+        "w": [
+            1,
+            "w",
+            "w",
+            "watt",
+            "watts"
+        ],
+        "inch": [
+            1,
+            "inch",
+            "inch",
+            "inches",
+            "inci",
+            "in"
+        ]
+    }
+}

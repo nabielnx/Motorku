@@ -16,10 +16,6 @@ class ProductService
     {
         $query = Product::with('category')->inCatalogGroup($group);
 
-        if ($search) {
-            $this->applyFuzzySearch($query, $search);
-        }
-
         if ($category && $category !== 'All') {
             $query->whereHas('category', function ($q) use ($category) {
                 $q->where('name', $category)
@@ -41,6 +37,10 @@ class ProductService
             $query->where('is_available', $availability === 'active');
         }
 
+        if ($search !== null && trim($search) !== '') {
+            app(CatalogSearchService::class)->apply($query, $search, ! in_array($sort, ['name_asc', 'name_desc', 'price_asc', 'price_desc'], true));
+        }
+
         match ($sort) {
             'name_asc' => $query->orderBy('name')->orderBy('id'),
             'name_desc' => $query->orderByDesc('name')->orderBy('id'),
@@ -54,10 +54,7 @@ class ProductService
 
     public function getAllProducts($perPage = null, $search = null, $stockStatus = null)
     {
-        $query = Product::with('category');
-        if ($search) {
-            $this->applyFuzzySearch($query, $search);
-        }
+        $query = Product::with(['category.parent', 'motorcycles']);
         if ($stockStatus) {
             switch ($stockStatus) {
                 case 'low':
@@ -67,6 +64,9 @@ class ProductService
                     $query->whereColumn('stock', '>', 'minimum_stock');
                     break;
             }
+        }
+        if ($search !== null && trim($search) !== '') {
+            $this->applyFuzzySearch($query, $search);
         }
         $query->latest();
 
@@ -124,45 +124,8 @@ class ProductService
         });
     }
 
-    /**
-     * Apply smart fuzzy & space-tolerant search to product query.
-     */
     protected function applyFuzzySearch($query, string $search): void
     {
-        $search = trim($search);
-        if ($search === '') {
-            return;
-        }
-
-        $cleanSearch = preg_replace('/[^a-zA-Z0-9]/', '', $search);
-        $tokens = array_filter(explode(' ', $search));
-
-        $query->where(function ($q) use ($search, $cleanSearch, $tokens) {
-            // 1. Exact substring
-            $q->where('name', 'like', "%{$search}%")
-                ->orWhere('sku', 'like', "%{$search}%");
-
-            // 2. Alphanumeric normalized match (e.g. 'mpx2' matches 'MPX 2', 'vbelt' matches 'V-Belt')
-            if (strlen($cleanSearch) >= 2) {
-                $q->orWhereRaw("REPLACE(REPLACE(REPLACE(REPLACE(name, ' ', ''), '-', ''), '.', ''), '/', '') LIKE ?", ["%{$cleanSearch}%"])
-                    ->orWhereRaw("REPLACE(REPLACE(REPLACE(REPLACE(sku, ' ', ''), '-', ''), '.', ''), '/', '') LIKE ?", ["%{$cleanSearch}%"]);
-            }
-
-            // 3. Multi-token matching if query contains multiple words
-            if (count($tokens) > 1) {
-                $q->orWhere(function ($subQ) use ($tokens) {
-                    foreach ($tokens as $token) {
-                        $tokenClean = preg_replace('/[^a-zA-Z0-9]/', '', $token);
-                        $subQ->where(function ($tQ) use ($token, $tokenClean) {
-                            $tQ->where('name', 'like', "%{$token}%")
-                                ->orWhere('sku', 'like', "%{$token}%");
-                            if (strlen($tokenClean) >= 2) {
-                                $tQ->orWhereRaw("REPLACE(REPLACE(REPLACE(REPLACE(name, ' ', ''), '-', ''), '.', ''), '/', '') LIKE ?", ["%{$tokenClean}%"]);
-                            }
-                        });
-                    }
-                });
-            }
-        });
+        app(CatalogSearchService::class)->apply($query, $search);
     }
 }

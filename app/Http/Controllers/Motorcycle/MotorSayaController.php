@@ -81,7 +81,7 @@ class MotorSayaController extends Controller
         $cacheKey = CacheService::motorcyclePartsKey($motorcycle->id);
 
         return Cache::remember($cacheKey, CacheService::TTL_MOTORCYCLE, function () use ($motorcycle) {
-            $parts = MotorcyclePart::with(['product.category'])
+            $parts = MotorcyclePart::with(['product.category.parent'])
                 ->where('motorcycle_id', $motorcycle->id)
                 ->whereHas('product', fn ($q) => $q->where('is_available', true))
                 ->orderBy('part_category')
@@ -95,6 +95,9 @@ class MotorSayaController extends Controller
                         'id' => $mp->product->id,
                         'name' => $mp->product->name,
                         'sku' => $mp->product->sku,
+                        'brand' => $mp->product->brand,
+                        'barcode' => $mp->product->barcode,
+                        'unit' => $mp->product->unit,
                         'description' => $mp->product->description,
                         'price' => (float) $mp->product->price,
                         'stock' => (int) $mp->product->stock,
@@ -102,6 +105,7 @@ class MotorSayaController extends Controller
                             ? ($mp->product->image_path[0] === 'h' ? $mp->product->image_path : '/storage/'.$mp->product->image_path)
                             : null,
                         'category_name' => $mp->product->category?->name,
+                        'category_parent' => $mp->product->category?->parent?->name,
                         'notes' => $mp->notes,
                         'is_recommended' => $mp->is_recommended,
                     ])->values()->toArray(),

@@ -95,6 +95,10 @@ export default function CustomerMenu({
             return {
                 id: p.id,
                 sku: p.sku || '',
+                brand: p.brand || '',
+                barcode: p.barcode || '',
+                unit: p.unit || '',
+                category_parent: p.category?.parent?.name || '',
                 name: p.name,
                 description: p.description || '',
                 price: Number(p.price),
