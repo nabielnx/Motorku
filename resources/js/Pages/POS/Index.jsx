@@ -632,8 +632,8 @@ return (
                                             <ProductPhoto src={item.image} name={item.name} category={item.category} className="h-full w-full" compact />
                                         </span>
                                         <span className={`block min-w-0 ${viewMode === 'grid' ? 'w-full p-2.5 flex-1' : 'flex-1'}`}>
-                                            <span className={`flex gap-1 ${viewMode === 'grid' ? 'flex-col' : 'items-start justify-between gap-3'}`}>
-                                                <span className={`min-w-0 font-semibold leading-snug text-slate-900 line-clamp-2 dark:text-white ${viewMode === 'grid' ? 'min-h-8 text-xs' : 'text-sm'}`} title={item.name}>{item.name}</span>
+                                            <span className="flex flex-col gap-1">
+                                                <span className={`block min-w-0 whitespace-normal break-words [overflow-wrap:anywhere] font-semibold leading-snug text-slate-900 dark:text-white ${viewMode === 'grid' ? 'min-h-8 text-xs' : 'text-sm'}`} title={item.name}>{item.name}</span>
                                                 <span className={`shrink-0 whitespace-nowrap font-bold text-slate-900 dark:text-white ${viewMode === 'grid' ? 'text-xs' : 'text-sm'}`}>{formatRp(item.price)}</span>
                                             </span>
                                             {viewMode === 'grid' ? (
@@ -719,7 +719,7 @@ return (
                         {cart.map(item => (
                             <div key={item.id} className="pt-3 first:pt-0">
                                 <div className="flex items-start justify-between gap-2">
-                                    <h4 className="min-w-0 flex-1 text-sm font-bold text-slate-900 dark:text-white break-words">{item.name}</h4>
+                                    <h4 className="min-w-0 flex-1 whitespace-normal text-sm font-bold text-slate-900 dark:text-white break-words [overflow-wrap:anywhere]">{item.name}</h4>
                                     <button
                                         type="button"
                                         onClick={() => removeFromCart(item)}
