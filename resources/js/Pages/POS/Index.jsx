@@ -611,7 +611,7 @@ return (
                         {isNavigating ? (
                             <PosCardSkeleton count={8} mode={viewMode} />
                         ) : (
-                        <div className={`grid gap-2 ${viewMode === 'grid' ? 'grid-cols-[repeat(auto-fill,minmax(144px,1fr))]' : 'grid-cols-1 2xl:grid-cols-2'}`}>
+                        <div className={`grid auto-rows-fr gap-2 ${viewMode === 'grid' ? 'grid-cols-[repeat(auto-fill,minmax(144px,1fr))]' : 'grid-cols-1 2xl:grid-cols-2'}`}>
                             {filteredMenu.map(item => {
                                 const isOutOfStock = item.stock <= 0;
                                 const isInCart = cart.some(cartItem => cartItem.id === item.id);
@@ -622,17 +622,17 @@ return (
                                         key={item.id}
                                         onClick={() => addToCart(item)}
                                         disabled={isOutOfStock}
-                                        className={`group flex w-full border bg-white text-left shadow-xs transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accentYellow dark:bg-slate-900 ${viewMode === 'grid' ? 'flex-col rounded-xl overflow-hidden' : 'items-center gap-3 rounded-xl p-2.5'} ${
+                                        className={`group flex w-full border bg-white text-left shadow-xs transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accentYellow dark:bg-slate-900 ${viewMode === 'grid' ? 'flex-col rounded-xl overflow-hidden' : 'items-start gap-3 rounded-xl p-2.5'} ${
                                             isOutOfStock
                                                 ? 'cursor-not-allowed border-slate-200 opacity-55 dark:border-slate-800'
                                                 : 'cursor-pointer border-slate-200 hover:border-slate-400 hover:bg-slate-50 dark:border-slate-700 dark:hover:border-slate-500 dark:hover:bg-slate-800'
-                                        } ${isInCart ? 'border-l-[3px] !border-l-accentYellow' : ''}`}
+                                        } ${isInCart ? '!shadow-[inset_3px_0_0_#FFDD00]' : ''}`}
                                     >
-                                        <span className={`${viewMode === 'grid' ? 'aspect-square w-full' : 'h-14 w-14 shrink-0 rounded-lg border border-slate-200 dark:border-slate-700'} overflow-hidden bg-slate-100 dark:bg-slate-800 flex items-center justify-center`}>
+                                        <span className={`${viewMode === 'grid' ? 'aspect-square w-full shrink-0' : 'h-14 w-14 shrink-0 rounded-lg border border-slate-200 dark:border-slate-700'} overflow-hidden bg-slate-100 dark:bg-slate-800 flex items-center justify-center`}>
                                             <ProductPhoto src={item.image} name={item.name} category={item.category} className="h-full w-full" compact />
                                         </span>
-                                        <span className={`block min-w-0 ${viewMode === 'grid' ? 'w-full p-2.5 flex-1' : 'flex-1'}`}>
-                                            <span className="flex flex-col gap-1">
+                                        <span className={`flex min-w-0 flex-1 self-stretch flex-col ${viewMode === 'grid' ? 'w-full p-2.5' : ''}`}>
+                                            <span className="flex flex-1 flex-col justify-between gap-2">
                                                 <span className={`block min-w-0 whitespace-normal break-words [overflow-wrap:anywhere] font-semibold leading-snug text-slate-900 dark:text-white ${viewMode === 'grid' ? 'min-h-8 text-xs' : 'text-sm'}`} title={item.name}>{item.name}</span>
                                                 <span className={`shrink-0 whitespace-nowrap font-bold text-slate-900 dark:text-white ${viewMode === 'grid' ? 'text-xs' : 'text-sm'}`}>{formatRp(item.price)}</span>
                                             </span>
@@ -642,7 +642,7 @@ return (
                                                 </span>
                                             ) : (
                                                 <>
-                                                    <span className="mt-1 flex items-center justify-between gap-3 text-[11px] text-slate-500 dark:text-slate-400">
+                                                    <span className="mt-1 flex items-center justify-between gap-3 text-[11px] leading-4 text-slate-500 dark:text-slate-400">
                                                         <span className="min-w-0 truncate">
                                                             {[!selectedChildId ? item.category : null, item.sku ? `SKU ${item.sku}` : null, item.rack_location ? `Rak ${item.rack_location}` : null].filter(Boolean).join(' · ')}
                                                         </span>
@@ -650,9 +650,9 @@ return (
                                                             {isOutOfStock ? 'Stok habis' : `Stok ${Math.floor(item.stock)}`}
                                                         </span>
                                                     </span>
-                                                    {fitment && <span className="mt-0.5 block truncate text-[11px] text-slate-600 dark:text-slate-300" title={`Cocok: ${fitment}`}>
-                                                        Cocok: {fitment}{item.motorcycles.length > 2 ? ` +${item.motorcycles.length - 2} motor` : ''}
-                                                    </span>}
+                                                    <span className="mt-0.5 block min-h-4 truncate text-[11px] leading-4 text-slate-600 dark:text-slate-300" title={fitment ? `Cocok: ${fitment}` : undefined} aria-hidden={!fitment}>
+                                                        {fitment && <>Cocok: {fitment}{item.motorcycles.length > 2 ? ` +${item.motorcycles.length - 2} motor` : ''}</>}
+                                                    </span>
                                                 </>
                                             )}
                                         </span>

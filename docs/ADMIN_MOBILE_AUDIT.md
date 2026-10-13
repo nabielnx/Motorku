@@ -46,12 +46,14 @@ Interaksi yang diperiksa meliputi tambah/edit produk, pengaturan stok, kategori,
 | Detail pesanan masih menampilkan kartu putih di mode gelap | Warna kartu, teks, border, dan ringkasan mengikuti tema; nominal dan nama disusun untuk mobile. |
 | Tombol simpan pengaturan sticky dapat menimpa field saat halaman digulir | Tombol berada dalam aliran form di bagian bawah. |
 | Nama barang POS dibatasi dua baris sehingga ukuran/varian pada nama panjang hilang | Nama tampil lengkap pada daftar dan grid. Harga berada di bawah nama supaya tidak menyempitkan ruang teks; kata tanpa spasi juga dapat membungkus. |
+| Nama pendek/panjang membuat tinggi kartu dan posisi harga POS tidak sejajar | Baris kartu mengikuti tinggi konten terpanjang secara otomatis. Nama berada di atas, harga dan stok sejajar di bawah; area foto tetap, ruang info kecocokan tersedia, dan tanda barang di keranjang tidak mengubah lebar kartu. |
 
 ## Verifikasi dan batas pemeriksaan
 
 - Build produksi berhasil.
 - 59 tes JavaScript lulus.
 - Nama POS diperiksa ulang pada daftar dan grid di 320, 375, serta 768 px menggunakan 28 nama panjang. Tidak ada nama terpotong, nominal bertabrakan, atau halaman melebar. Pencarian dengan frasa di bagian akhir nama juga menampilkan hasil dengan nama lengkap.
+- Konsistensi kartu diuji lagi dengan campuran nama pendek dan panjang, barang dalam keranjang, stok habis, serta informasi kecocokan yang ada/kosong. Kartu memiliki tinggi seragam dalam setiap tampilan, ukuran foto sama, dan harga sejajar tanpa membatasi jumlah baris nama.
 - Pemeriksaan binding seluruh frontend berhasil; tidak ada identifier tanpa deklarasi yang baru.
 - Perbandingan AST menunjukkan 266 handler interaksi tetap sama pada 19 file React yang berubah.
 - Tidak ada perubahan controller, service, database, route, atau validasi bisnis.
