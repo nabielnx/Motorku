@@ -148,7 +148,8 @@ export default function MotoQuickPromoSection({
                                 alt={`Banner promo ${bannerIndex + 1} dari ${bannerUrls.length}`}
                                 className="absolute inset-0 h-full w-full object-contain object-left"
                                 onLoad={event => setBannerAspectRatio(event.currentTarget.naturalWidth / event.currentTarget.naturalHeight)}
-                                loading="lazy"
+                                loading="eager"
+                                fetchPriority="high"
                                 draggable="false"
                             />
                         </div>

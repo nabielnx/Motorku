@@ -17,15 +17,26 @@
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800;900&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
-        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800,900&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
+        <link data-app-font href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800;900&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet" media="print" />
+        <link data-app-font href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800,900&display=swap" rel="stylesheet" media="print" />
+        <script nonce="{{ Illuminate\Support\Facades\Vite::cspNonce() }}">
+            document.querySelectorAll('[data-app-font]').forEach(function (link) {
+                const activate = function () { link.media = 'all'; };
+                link.addEventListener('load', activate, { once: true });
+                if (link.sheet) activate();
+            });
+        </script>
         <noscript>
             <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800;900&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet" />
             <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800,900&display=swap" rel="stylesheet" />
         </noscript>
 
         <!-- Scripts -->
-        @routes
+        @routes(null, Illuminate\Support\Facades\Vite::cspNonce())
+        @php $firstPromoBanner = collect(data_get($page, 'props.promoBanners', []))->filter()->first(); @endphp
+        @if (request()->routeIs('home') && $firstPromoBanner)
+            <link rel="preload" as="image" href="{{ $firstPromoBanner }}" fetchpriority="high">
+        @endif
         @viteReactRefresh
         @vite(['resources/js/app.jsx'])
         @inertiaHead
