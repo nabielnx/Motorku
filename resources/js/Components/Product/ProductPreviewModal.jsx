@@ -10,13 +10,13 @@ export default function ProductPreviewModal({
             onClick={() => setPreviewProduct(null)}
         >
             <div
-                className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 max-w-lg w-full overflow-hidden flex flex-col animate-in zoom-in-95 duration-200"
+                className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 max-w-lg w-full max-h-[calc(100dvh-1.5rem)] overflow-y-auto flex flex-col animate-in zoom-in-95 duration-200"
                 onClick={e => e.stopPropagation()}
             >
                 {/* Modal Header */}
                 <div className="p-3.5 sm:p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
                     <div className="min-w-0 pr-2">
-                        <h3 className="font-bold text-slate-900 dark:text-white text-sm sm:text-base truncate">
+                        <h3 className="font-bold text-slate-900 dark:text-white text-sm sm:text-base whitespace-normal break-words">
                             {previewProduct.name}
                         </h3>
                         <p className="text-xs text-slate-500 dark:text-slate-400 font-medium truncate mt-0.5">

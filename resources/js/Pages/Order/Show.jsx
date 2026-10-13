@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import AdminButton from '@/Components/Admin/Button';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, usePage } from '@inertiajs/react';
 import axios from 'axios';
@@ -68,24 +69,24 @@ export default function OrderShow({ order: initialOrder }) {
     };
 
     return (
-        <AuthenticatedLayout pageTitle={`Order ${order.order_number}`}>
+        <AuthenticatedLayout pageTitle="Detail Pesanan">
             <Head title={`Order ${order.order_number}`}>
                 <meta name="description" content={`Detail rincian transaksi dan status pesanan ${order.order_number} di Motorku.`} />
             </Head>
-            <div className="max-w-4xl mx-auto space-y-6">
-                <Link href="/orders" className="inline-flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-slate-900 transition-colors">
+            <div className="min-w-0 max-w-4xl mx-auto space-y-4 sm:space-y-6">
+                <Link href="/orders" className="inline-flex min-h-8 items-center gap-2 text-sm font-bold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
                     <FiArrowLeft size={16} />
                     Kembali ke Pesanan
                 </Link>
 
-                <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm">
+                <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm">
                     <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
                         <div>
-                            <h3 className="text-2xl font-black text-primaryDark">{order.order_number}</h3>
+                            <h3 className="break-words text-xl sm:text-2xl font-black text-primaryDark dark:text-white">{order.order_number}</h3>
                             <div className="flex flex-wrap items-center gap-3 mt-2">
-                                <span className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500"><FiUser size={13} /> {order.customer_name || 'Walk-in'}</span>
-                                <span className="inline-flex items-center gap-1.5 text-xs font-bold text-primaryDark"><FiMapPin size={13} /> Ambil di Toko</span>
-                                <span className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-400"><FiClock size={13} /> {order.created_at ? new Date(order.created_at).toLocaleString('id-ID') : '-'}</span>
+                                <span className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 dark:text-slate-400"><FiUser size={13} /> {order.customer_name || 'Walk-in'}</span>
+                                <span className="inline-flex items-center gap-1.5 text-xs font-bold text-primaryDark dark:text-slate-200"><FiMapPin size={13} /> Ambil di Toko</span>
+                                <span className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 dark:text-slate-400"><FiClock size={13} /> {order.created_at ? new Date(order.created_at).toLocaleString('id-ID') : '-'}</span>
                             </div>
                         </div>
                         <div className="flex items-center gap-2.5">
@@ -102,66 +103,66 @@ export default function OrderShow({ order: initialOrder }) {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-                        <div className="p-5 border-b border-slate-100">
-                            <h4 className="font-black text-primaryDark">Rincian Barang</h4>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+                    <div className="min-w-0 lg:col-span-2 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+                        <div className="p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800">
+                            <h4 className="font-black text-primaryDark dark:text-white">Rincian Barang</h4>
                         </div>
                         {order.items?.length > 0 && (
-                            <div className="divide-y divide-slate-100">
+                            <div className="divide-y divide-slate-100 dark:divide-slate-800">
                                 {order.items.map((item, idx) => (
-                                    <div key={idx} className="px-5 py-4 flex items-center justify-between">
+                                    <div key={idx} className="px-4 sm:px-5 py-4 grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
                                         <div>
-                                            <p className="font-bold text-slate-800 text-sm">{item.product_name}</p>
-                                            {item.notes && <p className="text-xs text-slate-400 mt-0.5">"{item.notes}"</p>}
+                                            <p className="whitespace-normal break-words font-bold text-slate-800 dark:text-slate-100 text-sm">{item.product_name}</p>
+                                            {item.notes && <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">"{item.notes}"</p>}
                                             {returnedQty(item.id) > 0 && <p className="text-xs text-amber-700 mt-1">Diretur: {returnedQty(item.id)} dari {item.quantity}</p>}
                                             {isOwner && order.order_status === 'completed' && ['cash', 'qris_manual'].includes(order.payment_method) && order.payment_status === 'paid' && returnedQty(item.id) < item.quantity && (
-                                                <button type="button" onClick={() => { returnRequestId.current = createRequestId(); setReturningItem(item); setReturnQty(1); setRestock(true); setReturnReason(''); setRefundMethod('cash'); setRefundReference(''); setRefundConfirmed(false); }} className="text-xs font-bold text-blue-600 mt-2">Retur barang ini</button>
+                                                <button type="button" onClick={() => { returnRequestId.current = createRequestId(); setReturningItem(item); setReturnQty(1); setRestock(true); setReturnReason(''); setRefundMethod('cash'); setRefundReference(''); setRefundConfirmed(false); }} className="inline-flex min-h-8 items-center text-xs font-bold text-blue-600 dark:text-blue-300 mt-2">Retur barang ini</button>
                                             )}
                                         </div>
-                                        <div className="text-right">
-                                            <p className="text-sm font-black text-slate-900">{formatRp(item.subtotal)}</p>
-                                            <p className="text-xs text-slate-400 font-semibold">{item.quantity}x @ {formatRp(item.unit_price)}</p>
+                                        <div className="flex flex-wrap items-center justify-between gap-2 sm:block sm:text-right">
+                                            <p className="whitespace-nowrap text-sm font-black text-slate-900 dark:text-white">{formatRp(item.subtotal)}</p>
+                                            <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">{item.quantity}x @ {formatRp(item.unit_price)}</p>
                                         </div>
                                     </div>
                                 ))}
                             </div>
                         )}
                         {returningItem && (
-                            <div className="p-5 border-t-2 border-accentYellow bg-white space-y-3">
+                            <div className="p-4 sm:p-5 border-t-2 border-accentYellow bg-white dark:bg-slate-900 space-y-3">
                                 <p className="text-sm font-bold">Retur: {returningItem.product_name}</p>
                                 <label className="block text-xs font-semibold">Jumlah (maks. {returningItem.quantity - returnedQty(returningItem.id)})
-                                    <input type="number" min="1" max={returningItem.quantity - returnedQty(returningItem.id)} value={returnQty} onChange={e => setReturnQty(e.target.value)} className="mt-1 w-full rounded border-slate-300" />
+                                    <input type="number" min="1" max={returningItem.quantity - returnedQty(returningItem.id)} value={returnQty} onChange={e => setReturnQty(e.target.value)} className="mt-1 w-full px-3 py-2 admin-control" />
                                 </label>
                                 <label className="block text-xs font-semibold">Alasan
-                                    <input type="text" maxLength="255" value={returnReason} onChange={e => setReturnReason(e.target.value)} placeholder="Contoh: ukuran tidak cocok" className="mt-1 w-full rounded border-slate-300" />
+                                    <input type="text" maxLength="255" value={returnReason} onChange={e => setReturnReason(e.target.value)} placeholder="Contoh: ukuran tidak cocok" className="mt-1 w-full px-3 py-2 admin-control" />
                                 </label>
                                 <label className="flex gap-2 text-xs"><input type="checkbox" checked={restock} onChange={e => setRestock(e.target.checked)} /> Barang masih layak jual, masukkan kembali ke stok</label>
                                 <p className="text-sm font-bold">Uang yang dikembalikan: {formatRp(returnAmount)}</p>
                                 {order.payment_method === 'qris_manual' && <label className="block text-xs font-semibold">Cara pengembalian
-                                    <select value={refundMethod} onChange={e => { setRefundMethod(e.target.value); setRefundConfirmed(false); }} className="mt-1 w-full rounded border-slate-300"><option value="cash">Tunai</option><option value="transfer">Transfer oleh owner</option></select>
+                                    <select value={refundMethod} onChange={e => { setRefundMethod(e.target.value); setRefundConfirmed(false); }} className="mt-1 w-full px-3 py-2 admin-control"><option value="cash">Tunai</option><option value="transfer">Transfer oleh owner</option></select>
                                 </label>}
                                 {refundMethod === 'transfer' && <label className="block text-xs font-semibold">Referensi transfer (opsional)
-                                    <input type="text" maxLength="100" value={refundReference} onChange={e => setRefundReference(e.target.value)} className="mt-1 w-full rounded border-slate-300" placeholder="Nomor referensi bank" />
+                                    <input type="text" maxLength="100" value={refundReference} onChange={e => setRefundReference(e.target.value)} className="mt-1 w-full px-3 py-2 admin-control" placeholder="Nomor referensi bank" />
                                 </label>}
                                 <label className="flex gap-2 text-xs"><input type="checkbox" checked={refundConfirmed} onChange={e => setRefundConfirmed(e.target.checked)} /> Saya sudah mengembalikan uang {refundMethod === 'cash' ? 'tunai' : 'melalui transfer'} kepada pelanggan</label>
                                 <div className="flex gap-2">
-                                    <button type="button" disabled={savingReturn || !returnReason.trim() || !refundConfirmed || Number(returnQty) < 1 || Number(returnQty) > returningItem.quantity - returnedQty(returningItem.id)} onClick={submitReturn} className="rounded bg-primary px-3 py-2 text-xs font-bold text-white disabled:opacity-40">{savingReturn ? 'Menyimpan...' : 'Catat Retur'}</button>
-                                    <button type="button" disabled={savingReturn} onClick={() => { setReturningItem(null); returnRequestId.current = null; }} className="text-xs">Batal</button>
+                                    <AdminButton variant="primary" type="button" disabled={savingReturn || !returnReason.trim() || !refundConfirmed || Number(returnQty) < 1 || Number(returnQty) > returningItem.quantity - returnedQty(returningItem.id)} onClick={submitReturn}>{savingReturn ? 'Menyimpan...' : 'Catat Retur'}</AdminButton>
+                                    <AdminButton variant="secondary" type="button" disabled={savingReturn} onClick={() => { setReturningItem(null); returnRequestId.current = null; }}>Batal</AdminButton>
                                 </div>
                             </div>
                         )}
                         {(order.returns || []).length > 0 && (
-                            <div className="p-5 border-t border-slate-200 space-y-1 text-xs">
+                            <div className="p-4 sm:p-5 border-t border-slate-200 dark:border-slate-800 space-y-1 text-xs break-words">
                                 <p className="font-bold">Riwayat retur</p>
                                 {order.returns.map(r => <p key={r.id}>{r.product_name}: {r.quantity} × · {formatRp(r.amount)} · {r.refund_method === 'transfer' ? 'Transfer' : 'Tunai'}{r.refund_reference ? ` (${r.refund_reference})` : ''} · {r.restocked ? 'stok kembali' : 'tidak masuk stok'}</p>)}
                             </div>
                         )}
-                        <div className="p-5 bg-slate-50/50 border-t border-slate-100 space-y-2">
-                            <div className="flex justify-between text-sm text-slate-500 font-semibold"><span>Subtotal</span><span>{formatRp(order.subtotal)}</span></div>
+                        <div className="p-4 sm:p-5 bg-slate-50/50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 space-y-2">
+                            <div className="flex justify-between gap-2 text-sm text-slate-500 dark:text-slate-400 font-semibold"><span>Subtotal</span><span>{formatRp(order.subtotal)}</span></div>
                             {Number(order.discount_amount) > 0 && <div className="flex justify-between text-sm text-red-500 font-semibold"><span>Diskon</span><span>-{formatRp(order.discount_amount)}</span></div>}
-                            {Number(order.tax_amount) > 0 && <div className="flex justify-between text-sm text-slate-500 font-semibold"><span>Pajak</span><span>{formatRp(order.tax_amount)}</span></div>}
-                            <div className="flex justify-between text-base font-black text-slate-900 pt-2 border-t border-slate-200"><span>Total</span><span>{formatRp(order.total)}</span></div>
+                            {Number(order.tax_amount) > 0 && <div className="flex justify-between gap-2 text-sm text-slate-500 dark:text-slate-400 font-semibold"><span>Pajak</span><span>{formatRp(order.tax_amount)}</span></div>}
+                            <div className="flex justify-between gap-2 text-base font-black text-slate-900 dark:text-white pt-2 border-t border-slate-200 dark:border-slate-700"><span>Total</span><span>{formatRp(order.total)}</span></div>
                             {(order.returns || []).length > 0 && <>
                                 <div className="flex justify-between text-sm text-rose-600"><span>Uang Diretur</span><span>− {formatRp(order.returns.reduce((sum, r) => sum + Number(r.amount), 0))}</span></div>
                                 <div className="flex justify-between text-sm font-bold"><span>Penjualan Tersisa</span><span>{formatRp(Number(order.total) - order.returns.reduce((sum, r) => sum + Number(r.amount), 0))}</span></div>
@@ -169,8 +170,8 @@ export default function OrderShow({ order: initialOrder }) {
                         </div>
                     </div>
 
-                    <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm h-fit">
-                        <h4 className="font-black text-primaryDark mb-5">Status Timeline</h4>
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-5 border border-slate-200/80 dark:border-slate-800 shadow-sm h-fit">
+                        <h4 className="font-black text-primaryDark dark:text-white mb-5">Status Timeline</h4>
                         <div className="space-y-0">
                             {statusTimeline.map((step, idx) => (
                                 <div key={idx} className="flex gap-3">
@@ -179,13 +180,13 @@ export default function OrderShow({ order: initialOrder }) {
                                         {idx < statusTimeline.length - 1 && <div className={`w-0.5 h-10 ${step.done ? 'bg-blue-200' : 'bg-slate-100'}`}></div>}
                                     </div>
                                     <div className="pb-6">
-                                        <p className={`text-sm font-bold ${step.done ? 'text-slate-800' : 'text-slate-400'}`}>{step.label}</p>
-                                        {step.time && <p className="text-xs text-slate-400 font-semibold">{new Date(step.time).toLocaleString('id-ID')}</p>}
+                                        <p className={`text-sm font-bold ${step.done ? 'text-slate-800 dark:text-slate-100' : 'text-slate-500 dark:text-slate-400'}`}>{step.label}</p>
+                                        {step.time && <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">{new Date(step.time).toLocaleString('id-ID')}</p>}
                                     </div>
                                 </div>
                             ))}
                         </div>
-                        {order.cashier && <div className="pt-4 border-t border-slate-100 mt-2"><p className="text-xs font-bold text-slate-400 uppercase">Cashier</p><p className="text-sm font-black text-slate-800 mt-1">{order.cashier?.name || '-'}</p></div>}
+                        {order.cashier && <div className="pt-4 border-t border-slate-100 dark:border-slate-800 mt-2"><p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Cashier</p><p className="break-words text-sm font-black text-slate-800 dark:text-slate-100 mt-1">{order.cashier?.name || '-'}</p></div>}
                     </div>
                 </div>
             </div>

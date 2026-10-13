@@ -568,9 +568,9 @@ export default function MenuManagement({
 
                         {/* Filter Bar (Search + Dropdown Kategori + Dropdown Status Stok + Status Segmented Button) */}
                         {activeTab === 'products' && (
-                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-2.5">
+                            <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center justify-between gap-2 sm:gap-2.5">
                                 {/* Left: Search input + Category Dropdown + Stock Status Dropdown */}
-                                <div className="flex flex-wrap sm:flex-nowrap items-center gap-1.5 sm:gap-2 flex-1 max-w-2xl">
+                                <div className="flex min-w-0 flex-wrap items-center gap-1.5 sm:gap-2 flex-1 sm:basis-[500px] max-w-2xl">
                                     <div className="flex flex-wrap w-full items-center gap-1.5 sm:contents">
                                     {/* Search Input */}
                                     <div className="relative flex-1 min-w-[140px] sm:min-w-[180px]">
@@ -580,10 +580,10 @@ export default function MenuManagement({
                                             placeholder="Cari produk..."
                                             value={searchQuery}
                                             onChange={e => setSearchQuery(e.target.value)}
-                                            className="w-full pl-9 pr-7 py-1.5 font-semibold placeholder-slate-400 transition admin-control"
+                                            className="w-full pl-9 pr-11 py-1.5 font-semibold placeholder-slate-400 transition admin-control"
                                         />
                                         {searchQuery && (
-                                             <button aria-label="Tutup" onClick={() => setSearchQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer admin-icon-button">
+                                             <button aria-label="Hapus pencarian produk" onClick={() => setSearchQuery('')} className="absolute right-1 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer admin-icon-button">
                                                  <FiX size={13} />
                                              </button>
                                          )}
@@ -656,7 +656,7 @@ export default function MenuManagement({
                                              type="button"
                                              onClick={() => handleStockFilterChange(selectedStockFilter === stockAlertFilter ? 'all' : stockAlertFilter)}
                                              title={[lowStockCount > 0 && `${lowStockCount} perlu kulak`, outOfStockCount > 0 && `${outOfStockCount} stok habis`].filter(Boolean).join(' · ')}
-                                             className={`hidden sm:inline-flex items-center gap-1.5 px-2 py-1.5 rounded-lg border text-[11px] font-bold transition cursor-pointer ${
+                                             className={`hidden sm:inline-flex whitespace-nowrap items-center gap-1.5 px-2 py-1.5 rounded-lg border text-[11px] font-bold transition cursor-pointer ${
                                                  outOfStockCount > 0
                                                      ? 'border-red-500 bg-red-500 text-white hover:bg-red-600 hover:border-red-600'
                                                      : 'border-amber-400 bg-amber-400 text-amber-900 hover:bg-amber-500 hover:border-amber-500'
@@ -755,13 +755,13 @@ export default function MenuManagement({
                                     value={categorySearch}
                                     onChange={(e) => setCategorySearch(e.target.value)}
                                     placeholder="Cari nama kategori atau sub-kategori..."
-                                    className="w-full pl-9 pr-8 py-2 font-semibold placeholder-slate-400 transition admin-control"
+                                    className="w-full pl-9 pr-11 py-2 font-semibold placeholder-slate-400 transition admin-control"
                                 />
                                 {categorySearch && (
                                     <button aria-label="Tutup"
                                         type="button"
                                         onClick={() => setCategorySearch('')}
-                                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-0.5 cursor-pointer admin-icon-button"
+                                        className="absolute right-1 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-0.5 cursor-pointer admin-icon-button"
                                     >
                                         <FiX size={14} />
                                     </button>
@@ -830,10 +830,10 @@ export default function MenuManagement({
                                                                 <span>POS: {item.status === 'Active' ? 'Aktif' : 'Nonaktif'}</span>
                                                             </div>
                                                             {item.subtitle && <p className="line-clamp-3">{item.subtitle}</p>}
-                                                            <div className="flex items-center gap-3 pt-1 font-semibold">
-                                                                <button type="button" onClick={() => openAdjustModal(item)} className="inline-flex items-center gap-1 text-primary dark:text-blue-300"><FiPlus size={14} /> Stok</button>
-                                                                <button type="button" onClick={() => openEditProductModal(item)} className="inline-flex items-center gap-1 text-slate-700 dark:text-slate-200"><FiEdit2 size={13} /> Edit</button>
-                                                                <button type="button" onClick={() => handleDeleteProduct(item)} className="inline-flex items-center gap-1 text-red-600 dark:text-red-400"><FiTrash2 size={13} /> Hapus</button>
+                                                            <div className="flex flex-wrap items-center gap-1 pt-1 font-semibold">
+                                                                <button type="button" onClick={() => openAdjustModal(item)} className="inline-flex min-h-8 items-center gap-1 px-2 rounded-md text-primary dark:text-blue-300"><FiPlus size={14} /> Stok</button>
+                                                                <button type="button" onClick={() => openEditProductModal(item)} className="inline-flex min-h-8 items-center gap-1 px-2 rounded-md text-slate-700 dark:text-slate-200"><FiEdit2 size={13} /> Edit</button>
+                                                                <button type="button" onClick={() => handleDeleteProduct(item)} className="inline-flex min-h-8 items-center gap-1 px-2 rounded-md text-red-600 dark:text-red-400"><FiTrash2 size={13} /> Hapus</button>
                                                             </div>
                                                         </div>
                                                     )}
@@ -1243,7 +1243,7 @@ export default function MenuManagement({
                                                         <p className="text-sm font-semibold text-slate-900 dark:text-white">{cat.name}</p>
                                                         <p className="text-xs text-slate-500 dark:text-slate-400">{cat.count} produk · {cat.children.length} subkategori</p>
                                                     </div>
-                                                    <button type="button" onClick={() => { setActiveTab('products'); handleCategoryFilterChange(cat.name); }} className="text-xs font-semibold text-primary dark:text-blue-300 hover:underline whitespace-nowrap">Lihat produk</button>
+                                                    <button type="button" onClick={() => { setActiveTab('products'); handleCategoryFilterChange(cat.name); }} className="min-h-8 px-1 text-xs font-semibold text-primary dark:text-blue-300 hover:underline whitespace-nowrap">Lihat produk</button>
                                                     <button type="button" onClick={() => openEditCategoryModal(cat)} className="p-2 text-slate-500 hover:text-slate-900 dark:hover:text-white admin-icon-button" title="Edit kategori dan subkategori" aria-label={`Edit ${cat.name}`}><FiEdit2 size={15} /></button>
                                                     <button type="button" onClick={() => handleDeleteCategory(cat)} className="p-2 text-slate-400 hover:text-red-600 admin-icon-button" title="Hapus kategori" aria-label={`Hapus ${cat.name}`}><FiTrash2 size={15} /></button>
                                                 </div>

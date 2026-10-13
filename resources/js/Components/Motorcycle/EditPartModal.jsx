@@ -78,14 +78,14 @@ export default function EditPartModal({
             <div className="flex gap-3 pt-3 border-t border-slate-200 dark:border-slate-800">
                 <AdminButton disabled={saving}
                     onClick={() => setEditPartModal(null)}
-                    variant="secondary" className="flex-1"
+                    variant="secondary" className="flex-1 !px-2"
                 >
                     Batal
                 </AdminButton>
                 <AdminButton
                     onClick={handleUpdatePart}
                     disabled={saving}
-                    variant="primary" className="flex-1"
+                    variant="primary" className="flex-1 whitespace-nowrap !px-2"
                 >
                     {saving ? 'Menyimpan...' : 'Simpan Perubahan'}
                 </AdminButton>

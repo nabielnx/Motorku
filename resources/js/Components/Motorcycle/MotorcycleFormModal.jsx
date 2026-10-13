@@ -116,7 +116,7 @@ export default function MotorcycleFormModal({
 
                 <div>
                     <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 block">Foto Motor (Upload File / URL Gambar)</label>
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-wrap items-start gap-3">
                         {(formData.image_file || formData.image_url) && (
                             <div className="w-12 h-12 rounded-md bg-slate-100 dark:bg-slate-800 overflow-hidden shrink-0 border border-slate-300 dark:border-slate-700 flex items-center justify-center">
                                 <img
@@ -126,7 +126,7 @@ export default function MotorcycleFormModal({
                                 />
                             </div>
                         )}
-                        <div className="flex-1 space-y-1.5">
+                        <div className="min-w-0 flex-1 basis-[220px] space-y-1.5">
                             <ImagePicker label="motor" disabled={saving} onSelect={file => {
                                 if (validImage(file)) setFormData({ ...formData, image_file: file });
                             }} />
@@ -154,7 +154,7 @@ export default function MotorcycleFormModal({
                 <AdminButton
                     onClick={handleSaveMotor}
                     disabled={saving}
-                    variant="primary" className="flex-1"
+                    variant="primary" className="flex-1 whitespace-nowrap !px-2"
                 >
                     {saving ? 'Menyimpan...' : editMotorcycle ? 'Simpan Perubahan' : 'Tambah Motor'}
                 </AdminButton>

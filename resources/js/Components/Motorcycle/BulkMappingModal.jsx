@@ -55,15 +55,15 @@ export default function BulkMappingModal({
             )}
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 overflow-y-auto min-h-0 flex-1 pr-1">
-                <section className="flex flex-col min-h-0">
+                <section className="flex flex-col">
                     <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
                         <div className="text-xs font-bold text-slate-700 dark:text-slate-300">Motor * <span className="text-blue-600 dark:text-blue-400 ml-1">{bulkMotorIds.length} dipilih</span></div>
                         <div className="flex items-center gap-3 text-xs">
-                            <button type="button" onClick={() => setBulkMotorIds(prev => Array.from(new Set([...prev, ...filteredMotorcyclesForBulk.map(m => m.id)])))} className="text-blue-600 dark:text-blue-400 font-semibold hover:underline">Pilih semua</button>
-                            <button type="button" onClick={() => setBulkMotorIds([])} className="text-slate-500 dark:text-slate-400 hover:underline">Kosongkan</button>
+                            <button type="button" onClick={() => setBulkMotorIds(prev => Array.from(new Set([...prev, ...filteredMotorcyclesForBulk.map(m => m.id)])))} className="min-h-8 px-1 text-blue-600 dark:text-blue-400 font-semibold hover:underline">Pilih semua</button>
+                            <button type="button" onClick={() => setBulkMotorIds([])} className="min-h-8 px-1 text-slate-500 dark:text-slate-400 hover:underline">Kosongkan</button>
                         </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-2 mb-2">
+                    <div className="grid grid-cols-1 min-[400px]:grid-cols-2 gap-2 mb-2">
                         <input type="search" aria-label="Cari motor" placeholder="Cari motor..." value={bulkMotorSearch} onChange={e => setBulkMotorSearch(e.target.value)} className="w-full min-w-0 px-2 py-1.5 admin-control" />
                         <select aria-label="Filter merek motor" value={bulkBrandFilter} onChange={e => setBulkBrandFilter(e.target.value)} className="w-full min-w-0 px-2 py-1.5 admin-control">
                             <option value="semua">Semua merek</option>
@@ -80,7 +80,7 @@ export default function BulkMappingModal({
                                         {motor.image_url ? <img src={motor.image_url} alt="" className="w-full h-full object-cover" /> : <MotorIcon size={16} className="text-slate-400" />}
                                     </div>
                                     <div className="min-w-0">
-                                        <p className="font-bold text-slate-900 dark:text-white truncate">{motor.brand} {motor.model}</p>
+                                        <p className="font-bold text-slate-900 dark:text-white whitespace-normal break-words">{motor.brand} {motor.model}</p>
                                         <p className="text-slate-500 dark:text-slate-400 truncate">{motor.engine_cc}cc · {motor.year_start}{motor.year_end ? '-' + motor.year_end : '-sekarang'}</p>
                                     </div>
                                 </label>
@@ -91,15 +91,15 @@ export default function BulkMappingModal({
                     {bulkErrors.motorcycles && <p className="text-xs text-red-500 font-bold mt-1">{bulkErrors.motorcycles}</p>}
                 </section>
 
-                <section className="flex flex-col min-h-0">
+                <section className="flex flex-col">
                     <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
                         <div className="text-xs font-bold text-slate-700 dark:text-slate-300">Sparepart * <span className="text-blue-600 dark:text-blue-400 ml-1">{bulkProductIds.length} dipilih</span></div>
                         <div className="flex items-center gap-3 text-xs">
-                            <button type="button" onClick={() => setBulkProductIds(prev => Array.from(new Set([...prev, ...filteredProductsForBulk.map(p => p.id)])))} className="text-blue-600 dark:text-blue-400 font-semibold hover:underline">Pilih semua</button>
-                            <button type="button" onClick={() => setBulkProductIds([])} className="text-slate-500 dark:text-slate-400 hover:underline">Kosongkan</button>
+                            <button type="button" onClick={() => setBulkProductIds(prev => Array.from(new Set([...prev, ...filteredProductsForBulk.map(p => p.id)])))} className="min-h-8 px-1 text-blue-600 dark:text-blue-400 font-semibold hover:underline">Pilih semua</button>
+                            <button type="button" onClick={() => setBulkProductIds([])} className="min-h-8 px-1 text-slate-500 dark:text-slate-400 hover:underline">Kosongkan</button>
                         </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-2 mb-2">
+                    <div className="grid grid-cols-1 min-[400px]:grid-cols-2 gap-2 mb-2">
                         <input type="search" aria-label="Cari sparepart" placeholder="Cari part..." value={bulkProductSearch} onChange={e => setBulkProductSearch(e.target.value)} className="w-full min-w-0 px-2 py-1.5 admin-control" />
                         <select aria-label="Filter kategori sparepart" value={bulkCategoryFilter} onChange={e => setBulkCategoryFilter(e.target.value)} className="w-full min-w-0 px-2 py-1.5 admin-control">
                             <option value="semua">Semua kategori</option>

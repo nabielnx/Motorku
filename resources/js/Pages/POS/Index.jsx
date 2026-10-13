@@ -1,6 +1,7 @@
 import { createPosSale } from '@/Api/posSales';
 import PaymentModal from '@/Components/POS/PaymentModal';
 import ShortcutModal from '@/Components/POS/ShortcutModal';
+import PartPreviewModal from '@/Components/Motorcycle/PartPreviewModal';
 import ThermalReceipt from '@/Components/ThermalReceipt';
 
 import { checkoutRequestId } from '@/Utils/checkout';
@@ -13,6 +14,7 @@ import { Head, router, usePage } from '@inertiajs/react';
 import { ProductPhoto } from '@/Components/Customer/Storefront';
 import { getVisibleCategoryIds } from '@/Utils/posCategoryFilter';
 import { fuzzyFilterProducts } from '@/Utils/fuzzySearch';
+import { getProductLabel } from '@/Utils/productLabel';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { DialogTitle } from '@headlessui/react';
@@ -67,6 +69,7 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
     const [selectedChildId, setSelectedChildId] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [isMobileCartOpen, setIsMobileCartOpen] = useState(false);
+    const [previewProduct, setPreviewProduct] = useState(null);
     const [viewMode, setViewMode] = useState(() => localStorage.getItem('pos_view_mode') === 'grid' ? 'grid' : 'list');
     const [customerName, setCustomerName] = useState(() => localStorage.getItem('pos_customer_name') || '');
 
@@ -380,7 +383,7 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
     useEffect(() => {
         const handleKeyDown = (e) => {
             // Modal mengurus Escape dan fokus; shortcut POS tidak aktif di belakangnya.
-            if (itemToDelete) return;
+            if (itemToDelete || previewProduct) return;
 
             // F1: Toggle Shortcut Helper Modal
             if (e.key === 'F1') {
@@ -485,7 +488,7 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [cart, isPaymentModalOpen, isOrderComplete, paymentMethod, cashReceived, total, customerName, isSubmittingOrder, isShortcutModalOpen, searchQuery, filteredMenu, itemToDelete]);
+    }, [cart, isPaymentModalOpen, isOrderComplete, paymentMethod, cashReceived, total, customerName, isSubmittingOrder, isShortcutModalOpen, searchQuery, filteredMenu, itemToDelete, previewProduct]);
 return (
         <AuthenticatedLayout pageTitle="POS Kasir" noPadding={true}>
             <Head title="POS Kasir">
@@ -506,12 +509,13 @@ return (
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                     placeholder="Cari produk, motor, atau SKU..."
-                                    className="w-full pl-10 pr-9 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200 focus:bg-white dark:focus:bg-slate-800 focus:ring-0 focus:border-primary focus:outline-none transition"
+                                    className="w-full min-h-10 pl-10 pr-10 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-base sm:text-sm font-semibold text-slate-800 dark:text-slate-200 focus:bg-white dark:focus:bg-slate-800 focus:ring-0 focus:border-primary focus:outline-none transition"
                                 />
                                 {searchQuery && (
                                     <button 
                                         onClick={() => setSearchQuery('')}
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                                        aria-label="Hapus pencarian produk"
+                                        className="absolute right-1 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
                                     >
                                         <FiX size={16} />
                                     </button>
@@ -521,7 +525,7 @@ return (
 
                         {/* Kategori induk menampilkan seluruh produk subkategorinya */}
                         <div className="space-y-2 border-t border-slate-200 pt-2 sm:pt-3 dark:border-slate-800">
-                            <div className="flex flex-col gap-1 2xl:flex-row 2xl:items-center 2xl:justify-between">
+                            <div className="flex flex-col gap-2">
                                 <div className="flex w-full min-w-0 items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
                                     {categories.length > 0 ? (
                                         <>
@@ -548,114 +552,136 @@ return (
                                     )}
                                 </div>
 
-                                <div className="flex shrink-0 items-center gap-2 self-end">
-                                    <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
-                                        {filteredMenu.length} produk
-                                    </span>
-                                    <div className="flex rounded-lg border border-slate-300 bg-slate-100 p-0.5 dark:border-slate-700 dark:bg-slate-800" role="group" aria-label="Tampilan produk">
-                                        {[
-                                            { mode: 'list', label: 'Daftar', Icon: FiList },
-                                            { mode: 'grid', label: 'Grid', Icon: FiGrid },
-                                        ].map(({ mode, label, Icon }) => (
+                                <div className="flex w-full min-w-0 items-center gap-2">
+                                    {selectedParentId && childCategories.length > 0 && (
+                                        <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5" role="group" aria-label="Subkategori produk">
                                             <button
-                                                key={mode}
-                                                type="button"
-                                                onClick={() => setViewMode(mode)}
-                                                aria-pressed={viewMode === mode}
-                                                title={label}
-                                                className={`flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold transition ${viewMode === mode ? 'bg-primary text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white'}`}
+                                                onClick={() => setSelectedChildId(null)}
+                                                aria-pressed={!selectedChildId}
+                                                className={`px-3 py-1 rounded-lg text-xs font-semibold whitespace-nowrap border cursor-pointer ${!selectedChildId ? 'border-accentYellow bg-accentYellow text-primaryDark' : 'border-slate-300 text-slate-600 dark:border-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
                                             >
-                                                <Icon size={14} aria-hidden="true" />
-                                                <span className="hidden sm:inline">{label}</span>
+                                                Semua subkategori
                                             </button>
-                                        ))}
+                                            {childCategories.map(category => (
+                                                <button
+                                                    key={category.id}
+                                                    onClick={() => setSelectedChildId(category.id)}
+                                                    aria-pressed={selectedChildId === category.id}
+                                                    className={`px-3 py-1 rounded-lg text-xs font-semibold whitespace-nowrap border cursor-pointer ${selectedChildId === category.id ? 'border-accentYellow bg-accentYellow text-primaryDark' : 'border-slate-300 text-slate-600 dark:border-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+                                                >
+                                                    {category.name}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    <div className="ml-auto flex shrink-0 items-center gap-2">
+                                        <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
+                                            {filteredMenu.length} produk
+                                        </span>
+                                        <div className="flex rounded-lg border border-slate-300 bg-slate-100 p-0.5 dark:border-slate-700 dark:bg-slate-800" role="group" aria-label="Tampilan produk">
+                                            {[
+                                                { mode: 'list', label: 'Daftar', Icon: FiList },
+                                                { mode: 'grid', label: 'Grid', Icon: FiGrid },
+                                            ].map(({ mode, label, Icon }) => (
+                                                <button
+                                                    key={mode}
+                                                    type="button"
+                                                    onClick={() => setViewMode(mode)}
+                                                    aria-pressed={viewMode === mode}
+                                                    title={label}
+                                                    aria-label={label}
+                                                    className={`flex min-h-8 min-w-8 items-center justify-center gap-1 rounded-md px-2 py-1 text-xs font-semibold transition ${viewMode === mode ? 'bg-primary text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white'}`}
+                                                >
+                                                    <Icon size={14} aria-hidden="true" />
+                                                    <span className="hidden xl:inline">{label}</span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                        <button
+                                            onClick={() => setIsShortcutModalOpen(true)}
+                                            className="hidden min-h-8 min-w-8 md:flex items-center justify-center gap-1 px-2 py-0.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-bold transition border border-slate-300 dark:border-slate-700 cursor-pointer"
+                                            title="Petunjuk Keyboard Shortcut (F1)"
+                                            aria-label="Petunjuk keyboard shortcut (F1)"
+                                        >
+                                            <FiHelpCircle className="w-3.5 h-3.5 text-blue-600 dark:text-yellow-400" strokeWidth={2.5} />
+                                            <span className="hidden xl:inline">Shortcut</span>
+                                            <kbd className="hidden xl:inline px-1 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-200 rounded text-[9px] font-mono">F1</kbd>
+                                        </button>
                                     </div>
-                                    <button
-                                        onClick={() => setIsShortcutModalOpen(true)}
-                                        className="hidden md:flex items-center gap-1 px-2 py-0.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-bold transition border border-slate-300 dark:border-slate-700 cursor-pointer"
-                                        title="Petunjuk Keyboard Shortcut (F1)"
-                                    >
-                                        <FiHelpCircle className="w-3.5 h-3.5 text-blue-600 dark:text-yellow-400" strokeWidth={2.5} />
-                                        <span className="hidden md:inline">Shortcut</span>
-                                        <kbd className="px-1 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-200 rounded text-[9px] font-mono">F1</kbd>
-                                    </button>
                                 </div>
                             </div>
-                            {selectedParentId && childCategories.length > 0 && (
-                                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5" role="group" aria-label="Subkategori produk">
-                                    <button
-                                        onClick={() => setSelectedChildId(null)}
-                                        aria-pressed={!selectedChildId}
-                                        className={`px-3 py-1 rounded-lg text-xs font-semibold whitespace-nowrap border cursor-pointer ${!selectedChildId ? 'border-accentYellow bg-accentYellow text-primaryDark' : 'border-slate-300 text-slate-600 dark:border-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
-                                    >
-                                        Semua subkategori
-                                    </button>
-                                    {childCategories.map(category => (
-                                        <button
-                                            key={category.id}
-                                            onClick={() => setSelectedChildId(category.id)}
-                                            aria-pressed={selectedChildId === category.id}
-                                            className={`px-3 py-1 rounded-lg text-xs font-semibold whitespace-nowrap border cursor-pointer ${selectedChildId === category.id ? 'border-accentYellow bg-accentYellow text-primaryDark' : 'border-slate-300 text-slate-600 dark:border-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
-                                        >
-                                            {category.name}
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
+
                         </div>
                     </div>
 
                     {/* Grid ringkas untuk melihat foto, daftar untuk detail produk */}
-                    <div className="flex-1 min-h-0 overflow-y-auto p-3">
+                    <div className="flex-1 min-h-0 overflow-y-auto [scrollbar-gutter:stable] p-3">
                         {isNavigating ? (
                             <PosCardSkeleton count={8} mode={viewMode} />
                         ) : (
-                        <div className={`grid gap-2 ${viewMode === 'grid' ? 'grid-cols-[repeat(auto-fill,minmax(144px,1fr))]' : 'grid-cols-1 2xl:grid-cols-2'}`}>
+                        <div className={`grid items-start gap-2 ${viewMode === 'grid' ? 'grid-cols-[repeat(auto-fill,minmax(144px,1fr))]' : 'grid-cols-1 2xl:grid-cols-2'}`}>
                             {filteredMenu.map(item => {
                                 const isOutOfStock = item.stock <= 0;
                                 const isInCart = cart.some(cartItem => cartItem.id === item.id);
                                 const fitment = viewMode === 'list' ? item.motorcycles.slice(0, 2).map(m => `${m.brand} ${m.model}`).join(', ') : '';
+                                const label = getProductLabel(item);
+                                const applicationText = fitment ? `Cocok: ${fitment}${item.motorcycles.length > 2 ? ` +${item.motorcycles.length - 2} motor` : ''}` : label.application ? `Peruntukan: ${label.application}` : '';
                                 return (
-                                    <button
-                                        type="button"
+                                    <div
                                         key={item.id}
-                                        onClick={() => addToCart(item)}
-                                        disabled={isOutOfStock}
-                                        className={`group flex w-full border bg-white text-left shadow-xs transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accentYellow dark:bg-slate-900 ${viewMode === 'grid' ? 'flex-col rounded-xl overflow-hidden' : 'items-center gap-3 rounded-xl p-2.5'} ${
+                                        className={`group flex w-full border bg-white text-left shadow-xs transition dark:bg-slate-900 ${viewMode === 'grid' ? 'flex-col rounded-xl overflow-hidden' : 'items-start gap-3 rounded-xl p-2.5'} ${
                                             isOutOfStock
-                                                ? 'cursor-not-allowed border-slate-200 opacity-55 dark:border-slate-800'
+                                                ? 'border-slate-200 opacity-55 dark:border-slate-800'
                                                 : 'cursor-pointer border-slate-200 hover:border-slate-400 hover:bg-slate-50 dark:border-slate-700 dark:hover:border-slate-500 dark:hover:bg-slate-800'
-                                        } ${isInCart ? 'border-l-[3px] !border-l-accentYellow' : ''}`}
+                                        } ${isInCart ? '!shadow-[inset_3px_0_0_#FFDD00]' : ''}`}
                                     >
-                                        <span className={`${viewMode === 'grid' ? 'aspect-square w-full' : 'h-14 w-14 shrink-0 rounded-lg border border-slate-200 dark:border-slate-700'} overflow-hidden bg-slate-100 dark:bg-slate-800 flex items-center justify-center`}>
+                                        <button
+                                            type="button"
+                                            onClick={() => setPreviewProduct(item)}
+                                            aria-label={`Lihat detail ${item.name}`}
+                                            aria-haspopup="dialog"
+                                            className={`${viewMode === 'grid' ? 'aspect-square w-full shrink-0' : 'h-14 w-14 shrink-0 rounded-lg border border-slate-200 dark:border-slate-700'} overflow-hidden bg-slate-100 dark:bg-slate-800 flex items-center justify-center cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accentYellow`}
+                                        >
                                             <ProductPhoto src={item.image} name={item.name} category={item.category} className="h-full w-full" compact />
-                                        </span>
-                                        <span className={`block min-w-0 ${viewMode === 'grid' ? 'w-full p-2.5 flex-1' : 'flex-1'}`}>
-                                            <span className={`flex gap-1 ${viewMode === 'grid' ? 'flex-col' : 'items-start justify-between gap-3'}`}>
-                                                <span className={`min-w-0 font-semibold leading-snug text-slate-900 line-clamp-2 dark:text-white ${viewMode === 'grid' ? 'min-h-8 text-xs' : 'text-sm'}`} title={item.name}>{item.name}</span>
-                                                <span className={`shrink-0 whitespace-nowrap font-bold text-slate-900 dark:text-white ${viewMode === 'grid' ? 'text-xs' : 'text-sm'}`}>{formatRp(item.price)}</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => addToCart(item)}
+                                            disabled={isOutOfStock}
+                                            aria-label={`Tambah ${item.name} ke keranjang`}
+                                            className={`flex min-w-0 flex-1 flex-col text-left rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accentYellow ${isOutOfStock ? 'cursor-not-allowed' : 'cursor-pointer'} ${viewMode === 'grid' ? 'w-full p-2.5' : ''}`}
+                                        >
+                                            <span className="flex flex-col gap-2">
+                                                <span className={`block min-w-0 whitespace-normal break-words [overflow-wrap:anywhere] font-semibold text-slate-900 dark:text-white ${viewMode === 'grid' ? 'min-h-20 text-xs leading-4' : 'text-sm leading-5'}`} title={label.name}>{label.name}</span>
+                                                <span className="flex items-center justify-between gap-2">
+                                                    <span className={`shrink-0 whitespace-nowrap font-bold text-slate-900 dark:text-white ${viewMode === 'grid' ? 'text-xs leading-4' : 'text-sm leading-5'}`}>{formatRp(item.price)}</span>
+                                                    {viewMode === 'list' && <span className={`shrink-0 whitespace-nowrap text-[11px] leading-4 font-semibold ${isOutOfStock ? 'text-rose-600 dark:text-rose-400' : 'text-slate-600 dark:text-slate-300'}`}>
+                                                        {isOutOfStock ? 'Stok habis' : `Stok ${Math.floor(item.stock)}`}
+                                                    </span>}
+                                                </span>
                                             </span>
                                             {viewMode === 'grid' ? (
-                                                <span className={`mt-0.5 block text-[10px] font-semibold ${isOutOfStock ? 'text-rose-600 dark:text-rose-400' : 'text-slate-500 dark:text-slate-400'}`}>
-                                                    {isOutOfStock ? 'Stok habis' : `Stok ${Math.floor(item.stock)}`}
-                                                </span>
+                                                <>
+                                                    <span className={`mt-0.5 block text-[10px] font-semibold ${isOutOfStock ? 'text-rose-600 dark:text-rose-400' : 'text-slate-500 dark:text-slate-400'}`}>
+                                                        {isOutOfStock ? 'Stok habis' : `Stok ${Math.floor(item.stock)}`}
+                                                    </span>
+                                                    {label.application && <span className="mt-1 block whitespace-normal break-words text-[10px] leading-4 text-slate-600 dark:text-slate-300">{applicationText}</span>}
+                                                </>
                                             ) : (
                                                 <>
-                                                    <span className="mt-1 flex items-center justify-between gap-3 text-[11px] text-slate-500 dark:text-slate-400">
+                                                    <span className="mt-1 flex items-center justify-between gap-3 text-[11px] leading-4 text-slate-500 dark:text-slate-400">
                                                         <span className="min-w-0 truncate">
                                                             {[!selectedChildId ? item.category : null, item.sku ? `SKU ${item.sku}` : null, item.rack_location ? `Rak ${item.rack_location}` : null].filter(Boolean).join(' · ')}
                                                         </span>
-                                                        <span className={`shrink-0 font-semibold ${isOutOfStock ? 'text-rose-600 dark:text-rose-400' : 'text-slate-600 dark:text-slate-300'}`}>
-                                                            {isOutOfStock ? 'Stok habis' : `Stok ${Math.floor(item.stock)}`}
-                                                        </span>
                                                     </span>
-                                                    {fitment && <span className="mt-0.5 block truncate text-[11px] text-slate-600 dark:text-slate-300" title={`Cocok: ${fitment}`}>
-                                                        Cocok: {fitment}{item.motorcycles.length > 2 ? ` +${item.motorcycles.length - 2} motor` : ''}
-                                                    </span>}
+                                                    <span className={`mt-0.5 block min-h-4 text-[11px] leading-4 text-slate-600 dark:text-slate-300 ${label.application && !fitment ? 'whitespace-normal break-words' : 'truncate'}`} title={applicationText || undefined} aria-hidden={!applicationText}>
+                                                        {applicationText}
+                                                    </span>
                                                 </>
                                             )}
-                                        </span>
-                                    </button>
+                                        </button>
+                                    </div>
                                 );
                             })}
 
@@ -708,23 +734,28 @@ return (
                                 onChange={(e) => setCustomerName(e.target.value)}
                                 placeholder="Nama pelanggan (opsional)"
                                 aria-label="Nama pelanggan (opsional)"
-                                        className="text-xs sm:text-sm font-semibold bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1.5 w-full focus:ring-0 focus:border-primary focus:outline-none text-slate-800 dark:text-slate-200"
+                                className="admin-control w-full px-2.5 py-1.5 font-semibold"
                             />
                         </div>
                     </div>
 
                     {/* Cart Items List */}
                     <div className="flex-1 overflow-y-auto p-4 space-y-3 divide-y divide-slate-200 dark:divide-slate-800 min-h-0">
-                        {cart.map(item => (
+                        {cart.map(item => {
+                            const label = getProductLabel(item);
+                            return (
                             <div key={item.id} className="pt-3 first:pt-0">
                                 <div className="flex items-start justify-between gap-2">
-                                    <h4 className="min-w-0 flex-1 text-sm font-bold text-slate-900 dark:text-white break-words">{item.name}</h4>
+                                    <div className="min-w-0 flex-1">
+                                        <h4 className="whitespace-normal text-sm font-bold text-slate-900 dark:text-white break-words [overflow-wrap:anywhere]">{label.name}</h4>
+                                        {label.application && <p className="mt-0.5 whitespace-normal break-words text-[11px] leading-4 text-slate-600 dark:text-slate-300">Peruntukan: {label.application}</p>}
+                                    </div>
                                     <button
                                         type="button"
                                         onClick={() => removeFromCart(item)}
                                         aria-label={`Hapus ${item.name} dari keranjang`}
                                         title="Hapus produk"
-                                        className="shrink-0 text-slate-400 hover:text-red-600 dark:hover:text-red-400 p-1 rounded hover:bg-red-50 dark:hover:bg-red-950/40 transition cursor-pointer"
+                                        className="inline-flex h-8 w-8 shrink-0 items-center justify-center text-slate-400 hover:text-red-600 dark:hover:text-red-400 p-1 rounded hover:bg-red-50 dark:hover:bg-red-950/40 transition cursor-pointer"
                                     >
                                         <FiTrash2 className="w-3.5 h-3.5" />
                                     </button>
@@ -780,7 +811,8 @@ return (
                                     </div>
                                 </div>
                             </div>
-                        ))}
+                            );
+                        })}
 
                         {cart.length === 0 && (
                             <div className="h-full flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 py-12">
@@ -836,6 +868,13 @@ return (
                     </div>
                 </div>
             </div>
+
+            {previewProduct && (
+                <PartPreviewModal
+                    previewPart={{ ...previewProduct, categoryLabel: previewProduct.category, image_url: previewProduct.image }}
+                    setPreviewPart={setPreviewProduct}
+                />
+            )}
 
             {/* PAYMENT MODAL */}
             {isPaymentModalOpen && (
