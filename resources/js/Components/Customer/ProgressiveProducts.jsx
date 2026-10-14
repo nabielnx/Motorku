@@ -23,7 +23,7 @@ export default memo(function ProgressiveProducts({ items, renderCard, grid = fal
 
     return (
         <div ref={trackRef} className={grid
-            ? 'grid grid-cols-3 gap-2 sm:gap-2.5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 pb-4'
+            ? 'grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4 pb-4'
             : 'flex gap-2 sm:gap-2.5 overflow-x-auto pb-2 snap-x snap-mandatory no-scrollbar'}>
             {items.slice(0, limit).map(item => renderCard(item, grid))}
             {limit < items.length && <div ref={sentinelRef} aria-hidden="true" className={grid ? 'col-span-full h-px' : 'w-px shrink-0'} />}

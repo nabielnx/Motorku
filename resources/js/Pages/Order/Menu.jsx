@@ -297,7 +297,7 @@ export default function CustomerMenu({
     if (settings['qr_order.enabled'] === 'false') return <OrderingUnavailable />;
 
     return (
-        <div className="customer-storefront min-h-screen bg-[#f8fafc] text-slate-900">
+        <div className="customer-storefront min-h-screen bg-[#f3f3ed] text-slate-900">
             <Head title="Katalog Sparepart">
                 <meta name="description" content="Cari suku cadang motor, periksa stok, dan pesan untuk diambil di toko." />
             </Head>
@@ -317,27 +317,27 @@ export default function CustomerMenu({
             />
 
             {/* Motor Saya Banner (Full-Width Pojok Sampai Pojok di Atas, Rounded di Bawah) */}
-            <section className="w-full bg-[#FFDD00] rounded-b-[36px] sm:rounded-b-[48px] shadow-xs mb-3.5 sm:mb-4.5 overflow-hidden">
+            <section className="store-motor-banner">
                 <Link
                     href="/motor-saya"
                     className="block mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8 py-3 sm:py-3.5 group active:scale-[0.99] transition-all"
                 >
                     <div className="flex items-center gap-3 sm:gap-4 pl-3 sm:pl-4 md:pl-5 pr-3.5 sm:pr-5 md:pr-6">
-                        <MotorIcon size={26} className="shrink-0 text-[#4066AD] transition-transform group-hover:scale-105" />
+                        <MotorIcon size={26} className="shrink-0 text-[#19231f] transition-transform group-hover:scale-105" />
                         <div className="min-w-0 flex-1">
-                            <p className="text-xs sm:text-sm font-extrabold text-[#4066AD] tracking-tight transition-colors truncate">
+                            <p className="text-xs sm:text-sm font-extrabold text-[#19231f] tracking-tight transition-colors truncate">
                                 Motor Saya
                             </p>
                             <p className="mt-0.5 text-[10px] sm:text-[11.5px] text-slate-600/80 font-normal leading-snug">
-                                Tidak tahu suku cadang?, temukan suku cadang sesuai motor anda
+                                Temukan suku cadang yang sesuai dengan motor Anda.
                             </p>
                         </div>
-                        <FiChevronRight size={20} strokeWidth={2.5} className="shrink-0 text-[#4066AD] group-hover:translate-x-0.5 transition-transform" aria-hidden="true" />
+                        <FiChevronRight size={20} strokeWidth={2.5} className="shrink-0 text-[#19231f] group-hover:translate-x-0.5 transition-transform" aria-hidden="true" />
                     </div>
                 </Link>
             </section>
 
-            <div className={clsx('mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8', cart.length ? 'pb-32' : 'pb-12')}>
+            <div className={clsx('store-catalog mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8', cart.length ? 'pb-32' : 'pb-12')}>
 
 
                 {/* Promo Banner Section (only shown when on 'Semua Produk' and not searching) */}
@@ -354,15 +354,15 @@ export default function CustomerMenu({
                     </section>
                 )}
 
-                <div className="grid grid-cols-1 gap-y-2.5 lg:grid-cols-[210px_minmax(0,1fr)] lg:gap-x-9 lg:gap-y-0">
-                    <aside className="min-w-0 lg:col-start-1">
+                <div className="store-catalog-layout grid grid-cols-1 gap-y-2.5 lg:grid-cols-[210px_minmax(0,1fr)] lg:gap-x-9 lg:gap-y-0">
+                    <aside className="store-categories min-w-0 lg:col-start-1">
                         <div className="lg:sticky lg:top-24">
                             <nav aria-label="Kategori produk" className="no-scrollbar flex gap-1.5 overflow-x-auto py-0.5 lg:flex-col lg:gap-1.5 lg:overflow-visible">
                                 <button type="button" onClick={() => { setSelectedMainCategory(null); setSelectedSubCategory(null); }}
                                     aria-pressed={selectedMainCategory === null}
                                     className={clsx('flex h-8 shrink-0 items-center justify-between gap-2 whitespace-nowrap rounded-full px-3 text-left text-xs transition-all shadow-2xs lg:h-auto lg:py-2 lg:px-3.5 lg:whitespace-normal lg:rounded-xl cursor-pointer',
                                         selectedMainCategory === null
-                                            ? 'bg-[#4066AD] border border-[#4066AD] text-white font-black shadow-xs'
+                                            ? 'bg-[#19231f] border border-[#19231f] text-white font-black shadow-xs'
                                             : 'bg-white border border-slate-300 text-slate-900 hover:border-slate-400 hover:bg-slate-50 font-bold')}>
                                     <span>Semua Produk</span>
                                 </button>
@@ -373,7 +373,7 @@ export default function CustomerMenu({
                                             aria-pressed={active}
                                             className={clsx('flex h-8 shrink-0 items-center justify-between gap-2 whitespace-nowrap rounded-full px-3 text-left text-xs transition-all shadow-2xs lg:h-auto lg:py-2 lg:px-3.5 lg:whitespace-normal lg:rounded-xl cursor-pointer',
                                                 active
-                                                    ? 'bg-[#4066AD] border border-[#4066AD] text-white font-black shadow-xs'
+                                                    ? 'bg-[#19231f] border border-[#19231f] text-white font-black shadow-xs'
                                                     : 'bg-white border border-slate-300 text-slate-900 hover:border-slate-400 hover:bg-slate-50 font-bold')}>
                                             <span>{category.name}</span>
                                         </button>
@@ -384,12 +384,12 @@ export default function CustomerMenu({
                                 const mainCat = categories.find(c => c.name === selectedMainCategory);
                                 if (mainCat && mainCat.children && mainCat.children.length > 0) {
                                     return (
-                                        <nav aria-label="Sub Kategori" className="no-scrollbar mt-3 flex gap-1.5 overflow-x-auto py-0.5 lg:flex-col lg:gap-1.5 lg:overflow-visible pl-0 lg:pl-3 border-l-0 lg:border-l-2 lg:border-[#4066AD]/20">
+                                        <nav aria-label="Sub Kategori" className="no-scrollbar mt-3 flex gap-1.5 overflow-x-auto py-0.5 lg:flex-col lg:gap-1.5 lg:overflow-visible pl-0 lg:pl-3 border-l-0 lg:border-l-2 lg:border-[#19231f]/20">
                                             <button type="button" onClick={() => setSelectedSubCategory(null)}
                                                 aria-pressed={selectedSubCategory === null}
                                                 className={clsx('flex h-7 shrink-0 items-center justify-between gap-2 whitespace-nowrap rounded-full px-3 text-left text-[11px] transition-all shadow-2xs lg:h-auto lg:py-1.5 lg:px-3 lg:whitespace-normal lg:rounded-lg cursor-pointer',
                                                     selectedSubCategory === null
-                                                        ? 'bg-[#FFDD00] border border-[#FFE838] text-[#003882] font-black shadow-xs'
+                                                        ? 'bg-[#FFDD00] border border-[#FFE838] text-[#19231f] font-black shadow-xs'
                                                         : 'bg-white border border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50 font-bold')}>
                                                 <span>Semua {selectedMainCategory.split(',')[0]}</span>
                                             </button>
@@ -400,7 +400,7 @@ export default function CustomerMenu({
                                                         aria-pressed={active}
                                                         className={clsx('flex h-7 shrink-0 items-center justify-between gap-2 whitespace-nowrap rounded-full px-3 text-left text-[11px] transition-all shadow-2xs lg:h-auto lg:py-1.5 lg:px-3 lg:whitespace-normal lg:rounded-lg cursor-pointer',
                                                             active
-                                                                ? 'bg-[#FFDD00] border border-[#FFE838] text-[#003882] font-black shadow-xs'
+                                                                ? 'bg-[#FFDD00] border border-[#FFE838] text-[#19231f] font-black shadow-xs'
                                                                 : 'bg-white border border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50 font-bold')}>
                                                         <span>{sub.name}</span>
                                                     </button>
@@ -412,7 +412,7 @@ export default function CustomerMenu({
                                 return null;
                             })()}
                             {whatsapp && (
-                                <div className="mt-6 hidden rounded-2xl border border-slate-200/80 bg-white p-4 shadow-2xs lg:block">
+                                <div className="mt-6 hidden rounded-lg border border-slate-200/80 bg-white p-4 shadow-2xs lg:block">
                                     <p className="text-sm font-bold text-slate-900">Perlu bantuan?</p>
                                     <p className="mt-1 text-xs leading-relaxed text-slate-500">Tanyakan stok atau kecocokan sparepart kepada tim toko.</p>
                                     <a href={whatsapp} target="_blank" rel="noopener noreferrer"
@@ -433,7 +433,7 @@ export default function CustomerMenu({
                                         Hasil pencarian untuk <span className="font-bold text-slate-900">"{searchQuery.trim()}"</span>
                                     </p>
                                 )}
-                                {hasFilters && <button type="button" onClick={resetFilters} className="min-h-7 text-xs font-bold text-[#4066AD] hover:text-[#32528D] hover:underline cursor-pointer">Reset filter</button>}
+                                {hasFilters && <button type="button" onClick={resetFilters} className="min-h-7 text-xs font-bold text-[#19231f] hover:text-[#29372f] hover:underline cursor-pointer">Reset filter</button>}
                             </div>
                         )}
 
@@ -445,7 +445,7 @@ export default function CustomerMenu({
                                             <section key={category.id}>
                                                 <div className="mb-2 flex items-center justify-between">
                                                     <h2 className="text-sm sm:text-base font-bold tracking-tight text-slate-900">{category.name}</h2>
-                                                    <button type="button" onClick={() => setSelectedMainCategory(category.name)} className="text-[11px] font-semibold text-[#4066AD] hover:text-[#2d4d8c] hover:underline flex items-center gap-0.5 cursor-pointer">
+                                                    <button type="button" onClick={() => setSelectedMainCategory(category.name)} className="text-[11px] font-semibold text-[#19231f] hover:text-[#29372f] hover:underline flex items-center gap-0.5 cursor-pointer">
                                                         <span>Lihat Semua</span>
                                                         <FiChevronRight size={12} />
                                                     </button>
@@ -459,13 +459,13 @@ export default function CustomerMenu({
                                 <ProgressiveProducts items={filteredMenu} renderCard={renderProductCard} grid />
                             )
                         ) : (
-                            <div className="rounded-2xl border border-slate-200/80 bg-white px-5 py-14 text-center shadow-2xs">
+                            <div className="rounded-lg border border-slate-200/80 bg-white px-5 py-14 text-center shadow-2xs">
                                 <FiSearch size={28} strokeWidth={1.5} className="mx-auto mb-3 text-slate-300" aria-hidden="true" />
                                 <h2 className="text-base font-bold text-slate-900">{menuItems.length ? 'Produk tidak ditemukan' : 'Katalog sedang disiapkan'}</h2>
                                 <p className="mx-auto mt-1 max-w-sm text-xs leading-relaxed text-slate-500">
                                     {menuItems.length ? 'Coba kata kunci lain atau hapus filter untuk melihat produk yang tersedia.' : 'Silakan kembali nanti atau hubungi toko untuk menanyakan ketersediaan sparepart.'}
                                 </p>
-                                {hasFilters && <button type="button" onClick={resetFilters} className="mt-4 min-h-8 rounded-xl bg-[#4066AD] hover:bg-[#32528D] px-4 text-xs font-black text-white transition-colors shadow-2xs cursor-pointer">Lihat semua produk</button>}
+                                {hasFilters && <button type="button" onClick={resetFilters} className="mt-4 min-h-8 rounded-xl bg-[#19231f] hover:bg-[#29372f] px-4 text-xs font-black text-white transition-colors shadow-2xs cursor-pointer">Lihat semua produk</button>}
                             </div>
                         )}
                     </main>
@@ -481,18 +481,18 @@ export default function CustomerMenu({
                 <div className="customer-cart-bar fixed inset-x-0 bottom-0 z-40 border-t border-slate-200/80 bg-white/95 backdrop-blur-md shadow-lg">
                     <div className="mx-auto flex max-w-[1280px] items-center justify-between gap-4 px-4 py-2 sm:px-6 lg:px-8">
                         <button type="button" onClick={() => setShowCart(true)} className="flex min-h-9 sm:min-h-10 items-center gap-3 text-left cursor-pointer" aria-label="Lihat rincian keranjang">
-                            <div className="relative flex items-center justify-center text-[#4066AD] bg-[#4066AD]/10 p-2 rounded-xl">
+                            <div className="relative flex items-center justify-center text-[#19231f] bg-[#19231f]/10 p-2 rounded-xl">
                                 <FiShoppingCart size={18} strokeWidth={2.2} aria-hidden="true" />
-                                <span className="absolute -top-1.5 -right-1.5 bg-[#FFDD00] text-[#003882] text-[10px] w-4 h-4 rounded-full font-bold flex items-center justify-center shadow-xs">
+                                <span className="absolute -top-1.5 -right-1.5 bg-[#FFDD00] text-[#19231f] text-[10px] w-4 h-4 rounded-full font-bold flex items-center justify-center shadow-xs">
                                     {totalQty}
                                 </span>
                             </div>
                             <span>
-                                <span className="block text-xs font-semibold text-slate-500">{totalQty} item · <span className="text-[#4066AD] font-bold">Lihat keranjang</span></span>
+                                <span className="block text-xs font-semibold text-slate-500">{totalQty} item · <span className="text-[#19231f] font-bold">Lihat keranjang</span></span>
                                 <span className="block text-sm sm:text-base font-extrabold text-slate-900 tabular-nums">{formatRp(total)}</span>
                             </span>
                         </button>
-                        <button type="button" onClick={goToPayment} className="flex min-h-10 sm:min-h-11 items-center justify-center gap-2 rounded-xl bg-[#FFDD00] hover:bg-[#FFE838] px-4 sm:px-6 py-2 text-xs sm:text-sm font-bold text-[#003882] transition-all shadow-xs sm:min-w-[180px] cursor-pointer active:scale-95">
+                        <button type="button" onClick={goToPayment} className="flex min-h-10 sm:min-h-11 items-center justify-center gap-2 rounded-xl bg-[#FFDD00] hover:bg-[#FFE838] px-4 sm:px-6 py-2 text-xs sm:text-sm font-bold text-[#19231f] transition-all shadow-xs sm:min-w-[180px] cursor-pointer active:scale-95">
                             <span>Lanjut bayar</span>
                             <FiArrowRight size={15} strokeWidth={2.5} aria-hidden="true" />
                         </button>
@@ -548,7 +548,7 @@ export default function CustomerMenu({
                                     <FiShoppingCart size={32} strokeWidth={1.4} className="mx-auto text-slate-300" />
                                     <h3 className="mt-4 text-base font-bold text-slate-900">Keranjang masih kosong</h3>
                                     <p className="mt-1 text-xs text-slate-500">Tambahkan sparepart yang Anda butuhkan.</p>
-                                    <button type="button" onClick={() => setShowCart(false)} className="mt-5 min-h-9 rounded-xl bg-[#0f172a] hover:bg-slate-800 px-5 text-xs font-bold text-white transition-colors">Mulai belanja</button>
+                                    <button type="button" onClick={() => setShowCart(false)} className="mt-5 min-h-9 rounded-xl bg-[#19231f] hover:bg-slate-800 px-5 text-xs font-bold text-white transition-colors">Mulai belanja</button>
                                 </div>
                             )}
                         </div>
@@ -559,7 +559,7 @@ export default function CustomerMenu({
                                     {taxEnabled && <div className="flex justify-between text-slate-500"><dt>Pajak ({Math.round(taxRate * 100)}%)</dt><dd className="font-semibold text-slate-900">{formatRp(tax)}</dd></div>}
                                     <div className="flex justify-between border-t border-slate-200 pt-2 text-sm sm:text-base font-extrabold text-slate-900"><dt>Total estimasi</dt><dd className="text-slate-950 tabular-nums">{formatRp(total)}</dd></div>
                                 </dl>
-                                <button type="button" onClick={goToPayment} className="mt-3.5 flex min-h-11 w-full items-center justify-between rounded-xl bg-[#FFDD00] hover:bg-[#FFE838] px-4 py-2.5 text-xs sm:text-sm font-bold text-[#003882] shadow-xs hover:shadow transition-all cursor-pointer">
+                                <button type="button" onClick={goToPayment} className="mt-3.5 flex min-h-11 w-full items-center justify-between rounded-xl bg-[#FFDD00] hover:bg-[#FFE838] px-4 py-2.5 text-xs sm:text-sm font-bold text-[#19231f] shadow-xs hover:shadow transition-all cursor-pointer">
                                     <span>Lanjut ke pembayaran</span>
                                     <FiArrowRight size={16} />
                                 </button>
@@ -575,12 +575,12 @@ export default function CustomerMenu({
                 <div className="fixed inset-0 overflow-y-auto">
                     <div className="flex min-h-full items-center justify-center p-3 sm:p-6">
                         {selectedDetailProduct && (
-                            <DialogPanel className="relative w-full max-w-[760px] overflow-hidden rounded-2xl bg-white text-slate-900 shadow-2xl">
+                            <DialogPanel className="store-detail-panel relative w-full max-w-[760px] overflow-hidden rounded-lg bg-white text-slate-900">
                                 <button type="button" onClick={() => setSelectedDetailProduct(null)}
                                     className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white/90 backdrop-blur-xs text-slate-600 hover:text-slate-900 transition-colors shadow-2xs cursor-pointer"
                                     aria-label="Tutup detail produk"><FiX size={17} /></button>
                                 <div className="grid sm:grid-cols-2">
-                                    <ProductPhoto src={selectedDetailProduct.image} name={selectedDetailProduct.name} category={selectedDetailProduct.category}
+                                    <ProductPhoto fit="contain" src={selectedDetailProduct.image} name={selectedDetailProduct.name} category={selectedDetailProduct.category}
                                         className="aspect-square w-full sm:aspect-auto sm:min-h-[340px]" />
                                     <div className="px-5 pb-6 pt-6 sm:px-7 sm:pt-10">
                                         <div className="flex items-center gap-2">
@@ -618,7 +618,7 @@ export default function CustomerMenu({
                                         <ul className="mt-3 grid max-h-36 gap-2 overflow-y-auto text-sm text-slate-700 sm:grid-cols-2">
                                             {selectedDetailProduct.motorcycles.map(motor => (
                                                 <li key={motor.id} className="flex items-start gap-2">
-                                                    <FiCheck size={15} className="mt-0.5 shrink-0 text-[#4066AD]" aria-hidden="true" />
+                                                    <FiCheck size={15} className="mt-0.5 shrink-0 text-[#19231f]" aria-hidden="true" />
                                                     <span><span className="font-semibold text-slate-900">{motor.brand} {motor.model}</span>
                                                         {(motor.year_start || motor.year_end) && <span className="block text-xs text-slate-400">{motor.year_start || '…'}–{motor.year_end || 'sekarang'}</span>}
                                                     </span>
@@ -649,7 +649,7 @@ export default function CustomerMenu({
                                         for (let i = 0; i < detailQty; i++) addToCart(selectedDetailProduct);
                                         setSelectedDetailProduct(null);
                                     }} disabled={selectedDetailProduct.stock <= 0} aria-label="Tambah ke keranjang"
-                                        className="flex min-h-10 min-w-[140px] flex-1 items-center justify-center gap-2 rounded-xl bg-[#FFDD00] hover:bg-[#FFE838] px-4 py-2 text-xs sm:text-sm font-bold text-[#003882] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 shadow-xs transition-colors cursor-pointer">
+                                        className="flex min-h-10 min-w-[140px] flex-1 items-center justify-center gap-2 rounded-xl bg-[#FFDD00] hover:bg-[#FFE838] px-4 py-2 text-xs sm:text-sm font-bold text-[#19231f] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 shadow-xs transition-colors cursor-pointer">
                                         <FiPlus size={15} strokeWidth={2.2} aria-hidden="true" />
                                         {selectedDetailProduct.stock <= 0 ? 'Stok habis' : <><span className="sm:hidden">Tambah</span><span className="hidden sm:inline">Ke keranjang</span></>}
                                     </button>
