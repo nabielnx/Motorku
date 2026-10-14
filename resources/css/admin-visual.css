@@ -234,8 +234,14 @@
     font-weight: 600;
     letter-spacing: -0.035em;
 }
+:is(.admin-workspace, .admin-icons .admin-dialog) .admin-dashboard :is(button, select).bg-primary {
+    background: #19231f;
+    border-color: #19231f;
+    color: var(--admin-yellow);
+}
+:is(.admin-workspace, .admin-icons .admin-dialog) .admin-dashboard :is(button, select).bg-primary:hover { background: #2b3931; }
 :is(.admin-workspace, .admin-icons .admin-dialog) .admin-dashboard .relative:has(> select.bg-primary) > svg,
-:is(.admin-workspace, .admin-icons .admin-dialog) .admin-dashboard button.bg-primary svg { color: var(--admin-surface); }
+:is(.admin-workspace, .admin-icons .admin-dialog) .admin-dashboard button.bg-primary svg { color: var(--admin-yellow); }
 :is(.admin-workspace, .admin-icons .admin-dialog) .admin-dashboard-summary {
     border: 1px solid var(--admin-edge);
     border-radius: 12px;
