@@ -4,7 +4,7 @@ import InputLabel from '@/Components/InputLabel';
 import TextInput from '@/Components/TextInput';
 import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, useForm, usePage } from '@inertiajs/react';
-import { FiMail, FiLock, FiLogOut, FiX } from 'react-icons/fi';
+import { FiMail, FiLock, FiLogOut, FiX, FiEye, FiEyeOff } from 'react-icons/fi';
 
 export default function Login({ status }) {
     const { props } = usePage();
@@ -16,6 +16,7 @@ export default function Login({ status }) {
         : (props.flash?.error || props.flash?.warning);
 
     const [showAlert, setShowAlert] = useState(!!alertMessage);
+    const [showPassword, setShowPassword] = useState(false);
 
     const { data, setData, post, processing, errors, reset } = useForm({
         email: '',
@@ -25,7 +26,10 @@ export default function Login({ status }) {
     const submit = (e) => {
         e.preventDefault();
         post(route('login'), {
-            onFinish: () => reset('password'),
+            onFinish: () => {
+                reset('password');
+                setShowPassword(false);
+            },
         });
     };
 
@@ -88,14 +92,25 @@ export default function Login({ status }) {
                         </div>
                         <TextInput
                             id="password"
-                            type="password"
+                            type={showPassword ? 'text' : 'password'}
                             name="password"
                             value={data.password}
-                            className="block w-full pl-10 py-3 bg-gray-50 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-blue-500 transition-colors"
+                            className="block w-full pl-10 pr-12 py-3 bg-gray-50 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-blue-500 transition-colors"
                             autoComplete="current-password"
                             placeholder="Masukkan password"
                             onChange={(e) => setData('password', e.target.value)}
                         />
+                        <button
+                            type="button"
+                            className="absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-r-xl text-gray-500 hover:text-gray-900 transition-colors"
+                            aria-label={showPassword ? 'Sembunyikan password' : 'Tampilkan password'}
+                            aria-controls="password"
+                            aria-pressed={showPassword}
+                            disabled={processing}
+                            onClick={() => setShowPassword((visible) => !visible)}
+                        >
+                            {showPassword ? <FiEyeOff size={18} aria-hidden="true" /> : <FiEye size={18} aria-hidden="true" />}
+                        </button>
                     </div>
                     <InputError message={errors.password} className="mt-2" />
                 </div>
