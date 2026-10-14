@@ -92,3 +92,39 @@ Physical devices, native camera and screen reader testing remain unverified.
 Pixel regression is inconclusive without a baseline. The final extra dark-profile
 screenshot capture timed out; its DOM/CSS palette check succeeded, and earlier
 dark profile and notification captures remain available.
+
+## Product sidebar grouping and yellow icons
+
+Catalog destinations now sit under one native Produk disclosure: Semua Produk,
+Motor, Elektronik, Alat and Sepeda. The existing URLs and owner-role parent guard
+are retained. The bottom Produk shortcut still navigates directly to all products.
+
+Checked desktop, tablet and phone, including dark/light sidebar presentation.
+Click and Enter expand; Space collapses. Tab skips hidden children and reaches
+Data Motor. Clicking Elektronik/Alat routes to the matching group, marks its child
+with aria-current and closes the mobile drawer. Direct Sepeda URL opens the group;
+Semua Produk removes the group filter. Phone drawer content scrolls separately
+from its footer and uses the existing thin scrollbar styling.
+
+Inactive sidebar icons were measured as rgb(255,221,0). Following additional
+feedback, backing boxes were removed; icons on yellow active rows use ink for
+contrast. A separate
+dark-dashboard period-icon contrast issue found during inspection was corrected.
+Existing layout handlers remain identical; two disclosure/child-link handlers
+were added. Build, binding checks, 63 JavaScript tests and whitespace checks passed.
+
+Local evidence: `storage/app/private/admin-product-menu-20261014/`. Checks use
+owned fixtures and browser viewport emulation, not physical devices or a complete
+role/screen-reader audit. No business submission was performed.
+
+The new screenshot exposed a pagination mismatch: the size helper still assumed
+the former 2/3/4/5/6-column grid, while the current grid uses 2/3/4/5 columns.
+Corrected sizes are 16/18/16/20. Existing navigation/pagination tests now cover the
+actual breakpoint boundaries. The server's existing 16/18/20 allowlist suffices.
+Rendered checks at 1920/1500/1100/768/375px measured respectively 5/4/3/3/2
+columns with 20/16/18/18/16 cards on a full page. An old per_page=18 URL corrected
+to 20 at 1920px; document width stayed within each viewport. Final pages with
+fewer remaining products are intentionally partial, without placeholder cards.
+Two pages at 1920px displayed 20 then 8 items, with 28 unique product names and
+no overlap. Binding checks, 58 preserved UI handlers, breakpoint/navigation
+regressions and all 63 JavaScript tests passed after this correction.

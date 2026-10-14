@@ -34,6 +34,24 @@ fixtures provide references for all other content and interaction states.
 
 ## Checkable constraints
 
+### Catalog navigation grouping
+
+Group Semua Produk, Motor, Elektronik, Alat and Sepeda under a single Produk
+disclosure in the existing sidebar. Keep their existing URLs and role access.
+The button opens/closes the group; Semua Produk remains an explicit destination.
+Direct catalog/category navigation opens the group, and the current child has
+aria-current. Closing it hides child links from keyboard focus. Mobile child
+navigation closes the drawer; the existing bottom Produk shortcut remains direct.
+Verify desktop, tablet and phone open/closed states, category navigation, active
+markers and keyboard Enter/Space before publishing to the same open PR.
+Sidebar icons use yellow on the dark rail and ink on yellow active rows, without
+icon backing boxes. Disclosure arrows retain readable contrast.
+
+Catalog pagination must follow the actual 2/3/4/5 column breakpoints with
+16/18/16/20 items, so complete pages fill all columns. The final page can be
+partial when there are fewer remaining products. Verify against rendered columns,
+including responsive resizing and URLs carrying the previous page size.
+
 ### Consistency correction after screenshot feedback
 
 The supplied header and POS view-switch screenshots show residual blue styling,

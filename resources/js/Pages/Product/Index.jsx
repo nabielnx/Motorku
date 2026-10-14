@@ -182,7 +182,7 @@ export default function MenuManagement({
             });
         };
         syncPageSize();
-        const breakpoints = [640, 1024, 1280, 1700].map(width => window.matchMedia(`(min-width: ${width}px)`));
+        const breakpoints = [640, 1280, 1700].map(width => window.matchMedia(`(min-width: ${width}px)`));
         breakpoints.forEach(query => query.addEventListener('change', syncPageSize));
         return () => breakpoints.forEach(query => query.removeEventListener('change', syncPageSize));
     }, [viewMode, perPage]);

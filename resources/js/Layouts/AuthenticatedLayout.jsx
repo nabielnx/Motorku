@@ -222,6 +222,12 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
     const activeUrl = new URL(navigatingDestination || url, 'http://localhost');
     const activePath = activeUrl.pathname;
     const activeCatalogGroup = activeUrl.searchParams.get('group');
+    const catalogMenuIsActive = activePath.startsWith('/products') || activePath.startsWith('/categories');
+    const [isProductsMenuOpen, setIsProductsMenuOpen] = useState(catalogMenuIsActive);
+
+    useEffect(() => {
+        if (catalogMenuIsActive) setIsProductsMenuOpen(true);
+    }, [catalogMenuIsActive, activePath, activeCatalogGroup]);
 
     const isItemActive = (itemHref) => {
         if (!itemHref) return false;
@@ -266,17 +272,21 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                     name: getTranslation(locale, 'menu_produk', 'Produk'),
                     icon: FiPackage,
                     href: safeRoute('products.index', '/products'),
-                    active: (isItemActive('/products') && !activeCatalogGroup) || activePath.startsWith('/categories'),
-                    roles: ['owner']
-                },
-                ...catalogGroups.map(([group, name]) => ({
-                    name,
-                    icon: FiPackage,
-                    href: `${safeRoute('products.index', '/products')}?group=${group}`,
-                    active: isItemActive('/products') && activeCatalogGroup === group,
+                    active: catalogMenuIsActive,
                     roles: ['owner'],
-                    nested: true,
-                })),
+                    children: [
+                        {
+                            name: locale === 'en' ? 'All Products' : 'Semua Produk',
+                            href: safeRoute('products.index', '/products'),
+                            active: (isItemActive('/products') && !activeCatalogGroup) || activePath.startsWith('/categories'),
+                        },
+                        ...catalogGroups.map(([group, name]) => ({
+                            name,
+                            href: `${safeRoute('products.index', '/products')}?group=${group}`,
+                            active: isItemActive('/products') && activeCatalogGroup === group,
+                        })),
+                    ],
+                },
                 {
                     name: 'Data Motor',
                     icon: MotorIcon,
@@ -370,7 +380,7 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                 </div>
 
                 {/* Navigation Links — Scrollable */}
-                <nav className="admin-navigation flex-1 overflow-y-auto p-3 space-y-5">
+                <nav className="admin-navigation custom-scrollbar flex-1 overflow-y-auto p-3 space-y-5">
                     {visibleSections.map((section, sIndex) => (
                         <div key={sIndex}>
                             {/* Section Label */}
@@ -382,13 +392,44 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                             <div className="space-y-0.5">
                                 {section.items.map((item, iIndex) => {
                                     const Icon = item.icon;
+                                    if (item.children) {
+                                        return (
+                                            <div key={item.href}>
+                                                <button
+                                                    type="button"
+                                                    aria-expanded={isProductsMenuOpen}
+                                                    aria-controls="admin-product-submenu"
+                                                    onClick={() => setIsProductsMenuOpen(open => !open)}
+                                                    className={`admin-nav-link admin-nav-parent flex w-full items-center gap-3 text-left ${item.active ? 'admin-nav-link--active' : ''}`}
+                                                >
+                                                    <Icon size={17} aria-hidden="true" />
+                                                    <span className="flex-1">{item.name}</span>
+                                                    <FiChevronDown size={15} className={isProductsMenuOpen ? 'rotate-180' : ''} aria-hidden="true" />
+                                                </button>
+                                                <ul id="admin-product-submenu" className="admin-nav-submenu" hidden={!isProductsMenuOpen}>
+                                                    {item.children.map(child => (
+                                                        <li key={child.href}>
+                                                            <Link
+                                                                href={child.href}
+                                                                aria-current={child.active ? 'page' : undefined}
+                                                                onClick={() => setIsSidebarOpen(false)}
+                                                                className={`admin-nav-child ${child.active ? 'admin-nav-child--active' : ''}`}
+                                                            >
+                                                                {child.name}
+                                                            </Link>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        );
+                                    }
                                     return (
                                         <Link
                                             key={iIndex}
                                             href={item.href}
                                             aria-current={item.active ? 'page' : undefined}
                                             onClick={() => setIsSidebarOpen(false)}
-                                            className={`admin-nav-link flex items-center gap-3 ${item.nested ? 'pl-10 pr-4 py-2 text-xs' : 'px-6 py-2.5'} transition-colors font-semibold text-[13px] ${
+                                            className={`admin-nav-link flex items-center gap-3 px-6 py-2.5 transition-colors font-semibold text-[13px] ${
                                                 item.active 
                                                     ? 'admin-nav-link--active font-bold'
                                                     : 'text-slate-600 dark:text-slate-300'

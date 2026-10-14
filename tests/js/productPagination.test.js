@@ -4,7 +4,7 @@ import { prepareProductVisit, productPageSize } from '../../resources/js/Utils/p
 
 test('all catalog destinations request the correct grid size before loading', () => {
     for (const group of ['', 'automotive', 'electronics', 'hardware', 'bicycle']) {
-        for (const [width, size] of [[600, 16], [800, 18], [1100, 16], [1500, 20], [1920, 18]]) {
+        for (const [width, size] of [[375, 16], [639, 16], [640, 18], [800, 18], [1100, 18], [1279, 18], [1280, 16], [1500, 16], [1699, 16], [1700, 20], [1920, 20]]) {
             const visit = { method: 'get', url: new URL(`http://localhost/products?group=${group}&search=oil`) };
             prepareProductVisit(visit, 'grid', width);
             assert.equal(visit.url.searchParams.get('per_page'), String(size));
