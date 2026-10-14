@@ -96,8 +96,8 @@ export default function MotoQuickPromoSection({
     };
 
     return (
-        <div className="mb-5">
-            <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden select-none">
+        <div className="store-promo mb-5">
+            <div className="relative rounded-lg overflow-hidden select-none">
                 {/* ══ Desktop Navigation Arrows ══ */}
                 {canScrollLeft && (
                     <button
@@ -136,9 +136,7 @@ export default function MotoQuickPromoSection({
                     }}
                     className="relative z-10 flex items-stretch gap-2 sm:gap-2.5 overflow-x-auto no-scrollbar scroll-smooth snap-x snap-mandatory py-2.5 sm:py-3 cursor-grab active:cursor-grabbing"
                     style={{
-                        backgroundImage: bannerUrl ? `linear-gradient(to right, transparent ${bannerWidth}px, #4066AD ${bannerWidth}px)` : 'none',
-                        backgroundColor: bannerUrl ? 'transparent' : '#4066AD',
-                        backgroundAttachment: 'local',
+                        backgroundColor: '#19231f',
                     }}
                 >
                     {bannerUrl && (
@@ -174,7 +172,7 @@ export default function MotoQuickPromoSection({
                                     if (hasDraggedRef.current) return;
                                     onProductClick && onProductClick(item);
                                 }}
-                                className="group flex flex-col justify-between rounded-xl sm:rounded-2xl border border-slate-200/90 bg-white shadow-2xs hover:border-slate-300 hover:shadow-xs transition-all relative overflow-hidden cursor-pointer active:scale-[0.99] w-[calc((100%-20px)/3.25)] sm:w-[calc((100%-24px)/3.35)] md:w-[155px] shrink-0 snap-start"
+                                className="group flex flex-col justify-between rounded-xl sm:rounded-lg border border-slate-200/90 bg-white shadow-2xs hover:border-slate-300 hover:shadow-xs transition-all relative overflow-hidden cursor-pointer active:scale-[0.99] w-[calc((100%-20px)/3.25)] sm:w-[calc((100%-24px)/3.35)] md:w-[155px] shrink-0 snap-start"
                             >
                                 <div>
                                     <div className="relative block w-full overflow-hidden text-left bg-slate-50/80">
@@ -229,12 +227,12 @@ export default function MotoQuickPromoSection({
                 <div role="group" aria-label="Kontrol banner promo" className="mt-0.5 flex items-center justify-center">
                     {bannerUrls.map((url, index) => (
                         <button key={index} type="button" onClick={() => setBannerIndex(index)} aria-label={`Tampilkan banner promo ${index + 1}`} aria-pressed={bannerIndex === index}
-                            className="flex h-5 w-4 items-center justify-center rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#4066AD]">
-                            <span className={`h-1 rounded-full shadow-[0_0_2px_rgba(0,0,0,0.6)] transition-all ${bannerIndex === index ? 'w-2 bg-[#FFDD00]' : 'w-1 bg-slate-400'}`} />
+                            className="flex h-5 w-4 items-center justify-center rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#19231f]">
+                            <span className={`h-1 rounded-full  transition-all ${bannerIndex === index ? 'w-2 bg-[#FFDD00]' : 'w-1 bg-slate-400'}`} />
                         </button>
                     ))}
                     <button type="button" onClick={() => setBannerPaused(value => !value)} aria-label={bannerPaused ? 'Putar banner promo otomatis' : 'Jeda banner promo otomatis'}
-                        className="flex h-5 w-5 items-center justify-center rounded-full text-slate-500 drop-shadow-[0_0_2px_rgba(0,0,0,0.6)] hover:text-[#4066AD] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#4066AD]">
+                        className="flex h-5 w-5 items-center justify-center rounded-full text-slate-500  hover:text-[#19231f] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#19231f]">
                         {bannerPaused ? <FiPlay size={10} aria-hidden="true" /> : <FiPause size={10} aria-hidden="true" />}
                     </button>
                 </div>

@@ -37,7 +37,7 @@ export default function Login({ status }) {
 
             {/* ALERT SESSION EXPIRED BANNER */}
             {showAlert && alertMessage && (
-                <div className="mb-5 bg-rose-100/90 border border-rose-200 text-rose-600 text-xs sm:text-sm font-medium rounded-xl p-3.5 sm:p-4 flex items-center justify-between shadow-2xs transition-all animate-in fade-in duration-200">
+                <div role="alert" className="mb-5 bg-rose-50 border border-rose-200 text-rose-600 text-xs sm:text-sm font-medium rounded-xl p-3.5 sm:p-4 flex items-center justify-between shadow-2xs transition-all animate-in fade-in duration-200">
                     <span>{alertMessage}</span>
                     <button
                         type="button"
@@ -51,12 +51,12 @@ export default function Login({ status }) {
             )}
 
             {status && (
-                <div className="mb-4 text-sm font-medium text-green-600">
+                <div role="status" className="mb-4 text-sm font-medium text-green-600">
                     {status}
                 </div>
             )}
 
-            <form onSubmit={submit} className="space-y-6">
+            <form onSubmit={submit} className="space-y-5">
                 {/* Input Email */}
                 <div>
                     <InputLabel htmlFor="email" value="Email" className="font-bold text-gray-700" />
@@ -105,9 +105,9 @@ export default function Login({ status }) {
                     <button
                         type="submit"
                         disabled={processing}
-                        className={`w-full flex justify-center items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-blue-600/30 transition-all active:scale-95 ${processing && 'opacity-50 cursor-not-allowed'}`}
+                        className={`w-full flex justify-center items-center gap-2 auth-primary font-semibold py-3 px-4 rounded-lg transition-colors ${processing && 'cursor-wait'}`}
                     >
-                        <FiLogOut className="rotate-180" size={18} /> Masuk ke Dashboard Motorku
+                        <FiLogOut className="rotate-180" size={18} /> {processing ? 'Memproses...' : 'Masuk ke Dashboard Motorku'}
                     </button>
                 </div>
 

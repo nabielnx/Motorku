@@ -2,8 +2,8 @@ import Skeleton, { SkeletonWrapper } from '@/Components/Skeleton';
 
 export default function WaitingSkeleton() {
     return (
-        <SkeletonWrapper className="h-full w-full bg-slate-100 font-sans text-slate-800 flex justify-center overflow-y-auto min-h-screen">
-            <div className="w-full max-w-md bg-white min-h-full shadow-2xl flex flex-col items-center p-6 space-y-6">
+        <SkeletonWrapper className="customer-storefront customer-flow h-full w-full bg-slate-100 font-sans text-slate-800 flex justify-center overflow-y-auto min-h-screen">
+            <div className="customer-frame w-full max-w-md bg-white min-h-full shadow-2xl flex flex-col items-center p-6 space-y-6">
                 {/* ═══ HEADER ICON & TITLE ═══ */}
                 <div className="text-center space-y-2 pt-6 flex flex-col items-center w-full">
                     <Skeleton variant="circle" className="w-16 h-16 shadow-inner" />
@@ -12,7 +12,7 @@ export default function WaitingSkeleton() {
                 </div>
 
                 {/* ═══ ORDER DETAILS CARD ═══ */}
-                <div className="w-full bg-slate-50 rounded-2xl p-5 space-y-3 border border-slate-100">
+                <div className="w-full bg-slate-50 rounded-lg p-5 space-y-3 border border-slate-100">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <Skeleton className="w-3.5 h-3.5 rounded" />
@@ -41,7 +41,7 @@ export default function WaitingSkeleton() {
                 </div>
 
                 {/* ═══ RINCIAN PESANAN (INVOICE) CARD ═══ */}
-                <div className="w-full bg-slate-50 border border-slate-200/80 rounded-2xl p-4 space-y-3">
+                <div className="w-full bg-slate-50 border border-slate-200/80 rounded-lg p-4 space-y-3">
                     <div className="flex items-center justify-between border-b border-slate-200 pb-2">
                         <div className="flex items-center gap-1.5">
                             <Skeleton className="w-3.5 h-3.5 rounded" />
@@ -80,7 +80,7 @@ export default function WaitingSkeleton() {
                 </div>
 
                 {/* ═══ STATUS BANNER ═══ */}
-                <div className="w-full bg-yellow-50/80 border border-yellow-200/70 rounded-2xl p-4 flex items-center gap-3">
+                <div className="w-full bg-yellow-50/80 border border-yellow-200/70 rounded-lg p-4 flex items-center gap-3">
                     <Skeleton variant="circle" className="w-5 h-5 shrink-0" />
                     <div className="space-y-1 flex-1">
                         <Skeleton className="h-3.5 w-40" />

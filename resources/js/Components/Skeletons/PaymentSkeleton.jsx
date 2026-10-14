@@ -5,8 +5,8 @@ import Skeleton, { SkeletonWrapper } from '@/Components/Skeleton';
  */
 export default function PaymentSkeleton() {
     return (
-        <SkeletonWrapper className="h-full w-full bg-slate-100 font-sans text-slate-800 flex justify-center overflow-y-auto min-h-screen">
-            <div className="w-full max-w-md bg-white min-h-full shadow-2xl flex flex-col pb-24">
+        <SkeletonWrapper className="customer-storefront customer-flow h-full w-full bg-slate-100 font-sans text-slate-800 flex justify-center overflow-y-auto min-h-screen">
+            <div className="customer-frame w-full max-w-md bg-white min-h-full shadow-2xl flex flex-col pb-24">
                 {/* ═══ HEADER ═══ */}
                 <header className="sticky top-0 bg-white border-b border-slate-100 p-4 flex items-center justify-between z-10">
                     <Skeleton className="w-5 h-5 rounded" />
@@ -16,7 +16,7 @@ export default function PaymentSkeleton() {
                 {/* ═══ CONTENT ═══ */}
                 <div className="flex-1 p-4 space-y-4">
                     {/* Order Info Banner (Ambil di Toko) */}
-                    <div className="bg-blue-50 border border-blue-200/60 rounded-2xl p-4 space-y-2">
+                    <div className="bg-stone-50 border border-stone-200/60 rounded-lg p-4 space-y-2">
                         <div className="flex items-center gap-2">
                             <Skeleton className="w-4 h-4 rounded" />
                             <Skeleton className="h-3.5 w-28" />
@@ -75,7 +75,7 @@ export default function PaymentSkeleton() {
                     {/* Cashier payment method */}
                     <div className="space-y-2">
                         <Skeleton className="h-3 w-40" />
-                        <div className="flex items-center gap-3 rounded-xl bg-blue-50 px-4 py-3"><Skeleton className="h-5 w-5" /><div className="space-y-1"><Skeleton className="h-3 w-28" /><Skeleton className="h-2.5 w-52" /></div></div>
+                        <div className="flex items-center gap-3 rounded-xl bg-stone-50 px-4 py-3"><Skeleton className="h-5 w-5" /><div className="space-y-1"><Skeleton className="h-3 w-28" /><Skeleton className="h-2.5 w-52" /></div></div>
                     </div>
                 </div>
 
