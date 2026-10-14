@@ -12,16 +12,32 @@ export default function ReportSkeleton() {
                 <Skeleton className="h-9 w-32 rounded-lg" />
             </div>
 
+            {/* 4 KPI Cards */}
+            <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
+                {Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 transition-colors">
+                        <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0 space-y-1.5 flex-1">
+                                <Skeleton className="h-2.5 w-3/4" />
+                                <Skeleton className="h-6 w-full" />
+                                <Skeleton className="h-2.5 w-2/3" />
+                            </div>
+                            <Skeleton className="w-5 h-5 shrink-0" />
+                        </div>
+                    </div>
+                ))}
+            </div>
+
             {/* Daily cash closing */}
             <section className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 space-y-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="space-y-1"><Skeleton className="h-4 w-36" /><Skeleton className="h-3 w-40" /></div>
                     <Skeleton className="h-10 w-36 rounded-lg" />
                 </div>
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                     {Array.from({ length: 4 }).map((_, i) => <div key={i} className="space-y-1"><Skeleton className="h-3 w-24" />{i === 0 || i === 3 ? <Skeleton className="h-10 w-full rounded-lg" /> : <Skeleton className="h-4 w-24 mt-2" />}</div>)}
                 </div>
-                <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 border-t border-slate-200 dark:border-slate-800 pt-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 border-t border-slate-200 dark:border-slate-800 pt-3">
                     <div className="space-y-1"><Skeleton className="h-3 w-24" /><Skeleton className="h-6 w-32" /></div>
                     <div className="space-y-1"><Skeleton className="h-3 w-36" /><Skeleton className="h-10 w-full rounded-lg" /></div>
                     <div className="space-y-1"><Skeleton className="h-3 w-12" /><Skeleton className="h-6 w-24" /></div>
@@ -29,22 +45,6 @@ export default function ReportSkeleton() {
                 <Skeleton className="h-9 w-full rounded-lg" />
                 <Skeleton className="h-8 w-36 rounded-lg" />
             </section>
-
-            {/* 4 KPI Cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                {Array.from({ length: 4 }).map((_, i) => (
-                    <div key={i} className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 transition-colors">
-                        <div className="flex items-start justify-between gap-2">
-                            <div className="min-w-0 space-y-1.5 flex-1">
-                                <Skeleton className="h-2.5 w-24" />
-                                <Skeleton className="h-6 w-28" />
-                                <Skeleton className="h-2.5 w-20" />
-                            </div>
-                            <Skeleton className="w-5 h-5 shrink-0" />
-                        </div>
-                    </div>
-                ))}
-            </div>
 
             {/* Content Grid: Top Products (3 cols) + Category Breakdown (2 cols) */}
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">

@@ -376,8 +376,8 @@ export default function SettingIndex() {
           </div>
         )}
 
-        <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4 transition-colors">
-          <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
+        <div className="admin-surface admin-setting-section bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4 transition-colors">
+          <div className="admin-section-header flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
             <FiHome className="text-blue-600 dark:text-yellow-400" size={20} />
             <h3 className="font-extrabold text-base text-slate-900 dark:text-white">Logo Toko</h3>
           </div>
@@ -424,8 +424,8 @@ export default function SettingIndex() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
-          <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
+        <div className="admin-surface admin-setting-section bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
+          <div className="admin-section-header flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
             <FiUpload className="text-blue-600 dark:text-yellow-400" size={20} />
             <h3 className="font-extrabold text-base text-slate-900 dark:text-white">Gambar QRIS Toko</h3>
           </div>
@@ -448,8 +448,8 @@ export default function SettingIndex() {
         </div>
 
         {/* LOGIN IMAGE SECTION */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
-          <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
+        <div className="admin-surface admin-setting-section bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
+          <div className="admin-section-header flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
             <FiUpload className="text-blue-600 dark:text-yellow-400" size={20} />
             <h3 className="font-extrabold text-base text-slate-900 dark:text-white">Gambar Halaman Login</h3>
           </div>
@@ -484,7 +484,7 @@ export default function SettingIndex() {
         </div>
 
         {/* PROMO BANNER SECTION */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4 transition-colors">
+        <div className="admin-surface admin-setting-section bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4 transition-colors">
           <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
             <FiUpload className="shrink-0 text-blue-600 dark:text-yellow-400" size={20} />
             <h3 className="min-w-0 flex-1 font-extrabold text-base text-slate-900 dark:text-white">Banner Promo Self-Order</h3>
@@ -562,8 +562,8 @@ export default function SettingIndex() {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {sections.map(({ title, icon: Icon, fields }) => (
-            <div key={title} className="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4 transition-colors">
-              <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
+            <div key={title} className="admin-surface admin-setting-section bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4 transition-colors">
+              <div className="admin-section-header flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
                 <Icon className="text-blue-600 dark:text-yellow-400" size={20} />
                 <h3 className="font-extrabold text-base text-slate-900 dark:text-white">{title}</h3>
               </div>

@@ -499,7 +499,7 @@ export default function MenuManagement({
 
             <div className="p-0 sm:p-4 lg:p-5 flex-1 min-h-0 flex flex-col overflow-hidden">
                 {/* UNIFIED PRODUCT MANAGEMENT CONTAINER */}
-                <div className="bg-white dark:bg-slate-900 sm:rounded-xl sm:border border-slate-200 dark:border-slate-800 sm:shadow-xs flex-1 min-h-0 flex flex-col overflow-hidden">
+                <div className="admin-surface bg-white dark:bg-slate-900 sm:rounded-xl sm:border border-slate-200 dark:border-slate-800 sm:shadow-xs flex-1 min-h-0 flex flex-col overflow-hidden">
                     {/* Compact Header & Filter Section */}
                     <div className="product-toolbar p-2.5 sm:p-3.5 space-y-2 sm:space-y-2.5 border-b border-slate-200 dark:border-slate-800 shrink-0 bg-white dark:bg-slate-900 z-10">
                         {/* Top Row: Title, Badge, Tabs & Action */}
@@ -701,7 +701,7 @@ export default function MenuManagement({
                                  {/* Right: Toggle View and Status Buttons */}
                                  <div className="hidden sm:flex flex-row items-center gap-2 self-start sm:self-auto shrink-0">
                                      {/* View Toggle */}
-                                     <div className="inline-flex items-center bg-white dark:bg-slate-800 p-0.5 rounded-lg border border-slate-300 dark:border-slate-700 shadow-2xs">
+                                     <div className="admin-surface inline-flex items-center bg-white dark:bg-slate-800 p-0.5 rounded-lg border border-slate-300 dark:border-slate-700 shadow-2xs">
                                          <button
                                              type="button"
                                              onClick={() => handleViewModeChange('grid')}
@@ -852,10 +852,10 @@ export default function MenuManagement({
                                     /* GRID VIEW */
                                     <div className="grid grid-cols-2 gap-2 p-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 min-[1700px]:grid-cols-6 md:gap-3 md:p-4">
                                         {filteredItems.map(item => (
-                                            <div key={item.id} className="bg-white dark:bg-slate-800 rounded-md md:rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden md:shadow-xs hover:shadow-md hover:border-slate-400 dark:hover:border-slate-500 transition-all flex flex-col relative group">
+                                            <div key={item.id} className="admin-surface admin-catalog-card bg-white dark:bg-slate-800 rounded-md md:rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden md:shadow-xs hover:shadow-md hover:border-slate-400 dark:hover:border-slate-500 transition-all flex flex-col relative group">
                                                 {/* Image Container */}
                                                 <div
-                                                    className="relative w-full aspect-square bg-slate-50 dark:bg-slate-900 cursor-pointer overflow-hidden border-b border-slate-100 dark:border-slate-700"
+                                                    className="relative w-full aspect-[4/3] bg-slate-50 dark:bg-slate-900 cursor-pointer overflow-hidden border-b border-slate-100 dark:border-slate-700"
                                                     onClick={(e) => { e.stopPropagation(); setPreviewProduct(item); }}
                                                 >
                                                     <ProductPhoto src={item.image} name={item.name} category={item.category} className="absolute inset-0 w-full h-full" />
@@ -878,7 +878,7 @@ export default function MenuManagement({
                                                         </h3>
                                                     </div>
                                                     <div className="mt-auto">
-                                                        <p className="font-black text-slate-900 dark:text-white text-xs md:text-base">
+                                                        <p className="admin-number font-semibold text-slate-900 dark:text-white text-xs md:text-base">
                                                             Rp {Number(item.price).toLocaleString('id-ID')}
                                                         </p>
                                                         <p className="text-xs md:text-xs mt-1 truncate">

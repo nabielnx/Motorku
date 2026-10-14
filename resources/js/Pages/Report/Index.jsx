@@ -201,7 +201,7 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
                         {periodOpen && (
                             <>
                                 <div className="fixed inset-0 z-30" onClick={() => setPeriodOpen(false)} />
-                                <div className="absolute left-0 top-full mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-lg z-40 py-1 min-w-[180px]">
+                                <div className="admin-surface absolute left-0 top-full mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-lg z-40 py-1 min-w-[180px]">
                                     {presets().map((p, i) => (
                                         <button
                                             key={i}
@@ -226,7 +226,7 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
                 </div>
 
                 {/* KPI Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+                <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
                     {[
                         {
                             label: 'Pendapatan Setelah Retur',
@@ -253,14 +253,14 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
                             icon: FiDollarSign,
                         },
                     ].map((kpi, i) => (
-                        <div key={i} className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 transition-colors">
-                            <div className="flex items-start justify-between gap-2">
-                                <div className="min-w-0">
-                                    <p className="font-bold uppercase tracking-wider admin-help">{kpi.label}</p>
-                                    <p className={`text-lg font-black dark:text-white mt-1 leading-tight break-words ${i === 0 ? 'text-primaryDark' : 'text-slate-900'}`}>{kpi.value}</p>
+                        <div key={i} className="admin-surface bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 transition-colors">
+                            <div className="relative flex items-start justify-between gap-2">
+                                <div className="min-w-0 flex-1">
+                                    <p className="min-h-8 pr-6 font-medium admin-help">{kpi.label}</p>
+                                    <p className={`admin-number text-base sm:text-lg font-semibold dark:text-white mt-1 leading-tight break-words ${i === 0 ? 'text-primaryDark' : 'text-slate-900'}`}>{kpi.value}</p>
                                     {kpi.sub && <p className="font-medium mt-1 break-words admin-help">{kpi.sub}</p>}
                                 </div>
-                                <div className="flex items-center justify-center shrink-0 text-primary dark:text-blue-300">
+                                <div className="absolute right-0 top-0 flex items-center justify-center text-primary dark:text-blue-300">
                                     <kpi.icon size={19} strokeWidth={2} />
                                 </div>
                             </div>
@@ -268,10 +268,10 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
                     ))}
                 </div>
 
-                <section className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 space-y-3">
+                <section className="admin-surface bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 space-y-3">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                         <div>
-                            <h3 className="text-sm font-extrabold text-primaryDark dark:text-white">Cocokkan Kas Harian</h3>
+                            <h3 className="text-sm font-semibold text-primaryDark dark:text-white">Cocokkan Kas Harian</h3>
                             <p className="text-xs text-slate-500">Rekap uang fisik per tanggal</p>
                         </div>
                         <input type="date" aria-label="Tanggal rekap kas" max={today} value={cashDate} onChange={e => setCashDate(e.target.value)} className="min-w-0 max-w-full admin-control" />
@@ -284,9 +284,9 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
                             <label>Pengeluaran kas (Rp)<MoneyInput  min="0" value={cashOut} disabled={!!cashSummary.closing} onChange={e => setCashOut(e.target.value)} className="mt-1 w-full admin-control" /></label>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 border-t border-slate-200 dark:border-slate-800 pt-3 text-xs">
-                            <div>Seharusnya ada<p className="mt-1 text-lg font-black text-primaryDark dark:text-white">{formatRp(cashSummary.closing?.expected_cash ?? expectedCash)}</p></div>
+                            <div>Seharusnya ada<p className="mt-1 admin-number text-lg font-semibold text-primaryDark dark:text-white">{formatRp(cashSummary.closing?.expected_cash ?? expectedCash)}</p></div>
                             <label>Uang fisik terhitung (Rp)<MoneyInput  min="0" value={actualCash} disabled={!!cashSummary.closing} onChange={e => setActualCash(e.target.value)} className="mt-1 w-full admin-control" /></label>
-                            <div>Selisih<p className={`mt-1 text-lg font-black ${Number(cashSummary.closing?.difference ?? cashDifference) === 0 ? 'text-primaryDark dark:text-white' : 'text-red-600'}`}>{cashDifference === null && !cashSummary.closing ? '—' : formatRp(cashSummary.closing?.difference ?? cashDifference)}</p></div>
+                            <div>Selisih<p className={`mt-1 admin-number text-lg font-semibold ${Number(cashSummary.closing?.difference ?? cashDifference) === 0 ? 'text-primaryDark dark:text-white' : 'text-red-600'}`}>{cashDifference === null && !cashSummary.closing ? '—' : formatRp(cashSummary.closing?.difference ?? cashDifference)}</p></div>
                         </div>
                         <input type="text" maxLength="255" placeholder="Catatan selisih / pengeluaran (opsional)" value={cashNotes} disabled={!!cashSummary.closing} onChange={e => setCashNotes(e.target.value)} className="w-full admin-control" />
                         {cashSummary.closing ? <p className="text-xs font-bold text-primaryDark dark:text-white">Kas ditutup. Rekap terkunci; transaksi setelahnya tidak masuk rekap ini.</p> : (
@@ -299,16 +299,16 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
                 <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
 
                     {/* Top Selling — 3 cols */}
-                    <div className="lg:col-span-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden transition-colors">
-                        <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
-                            <h3 className="text-sm font-extrabold text-primaryDark dark:text-white">Produk Terlaris</h3>
+                    <div className="admin-surface lg:col-span-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden transition-colors">
+                        <div className="admin-section-header px-4 py-3 border-b border-slate-100 dark:border-slate-800">
+                            <h3 className="text-sm font-semibold text-primaryDark dark:text-white">Produk Terlaris</h3>
                             <p className="font-medium mt-0.5 admin-help">Top 5 berdasarkan porsi terjual</p>
                             <p className="sm:hidden mt-1 admin-help">Geser tabel untuk melihat semua kolom.</p>
                         </div>
                         <div className="overflow-x-auto">
                             <table className="w-full min-w-[560px] text-left text-xs">
                                 <thead>
-                                    <tr className="border-b border-slate-100 dark:border-slate-800 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider bg-slate-50/60 dark:bg-slate-800/60">
+                                    <tr className="border-b border-slate-100 dark:border-slate-800 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider bg-slate-50 dark:bg-slate-800">
                                         <th className="py-2.5 px-4 w-8">#</th>
                                         <th className="py-2.5 px-4">Produk</th>
                                         <th className="py-2.5 px-4">Kategori</th>
@@ -327,7 +327,7 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
                                                 </span>
                                             </td>
                                             <td className="py-2.5 px-4 text-center font-bold text-slate-900 dark:text-white">{item.sold}</td>
-                                            <td className="py-2.5 px-4 text-right font-bold text-slate-900 dark:text-white">{formatRp(item.revenue)}</td>
+                                            <td className="py-2.5 px-4 admin-number text-right font-semibold text-slate-900 dark:text-white">{formatRp(item.revenue)}</td>
                                         </tr>
                                     )) : (
                                         <tr>
@@ -342,9 +342,9 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
                     </div>
 
                     {/* Category Breakdown — 2 cols */}
-                    <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden transition-colors">
-                        <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
-                            <h3 className="text-sm font-extrabold text-primaryDark dark:text-white">Penjualan Kotor per Kategori</h3>
+                    <div className="admin-surface lg:col-span-2 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden transition-colors">
+                        <div className="admin-section-header px-4 py-3 border-b border-slate-100 dark:border-slate-800">
+                            <h3 className="text-sm font-semibold text-primaryDark dark:text-white">Penjualan Kotor per Kategori</h3>
                             <p className="font-medium mt-0.5 admin-help">
                                 Total {formatRp(categoryBreakdown.reduce((s, c) => s + c.amount, 0))}
                             </p>

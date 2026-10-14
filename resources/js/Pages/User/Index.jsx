@@ -265,8 +265,8 @@ export default function UserIndex({ initialUsers = {}, activeOwnersCount = 0, ma
                 {isNavigating ? (
                     <UserTableSkeleton />
                 ) : (
-                <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden transition-colors">
-                    <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-800 flex flex-wrap items-center gap-2">
+                <div className="admin-surface bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden transition-colors">
+                    <div className="admin-section-header px-4 py-3 border-b border-slate-200 dark:border-slate-800 flex flex-wrap items-center gap-2">
                         <span className="text-xs font-bold text-slate-500 dark:text-slate-400 mr-1">Peran</span>
                         {['All', 'owner', 'cashier'].map(r => (
                             <button key={r} onClick={() => handleRoleFilterChange(r)} className={`px-3 py-1.5 rounded-md text-xs font-bold capitalize transition cursor-pointer ${roleFilter === r ? 'bg-primary text-white' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-300 dark:border-slate-700 hover:border-primary'}`}>
@@ -275,8 +275,8 @@ export default function UserIndex({ initialUsers = {}, activeOwnersCount = 0, ma
                         ))}
                     </div>
                     <div className="overflow-x-auto">
-                        <table className="block lg:table w-full text-left">
-                            <thead className="hidden lg:table-header-group">
+                        <table className="admin-staff-table block md:table w-full text-left">
+                            <thead className="hidden md:table-header-group">
                                 <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-400 dark:text-slate-500 font-bold text-xs uppercase sticky top-0 z-10 bg-slate-50/60 dark:bg-slate-800/90">
                                     <th className="py-3.5 px-5 bg-slate-50/60 dark:bg-slate-800/90">Pegawai</th>
                                     <th className="py-3.5 px-5 bg-slate-50/60 dark:bg-slate-800/90">Role</th>
@@ -284,7 +284,7 @@ export default function UserIndex({ initialUsers = {}, activeOwnersCount = 0, ma
                                     <th className="py-3.5 px-5 text-right bg-slate-50/60 dark:bg-slate-800/90">Aksi</th>
                                 </tr>
                             </thead>
-                            <tbody className="block lg:table-row-group divide-y divide-slate-100 dark:divide-slate-800">
+                            <tbody className="block md:table-row-group divide-y divide-slate-100 dark:divide-slate-800">
                                 {filtered.map(user => {
                                     const roleName = user.roles?.[0]?.name || 'cashier';
                                     const badge = ROLE_BADGES[roleName] || { label: roleName, color: 'bg-slate-100 text-slate-700' };
@@ -296,8 +296,8 @@ export default function UserIndex({ initialUsers = {}, activeOwnersCount = 0, ma
                                         : (isLastOwnerRow ? "Tidak dapat menghapus owner terakhir yang aktif" : "Hapus Staf");
 
                                     return (
-                                        <tr key={user.id} className="grid grid-cols-2 lg:table-row hover:bg-slate-50/60 dark:hover:bg-slate-800/50 transition-colors">
-                                            <td className="block lg:table-cell col-span-2 min-w-0 py-4 px-4 lg:px-5">
+                                        <tr key={user.id} className="grid grid-cols-2 md:table-row hover:bg-slate-50/60 dark:hover:bg-slate-800/50 transition-colors">
+                                            <td className="block md:table-cell col-span-2 min-w-0 py-4 px-4 md:px-4">
                                                 <div className="flex items-center gap-3">
                                                     {user.avatar ? (
                                                         <img 
@@ -319,22 +319,22 @@ export default function UserIndex({ initialUsers = {}, activeOwnersCount = 0, ma
                                                                 </span>
                                                             )}
                                                         </div>
-                                                        <p className="break-all text-xs text-slate-400 dark:text-slate-500">{user.email}</p>
+                                                        <p className="break-all text-xs text-slate-600 dark:text-slate-400">{user.email}</p>
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="block lg:table-cell min-w-0 px-4 pb-3 lg:py-4 lg:px-5">
-                                                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold border ${badge.color}`}>
+                                            <td className="block md:table-cell min-w-0 px-4 pb-3 md:py-3 md:px-4">
+                                                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-xs font-semibold border ${badge.color}`}>
                                                     <FiShield size={12} />{badge.label}
                                                 </span>
                                             </td>
-                                            <td className="block lg:table-cell min-w-0 px-4 pb-3 lg:py-4 lg:px-5 text-right lg:text-left">
+                                            <td className="block md:table-cell min-w-0 px-4 pb-3 md:py-3 md:px-4 text-right md:text-left">
                                                 <span className={`inline-flex items-center gap-1 text-xs font-bold ${user.is_active !== false ? 'text-primaryDark dark:text-blue-300' : 'text-red-600'}`}>
                                                     {user.is_active === false ? <FiUserX size={14} /> : user.invitation_pending || !user.email_verified_at ? <FiMail size={14} /> : <FiUserCheck size={14} />}
                                                     {user.is_active === false ? 'Nonaktif' : user.invitation_pending ? 'Menunggu aktivasi' : !user.email_verified_at ? 'Belum verifikasi' : 'Aktif'}
                                                 </span>
                                             </td>
-                                            <td className="block lg:table-cell col-span-2 px-4 pb-3 lg:py-4 lg:px-5 text-right">
+                                            <td className="block md:table-cell col-span-2 px-4 pb-3 md:py-3 md:px-4 text-right">
                                                 <div className="flex items-center justify-end gap-2">
                                                     {user.invitation_pending && user.is_active !== false && (
                                                         <button onClick={() => resendInvitation(user)} disabled={loading} className="p-2 text-primary hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg disabled:opacity-40 admin-icon-button" title="Kirim ulang undangan" aria-label={`Kirim ulang undangan untuk ${user.name}`}><FiMail size={16} /></button>
@@ -355,7 +355,7 @@ export default function UserIndex({ initialUsers = {}, activeOwnersCount = 0, ma
                                     );
                                 })}
                                 {filtered.length === 0 && (
-                                    <tr className="block lg:table-row"><td colSpan={4} className="block lg:table-cell py-12 text-center text-sm text-slate-400 dark:text-slate-500">Tidak ada pegawai ditemukan.</td></tr>
+                                    <tr className="block md:table-row"><td colSpan={4} className="block md:table-cell py-12 text-center text-sm text-slate-400 dark:text-slate-500">Tidak ada pegawai ditemukan.</td></tr>
                                 )}
                             </tbody>
                         </table>

@@ -1,0 +1,201 @@
+/* Scoped to the operational workspace; storefront and receipts keep their styles. */
+.admin-workspace {
+    --admin-surface: #ffffff;
+    --admin-edge: #cbd5e1;
+    --admin-ink: #0f172a;
+    --admin-muted: #475569;
+    --admin-selected: #eff6ff;
+    background-color: #f1f5f9;
+}
+
+.dark .admin-workspace {
+    --admin-surface: #0f172a;
+    --admin-edge: #334155;
+    --admin-ink: #f8fafc;
+    --admin-muted: #cbd5e1;
+    --admin-selected: #1e293b;
+    background-color: #020617;
+}
+
+.admin-workspace .admin-surface {
+    background-color: var(--admin-surface);
+    border-color: var(--admin-edge);
+    box-shadow: none;
+}
+
+.admin-workspace .admin-section-header {
+    background-color: var(--admin-surface);
+    border-bottom: 1px solid var(--admin-edge);
+    color: var(--admin-ink);
+}
+
+.admin-workspace .admin-section-header h3 {
+    color: var(--admin-ink);
+    font-weight: 600;
+}
+
+.admin-workspace .admin-section-header p {
+    color: var(--admin-muted);
+}
+
+.admin-workspace .admin-section-header a,
+.admin-workspace .admin-section-header h3 svg {
+    color: #4066ad;
+}
+
+.dark .admin-workspace .admin-section-header a,
+.dark .admin-workspace .admin-section-header h3 svg {
+    color: #93c5fd;
+}
+
+.admin-workspace .admin-number {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.015em;
+}
+
+.admin-workspace .admin-metric {
+    min-width: 0;
+    padding: 12px;
+    border: 1px solid var(--admin-edge);
+    border-radius: 6px;
+    background-color: var(--admin-surface);
+}
+
+.admin-workspace .admin-metric p {
+    color: var(--admin-muted);
+    font-size: 11px;
+    line-height: 16px;
+    font-weight: 500;
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+.admin-workspace .admin-metric h3 {
+    color: var(--admin-ink);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+}
+
+.admin-workspace .admin-metric > div > div {
+    min-width: 0;
+}
+
+.admin-workspace .admin-metric svg {
+    color: #4066ad;
+}
+
+.dark .admin-workspace .admin-metric svg {
+    color: #93c5fd;
+}
+
+.admin-workspace .admin-metric--primary {
+    background-color: #003882;
+    border-color: #003882;
+}
+
+.admin-workspace .admin-metric--primary p,
+.admin-workspace .admin-metric--primary h3 {
+    color: #ffffff;
+}
+
+.admin-workspace .admin-metric--primary svg,
+.dark .admin-workspace .admin-metric--primary svg {
+    color: #ffdd00;
+}
+
+.admin-workspace a.admin-metric:hover {
+    background-color: var(--admin-selected);
+    border-color: #4066ad;
+}
+
+.admin-workspace .admin-catalog-card {
+    min-width: 0;
+    box-shadow: none;
+    border-color: var(--admin-edge);
+}
+
+.admin-workspace .admin-catalog-card:hover {
+    box-shadow: none;
+}
+
+.admin-workspace .product-photo img {
+    object-fit: contain;
+}
+
+.admin-workspace .product-photo {
+    background-color: var(--admin-selected);
+}
+
+.admin-workspace .product-photo [role="img"] span {
+    color: var(--admin-muted);
+}
+
+.admin-workspace .admin-motor-selected {
+    background-color: var(--admin-selected);
+    box-shadow: inset 3px 0 0 #4066ad;
+}
+
+.dark .admin-workspace .admin-motor-selected {
+    box-shadow: inset 3px 0 0 #ffdd00;
+}
+
+.admin-workspace .admin-staff-table thead,
+.admin-workspace .admin-staff-table th {
+    background-color: var(--admin-selected);
+    color: var(--admin-muted);
+}
+
+.admin-workspace .admin-staff-table td {
+    vertical-align: middle;
+}
+
+.admin-workspace .admin-staff-table td:first-child p:first-child {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+@media (max-width: 1023px) {
+    .admin-workspace .admin-staff-table td:first-child {
+        padding-top: 12px;
+        padding-bottom: 12px;
+    }
+}
+
+.admin-workspace .admin-setting-section {
+    border-radius: 6px;
+}
+
+.admin-workspace .admin-setting-section h3 {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.admin-workspace svg[fill="none"][stroke="currentColor"] {
+    stroke-width: 2;
+}
+
+.admin-workspace :where(button, a, input, select, textarea, summary):focus-visible {
+    outline: 2px solid #4066ad;
+    outline-offset: 2px;
+}
+
+.dark .admin-workspace :where(button, a, input, select, textarea, summary):focus-visible {
+    outline-color: #ffdd00;
+}
+
+@media (min-width: 640px) {
+    .admin-workspace .admin-metric {
+        padding: 16px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .admin-workspace,
+    .admin-workspace *,
+    .admin-workspace *::before,
+    .admin-workspace *::after {
+        transition-duration: 0s !important;
+        animation: none !important;
+    }
+}

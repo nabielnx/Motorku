@@ -620,7 +620,7 @@ return (
                         {isNavigating ? (
                             <PosCardSkeleton count={8} mode={viewMode} />
                         ) : (
-                        <div className={`grid items-start gap-2 ${viewMode === 'grid' ? 'grid-cols-[repeat(auto-fill,minmax(144px,1fr))]' : 'grid-cols-1 2xl:grid-cols-2'}`}>
+                        <div className={`grid items-stretch gap-2 ${viewMode === 'grid' ? 'grid-cols-2 min-[900px]:grid-cols-[repeat(auto-fill,minmax(144px,1fr))]' : 'grid-cols-1 2xl:grid-cols-2'}`}>
                             {filteredMenu.map(item => {
                                 const isOutOfStock = item.stock <= 0;
                                 const isInCart = cart.some(cartItem => cartItem.id === item.id);
@@ -630,9 +630,9 @@ return (
                                 return (
                                     <div
                                         key={item.id}
-                                        className={`group flex w-full border bg-white text-left shadow-xs transition dark:bg-slate-900 ${viewMode === 'grid' ? 'flex-col rounded-xl overflow-hidden' : 'items-start gap-3 rounded-xl p-2.5'} ${
+                                        className={`admin-catalog-card group flex w-full border bg-white text-left shadow-xs transition dark:bg-slate-900 ${viewMode === 'grid' ? 'flex-col rounded-xl overflow-hidden' : 'items-start gap-3 rounded-xl p-2.5'} ${
                                             isOutOfStock
-                                                ? 'border-slate-200 opacity-55 dark:border-slate-800'
+                                                ? 'border-slate-200 dark:border-slate-800'
                                                 : 'cursor-pointer border-slate-200 hover:border-slate-400 hover:bg-slate-50 dark:border-slate-700 dark:hover:border-slate-500 dark:hover:bg-slate-800'
                                         } ${isInCart ? '!shadow-[inset_3px_0_0_#FFDD00]' : ''}`}
                                     >
@@ -641,7 +641,7 @@ return (
                                             onClick={() => setPreviewProduct(item)}
                                             aria-label={`Lihat detail ${item.name}`}
                                             aria-haspopup="dialog"
-                                            className={`${viewMode === 'grid' ? 'aspect-square w-full shrink-0' : 'h-14 w-14 shrink-0 rounded-lg border border-slate-200 dark:border-slate-700'} overflow-hidden bg-slate-100 dark:bg-slate-800 flex items-center justify-center cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accentYellow`}
+                                            className={`${viewMode === 'grid' ? 'aspect-[4/3] w-full shrink-0' : 'h-14 w-14 shrink-0 rounded-lg border border-slate-200 dark:border-slate-700'} overflow-hidden bg-slate-100 dark:bg-slate-800 flex items-center justify-center cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accentYellow`}
                                         >
                                             <ProductPhoto src={item.image} name={item.name} category={item.category} className="h-full w-full" compact />
                                         </button>
@@ -652,10 +652,10 @@ return (
                                             aria-label={`Tambah ${item.name} ke keranjang`}
                                             className={`flex min-w-0 flex-1 flex-col text-left rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accentYellow ${isOutOfStock ? 'cursor-not-allowed' : 'cursor-pointer'} ${viewMode === 'grid' ? 'w-full p-2.5' : ''}`}
                                         >
-                                            <span className="flex flex-col gap-2">
-                                                <span className={`block min-w-0 whitespace-normal break-words [overflow-wrap:anywhere] font-semibold text-slate-900 dark:text-white ${viewMode === 'grid' ? 'min-h-20 text-xs leading-4' : 'text-sm leading-5'}`} title={label.name}>{label.name}</span>
+                                            <span className={`flex flex-col gap-2 ${viewMode === 'grid' ? 'flex-1' : ''}`}>
+                                                <span className={`block min-w-0 whitespace-normal break-words [overflow-wrap:anywhere] font-semibold text-slate-900 dark:text-white ${viewMode === 'grid' ? 'flex-1 text-xs leading-4' : 'text-sm leading-5'}`} title={label.name}>{label.name}</span>
                                                 <span className="flex items-center justify-between gap-2">
-                                                    <span className={`shrink-0 whitespace-nowrap font-bold text-slate-900 dark:text-white ${viewMode === 'grid' ? 'text-xs leading-4' : 'text-sm leading-5'}`}>{formatRp(item.price)}</span>
+                                                    <span className={`admin-number shrink-0 whitespace-nowrap font-semibold text-slate-900 dark:text-white ${viewMode === 'grid' ? 'text-xs leading-4' : 'text-sm leading-5'}`}>{formatRp(item.price)}</span>
                                                     {viewMode === 'list' && <span className={`shrink-0 whitespace-nowrap text-[11px] leading-4 font-semibold ${isOutOfStock ? 'text-rose-600 dark:text-rose-400' : 'text-slate-600 dark:text-slate-300'}`}>
                                                         {isOutOfStock ? 'Stok habis' : `Stok ${Math.floor(item.stock)}`}
                                                     </span>}
@@ -663,7 +663,7 @@ return (
                                             </span>
                                             {viewMode === 'grid' ? (
                                                 <>
-                                                    <span className={`mt-0.5 block text-[10px] font-semibold ${isOutOfStock ? 'text-rose-600 dark:text-rose-400' : 'text-slate-500 dark:text-slate-400'}`}>
+                                                    <span className={`mt-auto pt-0.5 block text-[10px] font-semibold ${isOutOfStock ? 'text-rose-600 dark:text-rose-400' : 'text-slate-500 dark:text-slate-400'}`}>
                                                         {isOutOfStock ? 'Stok habis' : `Stok ${Math.floor(item.stock)}`}
                                                     </span>
                                                     {label.application && <span className="mt-1 block whitespace-normal break-words text-[10px] leading-4 text-slate-600 dark:text-slate-300">{applicationText}</span>}
@@ -686,8 +686,8 @@ return (
                             })}
 
                             {filteredMenu.length === 0 && (
-                                <div className="col-span-full py-16 text-center text-slate-400 dark:text-slate-500">
-                                    <FiTag className="w-8 h-8 mx-auto mb-2 text-slate-300 dark:text-slate-600" strokeWidth={2} />
+                                <div className="col-span-full py-16 text-center text-slate-600 dark:text-slate-300">
+                                    <FiTag className="w-8 h-8 mx-auto mb-2 text-slate-500 dark:text-slate-400" strokeWidth={2} />
                                     <p className="text-xs font-semibold">Tidak ada produk yang cocok</p>
                                 </div>
                             )}
@@ -710,7 +710,7 @@ return (
                 <div className={`${isMobileCartOpen ? 'flex' : 'hidden'} md:flex w-full md:w-96 lg:w-[410px] bg-white dark:bg-slate-900 border-l border-slate-300 dark:border-slate-800 flex-col min-h-0 flex-1 md:flex-none h-full overflow-hidden shrink-0 transition-colors`}>
 
                     {/* Customer & Order Settings */}
-                    <div className="p-3.5 border-b border-slate-300 dark:border-slate-800 space-y-2 bg-slate-50 dark:bg-slate-800 shrink-0">
+                    <div className="admin-section-header p-3.5 border-b border-slate-300 dark:border-slate-800 space-y-2 bg-slate-50 dark:bg-slate-800 shrink-0">
                         <div className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 font-semibold flex flex-wrap items-center justify-between gap-2">
                             <span className="flex items-center gap-1.5"><FiShoppingBag className="w-4 h-4 text-slate-500 dark:text-slate-400" strokeWidth={2.5} /> Keranjang <span className="rounded-md bg-primary px-1.5 py-0.5 text-[10px] font-bold text-[#fceb2d]">{cartItemCount} item</span></span>
                             <div className="flex shrink-0 items-center gap-1">

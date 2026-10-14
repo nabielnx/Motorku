@@ -7,7 +7,7 @@ function ProductGridCardSkeleton() {
     return (
         <div className="bg-white dark:bg-slate-800 rounded-md md:rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden md:shadow-xs flex flex-col relative">
             {/* Image Container with Badges */}
-            <div className="relative w-full h-28 sm:h-32 bg-slate-50 dark:bg-slate-900 border-b border-slate-100 dark:border-slate-700 overflow-hidden">
+            <div className="relative w-full aspect-[4/3] bg-slate-50 dark:bg-slate-900 border-b border-slate-100 dark:border-slate-700 overflow-hidden">
                 <Skeleton className="h-full w-full !rounded-none" />
             </div>
 

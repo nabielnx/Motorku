@@ -553,7 +553,7 @@ export default function MotorcycleIndex({
 
             <div className="p-1.5 sm:p-4 lg:p-5 flex-1 min-h-0 flex flex-col overflow-hidden">
                 {/* UNIFIED MOTORCYCLE DASHBOARD CONTAINER */}
-                <div className="bg-white dark:bg-slate-900 rounded-none sm:rounded-xl border-0 sm:border border-slate-200 dark:border-slate-800 shadow-none sm:shadow-xs flex-1 min-h-0 flex flex-col overflow-hidden">
+                <div className="admin-surface bg-white dark:bg-slate-900 rounded-none sm:rounded-xl border-0 sm:border border-slate-200 dark:border-slate-800 shadow-none sm:shadow-xs flex-1 min-h-0 flex flex-col overflow-hidden">
                     {/* Compact Header & Filter Section */}
                     <div className="p-2 sm:p-3.5 space-y-1.5 sm:space-y-2 border-b border-slate-200 dark:border-slate-800 shrink-0 bg-white dark:bg-slate-900 z-10">
                         {/* Top Row: Title, Badge & Actions */}
@@ -649,7 +649,7 @@ export default function MotorcycleIndex({
                             {/* Right: Both Segmented Filters (Merek & Tipe Motor) */}
                             <div className="hidden lg:flex flex-wrap items-center gap-2 self-start lg:self-auto shrink-0">
                                 {/* Segmented Brand Filter */}
-                                <div className="inline-flex items-center bg-white dark:bg-slate-800 p-0.5 rounded-lg border border-slate-300 dark:border-slate-700 shadow-2xs overflow-x-auto no-scrollbar">
+                                <div className="admin-surface inline-flex items-center bg-white dark:bg-slate-800 p-0.5 rounded-lg border border-slate-300 dark:border-slate-700 shadow-2xs overflow-x-auto no-scrollbar">
                                     <button
                                         type="button"
                                         onClick={() => { setActiveBrand('semua'); setPage(1); }}
@@ -681,7 +681,7 @@ export default function MotorcycleIndex({
                                 </div>
 
                                 {/* Segmented Tipe Motor */}
-                                <div className="inline-flex items-center bg-white dark:bg-slate-800 p-0.5 rounded-lg border border-slate-300 dark:border-slate-700 shadow-2xs overflow-x-auto no-scrollbar">
+                                <div className="admin-surface inline-flex items-center bg-white dark:bg-slate-800 p-0.5 rounded-lg border border-slate-300 dark:border-slate-700 shadow-2xs overflow-x-auto no-scrollbar">
                                     {['semua', ...engineTypes].map(type => {
                                         const isTypeActive = activeType === type;
                                         const engCfg = getEngineConfig(type);
@@ -723,7 +723,7 @@ export default function MotorcycleIndex({
                                         {/* Main Motor Header Row */}
                                         <div
                                             className={`p-2.5 sm:p-3.5 cursor-pointer transition-colors ${
-                                                isExpanded ? 'bg-primary/10 dark:bg-primary/20' : 'hover:bg-slate-50 dark:hover:bg-slate-800'
+                                                isExpanded ? 'admin-motor-selected' : 'hover:bg-slate-50 dark:hover:bg-slate-800'
                                             }`}
                                             onClick={() => toggleExpandMotor(m.id)}
                                         >
