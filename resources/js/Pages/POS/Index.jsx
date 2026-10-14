@@ -579,7 +579,7 @@ return (
                                         <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
                                             {filteredMenu.length} produk
                                         </span>
-                                        <div className="flex rounded-lg border border-slate-300 bg-slate-100 p-0.5 dark:border-slate-700 dark:bg-slate-800" role="group" aria-label="Tampilan produk">
+                                        <div className="admin-view-switch" role="group" aria-label="Tampilan produk">
                                             {[
                                                 { mode: 'list', label: 'Daftar', Icon: FiList },
                                                 { mode: 'grid', label: 'Grid', Icon: FiGrid },
@@ -604,7 +604,7 @@ return (
                                             title="Petunjuk Keyboard Shortcut (F1)"
                                             aria-label="Petunjuk keyboard shortcut (F1)"
                                         >
-                                            <FiHelpCircle className="w-3.5 h-3.5 text-blue-600 dark:text-yellow-400" strokeWidth={2.5} />
+                                            <FiHelpCircle className="w-3.5 h-3.5 text-primary dark:text-yellow-400" strokeWidth={2.5} />
                                             <span className="hidden xl:inline">Shortcut</span>
                                             <kbd className="hidden xl:inline px-1 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-200 rounded text-[9px] font-mono">F1</kbd>
                                         </button>
@@ -712,7 +712,7 @@ return (
                     {/* Customer & Order Settings */}
                     <div className="pos-cart-header admin-section-header p-3.5 border-b border-slate-300 dark:border-slate-800 space-y-2 bg-slate-50 dark:bg-slate-800 shrink-0">
                         <div className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 font-semibold flex flex-wrap items-center justify-between gap-2">
-                            <span className="flex items-center gap-1.5"><FiShoppingBag className="w-4 h-4 text-slate-500 dark:text-slate-400" strokeWidth={2.5} /> Keranjang <span className="rounded-md bg-primary px-1.5 py-0.5 text-[10px] font-bold text-[#fceb2d]">{cartItemCount} item</span></span>
+                            <span className="flex items-center gap-1.5"><FiShoppingBag className="w-4 h-4 text-slate-500 dark:text-slate-400" strokeWidth={2.5} /> Keranjang <span className="admin-cart-count rounded-md px-1.5 py-0.5 text-[10px] font-bold">{cartItemCount} item</span></span>
                             <div className="flex shrink-0 items-center gap-1">
                                 <button
                                     type="button"
@@ -723,7 +723,7 @@ return (
                                 >
                                     <FiTrash2 className="h-3.5 w-3.5" aria-hidden="true" /> Kosongkan
                                 </button>
-                                <button type="button" onClick={() => setIsMobileCartOpen(false)} className="flex items-center gap-1 rounded-lg px-2 py-1 text-blue-700 dark:text-blue-300 md:hidden" aria-label="Kembali ke daftar produk"><FiArrowLeft aria-hidden="true" /> Produk</button>
+                                <button type="button" onClick={() => setIsMobileCartOpen(false)} className="flex items-center gap-1 rounded-lg px-2 py-1 text-primary dark:text-primary md:hidden" aria-label="Kembali ke daftar produk"><FiArrowLeft aria-hidden="true" /> Produk</button>
                             </div>
                         </div>
                         <div className="flex items-center gap-2">
@@ -767,7 +767,7 @@ return (
 
                                 <div className="flex items-start justify-between mt-2 gap-2">
                                     <details className="min-w-0 flex-1">
-                                        <summary className="block cursor-pointer truncate text-xs font-medium text-blue-700 hover:underline dark:text-blue-300" title={item.notes || 'Tambah catatan untuk produk ini'}>
+                                        <summary className="block cursor-pointer truncate text-xs font-medium text-primary hover:underline dark:text-primary" title={item.notes || 'Tambah catatan untuk produk ini'}>
                                             {item.notes ? `Catatan: ${item.notes}` : '+ Catatan'}
                                         </summary>
                                         <input

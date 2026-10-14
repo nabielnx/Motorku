@@ -617,7 +617,7 @@ export default function MotorcycleIndex({
                                 onClick={() => setShowMotorFilters(value => !value)}
                                 aria-expanded={showMotorFilters}
                                 aria-controls="motor-mobile-filters"
-                                className={`lg:hidden inline-flex items-center gap-1.5 px-2 py-1.5 rounded-md text-xs font-semibold ${showMotorFilters || activeBrand !== 'semua' || activeType !== 'semua'
+                                className={`admin-filter-trigger lg:hidden inline-flex items-center gap-1.5 px-2 py-1.5 rounded-md text-xs font-semibold ${showMotorFilters || activeBrand !== 'semua' || activeType !== 'semua'
                                     ? 'text-primaryDark dark:text-accentYellow'
                                     : 'text-slate-600 dark:text-slate-200'}`}
                             >
@@ -869,7 +869,7 @@ export default function MotorcycleIndex({
                                                             onClick={() => setShowPartsFilters(value => !value)}
                                                             aria-expanded={showPartsFilters}
                                                             aria-controls={`part-filters-${m.id}`}
-                                                            className={`xl:hidden inline-flex items-center gap-1 px-1.5 py-1.5 text-xs font-semibold ${showPartsFilters || filter.group !== 'semua' || filter.category !== 'semua' || filter.is_recommended
+                                                            className={`admin-filter-trigger xl:hidden inline-flex items-center gap-1 px-1.5 py-1.5 text-xs font-semibold ${showPartsFilters || filter.group !== 'semua' || filter.category !== 'semua' || filter.is_recommended
                                                                 ? 'text-blue-700 dark:text-blue-300'
                                                                 : 'text-slate-600 dark:text-slate-200'}`}
                                                         >

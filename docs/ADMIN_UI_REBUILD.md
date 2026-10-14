@@ -34,6 +34,18 @@ fixtures provide references for all other content and interaction states.
 
 ## Checkable constraints
 
+### Consistency correction after screenshot feedback
+
+The supplied header and POS view-switch screenshots show residual blue styling,
+a boxed account cluster and mismatched inactive controls. Keep notification/theme
+buttons separate from a bounded profile trigger; use one neutral segmented style
+for list/grid controls, including hover and keyboard focus. Complete the admin
+palette across profile forms, cart badges, notification portals, settings toggles,
+filter controls and charts. Retain semantic danger/success colors and user images.
+Admin select wrappers must show one arrow. Check light/dark, open/closed profile
+and notification panels, filtered/empty results and narrow toolbars at 375x812,
+768x900 and 1440x900; include a 320px stress check. No business submission needed.
+
 Primary actions remain the existing yellow action buttons; selection uses ink
 or yellow rather than faint opacity. Photo thumbnails use cover and fill square
 catalog frames; the existing full-resolution detail viewer remains available.

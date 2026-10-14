@@ -597,7 +597,7 @@ export default function MenuManagement({
                                          type="button"
                                          onClick={() => setShowMobileFilters(value => !value)}
                                          aria-expanded={showMobileFilters}
-                                         className="sm:hidden inline-flex items-center gap-1 px-1 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300"
+                                         className="admin-filter-trigger sm:hidden inline-flex items-center gap-1 px-1 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300"
                                      >
                                          <FiFilter size={14} /> Filter
                                          {(selectedCategoryFilter !== 'All' || selectedStockFilter !== 'all' || statusFilter !== 'all' || selectedSort !== 'latest') && (
@@ -605,7 +605,7 @@ export default function MenuManagement({
                                          )}
                                      </button>
 
-                                     <div className="inline-flex items-center gap-0.5" aria-label="Tampilan produk">
+                                     <div className="admin-view-switch" role="group" aria-label="Tampilan produk">
                                          <button type="button" onClick={() => handleViewModeChange('grid')} aria-label="Tampilan grid" aria-pressed={viewMode === 'grid'} className={`p-1.5 rounded-md ${viewMode === 'grid' ? 'bg-primary text-white' : 'text-slate-500 dark:text-slate-400'}`}>
                                              <FiGrid size={15} />
                                          </button>
@@ -701,7 +701,7 @@ export default function MenuManagement({
                                  {/* Right: Toggle View and Status Buttons */}
                                  <div className="hidden sm:flex flex-row items-center gap-2 self-start sm:self-auto shrink-0">
                                      {/* View Toggle */}
-                                     <div className="admin-surface inline-flex items-center bg-white dark:bg-slate-800 p-0.5 rounded-lg border border-slate-300 dark:border-slate-700 shadow-2xs">
+                                     <div className="admin-view-switch" role="group" aria-label="Tampilan produk">
                                          <button
                                              type="button"
                                              onClick={() => handleViewModeChange('grid')}
@@ -710,7 +710,7 @@ export default function MenuManagement({
                                                      ? 'bg-primary text-white shadow-2xs'
                                                      : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
                                              }`}
-                                             title="Tampilan Grid"
+                                             title="Tampilan Grid" aria-label="Tampilan grid" aria-pressed={viewMode === 'grid'}
                                          >
                                              <FiGrid size={16} />
                                          </button>
@@ -722,7 +722,7 @@ export default function MenuManagement({
                                                      ? 'bg-primary text-white shadow-2xs'
                                                      : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
                                              }`}
-                                             title="Tampilan List (Tabel)"
+                                             title="Tampilan List (Tabel)" aria-label="Tampilan daftar" aria-pressed={viewMode === 'list'}
                                          >
                                              <FiList size={16} />
                                          </button>

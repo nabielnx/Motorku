@@ -56,7 +56,7 @@ export default function Modal({
                     leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                 >
                     <DialogPanel
-                        className={`mb-6 w-full min-w-0 transform overflow-hidden rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xl transition-all sm:mx-auto ${maxWidthClass}`}
+                        className={`admin-dialog mb-6 w-full min-w-0 transform overflow-y-auto rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xl transition-all sm:mx-auto ${maxWidthClass}`}
                     >
                         {children}
                     </DialogPanel>

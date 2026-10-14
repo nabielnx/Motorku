@@ -1,11 +1,23 @@
 import { Transition } from '@headlessui/react';
 import { Link } from '@inertiajs/react';
-import { createContext, useContext, useState } from 'react';
+import { cloneElement, createContext, useContext, useEffect, useRef, useState } from 'react';
 
 const DropDownContext = createContext();
 
 const Dropdown = ({ children }) => {
     const [open, setOpen] = useState(false);
+    const containerRef = useRef(null);
+
+    useEffect(() => {
+        if (!open) return;
+        const closeOnEscape = (event) => {
+            if (event.key !== 'Escape') return;
+            setOpen(false);
+            containerRef.current?.querySelector('[aria-expanded]')?.focus();
+        };
+        document.addEventListener('keydown', closeOnEscape);
+        return () => document.removeEventListener('keydown', closeOnEscape);
+    }, [open]);
 
     const toggleOpen = () => {
         setOpen((previousState) => !previousState);
@@ -13,7 +25,7 @@ const Dropdown = ({ children }) => {
 
     return (
         <DropDownContext.Provider value={{ open, setOpen, toggleOpen }}>
-            <div className="relative">{children}</div>
+            <div ref={containerRef} className="relative">{children}</div>
         </DropDownContext.Provider>
     );
 };
@@ -23,7 +35,7 @@ const Trigger = ({ children }) => {
 
     return (
         <>
-            <div onClick={toggleOpen}>{children}</div>
+            <div onClick={toggleOpen}>{cloneElement(children, { 'aria-expanded': open })}</div>
 
             {open && (
                 <div
@@ -38,6 +50,7 @@ const Trigger = ({ children }) => {
 const Content = ({
     align = 'right',
     width = '48',
+    className = '',
     contentClasses = 'py-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl',
     children,
 }) => {
@@ -69,7 +82,7 @@ const Content = ({
                 leaveTo="opacity-0 scale-95"
             >
                 <div
-                    className={`absolute z-50 mt-2 rounded-md shadow-lg ${alignmentClasses} ${widthClasses}`}
+                    className={`absolute z-50 mt-2 rounded-md shadow-lg ${alignmentClasses} ${widthClasses} ${className}`}
                     onClick={() => setOpen(false)}
                 >
                     <div

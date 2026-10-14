@@ -19,8 +19,8 @@ function calcStrength(password) {
 const strengthLabel = {
     0: { label: 'Sangat Lemah', color: 'bg-red-500', text: 'text-red-600', width: '10%' },
     1: { label: 'Lemah', color: 'bg-red-500', text: 'text-red-600', width: '20%' },
-    2: { label: 'Lemah', color: 'bg-blue-500', text: 'text-blue-600', width: '30%' },
-    3: { label: 'Sedang', color: 'bg-blue-500', text: 'text-blue-600', width: '50%' },
+    2: { label: 'Lemah', color: 'bg-amber-500', text: 'text-amber-700 dark:text-amber-400', width: '30%' },
+    3: { label: 'Sedang', color: 'bg-amber-500', text: 'text-amber-700 dark:text-amber-400', width: '50%' },
     4: { label: 'Kuat', color: 'bg-yellow-500', text: 'text-yellow-600', width: '65%' },
     5: { label: 'Kuat', color: 'bg-lime-500', text: 'text-lime-600', width: '80%' },
     6: { label: 'Sangat Kuat', color: 'bg-emerald-500', text: 'text-emerald-600', width: '90%' },
@@ -79,7 +79,7 @@ export default function UpdatePasswordForm({ className = '' }) {
         <section className={className}>
             <header className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4 mb-6">
                 <div className="flex items-center gap-2.5">
-                    <FiLock className="text-blue-600 dark:text-yellow-400 w-5 h-5 shrink-0" strokeWidth={2.5} />
+                    <FiLock className="text-primary dark:text-yellow-400 w-5 h-5 shrink-0" strokeWidth={2.5} />
                     <div>
                         <h2 className="text-base font-black text-slate-900 dark:text-white">Perbarui Password</h2>
                         <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-0.5">
@@ -184,7 +184,7 @@ export default function UpdatePasswordForm({ className = '' }) {
                     <button
                         type="submit"
                         disabled={processing}
-                        className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white font-bold px-4 py-2.5 rounded-lg text-xs shadow-xs transition border border-blue-700 cursor-pointer"
+                        className="inline-flex items-center gap-1.5 bg-primary hover:bg-primary disabled:bg-slate-300 text-white font-bold px-4 py-2.5 rounded-lg text-xs shadow-xs transition border border-primary cursor-pointer"
                     >
                         <FiSave className="w-4 h-4" strokeWidth={2.5} />
                         <span>{processing ? 'Menyimpan...' : 'Simpan Password'}</span>

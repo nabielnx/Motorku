@@ -18,6 +18,42 @@
     --admin-muted: #bcc9c5;
     --admin-selected: #243034;
 }
+/* Adapt existing admin utilities to the workspace tokens, including portal
+   dialogs. Customer pages continue to use the original brand palette. */
+:is(.admin-workspace, .admin-icons .admin-dialog) :is(.text-primary, .text-primaryDark, .text-blue-500, .text-blue-600, .text-blue-700, .text-blue-800, .text-blue-900) { color: var(--admin-ink); }
+:is(.admin-workspace, .admin-icons .admin-dialog) :is(.text-slate-900, .text-slate-800, .text-slate-700) { color: var(--admin-ink); }
+:is(.admin-workspace, .admin-icons .admin-dialog) :is(.text-slate-600, .text-slate-500, .text-slate-400) { color: var(--admin-muted); }
+:is(.admin-workspace, .admin-icons .admin-dialog) :is(.bg-white, .bg-slate-900) { background-color: var(--admin-surface); }
+:is(.admin-workspace, .admin-icons .admin-dialog) :is(.bg-slate-50, .bg-slate-100, .bg-blue-50, .bg-blue-100, .bg-blue-200) { background-color: var(--admin-selected); }
+:is(.admin-workspace, .admin-icons .admin-dialog) :is(.bg-slate-200, .bg-slate-300) { background-color: var(--admin-edge); }
+:where(.dark) :is(.admin-workspace, .admin-icons .admin-dialog) :is(.dark\:bg-slate-700, .dark\:bg-slate-800, .dark\:bg-slate-800\/80, .dark\:bg-slate-800\/50) { background-color: var(--admin-selected); }
+:where(.dark) :is(.admin-workspace, .admin-icons .admin-dialog) :is(.dark\:text-slate-300, .dark\:text-slate-400, .dark\:text-slate-500) { color: var(--admin-muted); }
+:where(.dark) :is(.admin-workspace, .admin-icons .admin-dialog) :is(.dark\:border-slate-600, .dark\:border-slate-700, .dark\:border-slate-800) { border-color: var(--admin-edge); }
+:is(.admin-workspace, .admin-icons .admin-dialog) .animate-pulse.bg-slate-200 { background-color: var(--admin-edge); }
+:is(.admin-workspace, .admin-icons .admin-dialog) :is(.border-slate-100, .border-slate-200, .border-slate-300, .border-primary\/20, .border-blue-200, .border-blue-300) { border-color: var(--admin-edge); }
+:is(.admin-workspace, .admin-icons .admin-dialog) :is(.bg-primary, .bg-primaryDark, .bg-blue-500, .bg-blue-600, .bg-blue-700) { background-color: var(--admin-ink); color: var(--admin-surface); }
+:is(.admin-workspace, .admin-icons .admin-dialog) :is(.bg-accentYellow, .admin-button-primary) { color: #17221e; }
+:is(.admin-workspace, .admin-icons .admin-dialog) .bg-accentYellow .text-primaryDark { color: #17221e; }
+:is(.admin-workspace, .admin-icons .admin-dialog) :is(.border-primary, .border-primaryDark, .border-blue-600, .border-blue-700) { border-color: var(--admin-ink); }
+.dark :is(.admin-workspace, .admin-icons .admin-dialog) :is(.dark\:text-blue-300, .dark\:text-blue-400, .dark\:text-primary) { color: var(--admin-ink); }
+:is(.admin-workspace, .admin-icons .admin-dialog) :is(.hover\:text-primaryDark, .hover\:text-blue-700):hover { color: var(--admin-ink); }
+:is(.admin-workspace, .admin-icons .admin-dialog) :is(.hover\:bg-primaryDark, .hover\:bg-blue-700):hover { background-color: var(--admin-ink); }
+:is(.admin-workspace, .admin-icons .admin-dialog) :is(.hover\:bg-slate-50, .hover\:bg-slate-100, .hover\:bg-blue-50):hover { background-color: var(--admin-selected); }
+:is(.admin-workspace, .admin-icons .admin-dialog) .hover\:border-primary:hover { border-color: var(--admin-muted); }
+:is(.admin-workspace, .admin-icons .admin-dialog) .group:hover .group-hover\:bg-primaryDark { background-color: var(--admin-muted); }
+:is(.admin-workspace, .admin-icons .admin-dialog) :is(input, select, textarea):focus { --tw-ring-color: var(--admin-ink); border-color: var(--admin-ink); }
+:is(.admin-workspace, .admin-icons .admin-dialog) input:is([type="checkbox"], [type="radio"]) { color: var(--admin-ink); accent-color: var(--admin-ink); }
+:is(.admin-workspace, .admin-icons .admin-dialog) input:is([type="checkbox"], [type="radio"]):checked { background-color: var(--admin-ink); border-color: var(--admin-ink); }
+:is(.admin-workspace, .admin-icons .admin-dialog) select:not([multiple]) { appearance: none; padding-right: 28px; background-repeat: no-repeat; background-position: right 8px center; background-size: 16px 16px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%2358645e' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E"); }
+.dark :is(.admin-workspace, .admin-icons .admin-dialog) select:not([multiple]) { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%23bcc9c5' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E"); }
+:is(.admin-workspace, .admin-icons .admin-dialog) .relative:has(> select) > select { background-image: none; }
+:is(.admin-workspace, .admin-icons .admin-dialog) .peer:checked ~ .peer-checked\:bg-primary { background-color: var(--admin-yellow); }
+:is(.admin-workspace, .admin-icons .admin-dialog) .peer:checked ~ .peer-checked\:bg-primary::after { background-color: #17221e; }
+:is(.admin-workspace, .admin-icons .admin-dialog) .peer:focus-visible ~ .peer-checked\:bg-primary { outline: 2px solid var(--admin-ink); outline-offset: 3px; }
+@media (min-width: 768px) {
+    :is(.admin-workspace, .admin-icons .admin-dialog) .md\:bg-primary { background-color: var(--admin-ink); color: var(--admin-surface); }
+    :is(.admin-workspace, .admin-icons .admin-dialog) .md\:border-primary { border-color: var(--admin-ink); }
+}
 :is(.admin-workspace, .admin-icons .admin-dialog) .admin-sidebar {
     width: 240px;
     background: #17221e;
@@ -82,12 +118,39 @@
     color: var(--admin-ink);
 }
 :is(.admin-workspace, .admin-icons .admin-dialog) .admin-account-actions {
-    padding: 3px;
-    border: 1px solid var(--admin-edge);
-    border-radius: 10px;
-    background: var(--admin-selected);
+    padding: 0;
+    border: 0;
+    background: transparent;
 }
 :is(.admin-workspace, .admin-icons .admin-dialog) .admin-account-actions > button { color: var(--admin-muted); }
+:is(.admin-workspace, .admin-icons .admin-dialog) .admin-profile-trigger { min-height: 40px; color: var(--admin-ink); }
+:is(.admin-workspace, .admin-icons .admin-dialog) .admin-profile-trigger:hover,
+:is(.admin-workspace, .admin-icons .admin-dialog) .admin-profile-trigger[aria-expanded="true"] { background: var(--admin-selected); }
+:is(.admin-workspace, .admin-icons .admin-dialog) .admin-profile-avatar { border: 1px solid var(--admin-edge); }
+:is(.admin-workspace, .admin-icons .admin-dialog) .admin-profile-initial { background: #17221e; color: #fff; }
+:is(.admin-workspace, .admin-icons .admin-dialog) .admin-profile-identity { max-width: 150px; }
+:is(.admin-workspace, .admin-icons .admin-dialog) .admin-profile-identity p:last-child { color: var(--admin-muted); }
+:is(.admin-workspace, .admin-icons .admin-dialog) .admin-profile-menu { width: min(288px, calc(100vw - 24px)); border-radius: 10px; box-shadow: 0 8px 24px #00000018; }
+:is(.admin-workspace, .admin-icons .admin-dialog) .admin-profile-menu-content { padding: 4px 0; background: var(--admin-surface); border: 1px solid var(--admin-edge); border-radius: 10px; --tw-ring-color: transparent; }
+:is(.admin-workspace, .admin-icons .admin-dialog) .admin-profile-menu-heading { border-color: var(--admin-edge); }
+:is(.admin-workspace, .admin-icons .admin-dialog) .admin-profile-menu-heading p:last-child { margin-top: 4px; color: var(--admin-muted); }
+:is(.admin-workspace, .admin-icons .admin-dialog) .admin-profile-menu :is(a, button) { color: var(--admin-ink); min-height: 40px; }
+:is(.admin-workspace, .admin-icons .admin-dialog) .admin-profile-menu :is(a, button):is(:hover, :focus) { background: var(--admin-selected); }
+:is(.admin-workspace, .admin-icons .admin-dialog) .admin-view-switch { display: inline-flex; align-items: center; flex-shrink: 0; gap: 2px; padding: 3px; border: 1px solid var(--admin-edge); border-radius: 8px; background: var(--admin-surface); }
+:is(.admin-workspace, .admin-icons .admin-dialog) .admin-view-switch button { display: inline-flex; align-items: center; justify-content: center; min-width: 32px; height: 32px; gap: 5px; padding: 5px 8px; border: 0; border-radius: 5px; color: var(--admin-muted); background: transparent; box-shadow: none; }
+:is(.admin-workspace, .admin-icons .admin-dialog) .admin-view-switch button:hover { color: var(--admin-ink); background: var(--admin-selected); }
+:is(.admin-workspace, .admin-icons .admin-dialog) .admin-view-switch button[aria-pressed="true"] { color: var(--admin-surface); background: var(--admin-ink); }
+:is(.admin-workspace, .admin-icons .admin-dialog) .admin-filter-trigger { min-height: 36px; padding: 5px 6px; border: 1px solid var(--admin-edge); border-radius: 7px; }
+:is(.admin-workspace, .admin-icons .admin-dialog) .admin-filter-trigger[aria-expanded="true"] { background: var(--admin-selected); color: var(--admin-ink); border-color: var(--admin-muted); }
+:is(.admin-workspace, .admin-icons .admin-dialog) .admin-filter-trigger span { background: var(--admin-yellow); color: #17221e; border-radius: 3px; padding: 1px 4px; }
+:is(.admin-workspace, .admin-icons .admin-dialog) .admin-cart-count { background: #17221e; color: var(--admin-yellow); }
+.admin-icons .admin-notifications > div:first-child { background: #17221e; color: #fff; }
+.admin-icons .admin-notifications > div:first-child :is(p, svg) { color: #fff; }
+.admin-icons .admin-notifications > div:first-child > svg { color: var(--admin-yellow); }
+.admin-icons .admin-notifications span.rounded-full.bg-primary:has(> svg) { background: #17221e; color: var(--admin-yellow); }
+:is(.admin-workspace, .admin-icons .admin-dialog) .admin-profile-page > div { background: var(--admin-surface); border-color: var(--admin-edge); border-radius: 12px; box-shadow: none; }
+:is(.admin-workspace, .admin-icons .admin-dialog) .admin-profile-page h1 { font-size: 20px; font-weight: 600; letter-spacing: -0.025em; }
+:is(.admin-workspace, .admin-icons .admin-dialog) .admin-profile-page h2 { font-weight: 600; }
 :is(.admin-workspace, .admin-icons .admin-dialog) .admin-mobile-dock {
     display: grid;
     gap: 6px;
@@ -149,6 +212,9 @@
 }
 :is(.admin-workspace, .admin-icons .admin-dialog) .admin-control::placeholder { color: var(--admin-muted); }
 :is(.admin-workspace, .admin-icons .admin-dialog) .admin-button { border-radius: 7px; font-weight: 600; box-shadow: none; }
+:is(.admin-workspace, .admin-icons .admin-dialog) .admin-button-secondary { color: var(--admin-ink); background: var(--admin-surface); border-color: var(--admin-edge); }
+:is(.admin-workspace, .admin-icons .admin-dialog) .admin-button-secondary:enabled:hover { background: var(--admin-selected); border-color: var(--admin-muted); }
+:is(.admin-workspace, .admin-icons .admin-dialog) .admin-help { color: var(--admin-muted); }
 :is(.admin-workspace, .admin-icons .admin-dialog) :is(button, select).bg-primary {
     background: var(--admin-ink);
     border-color: var(--admin-ink);
@@ -199,6 +265,7 @@
 :is(.admin-workspace, .admin-icons .admin-dialog) .admin-metric--primary svg { color: var(--admin-yellow); }
 :is(.admin-workspace, .admin-icons .admin-dialog) a.admin-metric:hover { background: var(--admin-selected); }
 :is(.admin-workspace, .admin-icons .admin-dialog) .admin-dashboard .admin-metric--primary button { top: 10px; right: 10px; }
+:is(.admin-workspace, .admin-icons .admin-dialog) .admin-dashboard .admin-metric--primary button:hover { background: #2b3931; color: var(--admin-yellow); }
 :is(.admin-workspace, .admin-icons .admin-dialog) .catalog-toolbar {
     padding: 18px;
     border-color: var(--admin-edge);
@@ -293,7 +360,7 @@
 :is(.admin-workspace, .admin-icons .admin-dialog) .admin-settings [class*="border-dashed"] { background: var(--admin-selected); border-color: var(--admin-edge); }
 :is(.admin-workspace, .admin-icons .admin-dialog) .admin-settings [class*="border-dashed"] span { color: var(--admin-muted); }
 :is(.admin-workspace, .admin-icons .admin-dialog) svg[fill="none"][stroke="currentColor"] { stroke-width: 1.8; }
-:is(.admin-workspace, .admin-icons .admin-dialog) :where(button, a, input, select, textarea, summary):focus-visible { outline: 2px solid #4066ad; outline-offset: 2px; }
+:is(.admin-workspace, .admin-icons .admin-dialog) :where(button, a, input, select, textarea, summary, [tabindex]):focus-visible { outline: 2px solid var(--admin-ink); outline-offset: 2px; --tw-ring-color: var(--admin-ink); }
 :is(.admin-workspace, .admin-icons .admin-dialog) .admin-sidebar :where(button, a):focus-visible,
 .dark :is(.admin-workspace, .admin-icons .admin-dialog) :where(button, a, input, select, textarea, summary):focus-visible { outline-color: var(--admin-yellow); }
 @media (min-width: 1100px) {
@@ -321,6 +388,7 @@
     :is(.admin-workspace, .admin-icons .admin-dialog) .admin-sidebar.-translate-x-full { visibility: hidden; }
 }
 @media (max-width: 639px) {
+    :is(.admin-workspace, .admin-icons .admin-dialog) .admin-view-switch { padding: 1px; }
     :is(.admin-workspace, .admin-icons .admin-dialog) .admin-topbar { padding-inline: 10px; }
     :is(.admin-workspace, .admin-icons .admin-dialog) .admin-account-actions { padding: 0; border: 0; background: transparent; }
     :is(.admin-workspace, .admin-icons .admin-dialog) .admin-page-title,

@@ -32,7 +32,8 @@ import {
     FiUsers,
     FiX,
     FiSun,
-    FiMoon
+    FiMoon,
+    FiChevronDown
 } from 'react-icons/fi';
 
 const catalogGroups = Object.entries(catalogGroupLabels);
@@ -468,29 +469,30 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                         {/* User Profile Avatar Dropdown */}
                         <Dropdown>
                             <Dropdown.Trigger>
-                                <button aria-label={`Menu profil ${user.name}`} className="flex items-center gap-2 px-1 py-0.5 sm:gap-3 sm:px-3 sm:py-1.5 rounded-xl hover:bg-slate-100/80 dark:hover:bg-slate-800 border border-transparent hover:border-slate-200 dark:hover:border-slate-700 transition focus:outline-none">
+                                <button type="button" aria-label={`Menu profil ${user.name}`} className="admin-profile-trigger flex items-center gap-2 px-1 py-1 sm:px-2 rounded-lg transition">
                                     {user.avatar ? (
                                         <img 
                                             src={'/storage/' + user.avatar} 
                                             alt={user.name} 
-                                            className="w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-full border-2 border-slate-300 dark:border-slate-700 object-cover shadow-xs"
+                                            className="admin-profile-avatar w-8 h-8 shrink-0 rounded-full object-cover"
                                         />
                                     ) : (
-                                        <div className="w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-full bg-primary text-white font-black text-sm flex items-center justify-center border-2 border-primaryDark shadow-xs">
+                                        <div className="admin-profile-avatar admin-profile-initial w-8 h-8 shrink-0 rounded-full text-sm font-semibold flex items-center justify-center">
                                             {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
                                         </div>
                                     )}
-                                    <div className="hidden sm:block text-left">
-                                        <p className="text-sm font-bold text-slate-900 dark:text-white leading-snug">{user.name}</p>
-                                        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 capitalize">{userRoles[0] || 'Staff'}</p>
+                                    <div className="admin-profile-identity hidden sm:block min-w-0 text-left">
+                                        <p className="truncate text-xs font-semibold leading-4" title={user.name}>{user.name}</p>
+                                        <p className="text-[11px] leading-4 capitalize">{userRoles[0] || 'Staff'}</p>
                                     </div>
+                                    <FiChevronDown size={14} className="hidden sm:block shrink-0" aria-hidden="true" />
                                 </button>
                             </Dropdown.Trigger>
 
-                            <Dropdown.Content align="right">
-                                <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
-                                    <p className="text-sm font-bold text-slate-900 dark:text-white">{user.name}</p>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{user.email}</p>
+                            <Dropdown.Content align="right" width="auto" className="admin-profile-menu" contentClasses="admin-profile-menu-content">
+                                <div className="admin-profile-menu-heading px-4 py-3 border-b">
+                                    <p className="text-sm font-semibold break-words">{user.name}</p>
+                                    <p className="text-xs break-all">{user.email}</p>
                                 </div>
                                 <Dropdown.Link href={safeRoute('profile.edit', '/profile')}>{getTranslation(locale, 'my_profile', 'Pengaturan Profil')}</Dropdown.Link>
                                 <Dropdown.Link href={safeRoute('logout', '/logout')} method="post" as="button">

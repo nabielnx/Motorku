@@ -69,12 +69,12 @@ const fieldValidators = {
   },
 };
 
-function Toggle({ value, onChange }) {
+function Toggle({ value, onChange, label }) {
     const on = value === 'true';
     return (
       <label className="relative inline-flex shrink-0 items-center cursor-pointer">
-        <input type="checkbox" checked={on} onChange={onChange} className="sr-only peer" />
-        <div className="w-10 h-5 bg-slate-200 peer-checked:bg-blue-600 rounded-full after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-5" />
+        <input type="checkbox" checked={on} onChange={onChange} aria-label={label} className="sr-only peer" />
+        <div className="w-10 h-5 bg-slate-200 peer-checked:bg-primary rounded-full after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-5" />
       </label>
     );
 }
@@ -378,7 +378,7 @@ export default function SettingIndex() {
 
         <div className="admin-surface admin-setting-section bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4 transition-colors">
           <div className="admin-section-header flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
-            <FiHome className="text-blue-600 dark:text-yellow-400" size={20} />
+            <FiHome className="text-primary dark:text-yellow-400" size={20} />
             <h3 className="font-extrabold text-base text-slate-900 dark:text-white">Logo Toko</h3>
           </div>
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
@@ -426,7 +426,7 @@ export default function SettingIndex() {
 
         <div className="admin-surface admin-setting-section bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
           <div className="admin-section-header flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
-            <FiUpload className="text-blue-600 dark:text-yellow-400" size={20} />
+            <FiUpload className="text-primary dark:text-yellow-400" size={20} />
             <h3 className="font-extrabold text-base text-slate-900 dark:text-white">Gambar QRIS Toko</h3>
           </div>
           <p className="text-xs text-slate-500 dark:text-slate-400">Kasir menampilkan QR ini saat pembayaran. Pelanggan memasukkan nominal sesuai total pesanan.</p>
@@ -450,7 +450,7 @@ export default function SettingIndex() {
         {/* LOGIN IMAGE SECTION */}
         <div className="admin-surface admin-setting-section bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
           <div className="admin-section-header flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
-            <FiUpload className="text-blue-600 dark:text-yellow-400" size={20} />
+            <FiUpload className="text-primary dark:text-yellow-400" size={20} />
             <h3 className="font-extrabold text-base text-slate-900 dark:text-white">Gambar Halaman Login</h3>
           </div>
           <p className="text-xs text-slate-500 dark:text-slate-400">Gambar ini ditampilkan di sisi kiri halaman login. Rekomendasi resolusi minimal 1200×800px.</p>
@@ -486,10 +486,11 @@ export default function SettingIndex() {
         {/* PROMO BANNER SECTION */}
         <div className="admin-surface admin-setting-section bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4 transition-colors">
           <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
-            <FiUpload className="shrink-0 text-blue-600 dark:text-yellow-400" size={20} />
+            <FiUpload className="shrink-0 text-primary dark:text-yellow-400" size={20} />
             <h3 className="min-w-0 flex-1 font-extrabold text-base text-slate-900 dark:text-white">Banner Promo Self-Order</h3>
             <div className="ml-auto w-full sm:w-auto shrink-0 flex items-center justify-end gap-2">
               <Toggle
+                label="Banner Promo Self-Order"
                 value={form.promo_banner_enabled}
                 onChange={() => set('promo_banner_enabled', form.promo_banner_enabled === 'true' ? 'false' : 'true')}
               />
@@ -564,7 +565,7 @@ export default function SettingIndex() {
           {sections.map(({ title, icon: Icon, fields }) => (
             <div key={title} className="admin-surface admin-setting-section bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4 transition-colors">
               <div className="admin-section-header flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
-                <Icon className="text-blue-600 dark:text-yellow-400" size={20} />
+                <Icon className="text-primary dark:text-yellow-400" size={20} />
                 <h3 className="font-extrabold text-base text-slate-900 dark:text-white">{title}</h3>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -574,6 +575,7 @@ export default function SettingIndex() {
                     {type === 'toggle' ? (
                       <div className="flex flex-wrap items-center gap-3 mt-1">
                         <Toggle
+                          label={label}
                           value={form[field]}
                           onChange={() => set(field, form[field] === 'true' ? 'false' : 'true')}
                         />

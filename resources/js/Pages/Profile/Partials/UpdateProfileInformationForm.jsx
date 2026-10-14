@@ -66,7 +66,7 @@ export default function UpdateProfileInformation({
     return (
         <section className={className}>
             <header className="flex items-center gap-2.5 border-b border-slate-200 dark:border-slate-800 pb-4 mb-6">
-                <FiUser className="text-blue-600 dark:text-yellow-400 w-5 h-5 shrink-0" strokeWidth={2.5} />
+                <FiUser className="text-primary dark:text-yellow-400 w-5 h-5 shrink-0" strokeWidth={2.5} />
                 <div>
                     <h2 className="text-base font-black text-slate-900 dark:text-white">Informasi Profil</h2>
                     <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-0.5">
@@ -100,7 +100,7 @@ export default function UpdateProfileInformation({
                                     type="button"
                                     onClick={handleUploadAvatar}
                                     disabled={uploading}
-                                    className="inline-flex items-center gap-1.5 px-3 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white text-xs font-bold rounded-lg transition shadow-xs border border-blue-700 cursor-pointer"
+                                    className="inline-flex items-center gap-1.5 px-3 py-2 bg-primary hover:bg-primary disabled:bg-slate-300 text-white text-xs font-bold rounded-lg transition shadow-xs border border-primary cursor-pointer"
                                 >
                                     <FiUpload className="w-4 h-4" strokeWidth={2.5} />
                                     <span>{uploading ? 'Mengupload...' : 'Simpan Foto'}</span>
@@ -195,7 +195,7 @@ export default function UpdateProfileInformation({
                         <button
                             type="submit"
                             disabled={processing}
-                            className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white font-bold rounded-lg text-xs shadow-xs transition border border-blue-700 cursor-pointer"
+                            className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-primary hover:bg-primary disabled:bg-slate-300 text-white font-bold rounded-lg text-xs shadow-xs transition border border-primary cursor-pointer"
                         >
                             <FiSave className="w-4 h-4" strokeWidth={2.5} />
                             <span>{processing ? 'Menyimpan...' : 'Simpan Perubahan'}</span>

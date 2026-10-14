@@ -14,7 +14,7 @@ export default function Edit({ mustVerifyEmail, status }) {
                 <meta name="description" content="Kelola informasi profil pribadi, foto avatar, dan keamanan kata sandi pengguna." />
             </Head>
 
-            <div className="py-2 sm:py-6 max-w-4xl mx-auto space-y-4 sm:space-y-6">
+            <div className="admin-profile-page py-2 sm:py-6 max-w-4xl mx-auto space-y-4 sm:space-y-6">
                 {/* Header Card */}
                 <div className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl p-5 shadow-xs flex items-center justify-between transition-colors">
                     <div>
