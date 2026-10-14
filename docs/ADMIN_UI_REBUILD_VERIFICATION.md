@@ -128,3 +128,27 @@ fewer remaining products are intentionally partial, without placeholder cards.
 Two pages at 1920px displayed 20 then 8 items, with 28 unique product names and
 no overlap. Binding checks, 58 preserved UI handlers, breakpoint/navigation
 regressions and all 63 JavaScript tests passed after this correction.
+
+## Product detail palette correction
+
+The shared POS/Data Motor PartPreviewModal was portaled outside the admin layout
+without an admin-dialog marker. Its hardcoded blue category/price therefore
+escaped the palette. Both that dialog and the Products photo preview now have
+explicit admin detail surfaces, muted category/secondary text, ink prices and
+titles, neutral media stages and thin scrollbars. Missing-photo feedback no longer
+uses reduced opacity. Full-size images retain contain fit and all six existing
+close/backdrop handlers are preserved.
+
+Rendered POS detail at 375x812 in light/dark, a loaded owned portrait photo at
+768x900, Products preview at 1440x900 and Data Motor part detail at 1440x900.
+Measured price/title rgb(25,35,31) in light and rgb(244,245,237) in dark; category
+rgb(88,100,94)/rgb(188,201,197). The portrait loaded at its full 240x320 aspect
+with object-fit contain; its temporary fixture was restored. Long names and
+compatibility lists fit within scrollable panels. Tab remains inside the shared
+dialog; Escape closes and restores the product-image trigger. The missing-photo
+and zero-stock previews remained explicit, with red stock warning preserved.
+
+Build, binding/handler/whitespace checks and 63 JavaScript tests passed. Local
+evidence: `storage/app/private/admin-detail-palette-20261014/`. These are targeted
+browser viewport checks; physical devices and a full screen-reader audit remain
+unverified. No checkout or business form was submitted.

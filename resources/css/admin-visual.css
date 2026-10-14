@@ -418,6 +418,11 @@
 
 .admin-icons .admin-dialog { background: var(--admin-surface); border: 1px solid var(--admin-edge); border-radius: 12px; }
 .admin-icons .admin-dialog .admin-dialog-title { color: var(--admin-ink); font-size: 18px; font-weight: 600; letter-spacing: -0.025em; }
+.admin-icons .admin-product-detail .admin-detail-price { color: var(--admin-ink); font-variant-numeric: tabular-nums; }
+.admin-icons .admin-product-detail { scrollbar-color: var(--admin-muted) transparent; }
+.admin-icons .admin-product-detail .admin-detail-category { color: var(--admin-muted); }
+.admin-icons .admin-product-detail .admin-detail-media { background: var(--admin-selected); color: var(--admin-muted); }
+.admin-icons .admin-product-detail .admin-detail-media [role="img"] :is(span, svg) { color: var(--admin-muted); }
 @media (min-width: 640px) and (max-width: 1279px) {
     :is(.admin-workspace, .admin-icons .admin-dialog) .admin-metric--primary h3 { font-size: 20px; line-height: 28px; }
 }

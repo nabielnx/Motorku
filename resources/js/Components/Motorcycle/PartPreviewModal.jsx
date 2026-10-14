@@ -13,13 +13,13 @@ export default function PartPreviewModal({
             onClose={() => setPreviewPart(null)}
         >
             <DialogPanel
-                className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 max-w-lg w-full max-h-[calc(100dvh-2rem)] overflow-y-auto flex flex-col"
+                className="admin-dialog admin-product-detail custom-scrollbar bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 max-w-lg w-full max-h-[calc(100dvh-2rem)] overflow-y-auto flex flex-col"
             >
                 {/* Modal Header */}
                 <div className="flex items-center justify-between gap-2 px-4 py-3 sm:px-5 sm:py-4 border-b border-slate-100 dark:border-slate-800">
                     <div className="min-w-0 pr-2">
                         <div className="flex flex-wrap items-center gap-2 break-words">
-                            <span className="text-xs font-bold text-blue-600 dark:text-blue-400">
+                            <span className="admin-detail-category text-xs font-semibold">
                                 {previewPart.categoryLabel || previewPart.category?.name || 'Sparepart'}
                             </span>
                             {previewPart.sku && (
@@ -33,7 +33,7 @@ export default function PartPreviewModal({
                                 </span>
                             )}
                         </div>
-                        <DialogTitle as="h3" className="text-base sm:text-lg font-black text-slate-900 dark:text-white leading-tight whitespace-normal break-words [overflow-wrap:anywhere] mt-0.5" title={previewPart.name}>
+                        <DialogTitle as="h3" className="admin-dialog-title text-base sm:text-lg font-semibold text-slate-900 dark:text-white leading-tight whitespace-normal break-words [overflow-wrap:anywhere] mt-0.5" title={previewPart.name}>
                             {previewPart.name}
                         </DialogTitle>
                     </div>
@@ -50,7 +50,7 @@ export default function PartPreviewModal({
                 </div>
 
                 {/* Modal Body: Large Image Display */}
-                <div className="shrink-0 p-4 sm:p-6 bg-slate-50/70 dark:bg-slate-950/50 flex items-center justify-center min-h-[min(260px,35dvh)] max-h-[50dvh] overflow-hidden">
+                <div className="admin-detail-media shrink-0 p-4 sm:p-6 flex items-center justify-center min-h-[min(260px,35dvh)] max-h-[50dvh] overflow-hidden">
                     {previewPart.image_url ? (
                         <img
                             src={previewPart.image_url}
@@ -84,7 +84,7 @@ export default function PartPreviewModal({
                 {/* Modal Footer */}
                 <div className="px-5 py-3.5 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs">
                     <div>
-                        <span className="text-base font-extrabold text-blue-600 dark:text-blue-400 block">
+                        <span className="admin-detail-price text-base font-bold block">
                             Rp {Number(previewPart.price || 0).toLocaleString('id-ID')}
                         </span>
                         <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">

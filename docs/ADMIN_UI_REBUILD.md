@@ -52,6 +52,15 @@ Catalog pagination must follow the actual 2/3/4/5 column breakpoints with
 partial when there are fewer remaining products. Verify against rendered columns,
 including responsive resizing and URLs carrying the previous page size.
 
+### Product detail palette completion
+
+Product photo/detail dialogs in Products and the shared POS/Data Motor detail
+must use the admin palette, including Headless UI portals outside the layout.
+Category/secondary text is muted; price/title uses ink in light/dark themes.
+Image-stage backgrounds and missing-photo feedback are solid neutral surfaces.
+Full-size images retain contain fit. Keep content and close handlers; inspect
+phone/tablet/desktop, dark mode and Escape/focus on the existing portal dialog.
+
 ### Consistency correction after screenshot feedback
 
 The supplied header and POS view-switch screenshots show residual blue styling,
