@@ -241,7 +241,7 @@ export default function UserIndex({ initialUsers = {}, activeOwnersCount = 0, ma
             <Head title={`${locale === 'en' ? 'Staff Management' : 'Kelola Staf'}`}>
                 <meta name="description" content="Kelola akun pengguna, peran hak akses (Owner / Kasir), dan status staf pegawai Motorku." />
             </Head>
-            <div className="space-y-4">
+            <div className="admin-staff space-y-4">
                 <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
                     <div>
                         <h3 className="admin-page-title">Daftar Staf <span className="ml-1 text-sm font-semibold text-slate-500 dark:text-slate-400">{totalUsers}</span></h3>

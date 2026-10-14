@@ -1,5 +1,9 @@
 # Admin visual design contract
 
+> Historical initial refinement, superseded after user review by
+> [the UI rebuild](ADMIN_UI_REBUILD.md) and its
+> [verification record](ADMIN_UI_REBUILD_VERIFICATION.md).
+
 ## Purpose and scope
 
 Refine the existing owner workspace: Dashboard, POS, Products, Motorcycles,

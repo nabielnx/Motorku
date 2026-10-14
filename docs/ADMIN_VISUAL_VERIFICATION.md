@@ -1,5 +1,9 @@
 # Admin visual refinement verification
 
+> Historical initial refinement, superseded after user review by
+> [the UI rebuild](ADMIN_UI_REBUILD.md) and its
+> [verification record](ADMIN_UI_REBUILD_VERIFICATION.md).
+
 Date: 2026-10-14. Base: `develop` after PR #93.
 
 ## Scope and result

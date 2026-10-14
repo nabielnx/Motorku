@@ -20,7 +20,7 @@ import {
     FiCalendar
 } from 'react-icons/fi';
 
-const numberBadgeClass = 'relative inline-flex h-[26px] w-[26px] shrink-0 items-center justify-center overflow-hidden rounded-lg bg-primary pb-0.5 text-xs font-bold leading-none tabular-nums text-accentYellow';
+const numberBadgeClass = 'admin-rank inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold tabular-nums';
 
 export default function Dashboard({ stats = {}, filters = {} }) {
 
@@ -157,7 +157,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                 <meta name="description" content="Ringkasan performa penjualan, total pendapatan, statistik pesanan, dan produk terlaris toko Motorku." />
             </Head>
 
-            {isNavigating ? <DashboardSkeleton /> : <div className="grid w-full grid-cols-12 items-start gap-3 sm:gap-4">
+            {isNavigating ? <DashboardSkeleton /> : <div className="admin-dashboard grid w-full grid-cols-12 items-start gap-3 sm:gap-4">
                 
                 {/* Header Filter Periode */}
                 <div className="col-span-12 flex flex-col justify-between gap-2 sm:flex-row sm:items-center sm:gap-3">
@@ -193,18 +193,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                 </div>
 
                 {/* Kondisi saat ini dan penjualan pada periode terpilih */}
-                <div className="col-span-12 grid grid-cols-2 gap-2 sm:gap-4 xl:grid-cols-4">
-                    <Link href={route('orders.index')} className="admin-metric relative overflow-hidden transition-colors">
-                        <div className="flex items-start justify-between gap-2">
-                            <div>
-                                <p className="text-[10px] sm:text-[11px] font-bold text-white uppercase tracking-wider">Antrean saat ini</p>
-                                <h3 className="text-xl sm:text-[30px] font-heading font-extrabold text-white mt-2">{pendingOrders}</h3>
-                            </div>
-                            <FiClock className="hidden text-accentYellow shrink-0 sm:block" size={18} />
-                        </div>
-
-                    </Link>
-
+                <div className="admin-dashboard-summary col-span-12 grid grid-cols-3 sm:grid-cols-4">
                     <div className="admin-metric admin-metric--primary relative overflow-hidden" title="Pembayaran pada periode terpilih setelah retur">
                         <div className="flex items-start justify-between gap-2">
                             <div>
@@ -223,6 +212,17 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                         </div>
 
                     </div>
+
+                    <Link href={route('orders.index')} className="admin-metric relative overflow-hidden transition-colors">
+                        <div className="flex items-start justify-between gap-2">
+                            <div>
+                                <p className="text-[10px] sm:text-[11px] font-bold text-white uppercase tracking-wider">Antrean saat ini</p>
+                                <h3 className="text-xl sm:text-[30px] font-heading font-extrabold text-white mt-2">{pendingOrders}</h3>
+                            </div>
+                            <FiClock className="hidden text-accentYellow shrink-0 sm:block" size={18} />
+                        </div>
+
+                    </Link>
 
                     <div className="admin-metric relative overflow-hidden">
                         <div className="flex items-start justify-between gap-2">
@@ -328,7 +328,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                                             <div className="flex items-center space-x-2.5 min-w-0">
                                                 <span className={numberBadgeClass}>
                                                     {String(item.rank || idx + 1).padStart(2, '0')}
-                                                    <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-0.5 bg-accentYellow" />
+
                                                 </span>
                                                 <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 truncate">{item.name}</span>
                                             </div>
@@ -356,7 +356,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                                                     <div className="flex min-w-0 items-center gap-2.5">
                                                         <span className={numberBadgeClass}>
                                                             {String(idx + 1).padStart(2, '0')}
-                                                            <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-0.5 bg-accentYellow" />
+
                                                         </span>
                                                         <div className="min-w-0">
                                                             <span className="font-semibold text-slate-900 dark:text-slate-100 block truncate">{stock.name}</span>

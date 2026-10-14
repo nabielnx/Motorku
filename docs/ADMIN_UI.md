@@ -1,6 +1,6 @@
 # Admin UI conventions
 
-Use `Components/Admin/Button` for primary, secondary and destructive actions. Primary actions use the existing yellow brand color with dark blue text; cancellation is neutral; destructive actions are red. Keep blue for navigation and selection. Buttons default to `type="button"`; form submission must explicitly use `type="submit"`.
+Use `Components/Admin/Button` for primary, secondary and destructive actions. Primary actions use the existing yellow brand color with dark text; cancellation is neutral; destructive actions are red. Use yellow for sidebar/dock selection and ink for filters; blue remains an informational accent. Buttons default to `type="button"`; form submission must explicitly use `type="submit"`.
 
 Shared styles live in `resources/css/admin-controls.css`, imported after the main stylesheet. Apply them explicitly to admin controls; do not apply them globally to the storefront or printed reports.
 
@@ -16,10 +16,21 @@ Check long product names, both themes, phone/tablet/desktop widths, Tab cycling,
 
 ## Visual system
 
-`admin-visual.css` is scoped to `admin-workspace` in the authenticated layout.
-Use `admin-surface` for solid bordered panels, `admin-section-header` for section
-separators and `admin-number` for aligned numeric values. Use `admin-metric` for
-dashboard KPIs; only the sales anchor uses `admin-metric--primary`. Catalog cards
-use `admin-catalog-card` without hover shadows. Motor selection uses a solid
-surface and inset edge. Keep actions and focus rings visible in both themes.
-See [the design contract](ADMIN_VISUAL_DESIGN.md) for responsive acceptance.
+`admin-visual.css` defines the workshop-ledger workspace with charcoal navigation,
+yellow selection/action accents and solid neutral work surfaces. Its scope is
+`admin-workspace` plus `admin-dialog` only inside the mounted admin body marker.
+Public storefront and receipt styles retain their own presentation.
+
+Use `admin-surface`, `admin-section-header` and `admin-number` for panels, headings
+and tabular values. Dashboard metrics use a joined `admin-dashboard-summary`;
+the sales metric comes first. Catalog photos fill square frames with `cover`,
+while the detail viewer displays the complete image with `contain`. Product
+names remain fully wrapped and prices/stocks align at the foot of a grid row.
+
+The phone/tablet navigation dock is a separate flex row beneath `main`, including
+safe-area padding. Never absolutely position it over pagination or cart actions.
+Its links derive from the existing role-filtered navigation entries. Closed
+mobile sidebar content is hidden from keyboard navigation.
+
+See [the rebuild contract](ADMIN_UI_REBUILD.md) and
+[its verification](ADMIN_UI_REBUILD_VERIFICATION.md).

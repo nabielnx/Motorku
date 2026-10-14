@@ -495,11 +495,11 @@ return (
                 <meta name="description" content="Sistem kasir POS cepat dan responsif untuk penjualan sparepart, pencetakan struk, dan pembayaran instan." />
             </Head>
 
-            <div className="flex min-h-0 flex-1 flex-col md:flex-row w-full overflow-hidden bg-slate-100 dark:bg-slate-950">
+            <div className="admin-pos flex min-h-0 flex-1 flex-col md:flex-row w-full overflow-hidden bg-slate-100 dark:bg-slate-950">
                 {/* LEFT SIDE: Menu & Categories */}
                 <div className={`${isMobileCartOpen ? 'hidden md:flex' : 'flex'} flex-1 flex-col min-w-0 min-h-0 overflow-hidden`}>
                     {/* Header Controls & Search */}
-                    <div className="bg-white dark:bg-slate-900 p-3 sm:p-4 border-b border-slate-300 dark:border-slate-800 space-y-2 sm:space-y-3 shrink-0 transition-colors">
+                    <div className="pos-toolbar bg-white dark:bg-slate-900 p-3 sm:p-4 border-b border-slate-300 dark:border-slate-800 space-y-2 sm:space-y-3 shrink-0 transition-colors">
                         <div className="flex items-center justify-between gap-3">
                             <div className="relative flex-1">
                                 <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" strokeWidth={2.5} size={16} />
@@ -524,7 +524,7 @@ return (
                         </div>
 
                         {/* Kategori induk menampilkan seluruh produk subkategorinya */}
-                        <div className="space-y-2 border-t border-slate-200 pt-2 sm:pt-3 dark:border-slate-800">
+                        <div className="pos-category-bar space-y-2 border-t border-slate-200 pt-2 sm:pt-3 dark:border-slate-800">
                             <div className="flex flex-col gap-2">
                                 <div className="flex w-full min-w-0 items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
                                     {categories.length > 0 ? (
@@ -641,7 +641,7 @@ return (
                                             onClick={() => setPreviewProduct(item)}
                                             aria-label={`Lihat detail ${item.name}`}
                                             aria-haspopup="dialog"
-                                            className={`${viewMode === 'grid' ? 'aspect-[4/3] w-full shrink-0' : 'h-14 w-14 shrink-0 rounded-lg border border-slate-200 dark:border-slate-700'} overflow-hidden bg-slate-100 dark:bg-slate-800 flex items-center justify-center cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accentYellow`}
+                                            className={`${viewMode === 'grid' ? 'aspect-square w-full shrink-0' : 'h-14 w-14 shrink-0 rounded-lg border border-slate-200 dark:border-slate-700'} overflow-hidden bg-slate-100 dark:bg-slate-800 flex items-center justify-center cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accentYellow`}
                                         >
                                             <ProductPhoto src={item.image} name={item.name} category={item.category} className="h-full w-full" compact />
                                         </button>
@@ -694,11 +694,11 @@ return (
                         </div>
                         )}
                     </div>
-                    <div className="shrink-0 border-t border-slate-200 bg-white p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] dark:border-slate-800 dark:bg-slate-900 md:hidden">
+                    <div className="pos-mobile-cart-bar shrink-0 border-t border-slate-200 bg-white p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] dark:border-slate-800 dark:bg-slate-900 md:hidden">
                         <button
                             type="button"
                             onClick={() => setIsMobileCartOpen(true)}
-                            className="flex w-full items-center justify-between gap-3 rounded-xl bg-primary px-4 py-3 text-left text-sm font-bold text-white"
+                            className="pos-mobile-cart-button flex w-full items-center justify-between gap-3 rounded-xl bg-primary px-4 py-3 text-left text-sm font-bold text-white"
                         >
                             <span className="flex min-w-0 items-center gap-2"><FiShoppingBag className="shrink-0" aria-hidden="true" /> Keranjang <span className="text-[#fceb2d]">({cartItemCount})</span></span>
                             <span className="shrink-0 font-mono">{formatRp(total)}</span>
@@ -707,10 +707,10 @@ return (
                 </div>
 
                 {/* RIGHT SIDE: Cart & Checkout Panel */}
-                <div className={`${isMobileCartOpen ? 'flex' : 'hidden'} md:flex w-full md:w-96 lg:w-[410px] bg-white dark:bg-slate-900 border-l border-slate-300 dark:border-slate-800 flex-col min-h-0 flex-1 md:flex-none h-full overflow-hidden shrink-0 transition-colors`}>
+                <div className={`pos-cart ${isMobileCartOpen ? 'flex' : 'hidden'} md:flex w-full md:w-96 lg:w-[410px] bg-white dark:bg-slate-900 border-l border-slate-300 dark:border-slate-800 flex-col min-h-0 flex-1 md:flex-none h-full overflow-hidden shrink-0 transition-colors`}>
 
                     {/* Customer & Order Settings */}
-                    <div className="admin-section-header p-3.5 border-b border-slate-300 dark:border-slate-800 space-y-2 bg-slate-50 dark:bg-slate-800 shrink-0">
+                    <div className="pos-cart-header admin-section-header p-3.5 border-b border-slate-300 dark:border-slate-800 space-y-2 bg-slate-50 dark:bg-slate-800 shrink-0">
                         <div className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 font-semibold flex flex-wrap items-center justify-between gap-2">
                             <span className="flex items-center gap-1.5"><FiShoppingBag className="w-4 h-4 text-slate-500 dark:text-slate-400" strokeWidth={2.5} /> Keranjang <span className="rounded-md bg-primary px-1.5 py-0.5 text-[10px] font-bold text-[#fceb2d]">{cartItemCount} item</span></span>
                             <div className="flex shrink-0 items-center gap-1">
@@ -826,7 +826,7 @@ return (
                     </div>
 
                     {/* Summary & Checkout Button */}
-                    <div className="border-t border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0 pb-[env(safe-area-inset-bottom)] md:pb-0">
+                    <div className="pos-cart-summary border-t border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0 pb-[env(safe-area-inset-bottom)] md:pb-0">
                         <div className="p-4 space-y-2 text-xs sm:text-sm text-slate-600 dark:text-slate-400">
                             <div className="flex justify-between">
                                 <span>Subtotal</span>
@@ -859,7 +859,7 @@ return (
                         <button
                             disabled={cart.length === 0}
                             onClick={handleOpenPaymentModal}
-                            className="w-full py-4 bg-accentYellow hover:bg-yellow-300 disabled:bg-slate-200 dark:disabled:bg-slate-800 disabled:text-slate-400 dark:disabled:text-slate-600 disabled:cursor-not-allowed text-primaryDark font-black text-sm uppercase tracking-wider transition flex items-center justify-center gap-2.5 rounded-none border-t border-yellow-400 dark:border-slate-800 px-4 group cursor-pointer"
+                            className="pos-payment-button w-full py-4 bg-accentYellow hover:bg-yellow-300 disabled:bg-slate-200 dark:disabled:bg-slate-800 disabled:text-slate-400 dark:disabled:text-slate-600 disabled:cursor-not-allowed text-primaryDark font-black text-sm uppercase tracking-wider transition flex items-center justify-center gap-2.5 rounded-none border-t border-yellow-400 dark:border-slate-800 px-4 group cursor-pointer"
                         >
                             <FiCreditCard className="w-5 h-5" strokeWidth={2.5} />
                             <span>Proses Pembayaran ({formatRp(total)})</span>

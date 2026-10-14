@@ -326,6 +326,12 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
         }))
         .filter(section => section.items.length > 0);
 
+    const quickNavItems = visibleSections.flatMap(section => section.items).filter(item => {
+        const destination = new URL(item.href, 'http://localhost');
+        return ['/dashboard', '/pos'].includes(destination.pathname)
+            || (destination.pathname === '/products' && !destination.search);
+    });
+
     return (
         <div className="admin-workspace h-[100dvh] w-screen overflow-hidden bg-slate-50 dark:bg-slate-950 flex font-sans antialiased text-slate-800 dark:text-slate-100 transition-colors duration-200">
 
@@ -338,12 +344,12 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
             )}
 
             {/* SIDEBAR NAVIGATION */}
-            <aside className={`fixed inset-y-0 left-0 bg-white dark:bg-slate-900 w-64 border-r border-slate-200 dark:border-slate-800 z-50 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:sticky lg:top-0 lg:h-full lg:inset-auto flex flex-col ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+            <aside className={`admin-sidebar fixed inset-y-0 left-0 bg-white dark:bg-slate-900 w-64 border-r border-slate-200 dark:border-slate-800 z-50 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:sticky lg:top-0 lg:h-full lg:inset-auto flex flex-col ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
 
                 {/* Brand Logo */}
-                <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between shrink-0">
+                <div className="admin-brand p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between shrink-0">
                     <Link href={homeHref} className="flex items-center gap-3">
-                        <ApplicationLogo className="w-12 h-16 shrink-0" />
+                        <ApplicationLogo className="w-10 h-10 shrink-0" />
                         <div>
                             <h1 className="text-lg font-heading font-black text-primaryDark dark:text-white tracking-tight leading-none">
                                 {props.app_settings?.store_name || 'Motorku'}
@@ -354,6 +360,7 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
 
                     {/* Close button mobile */}
                     <button 
+                        aria-label="Tutup menu navigasi"
                         onClick={() => setIsSidebarOpen(false)}
                         className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-600 dark:hover:text-slate-300 lg:hidden"
                     >
@@ -362,11 +369,11 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                 </div>
 
                 {/* Navigation Links — Scrollable */}
-                <nav className="flex-1 overflow-y-auto p-3 space-y-5">
+                <nav className="admin-navigation flex-1 overflow-y-auto p-3 space-y-5">
                     {visibleSections.map((section, sIndex) => (
                         <div key={sIndex}>
                             {/* Section Label */}
-                            <p className="px-3 mb-2 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                            <p className="admin-nav-section px-3 mb-2 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
                                 {section.label}
                             </p>
 
@@ -378,11 +385,12 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                                         <Link
                                             key={iIndex}
                                             href={item.href}
+                                            aria-current={item.active ? 'page' : undefined}
                                             onClick={() => setIsSidebarOpen(false)}
-                                            className={`flex items-center gap-3 -mx-3 ${item.nested ? 'pl-10 pr-4 py-2 text-xs' : 'px-6 py-2.5'} transition-colors font-semibold text-[13px] ${
+                                            className={`admin-nav-link flex items-center gap-3 ${item.nested ? 'pl-10 pr-4 py-2 text-xs' : 'px-6 py-2.5'} transition-colors font-semibold text-[13px] ${
                                                 item.active 
-                                                    ? 'bg-primary text-white border-l-4 border-[#FFF200] font-bold'
-                                                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white border-l-4 border-transparent'
+                                                    ? 'admin-nav-link--active font-bold'
+                                                    : 'text-slate-600 dark:text-slate-300'
                                             }`}
                                         >
                                             <Icon size={17} className={item.active ? 'text-[#FFF200]' : 'text-slate-400 dark:text-slate-500'} strokeWidth={2.2} />
@@ -396,7 +404,7 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                 </nav>
 
                 {/* Sidebar Bottom — Support, Logout & Copyright */}
-                <div className="p-3 border-t border-slate-100 dark:border-slate-800 space-y-0.5 shrink-0">
+                <div className="admin-sidebar-footer p-3 border-t border-slate-100 dark:border-slate-800 space-y-0.5 shrink-0">
 
                     <Link
                         href={safeRoute('logout', '/logout')}
@@ -423,7 +431,7 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
             <div className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden">
 
                 {/* TOP HEADER */}
-                <header className="h-14 sm:h-16 bg-white dark:bg-slate-900 border-b border-slate-300 dark:border-slate-800 flex items-center justify-between px-4 sm:px-6 lg:px-8 shrink-0 z-20 transition-colors duration-200">
+                <header className="admin-topbar h-14 sm:h-16 bg-white dark:bg-slate-900 border-b border-slate-300 dark:border-slate-800 flex items-center justify-between px-4 sm:px-6 lg:px-8 shrink-0 z-20 transition-colors duration-200">
                     <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
                         <button 
                             onClick={() => setIsSidebarOpen(true)}
@@ -433,13 +441,13 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                             <FiMenu size={22} strokeWidth={2.5} />
                         </button>
 
-                        <h2 className="min-w-0 break-words text-base leading-5 sm:text-xl sm:leading-7 font-heading font-black text-primaryDark dark:text-white tracking-tight">
+                        <h2 className="admin-location min-w-0 break-words text-base leading-5 sm:text-xl sm:leading-7 font-heading font-black text-primaryDark dark:text-white tracking-tight">
                             {destInfo?.title || pageTitle || header || getTranslation(locale, 'dashboard', 'Dashboard')}
                         </h2>
                     </div>
 
                     {/* Right Action Icons */}
-                    <div className="flex shrink-0 items-center gap-1 sm:gap-1.5">
+                    <div className="admin-account-actions flex shrink-0 items-center gap-1 sm:gap-1.5">
                         {/* Notification Bell Badge */}
                         <NotificationCenter user={user} roles={userRoles} onActiveOrderCountChange={setActiveOrderCount} timezone={props.app_settings?.timezone} />
 
@@ -494,9 +502,24 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                 </header>
 
                 {/* SCROLLABLE CONTENT BODY */}
-                <main className={`flex-1 min-h-0 ${(destInfo ? (destInfo.noPadding ?? false) : noPadding) ? 'p-0 flex flex-col overflow-hidden' : 'p-3 sm:p-6 lg:p-8 overflow-y-auto'}`}>
+                <main className={`admin-main flex-1 min-h-0 ${(destInfo ? (destInfo.noPadding ?? false) : noPadding) ? 'p-0 flex flex-col overflow-hidden' : 'p-3 sm:p-6 lg:p-8 overflow-y-auto'}`}>
                     {destInfo ? destInfo.component : children}
                 </main>
+                <nav className="admin-mobile-dock" aria-label="Navigasi cepat" style={{ gridTemplateColumns: `repeat(${quickNavItems.length + 1}, minmax(0, 1fr))` }}>
+                    {quickNavItems.map(item => {
+                        const Icon = item.icon;
+                        const destination = new URL(item.href, 'http://localhost');
+                        const active = new URL(url, 'http://localhost').pathname === destination.pathname;
+                        return <Link key={item.href} href={item.href} aria-current={active ? 'page' : undefined} className={`admin-dock-item ${active ? 'admin-dock-item--active' : ''}`}>
+                            <Icon size={18} aria-hidden="true" />
+                            <span>{destination.pathname === '/pos' ? (locale === 'en' ? 'POS' : 'Kasir') : item.name}</span>
+                        </Link>;
+                    })}
+                    <button type="button" className="admin-dock-item" aria-label="Buka semua menu" aria-expanded={isSidebarOpen} onClick={() => setIsSidebarOpen(true)}>
+                        <FiMenu size={18} aria-hidden="true" />
+                        <span>Menu</span>
+                    </button>
+                </nav>
                 <Toaster position="top-right" richColors closeButton />
             </div>
         </div>

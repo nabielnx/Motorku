@@ -368,7 +368,7 @@ export default function SettingIndex() {
       <Head title={`${locale === 'en' ? 'Settings' : 'Pengaturan'}`}>
         <meta name="description" content="Pengaturan sistem toko, logo, printer struk, pajak, zona waktu, dan bahasa." />
       </Head>
-      <div className="max-w-4xl mx-auto space-y-6 pb-8">
+      <div className="admin-settings max-w-6xl mx-auto space-y-4 pb-8">
         {saved && (
           <div className="bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 p-4 rounded-2xl flex items-center gap-2 font-bold text-sm">
             <FiCheck className="text-emerald-600 dark:text-emerald-400" size={18} />

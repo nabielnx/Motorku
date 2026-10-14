@@ -717,12 +717,12 @@ export default function MotorcycleIndex({
                                 const bCfg = getBrandConfig(m.brand);
 
                                 return (
-                                    <div key={m.id} className={`border-2 transition-colors ${isExpanded
+                                    <div key={m.id} className={`admin-motor-row border-2 transition-colors ${isExpanded
                                         ? 'mx-1 my-2 rounded-xl overflow-hidden border-primary dark:border-accentYellow'
                                         : 'border-transparent border-b-slate-100 dark:border-b-slate-800'}`}>
                                         {/* Main Motor Header Row */}
                                         <div
-                                            className={`p-2.5 sm:p-3.5 cursor-pointer transition-colors ${
+                                            className={`admin-motor-header p-2.5 sm:p-3.5 cursor-pointer transition-colors ${
                                                 isExpanded ? 'admin-motor-selected' : 'hover:bg-slate-50 dark:hover:bg-slate-800'
                                             }`}
                                             onClick={() => toggleExpandMotor(m.id)}

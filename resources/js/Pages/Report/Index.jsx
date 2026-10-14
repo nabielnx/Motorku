@@ -184,7 +184,7 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
             {isNavigating ? (
                 <ReportSkeleton />
             ) : (
-            <div className="space-y-4">
+            <div className="admin-report space-y-4">
 
                 {/* Toolbar: Period + Export */}
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
@@ -226,7 +226,7 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
                 </div>
 
                 {/* KPI Cards */}
-                <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
+                <div className="report-summary grid grid-cols-2 xl:grid-cols-4 gap-3">
                     {[
                         {
                             label: 'Pendapatan Setelah Retur',
@@ -253,7 +253,7 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
                             icon: FiDollarSign,
                         },
                     ].map((kpi, i) => (
-                        <div key={i} className="admin-surface bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 transition-colors">
+                        <div key={i} className="report-metric admin-surface bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 transition-colors">
                             <div className="relative flex items-start justify-between gap-2">
                                 <div className="min-w-0 flex-1">
                                     <p className="min-h-8 pr-6 font-medium admin-help">{kpi.label}</p>

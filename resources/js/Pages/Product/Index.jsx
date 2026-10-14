@@ -501,7 +501,7 @@ export default function MenuManagement({
                 {/* UNIFIED PRODUCT MANAGEMENT CONTAINER */}
                 <div className="admin-surface bg-white dark:bg-slate-900 sm:rounded-xl sm:border border-slate-200 dark:border-slate-800 sm:shadow-xs flex-1 min-h-0 flex flex-col overflow-hidden">
                     {/* Compact Header & Filter Section */}
-                    <div className="product-toolbar p-2.5 sm:p-3.5 space-y-2 sm:space-y-2.5 border-b border-slate-200 dark:border-slate-800 shrink-0 bg-white dark:bg-slate-900 z-10">
+                    <div className="catalog-toolbar product-toolbar p-2.5 sm:p-3.5 space-y-2 sm:space-y-2.5 border-b border-slate-200 dark:border-slate-800 shrink-0 bg-white dark:bg-slate-900 z-10">
                         {/* Top Row: Title, Badge, Tabs & Action */}
                         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                             {/* Left: Title + Badge + Tabs */}
@@ -850,19 +850,19 @@ export default function MenuManagement({
                                     </div>}
                                     {viewMode === 'grid' ? (
                                     /* GRID VIEW */
-                                    <div className="grid grid-cols-2 gap-2 p-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 min-[1700px]:grid-cols-6 md:gap-3 md:p-4">
+                                    <div className="catalog-grid grid grid-cols-2 gap-3 p-3 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 min-[1700px]:grid-cols-5 md:gap-4 md:p-4">
                                         {filteredItems.map(item => (
                                             <div key={item.id} className="admin-surface admin-catalog-card bg-white dark:bg-slate-800 rounded-md md:rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden md:shadow-xs hover:shadow-md hover:border-slate-400 dark:hover:border-slate-500 transition-all flex flex-col relative group">
                                                 {/* Image Container */}
                                                 <div
-                                                    className="relative w-full aspect-[4/3] bg-slate-50 dark:bg-slate-900 cursor-pointer overflow-hidden border-b border-slate-100 dark:border-slate-700"
+                                                    className="catalog-image relative w-full aspect-square bg-slate-50 dark:bg-slate-900 cursor-pointer overflow-hidden border-b border-slate-100 dark:border-slate-700"
                                                     onClick={(e) => { e.stopPropagation(); setPreviewProduct(item); }}
                                                 >
                                                     <ProductPhoto src={item.image} name={item.name} category={item.category} className="absolute inset-0 w-full h-full" />
                                                 </div>
 
                                                 {/* Card Content */}
-                                                <div className="p-2 md:p-3 flex flex-col flex-1">
+                                                <div className="catalog-card-body p-3 flex flex-col flex-1">
                                                     <div className="hidden md:flex items-center gap-1.5 mb-1.5 text-[10px]">
                                                         <span className="text-slate-500 dark:text-slate-400 truncate max-w-full">
                                                             {item.category}
@@ -877,11 +877,11 @@ export default function MenuManagement({
                                                             {item.name}
                                                         </h3>
                                                     </div>
-                                                    <div className="mt-auto">
+                                                    <div className="catalog-card-summary mt-auto flex flex-wrap items-baseline justify-between gap-1">
                                                         <p className="admin-number font-semibold text-slate-900 dark:text-white text-xs md:text-base">
                                                             Rp {Number(item.price).toLocaleString('id-ID')}
                                                         </p>
-                                                        <p className="text-xs md:text-xs mt-1 truncate">
+                                                        <p className="text-xs md:text-xs truncate">
                                                             <span className={`font-semibold ${
                                                                 item.stock <= 0 
                                                                     ? 'text-red-600 dark:text-red-400 font-bold' 
@@ -896,7 +896,7 @@ export default function MenuManagement({
                                                 </div>
 
                                                 {/* Action Buttons Overlay or Footer */}
-                                                <div className="border-t border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-2 py-1.5 flex items-center justify-between">
+                                                <div className="catalog-card-actions border-t border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-2 py-1.5 flex items-center justify-between">
                                                     <button
                                                         type="button"
                                                         onClick={() => openAdjustModal(item)}
@@ -912,7 +912,7 @@ export default function MenuManagement({
                                                         className="p-1.5 text-slate-500 hover:text-primaryDark dark:hover:text-white hover:bg-white dark:hover:bg-slate-800 rounded-lg transition cursor-pointer admin-icon-button"
                                                         title="Edit Produk"
                                                     >
-                                                        <FiEdit2 size={13} />
+                                                        <FiEdit2 size={13} /> <span className="hidden xl:inline text-[11px] font-semibold">Edit</span>
                                                     </button>
                                                     <button
                                                         type="button"
@@ -920,7 +920,7 @@ export default function MenuManagement({
                                                         className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-white dark:hover:bg-slate-800 rounded-lg transition cursor-pointer admin-icon-button"
                                                         title="Hapus Produk"
                                                     >
-                                                        <FiTrash2 size={13} />
+                                                        <FiTrash2 size={13} /> <span className="hidden xl:inline text-[11px] font-semibold">Hapus</span>
                                                     </button>
                                                 </div>
                                             </div>

@@ -15,7 +15,7 @@ export default function ReportSkeleton() {
             {/* 4 KPI Cards */}
             <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
                 {Array.from({ length: 4 }).map((_, i) => (
-                    <div key={i} className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 transition-colors">
+                    <div key={i} className="report-metric admin-surface bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 transition-colors">
                         <div className="flex items-start justify-between gap-2">
                             <div className="min-w-0 space-y-1.5 flex-1">
                                 <Skeleton className="h-2.5 w-3/4" />

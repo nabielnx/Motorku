@@ -7,7 +7,7 @@ function ProductGridCardSkeleton() {
     return (
         <div className="bg-white dark:bg-slate-800 rounded-md md:rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden md:shadow-xs flex flex-col relative">
             {/* Image Container with Badges */}
-            <div className="relative w-full aspect-[4/3] bg-slate-50 dark:bg-slate-900 border-b border-slate-100 dark:border-slate-700 overflow-hidden">
+            <div className="relative w-full aspect-square bg-slate-50 dark:bg-slate-900 border-b border-slate-100 dark:border-slate-700 overflow-hidden">
                 <Skeleton className="h-full w-full !rounded-none" />
             </div>
 
@@ -68,7 +68,7 @@ export default function ProductTableSkeleton({ rows = 16, fullPage = false, view
     // ─── 1. Grid Skeleton View (Kotak-kotak) ───
     const gridContent = (
         <div className="flex-1 min-h-0 overflow-y-auto overflow-x-auto flex flex-col justify-between">
-            <div className="grid grid-cols-2 gap-2 p-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 min-[1700px]:grid-cols-6 md:gap-3 md:p-4">
+            <div className="grid grid-cols-2 gap-3 p-3 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 min-[1700px]:grid-cols-5 md:gap-4 md:p-4">
                 {Array.from({ length: rows }).map((_, i) => (
                     <ProductGridCardSkeleton key={i} />
                 ))}
