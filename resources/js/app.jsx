@@ -1,5 +1,6 @@
 import '../css/app.css';
 import '../css/admin-controls.css';
+import '../css/admin-visual.css';
 import './bootstrap';
 
 import { createInertiaApp, router } from '@inertiajs/react';

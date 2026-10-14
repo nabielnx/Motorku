@@ -495,11 +495,11 @@ return (
                 <meta name="description" content="Sistem kasir POS cepat dan responsif untuk penjualan sparepart, pencetakan struk, dan pembayaran instan." />
             </Head>
 
-            <div className="flex min-h-0 flex-1 flex-col md:flex-row w-full overflow-hidden bg-slate-100 dark:bg-slate-950">
+            <div className="admin-pos flex min-h-0 flex-1 flex-col md:flex-row w-full overflow-hidden bg-slate-100 dark:bg-slate-950">
                 {/* LEFT SIDE: Menu & Categories */}
                 <div className={`${isMobileCartOpen ? 'hidden md:flex' : 'flex'} flex-1 flex-col min-w-0 min-h-0 overflow-hidden`}>
                     {/* Header Controls & Search */}
-                    <div className="bg-white dark:bg-slate-900 p-3 sm:p-4 border-b border-slate-300 dark:border-slate-800 space-y-2 sm:space-y-3 shrink-0 transition-colors">
+                    <div className="pos-toolbar bg-white dark:bg-slate-900 p-3 sm:p-4 border-b border-slate-300 dark:border-slate-800 space-y-2 sm:space-y-3 shrink-0 transition-colors">
                         <div className="flex items-center justify-between gap-3">
                             <div className="relative flex-1">
                                 <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" strokeWidth={2.5} size={16} />
@@ -524,7 +524,7 @@ return (
                         </div>
 
                         {/* Kategori induk menampilkan seluruh produk subkategorinya */}
-                        <div className="space-y-2 border-t border-slate-200 pt-2 sm:pt-3 dark:border-slate-800">
+                        <div className="pos-category-bar space-y-2 border-t border-slate-200 pt-2 sm:pt-3 dark:border-slate-800">
                             <div className="flex flex-col gap-2">
                                 <div className="flex w-full min-w-0 items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
                                     {categories.length > 0 ? (
@@ -579,7 +579,7 @@ return (
                                         <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
                                             {filteredMenu.length} produk
                                         </span>
-                                        <div className="flex rounded-lg border border-slate-300 bg-slate-100 p-0.5 dark:border-slate-700 dark:bg-slate-800" role="group" aria-label="Tampilan produk">
+                                        <div className="admin-view-switch" role="group" aria-label="Tampilan produk">
                                             {[
                                                 { mode: 'list', label: 'Daftar', Icon: FiList },
                                                 { mode: 'grid', label: 'Grid', Icon: FiGrid },
@@ -604,7 +604,7 @@ return (
                                             title="Petunjuk Keyboard Shortcut (F1)"
                                             aria-label="Petunjuk keyboard shortcut (F1)"
                                         >
-                                            <FiHelpCircle className="w-3.5 h-3.5 text-blue-600 dark:text-yellow-400" strokeWidth={2.5} />
+                                            <FiHelpCircle className="w-3.5 h-3.5 text-primary dark:text-yellow-400" strokeWidth={2.5} />
                                             <span className="hidden xl:inline">Shortcut</span>
                                             <kbd className="hidden xl:inline px-1 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-200 rounded text-[9px] font-mono">F1</kbd>
                                         </button>
@@ -620,7 +620,7 @@ return (
                         {isNavigating ? (
                             <PosCardSkeleton count={8} mode={viewMode} />
                         ) : (
-                        <div className={`grid items-start gap-2 ${viewMode === 'grid' ? 'grid-cols-[repeat(auto-fill,minmax(144px,1fr))]' : 'grid-cols-1 2xl:grid-cols-2'}`}>
+                        <div className={`grid items-stretch gap-2 ${viewMode === 'grid' ? 'grid-cols-2 min-[900px]:grid-cols-[repeat(auto-fill,minmax(144px,1fr))]' : 'grid-cols-1 2xl:grid-cols-2'}`}>
                             {filteredMenu.map(item => {
                                 const isOutOfStock = item.stock <= 0;
                                 const isInCart = cart.some(cartItem => cartItem.id === item.id);
@@ -630,9 +630,9 @@ return (
                                 return (
                                     <div
                                         key={item.id}
-                                        className={`group flex w-full border bg-white text-left shadow-xs transition dark:bg-slate-900 ${viewMode === 'grid' ? 'flex-col rounded-xl overflow-hidden' : 'items-start gap-3 rounded-xl p-2.5'} ${
+                                        className={`admin-catalog-card group flex w-full border bg-white text-left shadow-xs transition dark:bg-slate-900 ${viewMode === 'grid' ? 'flex-col rounded-xl overflow-hidden' : 'items-start gap-3 rounded-xl p-2.5'} ${
                                             isOutOfStock
-                                                ? 'border-slate-200 opacity-55 dark:border-slate-800'
+                                                ? 'border-slate-200 dark:border-slate-800'
                                                 : 'cursor-pointer border-slate-200 hover:border-slate-400 hover:bg-slate-50 dark:border-slate-700 dark:hover:border-slate-500 dark:hover:bg-slate-800'
                                         } ${isInCart ? '!shadow-[inset_3px_0_0_#FFDD00]' : ''}`}
                                     >
@@ -652,10 +652,10 @@ return (
                                             aria-label={`Tambah ${item.name} ke keranjang`}
                                             className={`flex min-w-0 flex-1 flex-col text-left rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accentYellow ${isOutOfStock ? 'cursor-not-allowed' : 'cursor-pointer'} ${viewMode === 'grid' ? 'w-full p-2.5' : ''}`}
                                         >
-                                            <span className="flex flex-col gap-2">
-                                                <span className={`block min-w-0 whitespace-normal break-words [overflow-wrap:anywhere] font-semibold text-slate-900 dark:text-white ${viewMode === 'grid' ? 'min-h-20 text-xs leading-4' : 'text-sm leading-5'}`} title={label.name}>{label.name}</span>
+                                            <span className={`flex flex-col gap-2 ${viewMode === 'grid' ? 'flex-1' : ''}`}>
+                                                <span className={`block min-w-0 whitespace-normal break-words [overflow-wrap:anywhere] font-semibold text-slate-900 dark:text-white ${viewMode === 'grid' ? 'flex-1 text-xs leading-4' : 'text-sm leading-5'}`} title={label.name}>{label.name}</span>
                                                 <span className="flex items-center justify-between gap-2">
-                                                    <span className={`shrink-0 whitespace-nowrap font-bold text-slate-900 dark:text-white ${viewMode === 'grid' ? 'text-xs leading-4' : 'text-sm leading-5'}`}>{formatRp(item.price)}</span>
+                                                    <span className={`admin-number shrink-0 whitespace-nowrap font-semibold text-slate-900 dark:text-white ${viewMode === 'grid' ? 'text-xs leading-4' : 'text-sm leading-5'}`}>{formatRp(item.price)}</span>
                                                     {viewMode === 'list' && <span className={`shrink-0 whitespace-nowrap text-[11px] leading-4 font-semibold ${isOutOfStock ? 'text-rose-600 dark:text-rose-400' : 'text-slate-600 dark:text-slate-300'}`}>
                                                         {isOutOfStock ? 'Stok habis' : `Stok ${Math.floor(item.stock)}`}
                                                     </span>}
@@ -663,7 +663,7 @@ return (
                                             </span>
                                             {viewMode === 'grid' ? (
                                                 <>
-                                                    <span className={`mt-0.5 block text-[10px] font-semibold ${isOutOfStock ? 'text-rose-600 dark:text-rose-400' : 'text-slate-500 dark:text-slate-400'}`}>
+                                                    <span className={`mt-auto pt-0.5 block text-[10px] font-semibold ${isOutOfStock ? 'text-rose-600 dark:text-rose-400' : 'text-slate-500 dark:text-slate-400'}`}>
                                                         {isOutOfStock ? 'Stok habis' : `Stok ${Math.floor(item.stock)}`}
                                                     </span>
                                                     {label.application && <span className="mt-1 block whitespace-normal break-words text-[10px] leading-4 text-slate-600 dark:text-slate-300">{applicationText}</span>}
@@ -686,19 +686,19 @@ return (
                             })}
 
                             {filteredMenu.length === 0 && (
-                                <div className="col-span-full py-16 text-center text-slate-400 dark:text-slate-500">
-                                    <FiTag className="w-8 h-8 mx-auto mb-2 text-slate-300 dark:text-slate-600" strokeWidth={2} />
+                                <div className="col-span-full py-16 text-center text-slate-600 dark:text-slate-300">
+                                    <FiTag className="w-8 h-8 mx-auto mb-2 text-slate-500 dark:text-slate-400" strokeWidth={2} />
                                     <p className="text-xs font-semibold">Tidak ada produk yang cocok</p>
                                 </div>
                             )}
                         </div>
                         )}
                     </div>
-                    <div className="shrink-0 border-t border-slate-200 bg-white p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] dark:border-slate-800 dark:bg-slate-900 md:hidden">
+                    <div className="pos-mobile-cart-bar shrink-0 border-t border-slate-200 bg-white p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] dark:border-slate-800 dark:bg-slate-900 md:hidden">
                         <button
                             type="button"
                             onClick={() => setIsMobileCartOpen(true)}
-                            className="flex w-full items-center justify-between gap-3 rounded-xl bg-primary px-4 py-3 text-left text-sm font-bold text-white"
+                            className="pos-mobile-cart-button flex w-full items-center justify-between gap-3 rounded-xl bg-primary px-4 py-3 text-left text-sm font-bold text-white"
                         >
                             <span className="flex min-w-0 items-center gap-2"><FiShoppingBag className="shrink-0" aria-hidden="true" /> Keranjang <span className="text-[#fceb2d]">({cartItemCount})</span></span>
                             <span className="shrink-0 font-mono">{formatRp(total)}</span>
@@ -707,12 +707,12 @@ return (
                 </div>
 
                 {/* RIGHT SIDE: Cart & Checkout Panel */}
-                <div className={`${isMobileCartOpen ? 'flex' : 'hidden'} md:flex w-full md:w-96 lg:w-[410px] bg-white dark:bg-slate-900 border-l border-slate-300 dark:border-slate-800 flex-col min-h-0 flex-1 md:flex-none h-full overflow-hidden shrink-0 transition-colors`}>
+                <div className={`pos-cart ${isMobileCartOpen ? 'flex' : 'hidden'} md:flex w-full md:w-96 lg:w-[410px] bg-white dark:bg-slate-900 border-l border-slate-300 dark:border-slate-800 flex-col min-h-0 flex-1 md:flex-none h-full overflow-hidden shrink-0 transition-colors`}>
 
                     {/* Customer & Order Settings */}
-                    <div className="p-3.5 border-b border-slate-300 dark:border-slate-800 space-y-2 bg-slate-50 dark:bg-slate-800 shrink-0">
+                    <div className="pos-cart-header admin-section-header p-3.5 border-b border-slate-300 dark:border-slate-800 space-y-2 bg-slate-50 dark:bg-slate-800 shrink-0">
                         <div className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 font-semibold flex flex-wrap items-center justify-between gap-2">
-                            <span className="flex items-center gap-1.5"><FiShoppingBag className="w-4 h-4 text-slate-500 dark:text-slate-400" strokeWidth={2.5} /> Keranjang <span className="rounded-md bg-primary px-1.5 py-0.5 text-[10px] font-bold text-[#fceb2d]">{cartItemCount} item</span></span>
+                            <span className="flex items-center gap-1.5"><FiShoppingBag className="w-4 h-4 text-slate-500 dark:text-slate-400" strokeWidth={2.5} /> Keranjang <span className="admin-cart-count rounded-md px-1.5 py-0.5 text-[10px] font-bold">{cartItemCount} item</span></span>
                             <div className="flex shrink-0 items-center gap-1">
                                 <button
                                     type="button"
@@ -723,7 +723,7 @@ return (
                                 >
                                     <FiTrash2 className="h-3.5 w-3.5" aria-hidden="true" /> Kosongkan
                                 </button>
-                                <button type="button" onClick={() => setIsMobileCartOpen(false)} className="flex items-center gap-1 rounded-lg px-2 py-1 text-blue-700 dark:text-blue-300 md:hidden" aria-label="Kembali ke daftar produk"><FiArrowLeft aria-hidden="true" /> Produk</button>
+                                <button type="button" onClick={() => setIsMobileCartOpen(false)} className="flex items-center gap-1 rounded-lg px-2 py-1 text-primary dark:text-primary md:hidden" aria-label="Kembali ke daftar produk"><FiArrowLeft aria-hidden="true" /> Produk</button>
                             </div>
                         </div>
                         <div className="flex items-center gap-2">
@@ -767,7 +767,7 @@ return (
 
                                 <div className="flex items-start justify-between mt-2 gap-2">
                                     <details className="min-w-0 flex-1">
-                                        <summary className="block cursor-pointer truncate text-xs font-medium text-blue-700 hover:underline dark:text-blue-300" title={item.notes || 'Tambah catatan untuk produk ini'}>
+                                        <summary className="block cursor-pointer truncate text-xs font-medium text-primary hover:underline dark:text-primary" title={item.notes || 'Tambah catatan untuk produk ini'}>
                                             {item.notes ? `Catatan: ${item.notes}` : '+ Catatan'}
                                         </summary>
                                         <input
@@ -826,7 +826,7 @@ return (
                     </div>
 
                     {/* Summary & Checkout Button */}
-                    <div className="border-t border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0 pb-[env(safe-area-inset-bottom)] md:pb-0">
+                    <div className="pos-cart-summary border-t border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0 pb-[env(safe-area-inset-bottom)] md:pb-0">
                         <div className="p-4 space-y-2 text-xs sm:text-sm text-slate-600 dark:text-slate-400">
                             <div className="flex justify-between">
                                 <span>Subtotal</span>
@@ -859,7 +859,7 @@ return (
                         <button
                             disabled={cart.length === 0}
                             onClick={handleOpenPaymentModal}
-                            className="w-full py-4 bg-accentYellow hover:bg-yellow-300 disabled:bg-slate-200 dark:disabled:bg-slate-800 disabled:text-slate-400 dark:disabled:text-slate-600 disabled:cursor-not-allowed text-primaryDark font-black text-sm uppercase tracking-wider transition flex items-center justify-center gap-2.5 rounded-none border-t border-yellow-400 dark:border-slate-800 px-4 group cursor-pointer"
+                            className="pos-payment-button w-full py-4 bg-accentYellow hover:bg-yellow-300 disabled:bg-slate-200 dark:disabled:bg-slate-800 disabled:text-slate-400 dark:disabled:text-slate-600 disabled:cursor-not-allowed text-primaryDark font-black text-sm uppercase tracking-wider transition flex items-center justify-center gap-2.5 rounded-none border-t border-yellow-400 dark:border-slate-800 px-4 group cursor-pointer"
                         >
                             <FiCreditCard className="w-5 h-5" strokeWidth={2.5} />
                             <span>Proses Pembayaran ({formatRp(total)})</span>

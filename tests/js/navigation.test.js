@@ -7,8 +7,8 @@ test('catalog loading retains the group and page size from the first request', (
     for (const group of ['automotive', 'electronics', 'hardware', 'bicycle']) {
         const visit = { method: 'get', url: new URL(`http://localhost:8000/products?group=${group}`) };
         prepareProductVisit(visit, 'grid', 1500);
-        assert.equal(getNavigationDestination(visit, 'http://localhost:8000/dashboard'), `/products?group=${group}&per_page=20`);
-        assert.equal(getNavigationDestination({ url: visit.url.href }, 'http://localhost:8000/dashboard'), `/products?group=${group}&per_page=20`);
+        assert.equal(getNavigationDestination(visit, 'http://localhost:8000/dashboard'), `/products?group=${group}&per_page=16`);
+        assert.equal(getNavigationDestination({ url: visit.url.href }, 'http://localhost:8000/dashboard'), `/products?group=${group}&per_page=16`);
     }
 });
 

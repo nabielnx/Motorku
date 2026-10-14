@@ -553,7 +553,7 @@ export default function MotorcycleIndex({
 
             <div className="p-1.5 sm:p-4 lg:p-5 flex-1 min-h-0 flex flex-col overflow-hidden">
                 {/* UNIFIED MOTORCYCLE DASHBOARD CONTAINER */}
-                <div className="bg-white dark:bg-slate-900 rounded-none sm:rounded-xl border-0 sm:border border-slate-200 dark:border-slate-800 shadow-none sm:shadow-xs flex-1 min-h-0 flex flex-col overflow-hidden">
+                <div className="admin-surface bg-white dark:bg-slate-900 rounded-none sm:rounded-xl border-0 sm:border border-slate-200 dark:border-slate-800 shadow-none sm:shadow-xs flex-1 min-h-0 flex flex-col overflow-hidden">
                     {/* Compact Header & Filter Section */}
                     <div className="p-2 sm:p-3.5 space-y-1.5 sm:space-y-2 border-b border-slate-200 dark:border-slate-800 shrink-0 bg-white dark:bg-slate-900 z-10">
                         {/* Top Row: Title, Badge & Actions */}
@@ -617,7 +617,7 @@ export default function MotorcycleIndex({
                                 onClick={() => setShowMotorFilters(value => !value)}
                                 aria-expanded={showMotorFilters}
                                 aria-controls="motor-mobile-filters"
-                                className={`lg:hidden inline-flex items-center gap-1.5 px-2 py-1.5 rounded-md text-xs font-semibold ${showMotorFilters || activeBrand !== 'semua' || activeType !== 'semua'
+                                className={`admin-filter-trigger lg:hidden inline-flex items-center gap-1.5 px-2 py-1.5 rounded-md text-xs font-semibold ${showMotorFilters || activeBrand !== 'semua' || activeType !== 'semua'
                                     ? 'text-primaryDark dark:text-accentYellow'
                                     : 'text-slate-600 dark:text-slate-200'}`}
                             >
@@ -649,7 +649,7 @@ export default function MotorcycleIndex({
                             {/* Right: Both Segmented Filters (Merek & Tipe Motor) */}
                             <div className="hidden lg:flex flex-wrap items-center gap-2 self-start lg:self-auto shrink-0">
                                 {/* Segmented Brand Filter */}
-                                <div className="inline-flex items-center bg-white dark:bg-slate-800 p-0.5 rounded-lg border border-slate-300 dark:border-slate-700 shadow-2xs overflow-x-auto no-scrollbar">
+                                <div className="admin-surface inline-flex items-center bg-white dark:bg-slate-800 p-0.5 rounded-lg border border-slate-300 dark:border-slate-700 shadow-2xs overflow-x-auto no-scrollbar">
                                     <button
                                         type="button"
                                         onClick={() => { setActiveBrand('semua'); setPage(1); }}
@@ -681,7 +681,7 @@ export default function MotorcycleIndex({
                                 </div>
 
                                 {/* Segmented Tipe Motor */}
-                                <div className="inline-flex items-center bg-white dark:bg-slate-800 p-0.5 rounded-lg border border-slate-300 dark:border-slate-700 shadow-2xs overflow-x-auto no-scrollbar">
+                                <div className="admin-surface inline-flex items-center bg-white dark:bg-slate-800 p-0.5 rounded-lg border border-slate-300 dark:border-slate-700 shadow-2xs overflow-x-auto no-scrollbar">
                                     {['semua', ...engineTypes].map(type => {
                                         const isTypeActive = activeType === type;
                                         const engCfg = getEngineConfig(type);
@@ -717,13 +717,13 @@ export default function MotorcycleIndex({
                                 const bCfg = getBrandConfig(m.brand);
 
                                 return (
-                                    <div key={m.id} className={`border-2 transition-colors ${isExpanded
+                                    <div key={m.id} className={`admin-motor-row border-2 transition-colors ${isExpanded
                                         ? 'mx-1 my-2 rounded-xl overflow-hidden border-primary dark:border-accentYellow'
                                         : 'border-transparent border-b-slate-100 dark:border-b-slate-800'}`}>
                                         {/* Main Motor Header Row */}
                                         <div
-                                            className={`p-2.5 sm:p-3.5 cursor-pointer transition-colors ${
-                                                isExpanded ? 'bg-primary/10 dark:bg-primary/20' : 'hover:bg-slate-50 dark:hover:bg-slate-800'
+                                            className={`admin-motor-header p-2.5 sm:p-3.5 cursor-pointer transition-colors ${
+                                                isExpanded ? 'admin-motor-selected' : 'hover:bg-slate-50 dark:hover:bg-slate-800'
                                             }`}
                                             onClick={() => toggleExpandMotor(m.id)}
                                         >
@@ -869,7 +869,7 @@ export default function MotorcycleIndex({
                                                             onClick={() => setShowPartsFilters(value => !value)}
                                                             aria-expanded={showPartsFilters}
                                                             aria-controls={`part-filters-${m.id}`}
-                                                            className={`xl:hidden inline-flex items-center gap-1 px-1.5 py-1.5 text-xs font-semibold ${showPartsFilters || filter.group !== 'semua' || filter.category !== 'semua' || filter.is_recommended
+                                                            className={`admin-filter-trigger xl:hidden inline-flex items-center gap-1 px-1.5 py-1.5 text-xs font-semibold ${showPartsFilters || filter.group !== 'semua' || filter.category !== 'semua' || filter.is_recommended
                                                                 ? 'text-blue-700 dark:text-blue-300'
                                                                 : 'text-slate-600 dark:text-slate-200'}`}
                                                         >

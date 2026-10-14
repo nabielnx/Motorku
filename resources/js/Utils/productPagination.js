@@ -1,5 +1,6 @@
 export function productPageSize(viewMode, width) {
-    const columns = width >= 1700 ? 6 : width >= 1280 ? 5 : width >= 1024 ? 4 : width >= 640 ? 3 : 2;
+    // Match the catalog and skeleton grid: 2 / 3 / 4 / 5 columns.
+    const columns = width >= 1700 ? 5 : width >= 1280 ? 4 : width >= 640 ? 3 : 2;
     return viewMode === 'grid' ? Math.ceil(16 / columns) * columns : 16;
 }
 

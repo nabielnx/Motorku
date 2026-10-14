@@ -32,7 +32,8 @@ import {
     FiUsers,
     FiX,
     FiSun,
-    FiMoon
+    FiMoon,
+    FiChevronDown
 } from 'react-icons/fi';
 
 const catalogGroups = Object.entries(catalogGroupLabels);
@@ -221,6 +222,12 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
     const activeUrl = new URL(navigatingDestination || url, 'http://localhost');
     const activePath = activeUrl.pathname;
     const activeCatalogGroup = activeUrl.searchParams.get('group');
+    const catalogMenuIsActive = activePath.startsWith('/products') || activePath.startsWith('/categories');
+    const [isProductsMenuOpen, setIsProductsMenuOpen] = useState(catalogMenuIsActive);
+
+    useEffect(() => {
+        if (catalogMenuIsActive) setIsProductsMenuOpen(true);
+    }, [catalogMenuIsActive, activePath, activeCatalogGroup]);
 
     const isItemActive = (itemHref) => {
         if (!itemHref) return false;
@@ -265,17 +272,21 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                     name: getTranslation(locale, 'menu_produk', 'Produk'),
                     icon: FiPackage,
                     href: safeRoute('products.index', '/products'),
-                    active: (isItemActive('/products') && !activeCatalogGroup) || activePath.startsWith('/categories'),
-                    roles: ['owner']
-                },
-                ...catalogGroups.map(([group, name]) => ({
-                    name,
-                    icon: FiPackage,
-                    href: `${safeRoute('products.index', '/products')}?group=${group}`,
-                    active: isItemActive('/products') && activeCatalogGroup === group,
+                    active: catalogMenuIsActive,
                     roles: ['owner'],
-                    nested: true,
-                })),
+                    children: [
+                        {
+                            name: locale === 'en' ? 'All Products' : 'Semua Produk',
+                            href: safeRoute('products.index', '/products'),
+                            active: (isItemActive('/products') && !activeCatalogGroup) || activePath.startsWith('/categories'),
+                        },
+                        ...catalogGroups.map(([group, name]) => ({
+                            name,
+                            href: `${safeRoute('products.index', '/products')}?group=${group}`,
+                            active: isItemActive('/products') && activeCatalogGroup === group,
+                        })),
+                    ],
+                },
                 {
                     name: 'Data Motor',
                     icon: MotorIcon,
@@ -326,8 +337,14 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
         }))
         .filter(section => section.items.length > 0);
 
+    const quickNavItems = visibleSections.flatMap(section => section.items).filter(item => {
+        const destination = new URL(item.href, 'http://localhost');
+        return ['/dashboard', '/pos'].includes(destination.pathname)
+            || (destination.pathname === '/products' && !destination.search);
+    });
+
     return (
-        <div className="h-[100dvh] w-screen overflow-hidden bg-slate-50 dark:bg-slate-950 flex font-sans antialiased text-slate-800 dark:text-slate-100 transition-colors duration-200">
+        <div className="admin-workspace h-[100dvh] w-screen overflow-hidden bg-slate-50 dark:bg-slate-950 flex font-sans antialiased text-slate-800 dark:text-slate-100 transition-colors duration-200">
 
             {/* OVERLAY MOBILE */}
             {isSidebarOpen && (
@@ -338,12 +355,12 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
             )}
 
             {/* SIDEBAR NAVIGATION */}
-            <aside className={`fixed inset-y-0 left-0 bg-white dark:bg-slate-900 w-64 border-r border-slate-200 dark:border-slate-800 z-50 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:sticky lg:top-0 lg:h-full lg:inset-auto flex flex-col ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+            <aside className={`admin-sidebar fixed inset-y-0 left-0 bg-white dark:bg-slate-900 w-64 border-r border-slate-200 dark:border-slate-800 z-50 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:sticky lg:top-0 lg:h-full lg:inset-auto flex flex-col ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
 
                 {/* Brand Logo */}
-                <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between shrink-0">
+                <div className="admin-brand p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between shrink-0">
                     <Link href={homeHref} className="flex items-center gap-3">
-                        <ApplicationLogo className="w-12 h-16 shrink-0" />
+                        <ApplicationLogo className="w-10 h-10 shrink-0" />
                         <div>
                             <h1 className="text-lg font-heading font-black text-primaryDark dark:text-white tracking-tight leading-none">
                                 {props.app_settings?.store_name || 'Motorku'}
@@ -354,6 +371,7 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
 
                     {/* Close button mobile */}
                     <button 
+                        aria-label="Tutup menu navigasi"
                         onClick={() => setIsSidebarOpen(false)}
                         className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-600 dark:hover:text-slate-300 lg:hidden"
                     >
@@ -362,11 +380,11 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                 </div>
 
                 {/* Navigation Links — Scrollable */}
-                <nav className="flex-1 overflow-y-auto p-3 space-y-5">
+                <nav className="admin-navigation custom-scrollbar flex-1 overflow-y-auto p-3 space-y-5">
                     {visibleSections.map((section, sIndex) => (
                         <div key={sIndex}>
                             {/* Section Label */}
-                            <p className="px-3 mb-2 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                            <p className="admin-nav-section px-3 mb-2 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
                                 {section.label}
                             </p>
 
@@ -374,15 +392,47 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                             <div className="space-y-0.5">
                                 {section.items.map((item, iIndex) => {
                                     const Icon = item.icon;
+                                    if (item.children) {
+                                        return (
+                                            <div key={item.href}>
+                                                <button
+                                                    type="button"
+                                                    aria-expanded={isProductsMenuOpen}
+                                                    aria-controls="admin-product-submenu"
+                                                    onClick={() => setIsProductsMenuOpen(open => !open)}
+                                                    className={`admin-nav-link admin-nav-parent flex w-full items-center gap-3 text-left ${item.active ? 'admin-nav-link--active' : ''}`}
+                                                >
+                                                    <Icon size={17} aria-hidden="true" />
+                                                    <span className="flex-1">{item.name}</span>
+                                                    <FiChevronDown size={15} className={isProductsMenuOpen ? 'rotate-180' : ''} aria-hidden="true" />
+                                                </button>
+                                                <ul id="admin-product-submenu" className="admin-nav-submenu" hidden={!isProductsMenuOpen}>
+                                                    {item.children.map(child => (
+                                                        <li key={child.href}>
+                                                            <Link
+                                                                href={child.href}
+                                                                aria-current={child.active ? 'page' : undefined}
+                                                                onClick={() => setIsSidebarOpen(false)}
+                                                                className={`admin-nav-child ${child.active ? 'admin-nav-child--active' : ''}`}
+                                                            >
+                                                                {child.name}
+                                                            </Link>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        );
+                                    }
                                     return (
                                         <Link
                                             key={iIndex}
                                             href={item.href}
+                                            aria-current={item.active ? 'page' : undefined}
                                             onClick={() => setIsSidebarOpen(false)}
-                                            className={`flex items-center gap-3 -mx-3 ${item.nested ? 'pl-10 pr-4 py-2 text-xs' : 'px-6 py-2.5'} transition-colors font-semibold text-[13px] ${
+                                            className={`admin-nav-link flex items-center gap-3 px-6 py-2.5 transition-colors font-semibold text-[13px] ${
                                                 item.active 
-                                                    ? 'bg-primary text-white border-l-4 border-[#FFF200] font-bold'
-                                                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white border-l-4 border-transparent'
+                                                    ? 'admin-nav-link--active font-bold'
+                                                    : 'text-slate-600 dark:text-slate-300'
                                             }`}
                                         >
                                             <Icon size={17} className={item.active ? 'text-[#FFF200]' : 'text-slate-400 dark:text-slate-500'} strokeWidth={2.2} />
@@ -396,7 +446,7 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                 </nav>
 
                 {/* Sidebar Bottom — Support, Logout & Copyright */}
-                <div className="p-3 border-t border-slate-100 dark:border-slate-800 space-y-0.5 shrink-0">
+                <div className="admin-sidebar-footer p-3 border-t border-slate-100 dark:border-slate-800 space-y-0.5 shrink-0">
 
                     <Link
                         href={safeRoute('logout', '/logout')}
@@ -423,7 +473,7 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
             <div className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden">
 
                 {/* TOP HEADER */}
-                <header className="h-14 sm:h-16 bg-white dark:bg-slate-900 border-b border-slate-300 dark:border-slate-800 flex items-center justify-between px-4 sm:px-6 lg:px-8 shrink-0 z-20 transition-colors duration-200">
+                <header className="admin-topbar h-14 sm:h-16 bg-white dark:bg-slate-900 border-b border-slate-300 dark:border-slate-800 flex items-center justify-between px-4 sm:px-6 lg:px-8 shrink-0 z-20 transition-colors duration-200">
                     <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
                         <button 
                             onClick={() => setIsSidebarOpen(true)}
@@ -433,13 +483,13 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                             <FiMenu size={22} strokeWidth={2.5} />
                         </button>
 
-                        <h2 className="min-w-0 break-words text-base leading-5 sm:text-xl sm:leading-7 font-heading font-black text-primaryDark dark:text-white tracking-tight">
+                        <h2 className="admin-location min-w-0 break-words text-base leading-5 sm:text-xl sm:leading-7 font-heading font-black text-primaryDark dark:text-white tracking-tight">
                             {destInfo?.title || pageTitle || header || getTranslation(locale, 'dashboard', 'Dashboard')}
                         </h2>
                     </div>
 
                     {/* Right Action Icons */}
-                    <div className="flex shrink-0 items-center gap-1 sm:gap-1.5">
+                    <div className="admin-account-actions flex shrink-0 items-center gap-1 sm:gap-1.5">
                         {/* Notification Bell Badge */}
                         <NotificationCenter user={user} roles={userRoles} onActiveOrderCountChange={setActiveOrderCount} timezone={props.app_settings?.timezone} />
 
@@ -460,29 +510,30 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                         {/* User Profile Avatar Dropdown */}
                         <Dropdown>
                             <Dropdown.Trigger>
-                                <button aria-label={`Menu profil ${user.name}`} className="flex items-center gap-2 px-1 py-0.5 sm:gap-3 sm:px-3 sm:py-1.5 rounded-xl hover:bg-slate-100/80 dark:hover:bg-slate-800 border border-transparent hover:border-slate-200 dark:hover:border-slate-700 transition focus:outline-none">
+                                <button type="button" aria-label={`Menu profil ${user.name}`} className="admin-profile-trigger flex items-center gap-2 px-1 py-1 sm:px-2 rounded-lg transition">
                                     {user.avatar ? (
                                         <img 
                                             src={'/storage/' + user.avatar} 
                                             alt={user.name} 
-                                            className="w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-full border-2 border-slate-300 dark:border-slate-700 object-cover shadow-xs"
+                                            className="admin-profile-avatar w-8 h-8 shrink-0 rounded-full object-cover"
                                         />
                                     ) : (
-                                        <div className="w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-full bg-primary text-white font-black text-sm flex items-center justify-center border-2 border-primaryDark shadow-xs">
+                                        <div className="admin-profile-avatar admin-profile-initial w-8 h-8 shrink-0 rounded-full text-sm font-semibold flex items-center justify-center">
                                             {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
                                         </div>
                                     )}
-                                    <div className="hidden sm:block text-left">
-                                        <p className="text-sm font-bold text-slate-900 dark:text-white leading-snug">{user.name}</p>
-                                        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 capitalize">{userRoles[0] || 'Staff'}</p>
+                                    <div className="admin-profile-identity hidden sm:block min-w-0 text-left">
+                                        <p className="truncate text-xs font-semibold leading-4" title={user.name}>{user.name}</p>
+                                        <p className="text-[11px] leading-4 capitalize">{userRoles[0] || 'Staff'}</p>
                                     </div>
+                                    <FiChevronDown size={14} className="hidden sm:block shrink-0" aria-hidden="true" />
                                 </button>
                             </Dropdown.Trigger>
 
-                            <Dropdown.Content align="right">
-                                <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
-                                    <p className="text-sm font-bold text-slate-900 dark:text-white">{user.name}</p>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{user.email}</p>
+                            <Dropdown.Content align="right" width="auto" className="admin-profile-menu" contentClasses="admin-profile-menu-content">
+                                <div className="admin-profile-menu-heading px-4 py-3 border-b">
+                                    <p className="text-sm font-semibold break-words">{user.name}</p>
+                                    <p className="text-xs break-all">{user.email}</p>
                                 </div>
                                 <Dropdown.Link href={safeRoute('profile.edit', '/profile')}>{getTranslation(locale, 'my_profile', 'Pengaturan Profil')}</Dropdown.Link>
                                 <Dropdown.Link href={safeRoute('logout', '/logout')} method="post" as="button">
@@ -494,9 +545,24 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                 </header>
 
                 {/* SCROLLABLE CONTENT BODY */}
-                <main className={`flex-1 min-h-0 ${(destInfo ? (destInfo.noPadding ?? false) : noPadding) ? 'p-0 flex flex-col overflow-hidden' : 'p-3 sm:p-6 lg:p-8 overflow-y-auto'}`}>
+                <main className={`admin-main flex-1 min-h-0 ${(destInfo ? (destInfo.noPadding ?? false) : noPadding) ? 'p-0 flex flex-col overflow-hidden' : 'p-3 sm:p-6 lg:p-8 overflow-y-auto'}`}>
                     {destInfo ? destInfo.component : children}
                 </main>
+                <nav className="admin-mobile-dock" aria-label="Navigasi cepat" style={{ gridTemplateColumns: `repeat(${quickNavItems.length + 1}, minmax(0, 1fr))` }}>
+                    {quickNavItems.map(item => {
+                        const Icon = item.icon;
+                        const destination = new URL(item.href, 'http://localhost');
+                        const active = new URL(url, 'http://localhost').pathname === destination.pathname;
+                        return <Link key={item.href} href={item.href} aria-current={active ? 'page' : undefined} className={`admin-dock-item ${active ? 'admin-dock-item--active' : ''}`}>
+                            <Icon size={18} aria-hidden="true" />
+                            <span>{destination.pathname === '/pos' ? (locale === 'en' ? 'POS' : 'Kasir') : item.name}</span>
+                        </Link>;
+                    })}
+                    <button type="button" className="admin-dock-item" aria-label="Buka semua menu" aria-expanded={isSidebarOpen} onClick={() => setIsSidebarOpen(true)}>
+                        <FiMenu size={18} aria-hidden="true" />
+                        <span>Menu</span>
+                    </button>
+                </nav>
                 <Toaster position="top-right" richColors closeButton />
             </div>
         </div>

@@ -4,7 +4,7 @@ const panel = 'rounded-xl border border-slate-300 bg-white dark:border-slate-800
 
 export default function DashboardSkeleton() {
     return (
-        <SkeletonWrapper className="grid w-full grid-cols-12 items-start gap-3 sm:gap-4 xl:-mt-4">
+        <SkeletonWrapper className="grid w-full grid-cols-12 items-start gap-3 sm:gap-4">
             <div className="col-span-12 flex flex-col justify-between gap-2 sm:flex-row sm:items-center sm:gap-3">
                 <Skeleton className="h-6 w-40" />
                 <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto">
@@ -13,9 +13,9 @@ export default function DashboardSkeleton() {
                 </div>
             </div>
 
-            <div className="col-span-12 grid grid-cols-2 gap-2 sm:gap-4 xl:grid-cols-4">
+            <div className="admin-dashboard-summary col-span-12 grid grid-cols-3 sm:grid-cols-4">
                 {Array.from({ length: 4 }).map((_, i) => (
-                    <div key={i} className="relative overflow-hidden rounded-xl bg-white px-3 pb-3 pt-2 dark:bg-slate-900 sm:px-4 sm:pb-4 sm:pt-2.5">
+                    <div key={i} className={`admin-metric relative overflow-hidden ${i === 0 ? "admin-metric--primary" : ""}`}>
                         <div className="flex items-start justify-between gap-2">
                             <div className="min-w-0 space-y-2"><Skeleton className="h-3 w-24 sm:w-28" /><Skeleton className="h-6 w-16 sm:h-8 sm:w-32" /></div>
                             <Skeleton className="hidden h-5 w-5 sm:block" />

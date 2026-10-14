@@ -69,12 +69,12 @@ const fieldValidators = {
   },
 };
 
-function Toggle({ value, onChange }) {
+function Toggle({ value, onChange, label }) {
     const on = value === 'true';
     return (
       <label className="relative inline-flex shrink-0 items-center cursor-pointer">
-        <input type="checkbox" checked={on} onChange={onChange} className="sr-only peer" />
-        <div className="w-10 h-5 bg-slate-200 peer-checked:bg-blue-600 rounded-full after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-5" />
+        <input type="checkbox" checked={on} onChange={onChange} aria-label={label} className="sr-only peer" />
+        <div className="w-10 h-5 bg-slate-200 peer-checked:bg-primary rounded-full after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-5" />
       </label>
     );
 }
@@ -368,7 +368,7 @@ export default function SettingIndex() {
       <Head title={`${locale === 'en' ? 'Settings' : 'Pengaturan'}`}>
         <meta name="description" content="Pengaturan sistem toko, logo, printer struk, pajak, zona waktu, dan bahasa." />
       </Head>
-      <div className="max-w-4xl mx-auto space-y-6 pb-8">
+      <div className="admin-settings max-w-6xl mx-auto space-y-4 pb-8">
         {saved && (
           <div className="bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 p-4 rounded-2xl flex items-center gap-2 font-bold text-sm">
             <FiCheck className="text-emerald-600 dark:text-emerald-400" size={18} />
@@ -376,9 +376,9 @@ export default function SettingIndex() {
           </div>
         )}
 
-        <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4 transition-colors">
-          <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
-            <FiHome className="text-blue-600 dark:text-yellow-400" size={20} />
+        <div className="admin-surface admin-setting-section bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4 transition-colors">
+          <div className="admin-section-header flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
+            <FiHome className="text-primary dark:text-yellow-400" size={20} />
             <h3 className="font-extrabold text-base text-slate-900 dark:text-white">Logo Toko</h3>
           </div>
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
@@ -424,9 +424,9 @@ export default function SettingIndex() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
-          <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
-            <FiUpload className="text-blue-600 dark:text-yellow-400" size={20} />
+        <div className="admin-surface admin-setting-section bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
+          <div className="admin-section-header flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
+            <FiUpload className="text-primary dark:text-yellow-400" size={20} />
             <h3 className="font-extrabold text-base text-slate-900 dark:text-white">Gambar QRIS Toko</h3>
           </div>
           <p className="text-xs text-slate-500 dark:text-slate-400">Kasir menampilkan QR ini saat pembayaran. Pelanggan memasukkan nominal sesuai total pesanan.</p>
@@ -448,9 +448,9 @@ export default function SettingIndex() {
         </div>
 
         {/* LOGIN IMAGE SECTION */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
-          <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
-            <FiUpload className="text-blue-600 dark:text-yellow-400" size={20} />
+        <div className="admin-surface admin-setting-section bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
+          <div className="admin-section-header flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
+            <FiUpload className="text-primary dark:text-yellow-400" size={20} />
             <h3 className="font-extrabold text-base text-slate-900 dark:text-white">Gambar Halaman Login</h3>
           </div>
           <p className="text-xs text-slate-500 dark:text-slate-400">Gambar ini ditampilkan di sisi kiri halaman login. Rekomendasi resolusi minimal 1200×800px.</p>
@@ -484,12 +484,13 @@ export default function SettingIndex() {
         </div>
 
         {/* PROMO BANNER SECTION */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4 transition-colors">
+        <div className="admin-surface admin-setting-section bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4 transition-colors">
           <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
-            <FiUpload className="shrink-0 text-blue-600 dark:text-yellow-400" size={20} />
+            <FiUpload className="shrink-0 text-primary dark:text-yellow-400" size={20} />
             <h3 className="min-w-0 flex-1 font-extrabold text-base text-slate-900 dark:text-white">Banner Promo Self-Order</h3>
             <div className="ml-auto w-full sm:w-auto shrink-0 flex items-center justify-end gap-2">
               <Toggle
+                label="Banner Promo Self-Order"
                 value={form.promo_banner_enabled}
                 onChange={() => set('promo_banner_enabled', form.promo_banner_enabled === 'true' ? 'false' : 'true')}
               />
@@ -562,9 +563,9 @@ export default function SettingIndex() {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {sections.map(({ title, icon: Icon, fields }) => (
-            <div key={title} className="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4 transition-colors">
-              <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
-                <Icon className="text-blue-600 dark:text-yellow-400" size={20} />
+            <div key={title} className="admin-surface admin-setting-section bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4 transition-colors">
+              <div className="admin-section-header flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
+                <Icon className="text-primary dark:text-yellow-400" size={20} />
                 <h3 className="font-extrabold text-base text-slate-900 dark:text-white">{title}</h3>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -574,6 +575,7 @@ export default function SettingIndex() {
                     {type === 'toggle' ? (
                       <div className="flex flex-wrap items-center gap-3 mt-1">
                         <Toggle
+                          label={label}
                           value={form[field]}
                           onChange={() => set(field, form[field] === 'true' ? 'false' : 'true')}
                         />

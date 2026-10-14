@@ -6,7 +6,7 @@ import Skeleton from '@/Components/Skeleton';
  */
 export default function UserTableSkeleton({ rows = 5, fullPage = false }) {
     const tableCard = (
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden transition-colors">
+        <div className="admin-surface bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden transition-colors" aria-busy="true" aria-label="Memuat daftar staf">
             {/* Filter Role Bar */}
             <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-800 flex flex-wrap items-center gap-2">
                 <Skeleton className="h-3 w-10 mr-1" />
@@ -17,7 +17,16 @@ export default function UserTableSkeleton({ rows = 5, fullPage = false }) {
 
             {/* Table */}
             <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-300px)] no-scrollbar">
-                <table className="w-full min-w-[640px] text-left">
+                <div className="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
+                    {Array.from({ length: rows }).map((_, i) => (
+                        <div key={i} className="p-3 space-y-3">
+                            <div className="flex items-center gap-3"><Skeleton variant="circle" className="w-9 h-9 shrink-0" /><div className="min-w-0 flex-1 space-y-1.5"><Skeleton className="h-4 w-3/4" /><Skeleton className="h-3 w-full" /></div></div>
+                            <div className="flex justify-between"><Skeleton className="h-5 w-16" /><Skeleton className="h-4 w-16" /></div>
+                            <div className="flex justify-end gap-2"><Skeleton className="h-9 w-9" /><Skeleton className="h-9 w-9" /></div>
+                        </div>
+                    ))}
+                </div>
+                <table className="hidden md:table w-full min-w-[640px] text-left">
                     <thead>
                         <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-400 dark:text-slate-500 font-bold text-xs uppercase sticky top-0 z-10 bg-slate-50/60 dark:bg-slate-800/90">
                             <th className="py-3.5 px-5 bg-slate-50/60 dark:bg-slate-800/90">Pegawai</th>
@@ -64,12 +73,12 @@ export default function UserTableSkeleton({ rows = 5, fullPage = false }) {
             </div>
 
             {/* Pagination Footer */}
-            <div className="p-4 bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs font-semibold text-slate-600 dark:text-slate-400">
+            <div className="p-4 bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2 text-xs font-semibold text-slate-600 dark:text-slate-400">
                 <Skeleton className="h-3.5 w-52" />
                 <div className="flex items-center space-x-2">
-                    <Skeleton className="h-8 w-24 rounded-lg" />
-                    <Skeleton className="h-8 w-16 rounded-lg" />
-                    <Skeleton className="h-8 w-24 rounded-lg" />
+                    <Skeleton className="h-8 w-16 sm:w-24 rounded-lg" />
+                    <Skeleton className="h-8 w-12 sm:w-16 rounded-lg" />
+                    <Skeleton className="h-8 w-16 sm:w-24 rounded-lg" />
                 </div>
             </div>
         </div>
