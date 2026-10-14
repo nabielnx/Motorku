@@ -1,5 +1,32 @@
 # Customer and account visual verification
 
+## Follow-up: single focus strokes and original product card dimensions
+
+The user's correction supersedes the enlarged card dimensions in the initial
+rebuild below. Login/admin/customer fields now show a contiguous focus edge
+(border plus inset stroke), without an external outline plus Tailwind ring.
+Buttons/links keep one keyboard outline; selected yellow navigation keeps an ink
+outline, and checked admin controls retain a contrasting focus color. The extra
+decorative ring around the profile photo frame is removed.
+
+Verified actual login, admin search/select and portal dialog in light/dark; field
+styles have outline:none, one inset shadow and matching border. Login primary and
+active admin navigation retain one outline with box-shadow:none. Profile photo
+frame has one border and no ring shadow. No form or business save was submitted.
+
+Catalog widths restored from the pre-PR version: 99.375px horizontal card at 375px
+and 155px at 768/1440px; title 10/11px, info padding 6/8px, price 12/13px. Category grids
+are 3/4/5 columns at 375/768/1440. Motor Saya rows/photo widths are 82px on phone and
+88px on tablet. Loading placeholders match the compact sizing. Full product
+names remain available in details; admin POS names/card geometry were not changed.
+
+Evidence: `storage/app/private/single-focus-cards-20261014/`. Follow-up build,
+63 JS tests, binding/whitespace checks passed; AST comparison preserved 23 existing
+handlers across 6 changed React files with 0 additions. The owned testing account's
+password hash was backed up for local admin access and restored after inspection;
+no real account or staging mutation. These are browser checks, not physical-device
+or full screen-reader certification.
+
 ## Scope and implementation
 
 GuestLayout now provides a bounded account form, a local logo/symbol fallback,

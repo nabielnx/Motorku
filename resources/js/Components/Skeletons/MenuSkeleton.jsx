@@ -13,7 +13,7 @@ function CardSkeleton({ isGrid = false }) {
                 'flex flex-col justify-between rounded-xl sm:rounded-lg border border-slate-200/80 bg-white shadow-2xs overflow-hidden',
                 isGrid
                     ? 'w-full h-full'
-                    : 'w-[calc((100%-12px)/2.15)] sm:w-[180px] md:w-[188px] shrink-0 snap-start'
+                    : 'w-[calc((100%-20px)/3.25)] sm:w-[calc((100%-24px)/3.35)] md:w-[155px] shrink-0 snap-start'
             )}
         >
             <div>
@@ -23,7 +23,7 @@ function CardSkeleton({ isGrid = false }) {
                 </div>
 
                 {/* Card Info Content */}
-                <div className="store-product-info space-y-1.5">
+                <div className="p-1.5 sm:p-2 space-y-1.5">
                     {/* Title (2 lines) */}
                     <div className="space-y-1">
                         <Skeleton className="h-2.5 sm:h-3 w-5/6 rounded" />
@@ -59,7 +59,7 @@ export default function MenuSkeleton({ fullPage = true, isGrid = false, showProm
         return (
             <SkeletonWrapper className="w-full">
                 {isGrid ? (
-                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4 pb-4">
+                    <div className="grid grid-cols-3 gap-2 sm:gap-2.5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 pb-4">
                         {Array.from({ length: count }).map((_, i) => (
                             <CardSkeleton key={i} isGrid={true} />
                         ))}

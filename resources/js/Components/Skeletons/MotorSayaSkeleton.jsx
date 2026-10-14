@@ -35,9 +35,9 @@ function MotorcycleCardSkeleton() {
  */
 export function CompatiblePartCardSkeleton() {
     return (
-        <div className="flex items-stretch bg-white border border-slate-200/90 rounded-lg shadow-2xs min-h-[112px] overflow-hidden">
+        <div className="flex items-stretch bg-white border border-slate-200/90 rounded-lg shadow-2xs h-[82px] sm:h-[88px] overflow-hidden">
             {/* Left Square Product Photo */}
-            <div className="w-20 self-stretch bg-slate-100 flex items-center justify-center shrink-0">
+            <div className="w-[82px] sm:w-[88px] h-full bg-slate-100 flex items-center justify-center shrink-0">
                 <Skeleton className="w-full h-full !rounded-none" />
             </div>
 

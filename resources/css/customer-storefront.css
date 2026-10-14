@@ -14,8 +14,22 @@
 .customer-storefront :focus-visible,
 .auth-workspace :focus-visible {
     outline: 2px solid var(--store-ink);
-    outline-offset: 2px;
+    outline-offset: -2px;
+    --tw-ring-shadow: 0 0 #0000;
+    --tw-ring-offset-shadow: 0 0 #0000;
+    box-shadow: none;
 }
+
+/* A field uses its own edge for focus, without a second external ring. */
+:is(.customer-storefront, .auth-workspace) :is(input:not([type='checkbox'], [type='radio'], [type='file'], [type='range']), select, textarea):focus {
+    outline: none;
+    border-color: var(--store-ink);
+    --tw-ring-shadow: 0 0 #0000;
+    --tw-ring-offset-shadow: 0 0 #0000;
+    box-shadow: inset 0 0 0 1px var(--store-ink);
+}
+:is(.customer-storefront, .auth-workspace) :is(.bg-\[\#19231f\], .store-product-card):focus-visible { outline-offset: 2px; }
+.customer-storefront .bg-\[\#19231f\]:focus-visible { outline-color: var(--store-yellow); }
 
 .customer-storefront { background: var(--store-bg); }
 .customer-storefront :is(.text-slate-900, .text-slate-800, .text-slate-700) { color: var(--store-ink); }
@@ -73,10 +87,9 @@
 .store-catalog section > div:first-child > button { flex-shrink: 0; white-space: nowrap; }
 .store-product-card { border-radius: 8px; box-shadow: none; transform: none; }
 .store-product-card:hover { border-color: var(--store-muted); box-shadow: none; }
-.store-product-info { display: flex; flex-direction: column; gap: 4px; padding: 10px; }
-.store-product-name { font-size: 12px; line-height: 1.5; font-weight: 650; color: var(--store-ink); overflow-wrap: anywhere; }
-.store-product-info > div:last-child { margin-top: 4px; }
-.store-product-info > div:last-child p { font-size: 14px; font-weight: 750; }
+.store-product-info { padding: 6px; }
+.store-product-name { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; font-size: 10px; line-height: 1.25; font-weight: 650; color: var(--store-ink); overflow-wrap: anywhere; }
+.store-product-info > div:last-child p { font-size: 12px; font-weight: 750; }
 .store-promo { border-bottom: 1px solid var(--store-line); padding-bottom: 16px; }
 .store-promo > div:first-child { border-radius: 8px; }
 .store-promo button[aria-label^='Tampilkan banner'], .store-promo button[aria-label*='banner promo otomatis'] { width: 40px; height: 40px; }
@@ -111,8 +124,11 @@
 .customer-motor .motor-selection-grid button > div:last-child { min-height: 40px; border-top: 1px solid var(--store-line); }
 .customer-motor .motor-selection-grid button > div:last-child span { font-size: 12px; }
 .customer-motor .motor-selection-grid h3 { min-height: 42px; }
-.customer-motor .customer-fitment-card { min-height: 112px; }
-.customer-motor .fitment-photo { width: 80px; }
+.customer-motor .customer-fitment-card { height: 82px; }
+.customer-motor .fitment-photo { width: 82px; }
+.customer-fitment-card > button:first-child > div:last-child { padding-block: 6px; }
+.customer-fitment-card h3 { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.25; }
+.customer-fitment-card p + div { margin-top: 2px; }
 
 /* Auth uses the same palette, with browser-friendly input sizes. */
 .auth-workspace { display: grid; grid-template-columns: minmax(300px, .85fr) minmax(0, 1.15fr); min-height: 100svh; background: var(--store-bg); }
@@ -157,7 +173,18 @@
     .store-nav .store-nav-help { display: inline-flex; }
     .store-action { width: auto; padding-inline: 12px; }
     .store-categories { border-right: 1px solid var(--store-line); padding-right: 16px; }
-    .store-product-name { font-size: 13px; }
+}
+
+@media (min-width: 1024px) {
+    .store-catalog-layout { column-gap: 36px; }
+}
+
+@media (min-width: 640px) {
+    .store-product-info { padding: 8px; }
+    .store-product-name { font-size: 11px; }
+    .store-product-info > div:last-child p { font-size: 13px; }
+    .customer-motor .customer-fitment-card { height: 88px; }
+    .customer-motor .fitment-photo { width: 88px; }
 }
 
 @media (max-width: 1023px) {

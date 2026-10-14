@@ -81,7 +81,7 @@ export default function UpdateProfileInformation({
                 <div className="bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg p-4">
                     <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-3">Foto Profil</label>
                     <div className="flex flex-wrap items-center gap-3 sm:gap-4">
-                        <div className="w-16 h-16 rounded-lg overflow-hidden bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 ring-2 ring-slate-200/60 dark:ring-slate-700 flex items-center justify-center shrink-0 shadow-xs relative group">
+                        <div className="w-16 h-16 rounded-lg overflow-hidden bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 flex items-center justify-center shrink-0 shadow-xs relative group">
                             {avatarPreview ? (
                                 <img src={avatarPreview} alt="preview" className="w-full h-full object-cover" />
                             ) : user.avatar ? (

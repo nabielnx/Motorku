@@ -172,7 +172,7 @@ export default function MotoQuickPromoSection({
                                     if (hasDraggedRef.current) return;
                                     onProductClick && onProductClick(item);
                                 }}
-                                className="group flex flex-col justify-between rounded-xl sm:rounded-lg border border-slate-200/90 bg-white shadow-2xs hover:border-slate-300 hover:shadow-xs transition-all relative overflow-hidden cursor-pointer active:scale-[0.99] w-[calc((100%-12px)/2.15)] sm:w-[180px] md:w-[188px] shrink-0 snap-start"
+                                className="group flex flex-col justify-between rounded-xl sm:rounded-lg border border-slate-200/90 bg-white shadow-2xs hover:border-slate-300 hover:shadow-xs transition-all relative overflow-hidden cursor-pointer active:scale-[0.99] w-[calc((100%-20px)/3.25)] sm:w-[calc((100%-24px)/3.35)] md:w-[155px] shrink-0 snap-start"
                             >
                                 <div>
                                     <div className="relative block w-full overflow-hidden text-left bg-slate-50/80">
