@@ -237,7 +237,7 @@
 :is(.admin-workspace, .admin-icons .admin-dialog) .admin-dashboard :is(button, select).bg-primary {
     background: #19231f;
     border-color: #19231f;
-    color: var(--admin-yellow);
+    color: #fff;
 }
 :is(.admin-workspace, .admin-icons .admin-dialog) .admin-dashboard :is(button, select).bg-primary:hover { background: #2b3931; }
 :is(.admin-workspace, .admin-icons .admin-dialog) .admin-dashboard .relative:has(> select.bg-primary) > svg,
