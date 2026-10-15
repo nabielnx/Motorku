@@ -653,7 +653,7 @@ export default function MotorcycleIndex({
                                     <button
                                         type="button"
                                         onClick={() => { setActiveBrand('semua'); setPage(1); }}
-                                        className={`px-3 py-1 text-xs font-bold rounded-md transition cursor-pointer whitespace-nowrap ${
+                                        className={`px-3 py-1 text-xs font-bold rounded-full transition cursor-pointer whitespace-nowrap ${
                                             activeBrand === 'semua'
                                                 ? 'bg-primary text-white shadow-2xs'
                                                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
@@ -668,7 +668,7 @@ export default function MotorcycleIndex({
                                                 key={brand}
                                                 type="button"
                                                 onClick={() => { setActiveBrand(brand); setPage(1); }}
-                                                className={`px-3 py-1 text-xs font-bold rounded-md transition cursor-pointer whitespace-nowrap ${
+                                                className={`px-3 py-1 text-xs font-bold rounded-full transition cursor-pointer whitespace-nowrap ${
                                                     isBrandActive
                                                         ? 'bg-primary text-white shadow-2xs'
                                                         : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
@@ -690,7 +690,7 @@ export default function MotorcycleIndex({
                                                 key={type}
                                                 type="button"
                                                 onClick={() => { setActiveType(type); setPage(1); }}
-                                                className={`px-3 py-1 text-xs font-bold rounded-md transition cursor-pointer whitespace-nowrap ${
+                                                className={`px-3 py-1 text-xs font-bold rounded-full transition cursor-pointer whitespace-nowrap ${
                                                     isTypeActive
                                                         ? 'bg-accentYellow text-primaryDark shadow-2xs'
                                                         : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
