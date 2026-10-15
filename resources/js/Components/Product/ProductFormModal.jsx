@@ -1,7 +1,7 @@
 import AdminButton from '@/Components/Admin/Button';
 import ImagePicker from '@/Components/ImagePicker';
 import AdminDialog, { DialogTitle } from '@/Components/Admin/Dialog';
-import { FiX, FiChevronDown } from 'react-icons/fi';
+import { FiX, FiChevronDown, FiTrash2 } from 'react-icons/fi';
 import MoneyInput from '@/Components/MoneyInput';
 import { validImage, IMAGE_HELP } from '@/Utils/imageUpload';
 
@@ -184,8 +184,21 @@ export default function ProductFormModal({
                             )}
                             <div className="min-w-0 flex-1 basis-[220px] space-y-2">
                                 <ImagePicker label="produk" disabled={isLoading} onSelect={file => {
-                                    if (validImage(file)) setProductFormData({ ...productFormData, imageFile: file, imagePreview: URL.createObjectURL(file) });
+                                    if (validImage(file)) setProductFormData({ ...productFormData, imageFile: file, imagePreview: URL.createObjectURL(file), removeImage: false });
                                 }} />
+                                {(productFormData.imagePreview || productFormData.image) && (
+                                    <button
+                                        type="button"
+                                        disabled={isLoading}
+                                        onClick={() => productFormData.imageFile
+                                            ? setProductFormData({ ...productFormData, imageFile: null, imagePreview: productFormData.image, removeImage: false })
+                                            : setProductFormData({ ...productFormData, image: '', imageFile: null, imagePreview: null, removeImage: !!editingItem && !!productFormData.image })}
+                                        className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:opacity-50 dark:border-red-900 dark:text-red-300 dark:hover:bg-red-950/40"
+                                    >
+                                        <FiTrash2 size={14} aria-hidden="true" /> {productFormData.imageFile ? 'Batal pilih foto' : 'Hapus gambar'}
+                                    </button>
+                                )}
+                                {productFormData.removeImage && <p className="text-xs font-medium text-red-600 dark:text-red-400">File gambar lama akan dihapus permanen saat perubahan disimpan.</p>}
                                 <p className="admin-help">{IMAGE_HELP}</p>
                             </div>
                         </div>

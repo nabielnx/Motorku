@@ -1,7 +1,7 @@
 import AdminButton from '@/Components/Admin/Button';
 import ImagePicker from '@/Components/ImagePicker';
 import AdminDialog, { DialogTitle } from '@/Components/Admin/Dialog';
-import { FiX, FiAlertCircle } from 'react-icons/fi';
+import { FiX, FiAlertCircle, FiTrash2 } from 'react-icons/fi';
 import { validImage, IMAGE_HELP } from '@/Utils/imageUpload';
 
 export default function MotorcycleFormModal({
@@ -128,8 +128,21 @@ export default function MotorcycleFormModal({
                         )}
                         <div className="min-w-0 flex-1 basis-[220px] space-y-1.5">
                             <ImagePicker label="motor" disabled={saving} onSelect={file => {
-                                if (validImage(file)) setFormData({ ...formData, image_file: file });
+                                if (validImage(file)) setFormData({ ...formData, image_file: file, remove_image: false });
                             }} />
+                            {(formData.image_file || formData.image_url) && (
+                                <button
+                                    type="button"
+                                    disabled={saving}
+                                    onClick={() => formData.image_file
+                                        ? setFormData({ ...formData, image_file: null, remove_image: false })
+                                        : setFormData({ ...formData, image_url: '', remove_image: !!editMotorcycle })}
+                                    className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:opacity-50 dark:border-red-900 dark:text-red-300 dark:hover:bg-red-950/40"
+                                >
+                                    <FiTrash2 size={14} aria-hidden="true" /> {formData.image_file ? 'Batal pilih foto' : 'Hapus gambar'}
+                                </button>
+                            )}
+                            {formData.remove_image && <p className="text-xs font-medium text-red-600 dark:text-red-400">File gambar motor akan dihapus permanen saat perubahan disimpan.</p>}
                             <p className="text-xs text-slate-500">{IMAGE_HELP}</p>
                             <input
                                 type="text"
