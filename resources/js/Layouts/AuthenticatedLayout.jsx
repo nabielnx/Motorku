@@ -337,11 +337,13 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
         }))
         .filter(section => section.items.length > 0);
 
-    const quickNavItems = visibleSections.flatMap(section => section.items).filter(item => {
-        const destination = new URL(item.href, 'http://localhost');
-        return ['/dashboard', '/pos'].includes(destination.pathname)
-            || (destination.pathname === '/products' && !destination.search);
-    });
+    const quickNavPaths = ['/dashboard', '/pos', '/products', '/orders'];
+    const quickNavItems = quickNavPaths.flatMap(path => visibleSections
+        .flatMap(section => section.items)
+        .filter(item => {
+            const destination = new URL(item.href, 'http://localhost');
+            return destination.pathname === path && !destination.search;
+        }));
 
     return (
         <div className="admin-workspace h-[100dvh] w-screen overflow-hidden bg-slate-50 dark:bg-slate-950 flex font-sans antialiased text-slate-800 dark:text-slate-100 transition-colors duration-200">
@@ -548,20 +550,20 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                 <main className={`admin-main flex-1 min-h-0 ${(destInfo ? (destInfo.noPadding ?? false) : noPadding) ? 'p-0 flex flex-col overflow-hidden' : 'p-3 sm:p-6 lg:p-8 overflow-y-auto'}`}>
                     {destInfo ? destInfo.component : children}
                 </main>
-                <nav className="admin-mobile-dock" aria-label="Navigasi cepat" style={{ gridTemplateColumns: `repeat(${quickNavItems.length + 1}, minmax(0, 1fr))` }}>
+                <nav className="admin-mobile-dock" aria-label="Navigasi cepat" style={{ gridTemplateColumns: `repeat(${quickNavItems.length}, minmax(0, 1fr))` }}>
                     {quickNavItems.map(item => {
                         const Icon = item.icon;
                         const destination = new URL(item.href, 'http://localhost');
-                        const active = new URL(url, 'http://localhost').pathname === destination.pathname;
+                        const active = item.active;
                         return <Link key={item.href} href={item.href} aria-current={active ? 'page' : undefined} className={`admin-dock-item ${active ? 'admin-dock-item--active' : ''}`}>
                             <Icon size={18} aria-hidden="true" />
-                            <span>{destination.pathname === '/pos' ? (locale === 'en' ? 'POS' : 'Kasir') : item.name}</span>
+                            <span>{destination.pathname === '/pos'
+                                ? (locale === 'en' ? 'POS' : 'Kasir')
+                                : destination.pathname === '/orders'
+                                    ? (locale === 'en' ? 'Orders' : 'Pesanan')
+                                    : item.name}</span>
                         </Link>;
                     })}
-                    <button type="button" className="admin-dock-item" aria-label="Buka semua menu" aria-expanded={isSidebarOpen} onClick={() => setIsSidebarOpen(true)}>
-                        <FiMenu size={18} aria-hidden="true" />
-                        <span>Menu</span>
-                    </button>
                 </nav>
                 <Toaster position="top-right" richColors closeButton />
             </div>
