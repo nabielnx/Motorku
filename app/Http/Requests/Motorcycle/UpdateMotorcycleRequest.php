@@ -23,6 +23,7 @@ class UpdateMotorcycleRequest extends FormRequest
             'engine_type' => ['required', 'string', 'max:30'],
             'image' => ImageUploadService::rules('nullable'),
             'image_url' => ['nullable', 'string', 'max:500'],
+            'remove_image' => ['sometimes', 'boolean'],
         ];
     }
 

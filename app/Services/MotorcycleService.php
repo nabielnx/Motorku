@@ -107,16 +107,27 @@ class MotorcycleService
     {
         $motorcycle = Motorcycle::findOrFail($id);
         $file = $data['image'] ?? null;
+        $removeImage = filter_var($data['remove_image'] ?? false, FILTER_VALIDATE_BOOLEAN);
         unset($data['image']);
+        unset($data['remove_image']);
         $old = str_starts_with($motorcycle->image_url ?? '', '/storage/motorcycles/')
             ? substr($motorcycle->image_url, 9) : null;
         if ($file) {
             app(ImageUploadService::class)->replace($file, 'motorcycles', $old,
                 fn ($path) => $motorcycle->update([...$data, 'image_url' => '/storage/'.$path]));
         } else {
+            if ($removeImage) {
+                $data['image_url'] = null;
+            }
             $motorcycle->update($data);
-            if ($old && array_key_exists('image_url', $data) && $data['image_url'] !== '/storage/'.$old) {
-                Storage::disk('public')->delete($old);
+            $imageWasRemoved = $old && ($removeImage
+                || (array_key_exists('image_url', $data) && $data['image_url'] !== '/storage/'.$old));
+            if ($imageWasRemoved && ! str_contains($old, '..')) {
+                DB::afterCommit(function () use ($old) {
+                    if (! Motorcycle::where('image_url', '/storage/'.$old)->exists()) {
+                        Storage::disk('public')->delete($old);
+                    }
+                });
             }
         }
 

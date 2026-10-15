@@ -311,7 +311,8 @@ export default function MenuManagement({
         status: 'Active',
         image: '',
         imageFile: null,
-        imagePreview: null
+        imagePreview: null,
+        removeImage: false
     });
 
     // Category Modal State
@@ -342,7 +343,8 @@ export default function MenuManagement({
             status: 'Active',
             image: '',
             imageFile: null,
-            imagePreview: null
+            imagePreview: null,
+            removeImage: false
         });
         setIsProductModalOpen(true);
     };
@@ -363,7 +365,8 @@ export default function MenuManagement({
             status: item.status,
             image: item.image,
             imageFile: null,
-            imagePreview: item.image
+            imagePreview: item.image,
+            removeImage: false
         });
         setIsProductModalOpen(true);
     };
@@ -387,6 +390,7 @@ export default function MenuManagement({
         if (productFormData.imageFile) {
             fd.append('image', productFormData.imageFile);
         }
+        if (editingItem && productFormData.removeImage) fd.append('remove_image', '1');
 
         try {
             if (editingItem) {
