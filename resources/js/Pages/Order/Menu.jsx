@@ -6,7 +6,7 @@ import { Head, Link, router, usePage } from '@inertiajs/react';
 import useForceLightTheme from '@/Utils/useForceLightTheme';
 import MenuSkeleton from '@/Components/Skeletons/MenuSkeleton';
 import { getProductImage } from '@/Utils/productImage';
-import { FiSearch, FiPlus, FiMinus, FiShoppingCart, FiTrash2, FiArrowRight, FiCheck, FiChevronRight, FiX, FiMapPin, FiStar } from 'react-icons/fi';
+import { FiSearch, FiPlus, FiMinus, FiShoppingCart, FiTrash2, FiArrowRight, FiCheck, FiChevronRight, FiX, FiMapPin, FiStar, FiLogIn } from 'react-icons/fi';
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 import clsx from 'clsx';
 import { StoreHeader, MotorIcon, ProductPhoto } from '@/Components/Customer/Storefront';
@@ -474,6 +474,7 @@ export default function CustomerMenu({
                 <footer className="mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-slate-200/80 pt-5 text-xs text-slate-500">
                     <span className="flex items-center gap-2"><FiMapPin size={14} aria-hidden="true" />Pesanan diambil langsung di toko.</span>
                     {whatsapp && <a href={whatsapp} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-9 items-center gap-2 font-medium underline underline-offset-4 hover:text-slate-800"><FaWhatsapp size={15} aria-hidden="true" />Hubungi toko</a>}
+                    <Link href={route('login')} className="inline-flex min-h-9 items-center gap-2 font-medium underline underline-offset-4 hover:text-slate-800"><FiLogIn size={14} aria-hidden="true" />Login staf</Link>
                 </footer>
             </div>
 
