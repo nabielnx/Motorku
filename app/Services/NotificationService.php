@@ -11,6 +11,7 @@ use App\Models\Product;
 use App\Models\User;
 use App\Notifications\StoreActivity;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Support\Facades\Notification;
 
 class NotificationService
@@ -120,5 +121,11 @@ class NotificationService
     public function markAllRead(User $user): void
     {
         $this->visible($user)->whereNull('read_at')->update(['read_at' => now()]);
+    }
+
+    public function pruneRead(): int
+    {
+        return DatabaseNotification::where('type', StoreActivity::class)
+            ->where('read_at', '<=', now()->subDays(7))->delete();
     }
 }

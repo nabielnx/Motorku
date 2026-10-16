@@ -22,7 +22,8 @@ class OrderService
     public function __construct(
         protected InventoryService $inventoryService,
         protected PaymentService $paymentService,
-        protected DocumentNumberService $documentNumbers
+        protected DocumentNumberService $documentNumbers,
+        protected OrderCancellationService $cancellation
     ) {}
 
     public function createPosSale(array $data): array
@@ -115,6 +116,9 @@ class OrderService
         return $query->paginate(10)
             ->withQueryString()
             ->through(function ($order) use ($search) {
+                $paidPayment = $order->payments->where('status', 'paid')->sortByDesc('paid_at')->first();
+                $payment = $paidPayment ?? $order->payments->where('status', 'pending')->sortByDesc('created_at')->first();
+
                 return [
                     'id' => $order->order_number ?: substr($order->id, 0, 8),
                     'real_id' => $order->id,
@@ -133,11 +137,9 @@ class OrderService
                     'total' => (float) $order->total,
                     'status' => $order->order_status,
                     'payment_status' => $order->payment_status,
+                    'payment_method' => $payment?->payment_method,
                     'returned_amount' => (float) ($order->returns_sum_amount ?? 0),
-                    'paid_at' => $order->payments
-                        ->where('status', 'paid')
-                        ->sortByDesc('paid_at')
-                        ->first()?->paid_at?->toIso8601String(),
+                    'paid_at' => $paidPayment?->paid_at?->toIso8601String(),
                     'created_at' => $order->created_at?->toIso8601String(),
                     'time' => $order->created_at ? $order->created_at->timezone(config('app.timezone'))->format('H:i') : '-',
                     'date' => $order->created_at ? $order->created_at->timezone(config('app.timezone'))->format('d M Y') : '-',
@@ -309,7 +311,8 @@ class OrderService
             }
 
             if ($order->order_status === OrderStatus::Pending) {
-                $this->restoreReservedStock($order);
+                $this->cancellation->restoreReservedStock($order, auth()->id(),
+                    'Stok dikembalikan — order '.$order->order_number.' dibatalkan');
             }
             $order->delete();
         });
@@ -363,8 +366,8 @@ class OrderService
             }
 
             if ($nextStatus === OrderStatus::Cancelled && $order->order_status !== OrderStatus::Cancelled) {
-                $this->restoreReservedStock($order);
-                $order->payments()->where('status', 'pending')->update(['status' => 'cancelled']);
+                $this->cancellation->releaseReservation($order, auth()->id(),
+                    'Stok dikembalikan — order '.$order->order_number.' dibatalkan');
             }
 
             // Convert enum to string for the update array
@@ -386,28 +389,6 @@ class OrderService
     private function nextOrderNumber(): string
     {
         return $this->documentNumbers->next('order');
-    }
-
-    /**
-     * Restore stock for a cancelled/deleted order via InventoryService.
-     */
-    private function restoreReservedStock(Order $order): void
-    {
-        $order->loadMissing('items');
-
-        foreach ($order->items as $item) {
-            $this->inventoryService->adjustStock(
-                [
-                    'product_id' => $item->product_id,
-                    'type' => InventoryLogType::StockReturn,
-                    'quantity' => $item->quantity,
-                    'reference_type' => Order::class,
-                    'reference_id' => $order->id,
-                ],
-                auth()->id(),
-                'Stok dikembalikan — order '.$order->order_number.' dibatalkan'
-            );
-        }
     }
 
     private function setting(string $group, string $key, mixed $default): mixed

@@ -42,7 +42,7 @@ class MotorcycleService
             ->unique('product_id')
             ->pluck('part_category', 'product_id');
 
-        return Product::with('category')
+        return Product::with('category.parent')
             ->withCount(['motorcycleParts as motorcycles_count'])
             ->where('is_available', true)
             ->orderBy('name')
@@ -107,16 +107,27 @@ class MotorcycleService
     {
         $motorcycle = Motorcycle::findOrFail($id);
         $file = $data['image'] ?? null;
+        $removeImage = filter_var($data['remove_image'] ?? false, FILTER_VALIDATE_BOOLEAN);
         unset($data['image']);
+        unset($data['remove_image']);
         $old = str_starts_with($motorcycle->image_url ?? '', '/storage/motorcycles/')
             ? substr($motorcycle->image_url, 9) : null;
         if ($file) {
             app(ImageUploadService::class)->replace($file, 'motorcycles', $old,
                 fn ($path) => $motorcycle->update([...$data, 'image_url' => '/storage/'.$path]));
         } else {
+            if ($removeImage) {
+                $data['image_url'] = null;
+            }
             $motorcycle->update($data);
-            if ($old && array_key_exists('image_url', $data) && $data['image_url'] !== '/storage/'.$old) {
-                Storage::disk('public')->delete($old);
+            $imageWasRemoved = $old && ($removeImage
+                || (array_key_exists('image_url', $data) && $data['image_url'] !== '/storage/'.$old));
+            if ($imageWasRemoved && ! str_contains($old, '..')) {
+                DB::afterCommit(function () use ($old) {
+                    if (! Motorcycle::where('image_url', '/storage/'.$old)->exists()) {
+                        Storage::disk('public')->delete($old);
+                    }
+                });
             }
         }
 
@@ -158,24 +169,6 @@ class MotorcycleService
 
         $totalMapped = (int) array_sum($categoryCounts);
 
-        // Search filter (Product name, SKU, or notes)
-        if (! empty($filters['search'])) {
-            $search = trim($filters['search']);
-            $cleanSearch = preg_replace('/[^a-zA-Z0-9]/', '', $search);
-
-            $query->where(function ($q) use ($search, $cleanSearch) {
-                $q->whereHas('product', function ($pq) use ($search, $cleanSearch) {
-                    $pq->where('name', 'like', "%{$search}%")
-                        ->orWhere('sku', 'like', "%{$search}%");
-
-                    if (strlen($cleanSearch) >= 2) {
-                        $pq->orWhereRaw("REPLACE(REPLACE(REPLACE(REPLACE(name, ' ', ''), '-', ''), '.', ''), '/', '') LIKE ?", ["%{$cleanSearch}%"])
-                            ->orWhereRaw("REPLACE(REPLACE(REPLACE(REPLACE(sku, ' ', ''), '-', ''), '.', ''), '/', '') LIKE ?", ["%{$cleanSearch}%"]);
-                    }
-                })->orWhere('notes', 'like', "%{$search}%");
-            });
-        }
-
         // Specific category filter
         $category = $filters['part_category'] ?? $filters['category'] ?? null;
         if ($category && $category !== 'semua') {
@@ -196,6 +189,10 @@ class MotorcycleService
         if (isset($filters['is_recommended']) && $filters['is_recommended'] !== '' && $filters['is_recommended'] !== null) {
             $isRec = filter_var($filters['is_recommended'], FILTER_VALIDATE_BOOLEAN);
             $query->where('is_recommended', $isRec);
+        }
+
+        if (isset($filters['search']) && trim($filters['search']) !== '') {
+            app(CatalogSearchService::class)->apply($query, $filters['search'], true, true);
         }
 
         $query->orderBy('part_category')

@@ -20,7 +20,7 @@ import {
     FiCalendar
 } from 'react-icons/fi';
 
-const numberBadgeClass = 'relative inline-flex h-[26px] w-[26px] shrink-0 items-center justify-center overflow-hidden rounded-lg bg-primary pb-0.5 text-xs font-bold leading-none tabular-nums text-accentYellow';
+const numberBadgeClass = 'admin-rank inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold tabular-nums';
 
 export default function Dashboard({ stats = {}, filters = {} }) {
 
@@ -157,11 +157,11 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                 <meta name="description" content="Ringkasan performa penjualan, total pendapatan, statistik pesanan, dan produk terlaris toko Motorku." />
             </Head>
 
-            {isNavigating ? <DashboardSkeleton /> : <div className="grid w-full grid-cols-12 items-start gap-3 sm:gap-4 xl:-mt-4">
+            {isNavigating ? <DashboardSkeleton /> : <div className="admin-dashboard grid w-full grid-cols-12 items-start gap-3 sm:gap-4">
                 
                 {/* Header Filter Periode */}
                 <div className="col-span-12 flex flex-col justify-between gap-2 sm:flex-row sm:items-center sm:gap-3">
-                    <h2 className="text-base sm:text-lg font-black text-primaryDark dark:text-white">Ringkasan Toko</h2>
+                    <h2 className="text-base sm:text-lg font-semibold text-primaryDark dark:text-white">Ringkasan Toko</h2>
                     <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
                         {/* Preset Select Dropdown */}
                         <div className="relative min-w-0 w-full sm:w-auto">
@@ -193,19 +193,8 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                 </div>
 
                 {/* Kondisi saat ini dan penjualan pada periode terpilih */}
-                <div className="col-span-12 grid grid-cols-2 gap-2 sm:gap-4 xl:grid-cols-4">
-                    <Link href={route('orders.index')} className="relative overflow-hidden bg-primary px-3 pb-3 pt-2 sm:px-4 sm:pb-4 sm:pt-2.5 rounded-xl hover:bg-primaryDark transition-colors">
-                        <div className="flex items-start justify-between gap-2">
-                            <div>
-                                <p className="text-[10px] sm:text-[11px] font-bold text-white uppercase tracking-wider">Antrean saat ini</p>
-                                <h3 className="text-xl sm:text-[30px] font-heading font-extrabold text-white mt-2">{pendingOrders}</h3>
-                            </div>
-                            <FiClock className="hidden text-accentYellow shrink-0 sm:block" size={18} />
-                        </div>
-                        <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-1.5 bg-accentYellow" />
-                    </Link>
-
-                    <div className="relative overflow-hidden bg-primary px-3 pb-3 pt-2 sm:px-4 sm:pb-4 sm:pt-2.5 rounded-xl" title="Pembayaran pada periode terpilih setelah retur">
+                <div className="admin-dashboard-summary col-span-12 grid grid-cols-3 sm:grid-cols-4">
+                    <div className="admin-metric admin-metric--primary relative overflow-hidden" title="Pembayaran pada periode terpilih setelah retur">
                         <div className="flex items-start justify-between gap-2">
                             <div>
                                 <p className="pr-8 text-[10px] sm:text-[11px] font-bold text-white uppercase tracking-wider">Penjualan bersih</p>
@@ -221,10 +210,21 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                                 {isRevenueVisible ? <FiEye size={18} /> : <FiEyeOff size={18} />}
                             </button>
                         </div>
-                        <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-1.5 bg-accentYellow" />
+
                     </div>
 
-                    <div className="relative overflow-hidden bg-primary px-3 pb-3 pt-2 sm:px-4 sm:pb-4 sm:pt-2.5 rounded-xl">
+                    <Link href={route('orders.index')} className="admin-metric relative overflow-hidden transition-colors">
+                        <div className="flex items-start justify-between gap-2">
+                            <div>
+                                <p className="text-[10px] sm:text-[11px] font-bold text-white uppercase tracking-wider">Antrean saat ini</p>
+                                <h3 className="text-xl sm:text-[30px] font-heading font-extrabold text-white mt-2">{pendingOrders}</h3>
+                            </div>
+                            <FiClock className="hidden text-accentYellow shrink-0 sm:block" size={18} />
+                        </div>
+
+                    </Link>
+
+                    <div className="admin-metric relative overflow-hidden">
                         <div className="flex items-start justify-between gap-2">
                             <div>
                                 <p className="text-[10px] sm:text-[11px] font-bold text-white uppercase tracking-wider">Transaksi lunas</p>
@@ -232,10 +232,10 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                             </div>
                             <FiShoppingBag className="hidden text-accentYellow shrink-0 sm:block" size={18} />
                         </div>
-                        <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-1.5 bg-accentYellow" />
+
                     </div>
 
-                    <Link href={route('products.index')} className="relative overflow-hidden bg-primary px-3 pb-3 pt-2 sm:px-4 sm:pb-4 sm:pt-2.5 rounded-xl hover:bg-primaryDark transition-colors">
+                    <Link href={route('products.index')} className="admin-metric relative overflow-hidden transition-colors">
                         <div className="flex items-start justify-between gap-2">
                             <div>
                                 <p className="text-[10px] sm:text-[11px] font-bold text-white uppercase tracking-wider">Stok perlu dicek</p>
@@ -243,7 +243,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                             </div>
                             <FiPackage className="hidden text-accentYellow shrink-0 sm:block" size={18} />
                         </div>
-                        <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-1.5 bg-accentYellow" />
+
                     </Link>
                 </div>
 
@@ -251,8 +251,8 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                 <div className="contents">
                     
                     {/* Left: Financial Sales Bar Chart with Y-Axis Ticks & Gridlines */}
-                    <div className="col-span-12 xl:col-span-8 order-3 h-[280px] min-w-0 overflow-hidden bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-800 shadow-xs flex flex-col transition-colors">
-                        <div className="flex shrink-0 items-center justify-between gap-3 bg-primary px-4 py-3 sm:px-5">
+                    <div className="admin-surface col-span-12 xl:col-span-8 order-3 h-[280px] min-w-0 overflow-hidden bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-800 shadow-xs flex flex-col transition-colors">
+                        <div className="flex shrink-0 items-center justify-between gap-3 admin-section-header px-4 py-3 sm:px-5">
                             <h3 className="font-bold text-white text-sm">Penjualan</h3>
                             <p className="text-right text-[11px] leading-5 text-white/80">{stats.sales_range}</p>
                         </div>
@@ -313,8 +313,8 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                     <div className="contents">
                         
                         {/* Section A: Produk Terlaris */}
-                        <div className="col-span-12 xl:col-span-4 order-4 h-[280px] min-h-0 flex flex-col overflow-hidden bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-800 shadow-xs">
-                            <div className="flex shrink-0 items-center justify-between bg-primary px-4 py-3 sm:px-5">
+                        <div className="admin-surface col-span-12 xl:col-span-4 order-4 h-[280px] min-h-0 flex flex-col overflow-hidden bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-800 shadow-xs">
+                            <div className="flex shrink-0 items-center justify-between admin-section-header px-4 py-3 sm:px-5">
                                 <h3 className="font-bold text-white text-sm flex items-center gap-2">
                                     <FiTrendingUp className="text-white" size={16} />
                                     <span>Produk terlaris</span>
@@ -328,7 +328,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                                             <div className="flex items-center space-x-2.5 min-w-0">
                                                 <span className={numberBadgeClass}>
                                                     {String(item.rank || idx + 1).padStart(2, '0')}
-                                                    <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-0.5 bg-accentYellow" />
+
                                                 </span>
                                                 <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 truncate">{item.name}</span>
                                             </div>
@@ -342,8 +342,8 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                         </div>
 
                         {/* Section B: Peringatan Stok Minimum */}
-                        <div className="col-span-12 xl:col-span-4 order-1 xl:order-2 flex h-[280px] min-h-0 flex-col overflow-hidden bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-800 shadow-xs xl:h-auto xl:self-stretch">
-                            <div className="flex shrink-0 items-center justify-between gap-3 bg-primary px-4 py-3 sm:px-5">
+                        <div className="admin-surface col-span-12 xl:col-span-4 order-1 xl:order-2 flex h-[280px] min-h-0 flex-col overflow-hidden bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-800 shadow-xs xl:h-auto xl:self-stretch">
+                            <div className="flex shrink-0 items-center justify-between gap-3 admin-section-header px-4 py-3 sm:px-5">
                                 <h3 className="font-bold text-white text-sm">Stok perlu dicek</h3>
                             </div>
                             
@@ -356,7 +356,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                                                     <div className="flex min-w-0 items-center gap-2.5">
                                                         <span className={numberBadgeClass}>
                                                             {String(idx + 1).padStart(2, '0')}
-                                                            <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-0.5 bg-accentYellow" />
+
                                                         </span>
                                                         <div className="min-w-0">
                                                             <span className="font-semibold text-slate-900 dark:text-slate-100 block truncate">{stock.name}</span>
@@ -388,8 +388,8 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                 </div>
 
                 {/* Pesanan terbaru tampil sebelum grafik */}
-                <div className="col-span-12 xl:col-span-8 order-2 xl:order-1 flex h-[390px] min-h-0 flex-col bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-800 shadow-xs overflow-hidden transition-colors">
-                    <div className="flex shrink-0 items-center justify-between bg-primary px-4 py-3 sm:px-5">
+                <div className="admin-surface col-span-12 xl:col-span-8 order-2 xl:order-1 flex h-[390px] min-h-0 flex-col bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-800 shadow-xs overflow-hidden transition-colors">
+                    <div className="flex shrink-0 items-center justify-between admin-section-header px-4 py-3 sm:px-5">
                         <h3 className="font-bold text-white text-sm">Pesanan terbaru</h3>
                         <Link href={route('orders.index')} className="text-xs font-bold text-white hover:text-accentYellow flex items-center gap-1.5">
                             <span>Lihat semua</span>
@@ -440,7 +440,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                                                         day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta'
                                                     }) : '-'}
                                                 </td>
-                                                <td className="px-4 py-2 font-black text-slate-900 dark:text-white">{formatRp(Number(ord.total || 0))}</td>
+                                                <td className="px-4 py-2 font-semibold admin-number text-slate-900 dark:text-white">{formatRp(Number(ord.total || 0))}</td>
                                                 <td className="px-4 py-2">
                                                     <span className={`text-xs font-semibold ${recentOrderStatus(ord).color}`}>
                                                         {recentOrderStatus(ord).label}

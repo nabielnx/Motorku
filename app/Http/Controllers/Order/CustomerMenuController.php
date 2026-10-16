@@ -2,9 +2,7 @@
 
 namespace App\Http\Controllers\Order;
 
-use App\Enums\InventoryLogType;
 use App\Enums\OrderStatus;
-use App\Enums\PaymentStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Order\StoreCustomerOrderRequest;
 use App\Models\Category;
@@ -12,7 +10,7 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Models\Setting;
 use App\Services\CacheService;
-use App\Services\InventoryService;
+use App\Services\OrderCancellationService;
 use App\Services\OrderService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -83,8 +81,8 @@ class CustomerMenuController extends Controller
             ->toArray();
 
         $products = Product::query()
-            ->select(['id', 'category_id', 'sku', 'name', 'description', 'price', 'stock', 'image_path', 'is_available'])
-            ->with(['category:id,name', 'motorcycles:id,brand,model,year_start,year_end'])
+            ->select(['id', 'category_id', 'sku', 'barcode', 'brand', 'unit', 'name', 'description', 'price', 'stock', 'image_path', 'is_available'])
+            ->with(['category:id,name,parent_id', 'category.parent:id,name', 'motorcycles:id,brand,model,engine_type,year_start,year_end'])
             ->where('is_available', true)
             ->get()
             ->map(function ($product) use ($totalSoldMap, $recommendedProductIds) {
@@ -184,7 +182,7 @@ class CustomerMenuController extends Controller
     /**
      * Public endpoint for customer to cancel an unpaid pending order.
      */
-    public function cancelOrder(Request $request, string $orderId): JsonResponse
+    public function cancelOrder(Request $request, string $orderId, OrderCancellationService $cancellation): JsonResponse
     {
         $token = $request->validate([
             'customer_token' => ['required', 'string', 'size:64'],
@@ -194,54 +192,23 @@ class CustomerMenuController extends Controller
             return response()->json(['message' => 'ID pesanan tidak valid.'], 400);
         }
 
-        return DB::transaction(function () use ($orderId, $token) {
-            $order = Order::whereKey($orderId)->lockForUpdate()->first();
+        $result = $cancellation->cancelForCustomer($orderId, $token);
+        $failure = match ($result['outcome']) {
+            'invalid_token' => ['Token tidak valid.', 401],
+            'already_cancelled' => ['Pesanan sudah dibatalkan sebelumnya.', 400],
+            'not_pending' => ['Pesanan yang sudah dibayar atau sedang disiapkan tidak dapat dibatalkan.', 422],
+            default => null,
+        };
+        if ($failure) {
+            return response()->json(['message' => $failure[0]], $failure[1]);
+        }
 
-            if (! $order || $order->customer_access_token !== $token) {
-                return response()->json(['message' => 'Token tidak valid.'], 401);
-            }
-
-            if ($order->order_status === OrderStatus::Cancelled) {
-                return response()->json(['message' => 'Pesanan sudah dibatalkan sebelumnya.'], 400);
-            }
-
-            if ($order->payment_status === PaymentStatus::Paid || $order->order_status !== OrderStatus::Pending) {
-                return response()->json([
-                    'message' => 'Pesanan yang sudah dibayar atau sedang disiapkan tidak dapat dibatalkan.',
-                ], 422);
-            }
-
-            $order->update([
-                'order_status' => OrderStatus::Cancelled,
-                'sync_version' => $order->sync_version + 1,
-            ]);
-
-            // Cancel any pending payments for this order
-            $order->payments()->where('status', 'pending')->update(['status' => 'cancelled']);
-
-            // Restore reserved stock via InventoryService
-            $inventoryService = app(InventoryService::class);
-            foreach ($order->items as $item) {
-                $inventoryService->adjustStock(
-                    [
-                        'product_id' => $item->product_id,
-                        'type' => InventoryLogType::StockReturn,
-                        'quantity' => $item->quantity,
-                        'reference_type' => Order::class,
-                        'reference_id' => $order->id,
-                    ],
-                    null,
-                    'Stok dikembalikan — order '.$order->order_number.' dibatalkan oleh customer'
-                );
-            }
-
-            return response()->json([
-                'message' => 'Pesanan berhasil dibatalkan.',
-                'data' => [
-                    'id' => $order->id,
-                    'order_status' => OrderStatus::Cancelled->value,
-                ],
-            ]);
-        });
+        return response()->json([
+            'message' => 'Pesanan berhasil dibatalkan.',
+            'data' => [
+                'id' => $result['order']->id,
+                'order_status' => OrderStatus::Cancelled->value,
+            ],
+        ]);
     }
 }

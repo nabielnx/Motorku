@@ -10,7 +10,7 @@ function CardSkeleton({ isGrid = false }) {
     return (
         <article
             className={clsx(
-                'flex flex-col justify-between rounded-xl sm:rounded-2xl border border-slate-200/80 bg-white shadow-2xs overflow-hidden',
+                'flex flex-col justify-between rounded-xl sm:rounded-lg border border-slate-200/80 bg-white shadow-2xs overflow-hidden',
                 isGrid
                     ? 'w-full h-full'
                     : 'w-[calc((100%-20px)/3.25)] sm:w-[calc((100%-24px)/3.35)] md:w-[155px] shrink-0 snap-start'
@@ -86,7 +86,7 @@ export default function MenuSkeleton({ fullPage = true, isGrid = false, showProm
     }
 
     return (
-        <SkeletonWrapper className="customer-storefront min-h-screen bg-[#f8fafc] text-slate-900">
+        <SkeletonWrapper className="customer-storefront min-h-screen bg-[#f3f3ed] text-slate-900">
             {/* ═══ Top Announcement Bar (Desktop) ═══ */}
             <div className="hidden bg-slate-900/10 sm:block border-b border-slate-200/40">
                 <div className="mx-auto flex max-w-[1280px] items-center justify-between px-6 py-1.5 lg:px-8">
@@ -96,44 +96,25 @@ export default function MenuSkeleton({ fullPage = true, isGrid = false, showProm
             </div>
 
             {/* ═══ 1. STORE HEADER ═══ */}
-            <header className="sticky top-0 z-30 border-b-[3px] border-[#FFDD00] bg-white shadow-2xs overflow-hidden relative">
-                <div className="mx-auto flex min-h-[54px] max-w-[1280px] items-center justify-between gap-2 px-3.5 sm:min-h-[62px] sm:gap-4 sm:px-6 lg:px-8 relative z-10">
-                    {/* Logo & Store Name Placeholder */}
-                    <div className="flex shrink-0 items-center gap-2.5">
-                        <Skeleton className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg" />
-                        <Skeleton className="h-5 w-20 sm:w-24 rounded" />
-                    </div>
-
-                    {/* Desktop Navigation Links */}
-                    <div className="hidden md:flex items-center gap-6">
-                        <Skeleton className="h-4 w-14 rounded" />
-                        <Skeleton className="h-4 w-20 rounded" />
-                    </div>
-
-                    {/* Search Bar Placeholder */}
-                    <div className="relative flex shrink-0 items-center justify-end w-[196px] max-w-[calc(100vw-145px)] sm:max-w-none sm:w-[232px] md:w-[264px] lg:w-[296px] xl:w-[480px] h-9">
-                        <div className="h-8.5 sm:h-9 w-full rounded-full bg-slate-100 border border-slate-200/80 shadow-2xs flex items-center px-3.5 gap-2">
-                            <Skeleton variant="circle" className="w-3.5 h-3.5 shrink-0" />
-                            <Skeleton className="h-3 w-32 rounded" />
-                        </div>
-                    </div>
-
-                    {/* Header Action Icons (Order history & Cart) */}
-                    <div className="flex items-center gap-2">
-                        <Skeleton variant="circle" className="w-8 h-8 sm:w-9 sm:h-9" />
-                        <Skeleton variant="circle" className="w-8 h-8 sm:w-9 sm:h-9" />
+            <header className="store-header">
+                <div className="store-header-shell">
+                    <div className="store-brand"><Skeleton className="h-7 w-7 shrink-0" /><Skeleton className="h-5 w-20" /></div>
+                    <div className="store-nav"><Skeleton className="h-4 w-12" /><Skeleton className="h-4 w-16" /></div>
+                    <div className="store-tools">
+                        <Skeleton className="h-10 flex-1 min-w-0" />
+                        <div className="store-actions"><Skeleton className="h-10 w-10" /><Skeleton className="h-10 w-10" /></div>
                     </div>
                 </div>
             </header>
 
             {/* ═══ 2. MOTOR SAYA BANNER ═══ */}
-            <section className="w-full bg-[#FFDD00] rounded-b-[36px] sm:rounded-b-[48px] shadow-2xs mb-3.5 sm:mb-4.5 overflow-hidden">
+            <section className="store-motor-banner">
                 <div className="mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8 py-3 sm:py-3.5">
                     <div className="flex items-center gap-3 sm:gap-4 pl-3 sm:pl-4 md:pl-5 pr-3.5 sm:pr-5 md:pr-6">
                         <Skeleton className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl shrink-0" />
                         <div className="min-w-0 flex-1 space-y-1.5">
                             <Skeleton className="h-3.5 sm:h-4 w-24 rounded" />
-                            <Skeleton className="h-2.5 sm:h-3 w-56 sm:w-72 rounded" />
+                            <Skeleton className="h-2.5 sm:h-3 w-full max-w-72 rounded" />
                         </div>
                         <Skeleton className="w-4 h-4 rounded shrink-0" />
                     </div>
@@ -144,10 +125,10 @@ export default function MenuSkeleton({ fullPage = true, isGrid = false, showProm
             <div className={`mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8 ${hasCart ? 'pb-32' : 'pb-12'}`}>
                 {/* Promo Banner Section */}
                 {showPromo && <section className="pb-1">
-                    <div className="relative rounded-2xl sm:rounded-3xl bg-slate-100 border border-slate-200/80 overflow-hidden p-2.5 sm:p-3 shadow-2xs">
+                    <div className="relative rounded-lg sm:rounded-xl bg-slate-100 border border-slate-200/80 overflow-hidden p-2.5 sm:p-3 shadow-2xs">
                         <div className="flex items-stretch gap-2.5">
                             {/* Left Promo Graphic */}
-                            <div className="w-[45%] sm:w-[35%] shrink-0 rounded-xl sm:rounded-2xl bg-slate-200 p-3 flex flex-col justify-between">
+                            <div className="w-[45%] sm:w-[35%] shrink-0 rounded-xl sm:rounded-lg bg-slate-200 p-3 flex flex-col justify-between">
                                 <div className="space-y-1.5">
                                     <Skeleton className="h-3 w-16 rounded-full" />
                                     <Skeleton className="h-4 w-28 rounded" />
@@ -165,9 +146,9 @@ export default function MenuSkeleton({ fullPage = true, isGrid = false, showProm
                 </section>}
 
                 {/* ═══ 4. RESPONSIVE LAYOUT (Desktop Sidebar + Main Products) ═══ */}
-                <div className="grid grid-cols-1 gap-y-2.5 lg:grid-cols-[210px_minmax(0,1fr)] lg:gap-x-9 lg:gap-y-0">
+                <div className="store-catalog-layout grid grid-cols-1 gap-y-2.5 lg:grid-cols-[210px_minmax(0,1fr)] lg:gap-x-9 lg:gap-y-0">
                     {/* Desktop Category Sidebar */}
-                    <aside className="min-w-0 lg:col-start-1">
+                    <aside className="store-categories min-w-0 lg:col-start-1">
                         <div className="hidden lg:block sticky top-24 space-y-2">
                             <Skeleton className="h-9 w-full rounded-xl" />
                             <Skeleton className="h-9 w-full rounded-xl" />

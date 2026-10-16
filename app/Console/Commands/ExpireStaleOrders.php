@@ -2,13 +2,10 @@
 
 namespace App\Console\Commands;
 
-use App\Enums\InventoryLogType;
-use App\Enums\OrderStatus;
 use App\Models\Order;
-use App\Services\InventoryService;
+use App\Services\OrderCancellationService;
 use App\Services\SettingService;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class ExpireStaleOrders extends Command
@@ -18,7 +15,7 @@ class ExpireStaleOrders extends Command
 
     protected $description = 'Batalkan order pending + unpaid yang sudah melewati batas waktu (expires_at).';
 
-    public function handle(InventoryService $inventoryService): int
+    public function handle(OrderCancellationService $cancellation): int
     {
         app(SettingService::class)->applyRuntimeSettings();
         $staleOrders = Order::stale()->with('items')->get();
@@ -52,35 +49,7 @@ class ExpireStaleOrders extends Command
 
         foreach ($staleOrders as $order) {
             try {
-                $wasExpired = DB::transaction(function () use ($order, $inventoryService) {
-                    $order = Order::whereKey($order->id)->lockForUpdate()->first();
-                    if (! $order || ! Order::stale()->whereKey($order->id)->exists()) {
-                        return false;
-                    }
-
-                    // Restore stock for each item
-                    foreach ($order->items as $item) {
-                        $inventoryService->adjustStock(
-                            [
-                                'product_id' => $item->product_id,
-                                'type' => InventoryLogType::StockReturn,
-                                'quantity' => $item->quantity,
-                                'reference_type' => Order::class,
-                                'reference_id' => $order->id,
-                            ],
-                            null, // system operation
-                            'Stok dikembalikan — order '.$order->order_number.' kadaluarsa otomatis'
-                        );
-                    }
-
-                    $order->update([
-                        'order_status' => OrderStatus::Cancelled,
-                        'sync_version' => $order->sync_version + 1,
-                    ]);
-                    $order->payments()->where('status', 'pending')->update(['status' => 'expired']);
-
-                    return true;
-                });
+                $wasExpired = $cancellation->expire($order->id);
 
                 if ($wasExpired) {
                     $expired++;

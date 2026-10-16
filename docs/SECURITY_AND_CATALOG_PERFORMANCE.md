@@ -1,0 +1,13 @@
+# Security headers and customer catalog performance
+
+`SecurityHeaders` generates a new CSP nonce before each request is rendered. Vite-generated scripts, Ziggy and the nonblocking font loader carry the nonce. The production/staging policy restricts scripts to the application origin or an approved nonce, blocks plugin objects, and restricts base URLs, forms and embedding to the same origin. Inline styles remain allowed for React positioning, dynamic banner layout, charts and receipts; inline JavaScript handlers are not allowed. Images may use HTTPS, data and blob URLs to preserve current uploads, previews and external product images. Google/Bunny font origins are explicitly allowed.
+
+Local development uses Report-Only to preserve Vite HMR. Other environments enforce the policy by default. `CSP_ENFORCE=false` selects Report-Only for compatibility diagnosis; restore enforcement after resolving violations. Error responses receive the same headers. Explicit route privacy policies, including invitation pages' `no-referrer`, take precedence over the default referrer policy.
+
+HTTPS staging/production responses enable HSTS for one day, without `includeSubDomains` or preload, so a shared hosting subdomain cannot impose this policy on other sites. Static assets served directly by the hosting/CDN bypass PHP middleware; review their headers separately. After deployment, verify the CDN preserves the application's CSP and the current domain receives these headers.
+
+The global Vite prefetch is removed. Inertia still loads the destination page when navigating, so customer pages no longer prefetch unrelated admin bundles. The first available promo banner is preloaded and given high fetch priority; subsequent banner cycling and original image proportions are retained.
+
+The customer catalog keeps its complete data snapshot for local search and cart validation. Search uses a deferred React update with memoized filtering/category grouping. Memoized product cards avoid unrelated rerenders. Horizontal rails initially render eight cards, grids render 24, and an IntersectionObserver adds batches before the user reaches the end. All matched products remain reachable by normal scrolling. Browsers without IntersectionObserver render the complete list. This does not introduce server pagination or change search relevance, stock limits, prices or checkout payloads.
+
+Verification should cover long rails to their last item, filtered grids, no-result search, product details/cart, customer checkout, staff login, POS payment/receipt and CSP console violations. Compare performance under matching fixture/network/CPU conditions. Improvements measured locally must not be presented as new staging measurements; recheck the deployed staging site after merge.

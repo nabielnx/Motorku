@@ -1,19 +1,12 @@
-import React, { useState, useEffect, useRef } from 'react';
+import '../../../css/customer-storefront.css';
+import { createCustomerOrder } from '@/Api/customerOrders';
+import { useState, useEffect, useRef } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
-import axios from 'axios';
+
 import { checkoutRequestId } from '@/Utils/checkout';
 import useForceLightTheme from '@/Utils/useForceLightTheme';
 import PaymentSkeleton from '@/Components/Skeletons/PaymentSkeleton';
-import {
-    FiArrowLeft,
-    FiCheck,
-    FiShoppingBag,
-    FiUser,
-    FiMapPin,
-    FiAlertCircle,
-    FiDollarSign,
-    FiTrash2
-} from 'react-icons/fi';
+import { FiArrowLeft, FiCheck, FiShoppingBag, FiUser, FiAlertCircle, FiDollarSign, FiTrash2 } from 'react-icons/fi';
 
 const ORDER_KEY = 'motorku_pending_order';
 const CART_KEY = 'motorku_cart';
@@ -58,7 +51,7 @@ export default function Payment() {
 
     const formatRp = (val) => `Rp ${val.toLocaleString('id-ID')}`;
 
-    if (loaded && !orderData) return <div className="p-6 text-center">Data pesanan tidak tersedia. <Link href="/" className="text-blue-700 underline">Kembali ke katalog</Link></div>;
+    if (loaded && !orderData) return <div className="p-6 text-center">Data pesanan tidak tersedia. <Link href="/" className="text-stone-700 underline">Kembali ke katalog</Link></div>;
 
     if (!orderData) {
         return <PaymentSkeleton />;
@@ -87,8 +80,7 @@ export default function Payment() {
 
         try {
             const requestId = checkoutRequestId(localStorage, 'customer_checkout', payload);
-            const res = await axios.post('/api/customer/order', { ...payload, request_id: requestId });
-            const order = res.data?.data ?? res.data;
+            const order = await createCustomerOrder({ ...payload, request_id: requestId });
             if (!order?.id || !order?.customer_token) throw new Error('Respons pesanan tidak lengkap.');
             submittedRef.current = true;
             localStorage.removeItem('customer_checkout');
@@ -135,15 +127,15 @@ export default function Payment() {
     };
 
     return (
-        <div className="h-full w-full bg-slate-100 font-sans text-slate-800 flex justify-center overflow-y-auto">
+        <div className="customer-storefront customer-flow h-full w-full bg-slate-100 font-sans text-slate-800 flex justify-center overflow-y-auto">
             <Head title="Konfirmasi Pembayaran - Toko Sparepart">
                 <meta name="description" content="Selesaikan pesanan dan bayar di kasir toko." />
             </Head>
 
-            <div className="w-full max-w-md bg-white min-h-full shadow-2xl flex flex-col pb-24">
+            <div className="customer-frame w-full max-w-md bg-white min-h-full shadow-2xl flex flex-col pb-24">
                 {/* HEADER */}
                 <header className="sticky top-0 bg-white border-b border-slate-100 p-4 flex items-center justify-between z-10">
-                    <Link href="/" className="text-slate-600 hover:text-slate-800 p-1">
+                    <Link href="/" aria-label="Kembali ke katalog" className="text-slate-600 hover:text-slate-800 p-1">
                         <FiArrowLeft size={20} />
                     </Link>
                     <h1 className="font-black text-slate-900 text-sm">Pembayaran</h1>
@@ -153,12 +145,12 @@ export default function Payment() {
                 <div className="flex-1 p-4 space-y-4">
 
                     {/* ORDER INFO */}
-                    <div className="bg-blue-50 border border-blue-200/60 rounded-2xl p-4 space-y-2">
-                        <div className="flex items-center gap-2 text-xs text-blue-800">
+                    <div className="bg-stone-50 border border-stone-200/60 rounded-lg p-4 space-y-2">
+                        <div className="flex items-center gap-2 text-xs text-stone-800">
                             <FiShoppingBag size={14} />
                             <span className="font-bold">Ambil di Toko</span>
                         </div>
-                        <div className="flex items-center gap-2 text-xs text-blue-800">
+                        <div className="flex items-center gap-2 text-xs text-stone-800">
                             <FiShoppingBag size={14} />
                             <span>{orderData.cart.length} item</span>
                         </div>
@@ -195,7 +187,7 @@ export default function Payment() {
                                 <div key={item.cartItemId} className="grid grid-cols-12 gap-2 items-center text-xs px-0.5 py-0.5 border-b border-slate-100 last:border-0 pb-1.5 last:pb-0">
                                     <div className="col-span-6 min-w-0 pr-1">
                                         <p className="font-bold text-slate-800 leading-snug">{item.name}</p>
-                                        {item.notes && <p className="text-[10px] text-blue-600 truncate">{item.notes}</p>}
+                                        {item.notes && <p className="text-[10px] text-stone-600 truncate">{item.notes}</p>}
                                     </div>
                                     <div className="col-span-2 flex justify-center">
                                         <span className="text-[11px] font-black text-slate-800 bg-slate-200/80 border border-slate-300/60 px-2 py-0.5 rounded text-center">
@@ -217,23 +209,24 @@ export default function Payment() {
                             </div>
                             <div className="flex justify-between font-black text-sm text-slate-900 pt-1 border-t border-slate-200">
                                 <span>Total Bayar</span>
-                                <span className="text-blue-600">{formatRp(orderData.total)}</span>
+                                <span className="text-stone-600">{formatRp(orderData.total)}</span>
                             </div>
                         </div>
                     </div>
 
                     {/* CUSTOMER NAME */}
                     <div className="space-y-2">
-                        <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                        <label htmlFor="customer-name" className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
                             <FiUser size={14} /> Nama Pemesan
                         </label>
                         <input
+                            id="customer-name"
                             ref={customerNameInputRef}
                             type="text"
                             placeholder="Masukkan nama Anda..."
                             value={customerName}
                             onChange={(e) => { setCustomerName(e.target.value); if (error) setError(null); }}
-                            className={`w-full bg-slate-50 border rounded-xl px-4 py-3 text-xs font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-colors ${
+                            className={`w-full bg-slate-50 border rounded-xl px-4 py-3 text-xs font-bold text-slate-800 focus:ring-2 focus:ring-stone-500 focus:outline-none transition-colors ${
                                 error && !customerName.trim() ? 'border-red-400 bg-red-50/50' : 'border-slate-200'
                             }`}
                         />
@@ -242,7 +235,7 @@ export default function Payment() {
                     {/* PAYMENT METHOD */}
                     <div className="space-y-2">
                         <label className="text-xs font-bold text-slate-800 block">Metode Pembayaran</label>
-                        <div className="flex items-center gap-3 rounded-xl bg-blue-50 px-4 py-3 text-blue-800">
+                        <div className="flex items-center gap-3 rounded-xl bg-stone-50 px-4 py-3 text-stone-800">
                             <FiDollarSign size={20} />
                             <div>
                                 <p className="font-bold text-xs">Bayar di Kasir</p>
@@ -276,7 +269,7 @@ export default function Payment() {
                     <button
                         onClick={handleSubmitOrder}
                         disabled={isSubmitting}
-                        className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold rounded-xl text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98"
+                        className="store-primary w-full py-3 bg-[#FFDD00] hover:bg-[#FFE838] disabled:bg-slate-300 disabled:cursor-not-allowed text-[#19231f] font-bold rounded-lg text-sm transition-colors flex items-center justify-center gap-2 cursor-pointer"
                     >
                         <FiCheck size={16} />
                         {isSubmitting ? 'Mengirim Pesanan...' : 'Kirim Pesanan'}

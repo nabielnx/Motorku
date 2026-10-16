@@ -37,6 +37,7 @@ class UpdateProductRequest extends FormRequest
             'unit' => ['nullable', 'string', 'max:50'],
             'rack_location' => ['nullable', 'string', 'max:255'],
             'image' => ImageUploadService::rules('nullable'),
+            'remove_image' => ['sometimes', 'boolean'],
             'is_available' => ['nullable', 'boolean'],
         ];
     }

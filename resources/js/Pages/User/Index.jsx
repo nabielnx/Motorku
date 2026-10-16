@@ -1,10 +1,12 @@
+import AdminDialog, { DialogTitle } from '@/Components/Admin/Dialog';
+import AdminButton from '@/Components/Admin/Button';
 import { useState, useEffect, useRef } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import UserTableSkeleton from '@/Components/Skeletons/UserTableSkeleton';
 import { Head, usePage, router } from '@inertiajs/react';
 import axios from 'axios';
 import { toast } from 'sonner';
-import { FiPlus, FiEdit2, FiTrash2, FiSearch, FiShield, FiUserCheck, FiUserX, FiX, FiAlertCircle, FiMail } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2, FiSearch, FiShield, FiUserCheck, FiUserX, FiX, FiAlertCircle, FiMail, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 
 const ROLE_BADGES = {
     owner: { label: 'Owner', color: 'bg-primary text-white border-primary' },
@@ -235,24 +237,24 @@ export default function UserIndex({ initialUsers = {}, activeOwnersCount = 0, ma
     };
 
     return (
-        <AuthenticatedLayout pageTitle={locale === 'en' ? 'Staff Management' : 'Kelola Staff & Pegawai'}>
+        <AuthenticatedLayout pageTitle={locale === 'en' ? 'Staff Management' : 'Kelola Staf'}>
             <Head title={`${locale === 'en' ? 'Staff Management' : 'Kelola Staf'}`}>
                 <meta name="description" content="Kelola akun pengguna, peran hak akses (Owner / Kasir), dan status staf pegawai Motorku." />
             </Head>
-            <div className="space-y-4">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+            <div className="admin-staff space-y-4">
+                <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
                     <div>
-                        <h3 className="text-lg font-bold text-primaryDark dark:text-white">Daftar Staf <span className="ml-1 text-sm font-semibold text-slate-500 dark:text-slate-400">{totalUsers}</span></h3>
+                        <h3 className="admin-page-title">Daftar Staf <span className="ml-1 text-sm font-semibold text-slate-500 dark:text-slate-400">{totalUsers}</span></h3>
                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Akun dan hak akses toko</p>
                     </div>
-                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
-                        <div className="relative w-full sm:w-64">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full lg:w-auto">
+                        <div className="relative w-full sm:flex-1 lg:flex-none lg:w-64">
                             <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" size={16} />
-                            <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Cari nama atau email..." className="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 rounded-lg pl-9 pr-3 py-2 text-xs focus:ring-2 focus:ring-primary" autoComplete="off" />
+                            <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Cari nama atau email..." className="w-full pl-9 pr-3 py-2 admin-control" autoComplete="off" />
                         </div>
-                        <button onClick={openAdd} className="bg-accentYellow hover:bg-yellow-300 text-primaryDark font-bold px-4 py-2 rounded-lg text-xs flex items-center justify-center gap-2 transition cursor-pointer">
+                        <AdminButton onClick={openAdd} variant="primary">
                             <FiPlus size={16} /> Tambah Staf Baru
-                        </button>
+                        </AdminButton>
                     </div>
                 </div>
 
@@ -263,8 +265,8 @@ export default function UserIndex({ initialUsers = {}, activeOwnersCount = 0, ma
                 {isNavigating ? (
                     <UserTableSkeleton />
                 ) : (
-                <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden transition-colors">
-                    <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-800 flex flex-wrap items-center gap-2">
+                <div className="admin-surface bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden transition-colors">
+                    <div className="admin-section-header px-4 py-3 border-b border-slate-200 dark:border-slate-800 flex flex-wrap items-center gap-2">
                         <span className="text-xs font-bold text-slate-500 dark:text-slate-400 mr-1">Peran</span>
                         {['All', 'owner', 'cashier'].map(r => (
                             <button key={r} onClick={() => handleRoleFilterChange(r)} className={`px-3 py-1.5 rounded-md text-xs font-bold capitalize transition cursor-pointer ${roleFilter === r ? 'bg-primary text-white' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-300 dark:border-slate-700 hover:border-primary'}`}>
@@ -272,9 +274,9 @@ export default function UserIndex({ initialUsers = {}, activeOwnersCount = 0, ma
                             </button>
                         ))}
                     </div>
-                    <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-300px)] no-scrollbar">
-                        <table className="w-full min-w-[640px] text-left">
-                            <thead>
+                    <div className="overflow-x-auto">
+                        <table className="admin-staff-table block md:table w-full text-left">
+                            <thead className="hidden md:table-header-group">
                                 <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-400 dark:text-slate-500 font-bold text-xs uppercase sticky top-0 z-10 bg-slate-50/60 dark:bg-slate-800/90">
                                     <th className="py-3.5 px-5 bg-slate-50/60 dark:bg-slate-800/90">Pegawai</th>
                                     <th className="py-3.5 px-5 bg-slate-50/60 dark:bg-slate-800/90">Role</th>
@@ -282,7 +284,7 @@ export default function UserIndex({ initialUsers = {}, activeOwnersCount = 0, ma
                                     <th className="py-3.5 px-5 text-right bg-slate-50/60 dark:bg-slate-800/90">Aksi</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                            <tbody className="block md:table-row-group divide-y divide-slate-100 dark:divide-slate-800">
                                 {filtered.map(user => {
                                     const roleName = user.roles?.[0]?.name || 'cashier';
                                     const badge = ROLE_BADGES[roleName] || { label: roleName, color: 'bg-slate-100 text-slate-700' };
@@ -294,8 +296,8 @@ export default function UserIndex({ initialUsers = {}, activeOwnersCount = 0, ma
                                         : (isLastOwnerRow ? "Tidak dapat menghapus owner terakhir yang aktif" : "Hapus Staf");
 
                                     return (
-                                        <tr key={user.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/50 transition-colors">
-                                            <td className="py-4 px-5">
+                                        <tr key={user.id} className="grid grid-cols-2 md:table-row hover:bg-slate-50/60 dark:hover:bg-slate-800/50 transition-colors">
+                                            <td className="block md:table-cell col-span-2 min-w-0 py-4 px-4 md:px-4">
                                                 <div className="flex items-center gap-3">
                                                     {user.avatar ? (
                                                         <img 
@@ -308,41 +310,42 @@ export default function UserIndex({ initialUsers = {}, activeOwnersCount = 0, ma
                                                             {String(user.name || 'U').charAt(0).toUpperCase()}
                                                         </div>
                                                     )}
-                                                    <div>
-                                                        <div className="flex items-center gap-1.5">
-                                                            <p className="font-bold text-slate-900 dark:text-white">{user.name}</p>
+                                                    <div className="min-w-0">
+                                                        <div className="flex flex-wrap items-center gap-1.5">
+                                                            <p className="break-words font-bold text-slate-900 dark:text-white">{user.name}</p>
                                                             {isSelfRow && (
                                                                 <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-accentYellow text-primaryDark">
                                                                     Akun Anda
                                                                 </span>
                                                             )}
                                                         </div>
-                                                        <p className="text-xs text-slate-400 dark:text-slate-500">{user.email}</p>
+                                                        <p className="break-all text-xs text-slate-600 dark:text-slate-400">{user.email}</p>
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="py-4 px-5">
-                                                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold border ${badge.color}`}>
+                                            <td className="block md:table-cell min-w-0 px-4 pb-3 md:py-3 md:px-4">
+                                                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-xs font-semibold border ${badge.color}`}>
                                                     <FiShield size={12} />{badge.label}
                                                 </span>
                                             </td>
-                                            <td className="py-4 px-5">
+                                            <td className="block md:table-cell min-w-0 px-4 pb-3 md:py-3 md:px-4 text-right md:text-left">
                                                 <span className={`inline-flex items-center gap-1 text-xs font-bold ${user.is_active !== false ? 'text-primaryDark dark:text-blue-300' : 'text-red-600'}`}>
                                                     {user.is_active === false ? <FiUserX size={14} /> : user.invitation_pending || !user.email_verified_at ? <FiMail size={14} /> : <FiUserCheck size={14} />}
                                                     {user.is_active === false ? 'Nonaktif' : user.invitation_pending ? 'Menunggu aktivasi' : !user.email_verified_at ? 'Belum verifikasi' : 'Aktif'}
                                                 </span>
                                             </td>
-                                            <td className="py-4 px-5 text-right">
+                                            <td className="block md:table-cell col-span-2 px-4 pb-3 md:py-3 md:px-4 text-right">
                                                 <div className="flex items-center justify-end gap-2">
                                                     {user.invitation_pending && user.is_active !== false && (
-                                                        <button onClick={() => resendInvitation(user)} disabled={loading} className="p-2 text-primary hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg disabled:opacity-40" title="Kirim ulang undangan" aria-label={`Kirim ulang undangan untuk ${user.name}`}><FiMail size={16} /></button>
+                                                        <button onClick={() => resendInvitation(user)} disabled={loading} className="p-2 text-primary hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg disabled:opacity-40 admin-icon-button" title="Kirim ulang undangan" aria-label={`Kirim ulang undangan untuk ${user.name}`}><FiMail size={16} /></button>
                                                     )}
-                                                    <button onClick={() => openEdit(user)} className="p-2 text-slate-500 hover:text-primaryDark dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg cursor-pointer" title="Edit Staf"><FiEdit2 size={16} /></button>
+                                                    <button onClick={() => openEdit(user)} className="p-2 text-slate-500 hover:text-primaryDark dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg cursor-pointer admin-icon-button" title="Edit Staf" aria-label={`Edit staf ${user.name}`}><FiEdit2 size={16} /></button>
                                                     <button 
                                                         onClick={() => confirmDelete(user.id)} 
                                                         disabled={deleteDisabled}
-                                                        className={`p-2 rounded-lg transition-colors cursor-pointer ${deleteDisabled ? 'text-slate-200 dark:text-slate-700 cursor-not-allowed' : 'text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/50'}`} 
+                                                        className={`p-2 rounded-lg transition-colors cursor-pointer admin-icon-button ${deleteDisabled ? 'text-slate-200 dark:text-slate-700 cursor-not-allowed' : 'text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/50'}`}
                                                         title={deleteTooltip}
+                                                        aria-label={`Hapus staf ${user.name}`}
                                                     >
                                                         <FiTrash2 size={16} />
                                                     </button>
@@ -352,7 +355,7 @@ export default function UserIndex({ initialUsers = {}, activeOwnersCount = 0, ma
                                     );
                                 })}
                                 {filtered.length === 0 && (
-                                    <tr><td colSpan={4} className="py-12 text-center text-sm text-slate-400 dark:text-slate-500">Tidak ada pegawai ditemukan.</td></tr>
+                                    <tr className="block md:table-row"><td colSpan={4} className="block md:table-cell py-12 text-center text-sm text-slate-400 dark:text-slate-500">Tidak ada pegawai ditemukan.</td></tr>
                                 )}
                             </tbody>
                         </table>
@@ -360,27 +363,29 @@ export default function UserIndex({ initialUsers = {}, activeOwnersCount = 0, ma
 
                     {/* User Pagination Footer */}
                     {totalUsers > 0 && (
-                        <div className="p-4 bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs font-semibold text-slate-600 dark:text-slate-400">
+                        <div className="p-4 bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs font-semibold text-slate-600 dark:text-slate-400">
                             <span>
-                                Menampilkan {((currentPage - 1) * perPage) + 1} - {Math.min(currentPage * perPage, totalUsers)} dari {totalUsers} pegawai
+                                <span className="hidden sm:inline">Menampilkan </span>{((currentPage - 1) * perPage) + 1}–{Math.min(currentPage * perPage, totalUsers)} / {totalUsers} staf
                             </span>
                             <div className="flex items-center space-x-2">
                                 <button
                                     onClick={() => changeUserPage(currentPage - 1)}
                                     disabled={currentPage <= 1}
+                                    aria-label="Halaman staf sebelumnya"
                                     className="px-3 py-1.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 rounded-lg border border-slate-300 dark:border-slate-700 font-bold transition text-slate-700 dark:text-slate-200 cursor-pointer"
                                 >
-                                    Sebelumnya
+                                    <FiChevronLeft className="sm:hidden" /><span className="hidden sm:inline">Sebelumnya</span>
                                 </button>
-                                <span className="px-3 py-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg text-slate-800 dark:text-slate-200 font-bold">
+                                <span className="whitespace-nowrap px-3 py-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg text-slate-800 dark:text-slate-200 font-bold">
                                     {currentPage} / {totalPages}
                                 </span>
                                 <button
                                     onClick={() => changeUserPage(currentPage + 1)}
                                     disabled={currentPage >= totalPages}
+                                    aria-label="Halaman staf berikutnya"
                                     className="px-3 py-1.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 rounded-lg border border-slate-300 dark:border-slate-700 font-bold transition text-slate-700 dark:text-slate-200 cursor-pointer"
                                 >
-                                    Selanjutnya
+                                    <FiChevronRight className="sm:hidden" /><span className="hidden sm:inline">Selanjutnya</span>
                                 </button>
                             </div>
                         </div>
@@ -390,11 +395,11 @@ export default function UserIndex({ initialUsers = {}, activeOwnersCount = 0, ma
             </div>
 
             {modal === 'form' && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-                    <form onSubmit={(event) => { event.preventDefault(); handleSubmit(); }} className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto p-6 space-y-4 shadow-2xl border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white">
+                <AdminDialog onClose={() => setModal(null)} closeable={!loading} className="max-w-md overflow-y-auto">
+                    <form onSubmit={(event) => { event.preventDefault(); handleSubmit(); }} className="p-4 sm:p-6 space-y-4">
                         <div className="flex justify-between items-center">
-                            <h3 className="font-black text-slate-800 dark:text-white">{editId ? 'Edit Data Staf' : 'Tambah Staf Baru'}</h3>
-                            <button type="button" onClick={() => setModal(null)} aria-label="Tutup" className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"><FiX size={18} /></button>
+                            <DialogTitle className="admin-dialog-title">{editId ? 'Edit Data Staf' : 'Tambah Staf Baru'}</DialogTitle>
+                            <button disabled={loading} type="button" onClick={() => setModal(null)} aria-label="Tutup" className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg admin-icon-button"><FiX size={18} /></button>
                         </div>
 
                         {formError && (
@@ -403,22 +408,22 @@ export default function UserIndex({ initialUsers = {}, activeOwnersCount = 0, ma
                                     <FiAlertCircle className="shrink-0 text-rose-600 dark:text-rose-400" size={16} />
                                     <span>{formError}</span>
                                 </div>
-                                <button type="button" onClick={() => setFormError(null)} aria-label="Tutup pesan" className="text-rose-400 hover:text-rose-600"><FiX size={14} /></button>
+                                <button disabled={loading} type="button" onClick={() => setFormError(null)} aria-label="Tutup pesan" className="text-rose-400 hover:text-rose-600 admin-icon-button"><FiX size={14} /></button>
                             </div>
                         )}
 
                         <div className="space-y-3">
                             <div>
                                 <label htmlFor="staff-name" className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">Nama Lengkap</label>
-                                <input id="staff-name" type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none" required autoComplete="off" />
+                                <input id="staff-name" type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full px-3 py-2 admin-control" required autoComplete="off" />
                             </div>
                             <div>
                                 <label htmlFor="staff-email" className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">Email</label>
-                                <input id="staff-email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="w-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none" required autoComplete="off" />
+                                <input id="staff-email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="w-full px-3 py-2 admin-control" required autoComplete="off" />
                             </div>
                             {editingUser && !editingUser.invitation_pending ? <div>
                                 <label htmlFor="staff-password" className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">Password {editId && '(kosongkan jika tidak diubah)'}</label>
-                                <input id="staff-password" type="password" value={form.password} minLength={8} onChange={(e) => setForm({ ...form, password: e.target.value })} className="w-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none" autoComplete="new-password" />
+                                <input id="staff-password" type="password" value={form.password} minLength={8} onChange={(e) => setForm({ ...form, password: e.target.value })} className="w-full px-3 py-2 admin-control" autoComplete="new-password" />
                                 <p className="text-xs text-slate-500 mt-1">Minimal 8 karakter, dengan huruf besar, huruf kecil, angka, dan simbol.</p>
                             </div> : <p className="text-xs text-slate-500 dark:text-slate-400">Gunakan email milik staf. Staf membuat password sendiri melalui undangan aktivasi yang berlaku selama 24 jam.</p>}
                             <div>
@@ -436,46 +441,46 @@ export default function UserIndex({ initialUsers = {}, activeOwnersCount = 0, ma
                                 </select>
                                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">{form.role === 'owner' ? 'Owner mendapat akses penuh, termasuk keuangan, pengaturan, dan pengelolaan akun lain. Toko boleh memiliki lebih dari satu owner.' : 'Kasir dapat menggunakan POS dan menangani pesanan serta pembayaran.'}</p>
                                 {isSelf && (
-                                    <p className="text-[10px] text-yellow-500 dark:text-yellow-400 font-semibold mt-1">Anda tidak dapat mengubah role akun Anda sendiri.</p>
+                                    <p className="text-xs text-amber-700 dark:text-yellow-400 font-semibold mt-1">Anda tidak dapat mengubah role akun Anda sendiri.</p>
                                 )}
                                 {!isSelf && isLastActiveOwner && (
-                                    <p className="text-[10px] text-yellow-500 dark:text-yellow-400 font-semibold mt-1">Minimal harus ada 1 owner aktif dalam sistem.</p>
+                                    <p className="text-xs text-amber-700 dark:text-yellow-400 font-semibold mt-1">Minimal harus ada 1 owner aktif dalam sistem.</p>
                                 )}
                             </div>
                             {requiresConfirmation && (
                                 <div>
                                     <label htmlFor="owner-password" className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">Konfirmasi dengan password akun Anda</label>
-                                    <input id="owner-password" type="password" value={form.owner_password} onChange={(e) => setForm({ ...form, owner_password: e.target.value })} required autoComplete="current-password" className="w-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-primary" />
+                                    <input id="owner-password" type="password" value={form.owner_password} onChange={(e) => setForm({ ...form, owner_password: e.target.value })} required autoComplete="current-password" className="w-full px-3 py-2 admin-control" />
                                 </div>
                             )}
                         </div>
                         <div className="flex gap-2 pt-2">
-                            <button type="button" onClick={() => setModal(null)} className="flex-1 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800">Batal</button>
-                            <button type="submit" disabled={loading} className="flex-1 py-2.5 bg-accentYellow hover:bg-yellow-300 disabled:bg-slate-300 text-primaryDark rounded-xl text-sm font-bold">{loading ? 'Menyimpan...' : editId ? 'Simpan' : 'Kirim Undangan'}</button>
+                            <AdminButton disabled={loading} type="button" onClick={() => setModal(null)} variant="secondary" className="flex-1">Batal</AdminButton>
+                            <AdminButton type="submit" disabled={loading} variant="primary" className="flex-1">{loading ? 'Menyimpan...' : editId ? 'Simpan' : 'Kirim Undangan'}</AdminButton>
                         </div>
                     </form>
-                </div>
+                </AdminDialog>
             )}
             {modal === 'delete' && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-                    <div className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-sm p-6 text-center shadow-2xl border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white">
+                <AdminDialog onClose={() => setModal(null)} closeable={!loading} className="max-w-sm overflow-y-auto">
+                    <div className="p-4 sm:p-6 text-center">
                         <div className="w-16 h-16 bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 rounded-full flex items-center justify-center mx-auto mb-4">
                             <FiTrash2 size={32} />
                         </div>
-                        <h3 className="text-lg font-black text-slate-800 dark:text-white mb-2">Hapus Staff?</h3>
+                        <DialogTitle className="admin-dialog-title">Hapus Staf?</DialogTitle>
                         <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
                             Apakah Anda yakin ingin menghapus <strong className="text-slate-900 dark:text-white">{userToDelete?.name}</strong>? Tindakan ini tidak dapat dibatalkan.
                         </p>
                         <div className="flex gap-3">
-                            <button onClick={() => setModal(null)} className="flex-1 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-sm font-bold transition-colors">
+                            <AdminButton disabled={loading} onClick={() => setModal(null)} variant="secondary" className="flex-1">
                                 Batal
-                            </button>
-                            <button onClick={executeDelete} disabled={loading} className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 text-white rounded-xl text-sm font-bold flex justify-center items-center gap-2 transition-colors">
+                            </AdminButton>
+                            <AdminButton onClick={executeDelete} disabled={loading} variant="danger" className="flex-1">
                                 {loading ? 'Menghapus...' : 'Ya, Hapus!'}
-                            </button>
+                            </AdminButton>
                         </div>
                     </div>
-                </div>
+                </AdminDialog>
             )}
         </AuthenticatedLayout>
     );

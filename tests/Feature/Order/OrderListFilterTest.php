@@ -4,6 +4,7 @@ namespace Tests\Feature\Order;
 
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\Payment;
 use App\Models\User;
 use App\Services\OrderService;
 use Database\Seeders\RoleSeeder;
@@ -13,6 +14,29 @@ use Tests\TestCase;
 class OrderListFilterTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_order_list_uses_recorded_payment_method_without_failed_attempts(): void
+    {
+        $cash = Order::factory()->create(['payment_status' => 'paid']);
+        Payment::factory()->create(['order_id' => $cash->id, 'payment_method' => 'cash', 'status' => 'paid', 'paid_at' => now()->subMinute()]);
+        Payment::factory()->pending()->create(['order_id' => $cash->id, 'payment_method' => 'qris_manual']);
+        $qris = Order::factory()->create(['payment_status' => 'paid']);
+        Payment::factory()->create(['order_id' => $qris->id, 'payment_method' => 'qris_manual', 'status' => 'paid']);
+        $pending = Order::factory()->create(['payment_status' => 'unpaid']);
+        Payment::factory()->pending()->create(['order_id' => $pending->id, 'payment_method' => 'qris_manual']);
+        $cancelled = Order::factory()->create(['order_status' => 'cancelled', 'payment_status' => 'unpaid']);
+        Payment::factory()->create(['order_id' => $cancelled->id, 'payment_method' => 'cash', 'status' => 'cancelled']);
+        Payment::factory()->create(['order_id' => $cancelled->id, 'payment_method' => 'qris_manual', 'status' => 'failed']);
+        $unpaid = Order::factory()->create(['payment_status' => 'unpaid']);
+
+        $orders = app(OrderService::class)->getOrdersForWeb('All')->keyBy('real_id');
+
+        $this->assertSame('cash', $orders[$cash->id]['payment_method']);
+        $this->assertSame('qris_manual', $orders[$qris->id]['payment_method']);
+        $this->assertSame('qris_manual', $orders[$pending->id]['payment_method']);
+        $this->assertNull($orders[$cancelled->id]['payment_method']);
+        $this->assertNull($orders[$unpaid->id]['payment_method']);
+    }
 
     public function test_action_filter_includes_open_orders_only(): void
     {

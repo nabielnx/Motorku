@@ -1,9 +1,10 @@
-import { IMAGE_ACCEPT, IMAGE_HELP, validImage } from '@/Utils/imageUpload';
+import ImagePicker from '@/Components/ImagePicker';
+import { IMAGE_HELP, validImage } from '@/Utils/imageUpload';
 import { useState } from 'react';
 import InputError from '@/Components/InputError';
 import { Transition } from '@headlessui/react';
 import { Link, useForm, usePage, router } from '@inertiajs/react';
-import { FiUpload, FiCheck, FiUser, FiSave, FiCamera, FiTrash2, FiAlertTriangle } from 'react-icons/fi';
+import { FiUpload, FiCheck, FiUser, FiSave, FiTrash2, FiAlertTriangle } from 'react-icons/fi';
 import axios from 'axios';
 
 export default function UpdateProfileInformation({
@@ -65,7 +66,7 @@ export default function UpdateProfileInformation({
     return (
         <section className={className}>
             <header className="flex items-center gap-2.5 border-b border-slate-200 dark:border-slate-800 pb-4 mb-6">
-                <FiUser className="text-blue-600 dark:text-yellow-400 w-5 h-5 shrink-0" strokeWidth={2.5} />
+                <FiUser className="text-primary dark:text-yellow-400 w-5 h-5 shrink-0" strokeWidth={2.5} />
                 <div>
                     <h2 className="text-base font-black text-slate-900 dark:text-white">Informasi Profil</h2>
                     <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-0.5">
@@ -79,8 +80,8 @@ export default function UpdateProfileInformation({
                 {/* Foto Profil Section */}
                 <div className="bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg p-4">
                     <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-3">Foto Profil</label>
-                    <div className="flex items-center gap-4">
-                        <div className="w-16 h-16 rounded-lg overflow-hidden bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 ring-2 ring-slate-200/60 dark:ring-slate-700 flex items-center justify-center shrink-0 shadow-xs relative group">
+                    <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+                        <div className="w-16 h-16 rounded-lg overflow-hidden bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 flex items-center justify-center shrink-0 shadow-xs relative group">
                             {avatarPreview ? (
                                 <img src={avatarPreview} alt="preview" className="w-full h-full object-cover" />
                             ) : user.avatar ? (
@@ -89,30 +90,17 @@ export default function UpdateProfileInformation({
                                 <span className="text-xl font-black text-slate-400 dark:text-slate-500">{user.name.charAt(0)}</span>
                             )}
                         </div>
-                        <div className="flex items-center gap-2 flex-wrap">
-                            <label className="inline-flex items-center gap-1.5 px-3 py-2 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-lg cursor-pointer transition shadow-xs">
-                                <FiCamera className="w-4 h-4 text-slate-600 dark:text-slate-300" strokeWidth={2.5} />
-                                <input
-                                    type="file"
-                                    accept={IMAGE_ACCEPT}
-                                    onChange={(e) => {
-                                        const file = e.target.files[0];
-                                        if (validImage(file)) {
-                                            setAvatarFile(file);
-                                            setAvatarPreview(URL.createObjectURL(file));
-                                        }
-                                    }}
-                                    className="hidden"
-                                />
-                                <span>Pilih Foto Baru</span>
-                            </label>
+                        <div className="min-w-0 flex flex-1 basis-[220px] items-center gap-2 flex-wrap">
+                            <ImagePicker label="profil" facingMode="user" disabled={uploading} onSelect={file => {
+                                if (validImage(file)) { setAvatarFile(file); setAvatarPreview(URL.createObjectURL(file)); }
+                            }} />
 
                             {avatarFile && (
                                 <button
                                     type="button"
                                     onClick={handleUploadAvatar}
                                     disabled={uploading}
-                                    className="inline-flex items-center gap-1.5 px-3 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white text-xs font-bold rounded-lg transition shadow-xs border border-blue-700 cursor-pointer"
+                                    className="inline-flex items-center gap-1.5 px-3 py-2 bg-primary hover:bg-primary disabled:bg-slate-300 text-white text-xs font-bold rounded-lg transition shadow-xs border border-primary cursor-pointer"
                                 >
                                     <FiUpload className="w-4 h-4" strokeWidth={2.5} />
                                     <span>{uploading ? 'Mengupload...' : 'Simpan Foto'}</span>
@@ -151,7 +139,7 @@ export default function UpdateProfileInformation({
                             onChange={(e) => setData('name', e.target.value)}
                             required
                             autoComplete="name"
-                            className="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
+                            className="admin-control w-full px-3 py-2 font-semibold"
                         />
                         <InputError className="mt-1.5" message={errors.name} />
                     </div>
@@ -167,7 +155,7 @@ export default function UpdateProfileInformation({
                             onChange={(e) => setData('email', e.target.value)}
                             required
                             autoComplete="username"
-                            className="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
+                            className="admin-control w-full px-3 py-2 font-semibold"
                         />
                         <InputError className="mt-1.5" message={errors.email} />
                     </div>
@@ -207,7 +195,7 @@ export default function UpdateProfileInformation({
                         <button
                             type="submit"
                             disabled={processing}
-                            className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white font-bold rounded-lg text-xs shadow-xs transition border border-blue-700 cursor-pointer"
+                            className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-primary hover:bg-primary disabled:bg-slate-300 text-white font-bold rounded-lg text-xs shadow-xs transition border border-primary cursor-pointer"
                         >
                             <FiSave className="w-4 h-4" strokeWidth={2.5} />
                             <span>{processing ? 'Menyimpan...' : 'Simpan Perubahan'}</span>

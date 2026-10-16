@@ -1,46 +1,41 @@
-import ApplicationLogo from '@/Components/ApplicationLogo';
+import { useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
+import { FiArrowLeft, FiTool } from 'react-icons/fi';
+import { getProductImage } from '@/Utils/productImage';
+import '../../css/customer-storefront.css';
 
 export default function Guest({ children, title = 'Selamat Datang Kembali', subtitle }) {
-    const { login_image_url } = usePage().props;
+    const { login_image_url, logo_url, app_settings } = usePage().props;
+    const [logoFailed, setLogoFailed] = useState(false);
+    const [photoFailed, setPhotoFailed] = useState(false);
+    const storeName = app_settings?.store_name || 'Motorku';
 
     return (
-        <div className="min-h-screen flex bg-white font-sans overflow-hidden">
-            
-            {/* KIRI: Area Gambar Login */}
-            <div className="hidden lg:block lg:w-1/2 relative bg-gray-900 overflow-hidden h-screen">
-                <img 
-                    src={login_image_url || "https://images.unsplash.com/photo-1486006920555-c77dce18193b?q=80&w=1200&auto=format&fit=crop"} 
-                    alt="Motorku"
-                    className="absolute inset-0 w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-            </div>
-
-            {/* KANAN: Area Form Login */}
-            <div className="w-full lg:w-1/2 flex flex-col justify-center items-center p-8 sm:p-12 relative z-10 bg-white min-h-screen">
-                <div className="w-full max-w-md flex flex-col justify-center">
-                    
-                    <div className="flex flex-col items-center mb-8">
-                        <Link href="/">
-                            <ApplicationLogo className="w-36 h-[192px] mb-6" />
-                        </Link>
-                        <h1 className="text-3xl font-black text-slate-900 mb-2 text-center tracking-tight">{title}</h1>
-                        <p className="text-gray-500 text-sm text-center">{subtitle || <>Masuk ke Portal Manajemen <span className="font-bold text-blue-600">Motorku</span></>}</p>
-                    </div>
-                    
-                    {/* Area Input */}
-                    <div className="w-full">
-                        {children}
-                    </div>
-                    
-                    <div className="mt-12 text-center text-xs text-gray-400">
-                        Butuh bantuan teknis? Hubungi tim support Motorku
-                    </div>
-                    
+        <div className="auth-workspace">
+            <aside className="auth-brand-panel" aria-label={storeName}>
+                <Link href="/" className="auth-wordmark"><FiTool aria-hidden="true" />{storeName}</Link>
+                <div className="auth-brand-image">
+                    {login_image_url && !photoFailed ? (
+                        <img src={login_image_url} alt={storeName} onError={() => setPhotoFailed(true)} />
+                    ) : <FiTool className="auth-brand-symbol" aria-hidden="true" />}
                 </div>
-            </div>
-
+                <span className="auth-brand-caption">Portal Manajemen Toko</span>
+            </aside>
+            <main className="auth-main">
+                <Link href="/" className="auth-back"><FiArrowLeft aria-hidden="true" />Kembali ke toko</Link>
+                <div className="auth-form-panel">
+                    <Link href="/" className="auth-logo" aria-label={storeName + ' — beranda'}>
+                        {logo_url && !logoFailed ? (
+                            <img src={getProductImage(logo_url)} alt={storeName} onError={() => setLogoFailed(true)} />
+                        ) : <FiTool aria-hidden="true" />}
+                    </Link>
+                    <p className="auth-eyebrow">Akun toko</p>
+                    <h1>{title}</h1>
+                    <p className="auth-subtitle">{subtitle || <>Masuk ke Portal Manajemen <strong>{storeName}</strong></>}</p>
+                    <div className="auth-form-content">{children}</div>
+                    <p className="auth-help">Butuh bantuan teknis? Hubungi tim support Motorku</p>
+                </div>
+            </main>
         </div>
     );
 }

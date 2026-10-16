@@ -4,7 +4,7 @@ import InputLabel from '@/Components/InputLabel';
 import TextInput from '@/Components/TextInput';
 import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, useForm, usePage } from '@inertiajs/react';
-import { FiMail, FiLock, FiLogOut, FiX } from 'react-icons/fi';
+import { FiMail, FiLock, FiLogOut, FiX, FiEye, FiEyeOff } from 'react-icons/fi';
 
 export default function Login({ status }) {
     const { props } = usePage();
@@ -16,6 +16,7 @@ export default function Login({ status }) {
         : (props.flash?.error || props.flash?.warning);
 
     const [showAlert, setShowAlert] = useState(!!alertMessage);
+    const [showPassword, setShowPassword] = useState(false);
 
     const { data, setData, post, processing, errors, reset } = useForm({
         email: '',
@@ -25,7 +26,10 @@ export default function Login({ status }) {
     const submit = (e) => {
         e.preventDefault();
         post(route('login'), {
-            onFinish: () => reset('password'),
+            onFinish: () => {
+                reset('password');
+                setShowPassword(false);
+            },
         });
     };
 
@@ -37,7 +41,7 @@ export default function Login({ status }) {
 
             {/* ALERT SESSION EXPIRED BANNER */}
             {showAlert && alertMessage && (
-                <div className="mb-5 bg-rose-100/90 border border-rose-200 text-rose-600 text-xs sm:text-sm font-medium rounded-xl p-3.5 sm:p-4 flex items-center justify-between shadow-2xs transition-all animate-in fade-in duration-200">
+                <div role="alert" className="mb-5 bg-rose-50 border border-rose-200 text-rose-600 text-xs sm:text-sm font-medium rounded-xl p-3.5 sm:p-4 flex items-center justify-between shadow-2xs transition-all animate-in fade-in duration-200">
                     <span>{alertMessage}</span>
                     <button
                         type="button"
@@ -51,12 +55,12 @@ export default function Login({ status }) {
             )}
 
             {status && (
-                <div className="mb-4 text-sm font-medium text-green-600">
+                <div role="status" className="mb-4 text-sm font-medium text-green-600">
                     {status}
                 </div>
             )}
 
-            <form onSubmit={submit} className="space-y-6">
+            <form onSubmit={submit} className="space-y-5">
                 {/* Input Email */}
                 <div>
                     <InputLabel htmlFor="email" value="Email" className="font-bold text-gray-700" />
@@ -88,14 +92,25 @@ export default function Login({ status }) {
                         </div>
                         <TextInput
                             id="password"
-                            type="password"
+                            type={showPassword ? 'text' : 'password'}
                             name="password"
                             value={data.password}
-                            className="block w-full pl-10 py-3 bg-gray-50 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-blue-500 transition-colors"
+                            className="block w-full pl-10 pr-12 py-3 bg-gray-50 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-blue-500 transition-colors"
                             autoComplete="current-password"
                             placeholder="Masukkan password"
                             onChange={(e) => setData('password', e.target.value)}
                         />
+                        <button
+                            type="button"
+                            className="absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-r-xl text-gray-500 hover:text-gray-900 transition-colors"
+                            aria-label={showPassword ? 'Sembunyikan password' : 'Tampilkan password'}
+                            aria-controls="password"
+                            aria-pressed={showPassword}
+                            disabled={processing}
+                            onClick={() => setShowPassword((visible) => !visible)}
+                        >
+                            {showPassword ? <FiEyeOff size={18} aria-hidden="true" /> : <FiEye size={18} aria-hidden="true" />}
+                        </button>
                     </div>
                     <InputError message={errors.password} className="mt-2" />
                 </div>
@@ -105,9 +120,9 @@ export default function Login({ status }) {
                     <button
                         type="submit"
                         disabled={processing}
-                        className={`w-full flex justify-center items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-blue-600/30 transition-all active:scale-95 ${processing && 'opacity-50 cursor-not-allowed'}`}
+                        className={`w-full flex justify-center items-center gap-2 auth-primary font-semibold py-3 px-4 rounded-lg transition-colors ${processing && 'cursor-wait'}`}
                     >
-                        <FiLogOut className="rotate-180" size={18} /> Masuk ke Dashboard Motorku
+                        <FiLogOut className="rotate-180" size={18} /> {processing ? 'Memproses...' : 'Masuk ke Dashboard Motorku'}
                     </button>
                 </div>
 

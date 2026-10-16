@@ -14,11 +14,11 @@ export default function Edit({ mustVerifyEmail, status }) {
                 <meta name="description" content="Kelola informasi profil pribadi, foto avatar, dan keamanan kata sandi pengguna." />
             </Head>
 
-            <div className="py-6 max-w-4xl mx-auto space-y-6">
+            <div className="admin-profile-page py-2 sm:py-6 max-w-4xl mx-auto space-y-4 sm:space-y-6">
                 {/* Header Card */}
                 <div className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl p-5 shadow-xs flex items-center justify-between transition-colors">
                     <div>
-                        <h1 className="text-xl font-black text-slate-900 dark:text-white">Pengaturan Akun & Profil</h1>
+                        <h1 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white">Pengaturan Akun & Profil</h1>
                         <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-1">
                             Kelola informasi profil, foto avatar, dan keamanan kata sandi Anda.
                         </p>
@@ -26,7 +26,7 @@ export default function Edit({ mustVerifyEmail, status }) {
                 </div>
 
                 {/* Profile Information Card */}
-                <div className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl p-6 shadow-xs transition-colors">
+                <div className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl p-4 sm:p-6 shadow-xs transition-colors">
                     <UpdateProfileInformationForm
                         mustVerifyEmail={mustVerifyEmail}
                         status={status}
@@ -34,12 +34,12 @@ export default function Edit({ mustVerifyEmail, status }) {
                 </div>
 
                 {/* Password Update Card */}
-                <div className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl p-6 shadow-xs transition-colors">
+                <div className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl p-4 sm:p-6 shadow-xs transition-colors">
                     <UpdatePasswordForm />
                 </div>
 
                 {/* Delete Account Card */}
-                <div className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl p-6 shadow-xs transition-colors">
+                <div className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl p-4 sm:p-6 shadow-xs transition-colors">
                     <DeleteUserForm />
                 </div>
             </div>

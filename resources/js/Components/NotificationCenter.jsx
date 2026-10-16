@@ -10,7 +10,7 @@ export default function NotificationCenter({ user, roles, onActiveOrderCountChan
     const userKey = `${user.id}:${[...roles].sort().join(',')}`;
     const [open, setOpen] = useState(false);
     const [summary, setSummary] = useState(() => cachedSummary?.key === userKey ? cachedSummary.data : {});
-    const [unreadOnly, setUnreadOnly] = useState(false);
+    const [unreadOnly, setUnreadOnly] = useState(true);
     const [page, setPage] = useState(1);
     const [items, setItems] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -95,7 +95,7 @@ export default function NotificationCenter({ user, roles, onActiveOrderCountChan
     const count = Number(summary.unread_count ?? 0);
     return (
         <>
-            <button type="button" onClick={() => { setPage(1); setOpen(true); }} aria-label={count ? `Notifikasi, ${count} belum dibaca` : 'Notifikasi'} aria-haspopup="dialog" aria-expanded={open}
+            <button type="button" onClick={() => { setUnreadOnly(true); setPage(1); setOpen(true); }} aria-label={count ? `Notifikasi, ${count} belum dibaca` : 'Notifikasi'} aria-haspopup="dialog" aria-expanded={open}
                 className="relative flex shrink-0 items-center justify-center rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white">
                 <FiBell size={19} className={count ? 'text-amber-500 dark:text-amber-400' : ''} />
                 {count > 0 && <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full border border-white bg-rose-600 px-1 text-[9px] font-black text-white dark:border-slate-900">{count > 99 ? '99+' : count}</span>}
@@ -103,7 +103,7 @@ export default function NotificationCenter({ user, roles, onActiveOrderCountChan
             <Dialog open={open} onClose={() => setOpen(false)} className="relative z-50">
                 <div className="fixed inset-0 bg-slate-900/30" aria-hidden="true" />
                 <div className="fixed inset-0 flex justify-end p-2 sm:p-4">
-                    <DialogPanel className="flex h-full w-full max-w-md flex-col overflow-hidden rounded-xl bg-white shadow-xl dark:bg-slate-900">
+                    <DialogPanel className="admin-dialog admin-notifications flex h-full w-full max-w-md flex-col overflow-hidden rounded-xl bg-white shadow-xl dark:bg-slate-900">
                         <div className="flex shrink-0 items-center gap-3 bg-primary px-5 py-4 text-white">
                             <FiBell size={21} className="text-[#FFF200]" />
                             <div className="flex-1"><DialogTitle className="text-base font-bold">Notifikasi</DialogTitle><p className="text-xs text-white/80">{count} belum dibaca</p></div>
@@ -125,7 +125,7 @@ export default function NotificationCenter({ user, roles, onActiveOrderCountChan
                         <div className="min-h-0 flex-1 overflow-y-auto" aria-busy={loading}>
                             {loading ? <p role="status" className="p-8 text-center text-sm text-slate-500">Memuat notifikasi…</p> : !error && !items?.data?.length ? <div className="px-6 py-12 text-center"><FiCheckCircle className="mx-auto mb-3 text-slate-400" size={32} /><p className="text-sm font-semibold text-slate-700 dark:text-slate-200">{unreadOnly ? 'Semua notifikasi sudah dibaca.' : 'Belum ada notifikasi.'}</p><p className="mt-2 text-xs text-slate-500">Aktivitas baru toko akan muncul di sini.</p></div> : !error && items?.data?.map(item => {
                                 const Icon = icons[item.category] || FiBell;
-                                return <button type="button" key={item.id} disabled={busy} onClick={() => read(item)} className={`flex w-full gap-3 border-b border-slate-100 px-4 py-4 text-left hover:bg-slate-50 disabled:opacity-50 dark:border-slate-800 dark:hover:bg-slate-800 ${item.read_at ? '' : 'bg-blue-50/50 dark:bg-slate-800/50'}`}>
+                                return <button type="button" key={item.id} disabled={busy} onClick={() => read(item)} className={`flex w-full gap-3 border-b border-slate-100 px-4 py-4 text-left hover:bg-slate-50 disabled:opacity-50 dark:border-slate-800 dark:hover:bg-slate-800 ${item.read_at ? '' : 'bg-slate-50 dark:bg-slate-800/50'}`}>
                                     <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-[#FFF200]"><Icon size={18} /></span>
                                     <span className="min-w-0 flex-1"><span className="flex items-center gap-2 text-sm font-bold text-slate-800 dark:text-white">{item.title}{!item.read_at && <span className="h-2 w-2 shrink-0 rounded-full bg-primary" aria-label="Belum dibaca" />}</span><span className="mt-1 block break-words text-xs leading-relaxed text-slate-600 dark:text-slate-300">{item.message}</span><time dateTime={item.created_at} className="mt-2 block text-[11px] text-slate-400">{new Date(item.created_at).toLocaleString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: timezone })}</time></span>
                                     <FiChevronRight className="mt-2 shrink-0 text-slate-400" />

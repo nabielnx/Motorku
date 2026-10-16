@@ -271,25 +271,14 @@ export default function MotorSaya({
         const filteredMotors = fuzzyFilterProducts(preparedMotors, searchMotor);
 
         return (
-            <div className="min-h-screen bg-[#F8FAFC] font-sans text-slate-800 flex justify-center">
+            <div className="customer-storefront customer-motor min-h-screen bg-[#f3f3ed] font-sans text-slate-800 flex justify-center">
                 <Head title="Cari Sparepart Motor - Motorku" />
 
-                <div className="w-full max-w-md md:max-w-2xl lg:max-w-4xl bg-white min-h-screen shadow-xl flex flex-col pb-24">
+                <div className="customer-frame w-full max-w-md md:max-w-2xl lg:max-w-4xl bg-white min-h-screen shadow-xl flex flex-col pb-24">
                     {/* STICKY TOP CONTAINER */}
                     <div className="sticky top-0 z-30 bg-white shadow-2xs">
-                        {/* Header Bersih: Custom Curved Wave Dual-Color (#4066AD & Putih + Kuning #FFDD00) */}
-                        <header className="relative bg-white border-b-[3px] border-[#FFDD00] shadow-2xs overflow-hidden">
-                            {/* Background: User's custom white-to-blue curved wave */}
-                            <div className="absolute inset-0 pointer-events-none overflow-hidden select-none" aria-hidden="true">
-                                {/* Desktop SVG curve */}
-                                <svg viewBox="0 0 1000 100" preserveAspectRatio="none" className="hidden md:block w-full h-full">
-                                    <path d="M 450 0 C 410 30, 360 70, 300 100 L 1000 100 L 1000 0 Z" fill="#4066AD" />
-                                </svg>
-                                {/* Mobile SVG curve */}
-                                <svg viewBox="0 0 1000 100" preserveAspectRatio="none" className="block md:hidden w-full h-full">
-                                    <path d="M 520 0 C 470 30, 420 70, 360 100 L 1000 100 L 1000 0 Z" fill="#4066AD" />
-                                </svg>
-                            </div>
+                        {/* Header Bersih: Custom Curved Wave Dual-Color (#19231f & Putih + Kuning #FFDD00) */}
+                        <header className="motor-header relative bg-white border-b-[3px] border-[#FFDD00] shadow-2xs overflow-hidden">
 
                             <div className="relative z-10 flex items-center justify-between min-h-[52px] sm:min-h-[58px] px-3.5 sm:px-5 gap-3">
                                 <div className="flex items-center gap-2.5 min-w-0">
@@ -309,7 +298,7 @@ export default function MotorSaya({
                                                 className="w-7 h-7 sm:w-8 sm:h-8 object-contain rounded-lg bg-white p-0.5 shrink-0 shadow-2xs group-hover:scale-105 transition-transform"
                                             />
                                         ) : (
-                                            <span className="flex h-7 w-7 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-lg bg-[#FFDD00] text-[#003882] font-bold shadow-xs group-hover:scale-105 transition-transform">
+                                            <span className="flex h-7 w-7 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-lg bg-[#FFDD00] text-[#19231f] font-bold shadow-xs group-hover:scale-105 transition-transform">
                                                 <FiTool size={16} strokeWidth={2.2} aria-hidden="true" />
                                             </span>
                                         )}
@@ -322,7 +311,7 @@ export default function MotorSaya({
                                     <Link
                                         href={orderHref}
                                         title="Pesanan saya"
-                                        className="relative flex h-9 w-9 sm:h-9 sm:w-auto items-center justify-center gap-1.5 rounded-full sm:rounded-lg sm:px-2.5 text-white hover:bg-white/15 text-xs sm:text-sm font-bold transition-colors shrink-0"
+                                        className="relative flex h-9 w-9 sm:h-9 sm:w-auto items-center justify-center gap-1.5 rounded-full sm:rounded-lg sm:px-2.5 text-stone-800 hover:bg-stone-100 text-xs sm:text-sm font-bold transition-colors shrink-0"
                                         aria-label="Pesanan saya"
                                     >
                                         <FiShoppingBag size={19} strokeWidth={2} aria-hidden="true" />
@@ -334,13 +323,13 @@ export default function MotorSaya({
                                     <Link
                                         href="/?openCart=1"
                                         title="Keranjang belanja"
-                                        className="relative flex h-9 w-9 sm:h-9 sm:w-auto items-center justify-center gap-1.5 rounded-full sm:rounded-lg sm:px-2.5 text-white hover:bg-white/15 text-xs sm:text-sm font-bold transition-colors shrink-0"
+                                        className="relative flex h-9 w-9 sm:h-9 sm:w-auto items-center justify-center gap-1.5 rounded-full sm:rounded-lg sm:px-2.5 text-stone-800 hover:bg-stone-100 text-xs sm:text-sm font-bold transition-colors shrink-0"
                                         aria-label={'Buka keranjang, ' + totalQty + ' item'}
                                     >
                                         <div className="relative flex items-center justify-center">
                                             <FiShoppingCart size={19} strokeWidth={2} aria-hidden="true" />
                                             {totalQty > 0 && (
-                                                <span className="absolute -top-2 -right-2 flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-[#FFDD00] px-1 text-[10px] font-extrabold text-[#003882] tabular-nums shadow-xs">
+                                                <span className="absolute -top-2 -right-2 flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-[#FFDD00] px-1 text-[10px] font-extrabold text-[#19231f] tabular-nums shadow-xs">
                                                     {totalQty}
                                                 </span>
                                             )}
@@ -358,15 +347,16 @@ export default function MotorSaya({
                                 <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
                                 <input
                                     type="text"
-                                    placeholder="Cari model motor (misal: BeAT, Vario, NMAX)..."
+                                    aria-label="Cari model motor" placeholder="Cari model motor (misal: BeAT, Vario, NMAX)..."
                                     value={searchMotor}
                                     onChange={(e) => setSearchMotor(e.target.value)}
-                                    className="w-full bg-slate-50 hover:bg-slate-100/60 focus:bg-white pl-9 pr-8 py-1.5 rounded-full text-xs font-medium border border-slate-200/80 focus:outline-none focus:border-[#4066AD] focus:ring-2 focus:ring-[#4066AD]/20 transition-all placeholder:text-slate-400"
+                                    className="w-full bg-slate-50 hover:bg-slate-100/60 focus:bg-white pl-9 pr-8 py-1.5 rounded-full text-xs font-medium border border-slate-200/80 focus:outline-none focus:border-[#19231f] focus:ring-2 focus:ring-[#19231f]/20 transition-all placeholder:text-slate-400"
                                 />
                                 {searchMotor && (
                                     <button
                                         type="button"
                                         onClick={() => setSearchMotor('')}
+                                        aria-label="Hapus pencarian motor"
                                         className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5"
                                     >
                                         <FiX size={13} />
@@ -376,7 +366,7 @@ export default function MotorSaya({
 
                             <div className="space-y-1.5">
                                 {/* Filter Merk Motor (Baris Atas: Semua, Honda, Kawasaki, Suzuki, Yamaha) */}
-                                <div className="flex w-full gap-1 items-center">
+                                <div className="motor-filter-track flex w-full gap-2 items-center overflow-x-auto">
                                     {['semua', ...brands].map(brand => {
                                         const isActive = activeBrand === brand;
                                         const label = brand === 'semua' ? 'Semua' : brand;
@@ -384,13 +374,14 @@ export default function MotorSaya({
                                             <button
                                                 key={brand}
                                                 type="button"
+                                                aria-pressed={isActive}
                                                 onClick={() => {
                                                     setActiveBrand(brand);
                                                 }}
                                                 className={clsx(
-                                                    'flex-1 min-w-0 py-1 px-1 rounded-lg text-[10.5px] sm:text-[11px] font-bold text-center transition-all border cursor-pointer truncate',
+                                                    'shrink-0 min-h-10 py-2 px-3 rounded-lg text-[10.5px] sm:text-[11px] font-bold text-center transition-all border cursor-pointer truncate',
                                                     isActive
-                                                        ? 'bg-[#4066AD] border-[#4066AD] text-white font-black shadow-xs'
+                                                        ? 'bg-[#19231f] border-[#19231f] text-white font-black shadow-xs'
                                                         : 'bg-white border-slate-200/90 text-slate-700 hover:bg-slate-50 hover:border-slate-300 font-bold'
                                                 )}
                                             >
@@ -401,16 +392,17 @@ export default function MotorSaya({
                                 </div>
 
                                 {/* Filter Tipe Motor (Baris Bawah: Semua, Matic, Bebek, Sport - Rounded & Kuning Aktif) */}
-                                <div className="flex w-full gap-1 items-center">
+                                <div className="motor-filter-track flex w-full gap-2 items-center overflow-x-auto">
                                     {Object.entries(typeLabels).map(([type, label]) => {
                                         const isActive = activeType === type;
                                         return (
                                             <button
                                                 key={type}
                                                 type="button"
+                                                aria-pressed={isActive}
                                                 onClick={() => setActiveType(type)}
                                                 className={clsx(
-                                                    'flex-1 min-w-0 py-0.5 px-1 rounded-full text-[10.5px] sm:text-[11px] font-bold text-center transition-all border cursor-pointer truncate',
+                                                    'shrink-0 min-h-10 py-2 px-3 rounded-full text-[10.5px] sm:text-[11px] font-bold text-center transition-all border cursor-pointer truncate',
                                                     isActive
                                                         ? 'bg-[#FFDD00] border-[#FFDD00] text-slate-950 font-black shadow-xs'
                                                         : 'bg-white border-slate-200/90 text-slate-700 hover:bg-slate-50 hover:border-slate-300 font-bold'
@@ -437,13 +429,13 @@ export default function MotorSaya({
                                 </div>
 
                                 {filteredMotors.length > 0 ? (
-                                    <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                                    <div className="motor-selection-grid grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
                                         {filteredMotors.map(motor => (
                                             <button
                                                 key={motor.id}
                                                 type="button"
                                                 onClick={() => selectMotor(motor)}
-                                                className="bg-white border border-slate-200/90 rounded-2xl text-left hover:border-slate-300 hover:shadow-xs transition-all cursor-pointer group active:scale-[0.99] flex flex-col justify-between shadow-2xs overflow-hidden"
+                                                className="bg-white border border-slate-200/90 rounded-lg text-left hover:border-slate-300 hover:shadow-xs transition-all cursor-pointer group active:scale-[0.99] flex flex-col justify-between shadow-2xs overflow-hidden"
                                             >
                                                 {/* Konten Motor dengan padding */}
                                                 <div className="p-2 sm:p-2.5 flex flex-col flex-1 justify-between w-full">
@@ -454,7 +446,7 @@ export default function MotorSaya({
                                                         <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
                                                             {motor.brand}
                                                         </span>
-                                                        <h3 className="font-black text-xs sm:text-sm text-slate-900 truncate transition-colors">
+                                                        <h3 className="font-semibold text-sm text-slate-900 break-words transition-colors">
                                                             {motor.model}
                                                         </h3>
                                                         {/* Keterangan motor polos tanpa kotak berbayang */}
@@ -468,12 +460,12 @@ export default function MotorSaya({
                                                     </div>
                                                 </div>
 
-                                                {/* Footer Bar: Selaras dengan brand #4066AD & aksen kuning #FFDD00 */}
-                                                <div className="w-full flex items-stretch border-t-2 border-[#FFDD00] bg-[#4066AD] group-hover:bg-[#32528D] transition-colors">
+                                                {/* Footer Bar: Selaras dengan brand #19231f & aksen kuning #FFDD00 */}
+                                                <div className="w-full flex items-stretch border-t-2 border-[#FFDD00] bg-[#19231f] group-hover:bg-[#29372f] transition-colors">
                                                     <div className="flex-1 py-1.5 px-2.5 flex items-center min-w-0">
                                                         <span className="text-white text-[10px] sm:text-xs font-bold leading-none">Lihat sparepart</span>
                                                     </div>
-                                                    <div className="bg-[#FFDD00] text-[#003882] px-2 flex items-center justify-center shrink-0 group-hover:bg-[#FFE838] transition-colors">
+                                                    <div className="bg-[#FFDD00] text-[#19231f] px-2 flex items-center justify-center shrink-0 group-hover:bg-[#FFE838] transition-colors">
                                                         <FiChevronRight size={13} strokeWidth={2.5} className="group-hover:translate-x-0.5 transition-transform" />
                                                     </div>
                                                 </div>
@@ -481,7 +473,7 @@ export default function MotorSaya({
                                         ))}
                                     </div>
                                 ) : (
-                                    <div className="rounded-2xl border border-slate-200/80 bg-white p-10 text-center shadow-2xs">
+                                    <div className="rounded-lg border border-slate-200/80 bg-white p-10 text-center shadow-2xs">
                                         <FiSearch size={30} className="mx-auto text-slate-300 mb-2.5" />
                                         <h3 className="font-bold text-sm text-slate-800">Model tidak ditemukan</h3>
                                         <p className="text-xs text-slate-500 mt-1 max-w-xs mx-auto">
@@ -490,7 +482,7 @@ export default function MotorSaya({
                                         <button
                                             type="button"
                                             onClick={() => { setSearchMotor(''); setActiveType('semua'); }}
-                                            className="mt-3 px-3.5 py-1.5 rounded-xl bg-[#4066AD] hover:bg-[#32528D] text-white text-xs font-bold transition-colors shadow-2xs cursor-pointer"
+                                            className="mt-3 px-3.5 py-1.5 rounded-xl bg-[#19231f] hover:bg-[#29372f] text-white text-xs font-bold transition-colors shadow-2xs cursor-pointer"
                                         >
                                             Reset Pencarian
                                         </button>
@@ -510,27 +502,27 @@ export default function MotorSaya({
 
                     {/* Floating Bottom Cart Bar */}
                     {totalQty > 0 && (
-                        <div className="fixed bottom-0 inset-x-0 z-40 border-t border-slate-200/80 bg-white/95 backdrop-blur-md shadow-lg py-2 px-3 flex justify-center">
-                            <div className="w-full max-w-md md:max-w-2xl lg:max-w-4xl flex items-center justify-between gap-3">
+                        <div className="customer-cart-bar fixed bottom-0 inset-x-0 z-40 border-t border-slate-200/80 bg-white/95 backdrop-blur-md shadow-lg py-2 px-3 flex justify-center">
+                            <div className="customer-frame w-full max-w-md md:max-w-2xl lg:max-w-4xl flex items-center justify-between gap-3">
                                 <Link
                                     href="/"
                                     className="flex items-center gap-2.5 text-left group min-w-0"
                                     aria-label="Lihat rincian keranjang di katalog"
                                 >
-                                    <div className="relative flex items-center justify-center text-[#4066AD] bg-[#4066AD]/10 p-2 rounded-xl">
+                                    <div className="relative flex items-center justify-center text-[#19231f] bg-[#19231f]/10 p-2 rounded-xl">
                                         <FiShoppingCart size={18} strokeWidth={2.2} />
-                                        <span className="absolute -top-1.5 -right-1.5 bg-[#FFDD00] text-[#003882] text-[10px] w-4 h-4 rounded-full font-bold flex items-center justify-center shadow-xs">
+                                        <span className="absolute -top-1.5 -right-1.5 bg-[#FFDD00] text-[#19231f] text-[10px] w-4 h-4 rounded-full font-bold flex items-center justify-center shadow-xs">
                                             {totalQty}
                                         </span>
                                     </div>
                                     <div className="min-w-0">
-                                        <span className="block text-xs font-semibold text-slate-500 truncate">{totalQty} item · <span className="text-[#4066AD] font-bold group-hover:underline">Lihat keranjang</span></span>
+                                        <span className="block text-xs font-semibold text-slate-500 truncate">{totalQty} item · <span className="text-[#19231f] font-bold group-hover:underline">Lihat keranjang</span></span>
                                         <span className="block text-sm sm:text-base font-extrabold text-slate-900 tabular-nums">{formatRp(cartTotalAmount)}</span>
                                     </div>
                                 </Link>
                                 <Link
                                     href="/"
-                                    className="flex min-h-10 items-center justify-center gap-1.5 rounded-xl bg-[#FFDD00] hover:bg-[#FFE838] px-4 sm:px-5 py-2 text-xs sm:text-sm font-bold text-[#003882] transition-all shadow-xs shrink-0 active:scale-95"
+                                    className="flex min-h-10 items-center justify-center gap-1.5 rounded-xl bg-[#FFDD00] hover:bg-[#FFE838] px-4 sm:px-5 py-2 text-xs sm:text-sm font-bold text-[#19231f] transition-all shadow-xs shrink-0 active:scale-95"
                                 >
                                     <span>Lanjut bayar</span>
                                     <FiChevronRight size={15} strokeWidth={2.5} />
@@ -558,25 +550,14 @@ export default function MotorSaya({
     const totalAvailableParts = parts.reduce((acc, g) => acc + g.items.length, 0);
 
     return (
-        <div className="min-h-screen bg-[#F8FAFC] font-sans text-slate-800 flex justify-center">
+        <div className="customer-storefront customer-motor min-h-screen bg-[#f3f3ed] font-sans text-slate-800 flex justify-center">
             <Head title={`${motorcycle.brand} ${motorcycle.model} - Sparepart Kompatibel`} />
 
-            <div className="w-full max-w-md md:max-w-2xl lg:max-w-4xl bg-white min-h-screen shadow-xl flex flex-col pb-24">
+            <div className="customer-frame w-full max-w-md md:max-w-2xl lg:max-w-4xl bg-white min-h-screen shadow-xl flex flex-col pb-24">
                 {/* STICKY TOP CONTAINER */}
                 <div className="sticky top-0 z-30 bg-white shadow-2xs">
                     {/* Header: Info Motor & Ganti Motor - Custom Curved Wave Dual-Color */}
-                    <header className="relative bg-white border-b-[3px] border-[#FFDD00] shadow-2xs overflow-hidden">
-                        {/* Background: User's custom white-to-blue curved wave */}
-                        <div className="absolute inset-0 pointer-events-none overflow-hidden select-none" aria-hidden="true">
-                            {/* Desktop SVG curve */}
-                            <svg viewBox="0 0 1000 100" preserveAspectRatio="none" className="hidden md:block w-full h-full">
-                                <path d="M 450 0 C 410 30, 360 70, 300 100 L 1000 100 L 1000 0 Z" fill="#4066AD" />
-                            </svg>
-                            {/* Mobile SVG curve */}
-                            <svg viewBox="0 0 1000 100" preserveAspectRatio="none" className="block md:hidden w-full h-full">
-                                <path d="M 520 0 C 470 30, 420 70, 360 100 L 1000 100 L 1000 0 Z" fill="#4066AD" />
-                            </svg>
-                        </div>
+                    <header className="motor-header relative bg-white border-b-[3px] border-[#FFDD00] shadow-2xs overflow-hidden">
 
                         <div className="relative z-10 flex items-center justify-between min-h-[52px] sm:min-h-[58px] px-3.5 sm:px-5 gap-3">
                             <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
@@ -602,7 +583,7 @@ export default function MotorSaya({
                                             className="w-7 h-7 sm:w-8 sm:h-8 object-contain rounded-lg bg-white p-0.5 shrink-0 shadow-2xs group-hover:scale-105 transition-transform"
                                         />
                                     ) : (
-                                        <span className="flex h-7 w-7 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-lg bg-[#FFDD00] text-[#003882] font-bold shadow-xs group-hover:scale-105 transition-transform">
+                                        <span className="flex h-7 w-7 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-lg bg-[#FFDD00] text-[#19231f] font-bold shadow-xs group-hover:scale-105 transition-transform">
                                             <FiTool size={16} strokeWidth={2.2} aria-hidden="true" />
                                         </span>
                                     )}
@@ -624,7 +605,7 @@ export default function MotorSaya({
                                 <Link
                                     href={orderHref}
                                     title="Pesanan saya"
-                                    className="relative flex h-9 w-9 sm:h-9 sm:w-auto items-center justify-center gap-1.5 rounded-full sm:rounded-lg sm:px-2.5 text-white hover:bg-white/15 text-xs sm:text-sm font-bold transition-colors shrink-0"
+                                    className="relative flex h-9 w-9 sm:h-9 sm:w-auto items-center justify-center gap-1.5 rounded-full sm:rounded-lg sm:px-2.5 text-stone-800 hover:bg-stone-100 text-xs sm:text-sm font-bold transition-colors shrink-0"
                                     aria-label="Pesanan saya"
                                 >
                                     <FiShoppingBag size={19} strokeWidth={2} aria-hidden="true" />
@@ -636,13 +617,13 @@ export default function MotorSaya({
                                 <Link
                                     href="/?openCart=1"
                                     title="Keranjang belanja"
-                                    className="relative flex h-9 w-9 sm:h-9 sm:w-auto items-center justify-center gap-1.5 rounded-full sm:rounded-lg sm:px-2.5 text-white hover:bg-white/15 text-xs sm:text-sm font-bold transition-colors shrink-0"
+                                    className="relative flex h-9 w-9 sm:h-9 sm:w-auto items-center justify-center gap-1.5 rounded-full sm:rounded-lg sm:px-2.5 text-stone-800 hover:bg-stone-100 text-xs sm:text-sm font-bold transition-colors shrink-0"
                                     aria-label={'Buka keranjang, ' + totalQty + ' item'}
                                 >
                                     <div className="relative flex items-center justify-center">
                                         <FiShoppingCart size={19} strokeWidth={2} aria-hidden="true" />
                                         {totalQty > 0 && (
-                                            <span className="absolute -top-2 -right-2 flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-[#FFDD00] px-1 text-[10px] font-extrabold text-[#003882] tabular-nums shadow-xs">
+                                            <span className="absolute -top-2 -right-2 flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-[#FFDD00] px-1 text-[10px] font-extrabold text-[#19231f] tabular-nums shadow-xs">
                                                 {totalQty}
                                             </span>
                                         )}
@@ -660,15 +641,16 @@ export default function MotorSaya({
                             <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
                             <input
                                 type="text"
-                                placeholder={`Cari part untuk ${motorcycle.model} (misal: kampas, busi, aki)...`}
+                                aria-label="Cari sparepart kompatibel" placeholder={`Cari part untuk ${motorcycle.model} (misal: kampas, busi, aki)...`}
                                 value={searchPart}
                                 onChange={(e) => setSearchPart(e.target.value)}
-                                className="w-full bg-slate-50 hover:bg-slate-100/60 focus:bg-white pl-9 pr-8 py-1.5 rounded-full text-xs font-medium border border-slate-200/80 focus:outline-none focus:border-[#4066AD] focus:ring-2 focus:ring-[#4066AD]/20 transition-all placeholder:text-slate-400"
+                                className="w-full bg-slate-50 hover:bg-slate-100/60 focus:bg-white pl-9 pr-8 py-1.5 rounded-full text-xs font-medium border border-slate-200/80 focus:outline-none focus:border-[#19231f] focus:ring-2 focus:ring-[#19231f]/20 transition-all placeholder:text-slate-400"
                             />
                             {searchPart && (
                                 <button
                                     type="button"
                                     onClick={() => setSearchPart('')}
+                                    aria-label="Hapus pencarian sparepart"
                                     className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5"
                                 >
                                     <FiX size={13} />
@@ -681,10 +663,11 @@ export default function MotorSaya({
                             <button
                                 type="button"
                                 onClick={() => setActiveCategoryPart('semua')}
+                                aria-pressed={activeCategoryPart === 'semua'}
                                 className={clsx(
                                     'px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all border shrink-0 cursor-pointer',
                                     activeCategoryPart === 'semua'
-                                        ? 'bg-[#4066AD] border-[#4066AD] text-white font-black shadow-xs'
+                                        ? 'bg-[#19231f] border-[#19231f] text-white font-black shadow-xs'
                                         : 'bg-white border-slate-200/90 text-slate-700 hover:border-slate-300 hover:bg-slate-50 font-bold'
                                 )}
                             >
@@ -696,11 +679,12 @@ export default function MotorSaya({
                                     <button
                                         key={group.category}
                                         type="button"
+                                        aria-pressed={isActive}
                                         onClick={() => setActiveCategoryPart(group.category)}
                                         className={clsx(
                                             'px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all border shrink-0 flex items-center gap-1.5 cursor-pointer',
                                             isActive
-                                                ? 'bg-[#4066AD] border-[#4066AD] text-white font-black shadow-xs'
+                                                ? 'bg-[#19231f] border-[#19231f] text-white font-black shadow-xs'
                                                 : 'bg-white border-slate-200/90 text-slate-700 hover:border-slate-300 hover:bg-slate-50 font-bold'
                                         )}
                                     >
@@ -721,7 +705,7 @@ export default function MotorSaya({
                     {loading ? (
                         <CompatiblePartsListSkeleton groupCount={2} itemsPerGroup={3} />
                     ) : filteredParts.length === 0 ? (
-                        <div className="text-center py-14 text-slate-400 rounded-2xl border border-slate-200/80 bg-white p-6 shadow-2xs">
+                        <div className="text-center py-14 text-slate-400 rounded-lg border border-slate-200/80 bg-white p-6 shadow-2xs">
                             <FiFolder size={32} className="mx-auto text-slate-300 mb-2" />
                             <h3 className="font-black text-sm text-slate-800">
                                 {searchPart ? `Tidak ada part dengan kata kunci "${searchPart}"` : 'Belum ada data sparepart untuk motor ini'}
@@ -733,6 +717,7 @@ export default function MotorSaya({
                                 <button
                                     type="button"
                                     onClick={() => setSearchPart('')}
+                                    aria-label="Hapus pencarian sparepart"
                                     className="mt-3 px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-colors border border-slate-200 shadow-2xs cursor-pointer"
                                 >
                                     Reset Pencarian
@@ -741,7 +726,7 @@ export default function MotorSaya({
                                 <button
                                     type="button"
                                     onClick={changeMotor}
-                                    className="mt-3 px-3.5 py-1.5 rounded-xl bg-[#4066AD] hover:bg-[#32528D] text-white text-xs font-bold transition-colors shadow-2xs cursor-pointer"
+                                    className="mt-3 px-3.5 py-1.5 rounded-xl bg-[#19231f] hover:bg-[#29372f] text-white text-xs font-bold transition-colors shadow-2xs cursor-pointer"
                                 >
                                     Pilih Motor Lain
                                 </button>
@@ -765,7 +750,7 @@ export default function MotorSaya({
                                                 <div
                                                     key={item.id}
                                                     className={clsx(
-                                                        'flex items-stretch bg-white border rounded-2xl transition-all shadow-2xs h-[82px] sm:h-[88px] overflow-hidden',
+                                                        'customer-fitment-card flex items-stretch bg-white border rounded-lg transition-colors overflow-hidden',
                                                         isOutOfStock
                                                             ? 'bg-slate-50/70 border-slate-200/70'
                                                             : 'border-slate-200/90 hover:border-slate-300 hover:shadow-xs'
@@ -778,10 +763,10 @@ export default function MotorSaya({
                                                             setSelectedDetailProduct(item);
                                                             setDetailQty(1);
                                                         }}
-                                                        className="flex items-stretch flex-1 min-w-0 text-left group cursor-pointer h-full"
+                                                        className="flex items-stretch flex-1 min-w-0 text-left group cursor-pointer"
                                                     >
                                                         {/* Foto pas dengan frame produk di sisi kiri + Badge Bintang Rekomendasi */}
-                                                        <div className="relative h-full aspect-square border-r border-slate-100 shrink-0 overflow-hidden">
+                                                        <div className="fitment-photo relative border-r border-slate-100 shrink-0 overflow-hidden">
                                                             <ProductPhoto
                                                                 src={item.image}
                                                                 name={item.name}
@@ -799,11 +784,11 @@ export default function MotorSaya({
                                                             )}
                                                         </div>
 
-                                                        <div className="flex-1 min-w-0 flex flex-col justify-center px-3 sm:px-3.5 py-1.5 h-full">
-                                                            {/* Baris 1: Judul Produk (Selalu 1 baris) */}
+                                                        <div className="flex-1 min-w-0 flex flex-col justify-center px-3 sm:px-3.5 py-3">
+                                                            {/* Product identity wraps before price and availability. */}
                                                             <h3 className={clsx(
-                                                                'font-bold text-xs sm:text-sm truncate transition-colors leading-tight',
-                                                                isOutOfStock ? 'text-slate-400' : 'text-slate-900 group-hover:text-[#4066AD]'
+                                                                'font-semibold text-xs sm:text-sm break-words transition-colors leading-snug',
+                                                                isOutOfStock ? 'text-slate-400' : 'text-slate-900 group-hover:text-[#19231f]'
                                                             )}>
                                                                 {item.name}
                                                             </h3>
@@ -814,7 +799,7 @@ export default function MotorSaya({
                                                             </p>
 
                                                             {/* Baris 3: Harga, Diskon, & Stok */}
-                                                            <div className="flex items-center gap-1.5 sm:gap-2 mt-0.5 min-w-0">
+                                                            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-2 min-w-0">
                                                                 <span className={clsx(
                                                                     'font-black text-xs sm:text-sm tabular-nums tracking-tight shrink-0',
                                                                     isOutOfStock ? 'text-slate-400' : 'text-slate-900'
@@ -847,12 +832,12 @@ export default function MotorSaya({
                                                         aria-label={`Tambah ${item.name} ke keranjang`}
                                                         title={`Tambah ${item.name}`}
                                                         className={clsx(
-                                                            'h-full w-9 sm:w-10 shrink-0 flex items-center justify-center transition-colors cursor-pointer select-none active:opacity-85 border-l group/addbtn',
+                                                            'w-10 shrink-0 flex items-center justify-center transition-colors cursor-pointer select-none border-l group/addbtn',
                                                             justAdded
                                                                 ? 'bg-emerald-600 text-white border-emerald-600'
                                                                 : isOutOfStock
                                                                     ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
-                                                                    : 'bg-[#FFDD00] hover:bg-[#FFE838] text-[#003882] border-amber-300/60'
+                                                                    : 'bg-[#FFDD00] hover:bg-[#FFE838] text-[#19231f] border-amber-300/60'
                                                         )}
                                                     >
                                                         {justAdded ? (
@@ -873,27 +858,27 @@ export default function MotorSaya({
 
                 {/* Floating Bottom Cart Bar */}
                 {totalQty > 0 && (
-                    <div className="fixed bottom-0 inset-x-0 z-40 border-t border-slate-200/80 bg-white/95 backdrop-blur-md shadow-lg py-2 px-3 flex justify-center">
-                        <div className="w-full max-w-md md:max-w-2xl lg:max-w-4xl flex items-center justify-between gap-3">
+                    <div className="customer-cart-bar fixed bottom-0 inset-x-0 z-40 border-t border-slate-200/80 bg-white/95 backdrop-blur-md shadow-lg py-2 px-3 flex justify-center">
+                        <div className="customer-frame w-full max-w-md md:max-w-2xl lg:max-w-4xl flex items-center justify-between gap-3">
                             <Link
                                 href="/"
                                 className="flex items-center gap-2.5 text-left group min-w-0"
                                 aria-label="Lihat rincian keranjang di katalog"
                             >
-                                <div className="relative flex items-center justify-center text-[#4066AD] bg-[#4066AD]/10 p-2 rounded-xl">
+                                <div className="relative flex items-center justify-center text-[#19231f] bg-[#19231f]/10 p-2 rounded-xl">
                                     <FiShoppingCart size={18} strokeWidth={2.2} />
-                                    <span className="absolute -top-1.5 -right-1.5 bg-[#FFDD00] text-[#003882] text-[10px] w-4 h-4 rounded-full font-bold flex items-center justify-center shadow-xs">
+                                    <span className="absolute -top-1.5 -right-1.5 bg-[#FFDD00] text-[#19231f] text-[10px] w-4 h-4 rounded-full font-bold flex items-center justify-center shadow-xs">
                                         {totalQty}
                                     </span>
                                 </div>
                                 <div className="min-w-0">
-                                    <span className="block text-xs font-semibold text-slate-500 truncate">{totalQty} item · <span className="text-[#4066AD] font-bold group-hover:underline">Lihat keranjang</span></span>
+                                    <span className="block text-xs font-semibold text-slate-500 truncate">{totalQty} item · <span className="text-[#19231f] font-bold group-hover:underline">Lihat keranjang</span></span>
                                     <span className="block text-sm sm:text-base font-extrabold text-slate-900 tabular-nums">{formatRp(cartTotalAmount)}</span>
                                 </div>
                             </Link>
                             <Link
                                 href="/"
-                                className="flex min-h-10 items-center justify-center gap-1.5 rounded-xl bg-[#FFDD00] hover:bg-[#FFE838] px-4 sm:px-5 py-2 text-xs sm:text-sm font-bold text-[#003882] transition-all shadow-xs shrink-0 active:scale-95"
+                                className="flex min-h-10 items-center justify-center gap-1.5 rounded-xl bg-[#FFDD00] hover:bg-[#FFE838] px-4 sm:px-5 py-2 text-xs sm:text-sm font-bold text-[#19231f] transition-all shadow-xs shrink-0 active:scale-95"
                             >
                                 <span>Lanjut bayar</span>
                                 <FiChevronRight size={15} strokeWidth={2.5} />
@@ -909,7 +894,7 @@ export default function MotorSaya({
                 <div className="fixed inset-0 overflow-y-auto">
                     <div className="flex min-h-full items-center justify-center p-3 sm:p-6">
                         {selectedDetailProduct && (
-                            <DialogPanel className="relative w-full max-w-[760px] overflow-hidden rounded-2xl bg-white text-slate-900 shadow-2xl">
+                            <DialogPanel className="store-detail-panel relative w-full max-w-[760px] overflow-hidden rounded-lg bg-white text-slate-900">
                                 <button
                                     type="button"
                                     onClick={() => setSelectedDetailProduct(null)}
@@ -920,6 +905,7 @@ export default function MotorSaya({
                                 </button>
                                 <div className="grid sm:grid-cols-2">
                                     <ProductPhoto
+                                        fit="contain"
                                         src={selectedDetailProduct.image}
                                         name={selectedDetailProduct.name}
                                         category={selectedDetailProduct.category_name || selectedDetailProduct.category}
@@ -969,7 +955,7 @@ export default function MotorSaya({
                                 <div className="border-t border-slate-100 px-5 py-4 sm:px-7 bg-slate-50/50">
                                     <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">Kesesuaian motor Anda</h3>
                                     <div className="mt-2.5 flex items-start gap-2.5 text-sm text-slate-800">
-                                        <FiCheck size={16} className="mt-0.5 shrink-0 text-[#4066AD]" aria-hidden="true" />
+                                        <FiCheck size={16} className="mt-0.5 shrink-0 text-[#19231f]" aria-hidden="true" />
                                         <div>
                                             <p className="font-bold text-slate-900 leading-snug">{motorcycle.brand} {motorcycle.model}</p>
                                             <p className="text-xs text-slate-500 mt-0.5">
@@ -1028,7 +1014,7 @@ export default function MotorSaya({
                                         }}
                                         disabled={selectedDetailProduct.stock <= 0}
                                         aria-label="Tambah ke keranjang"
-                                        className="flex min-h-10 min-w-[140px] flex-1 items-center justify-center gap-2 rounded-xl bg-[#FFDD00] hover:bg-[#FFE838] px-4 py-2 text-xs sm:text-sm font-bold text-[#003882] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 shadow-xs transition-colors cursor-pointer"
+                                        className="flex min-h-10 min-w-[140px] flex-1 items-center justify-center gap-2 rounded-xl bg-[#FFDD00] hover:bg-[#FFE838] px-4 py-2 text-xs sm:text-sm font-bold text-[#19231f] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 shadow-xs transition-colors cursor-pointer"
                                     >
                                         <FiPlus size={15} strokeWidth={2.2} aria-hidden="true" />
                                         {selectedDetailProduct.stock <= 0 ? 'Stok habis' : <><span>Tambah ke Keranjang ({formatRp(selectedDetailProduct.price * detailQty)})</span></>}

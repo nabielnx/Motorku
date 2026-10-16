@@ -1,22 +1,12 @@
-import React, { useState, useEffect, useRef } from 'react';
+import '../../../css/customer-storefront.css';
+import { cancelCustomerOrder, customerOrderStatus } from '@/Api/customerOrders';
+import { useState, useEffect, useRef } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
-import { toast } from 'sonner';
+
 import useForceLightTheme from '@/Utils/useForceLightTheme';
 import WaitingSkeleton from '@/Components/Skeletons/WaitingSkeleton';
-import axios from 'axios';
-import {
-    FiCheck,
-    FiClock,
-    FiMapPin,
-    FiShoppingBag,
-    FiUser,
-    FiArrowRight,
-    FiAlertCircle,
-    FiRefreshCw,
-    FiFileText,
-    FiXCircle,
-    FiAlertTriangle
-} from 'react-icons/fi';
+
+import { FiCheck, FiClock, FiMapPin, FiShoppingBag, FiUser, FiArrowRight, FiAlertCircle, FiFileText, FiXCircle, FiAlertTriangle } from 'react-icons/fi';
 
 const PAYMENT_KEY = 'motorku_order_for_payment';
 const CURRENT_ORDER_KEY = 'motorku_current_order';
@@ -45,9 +35,7 @@ export default function WaitingConfirmation() {
         setCancelling(true);
         setCancelError(null);
         try {
-            await axios.post(`/api/customer/order/${orderInfo.order_id}/cancel`, {
-                customer_token: orderInfo.customer_token,
-            });
+            await cancelCustomerOrder(orderInfo.order_id, orderInfo.customer_token);
 
             const updatedInfo = { ...orderInfo, order_status: 'cancelled' };
             setOrderInfo(updatedInfo);
@@ -90,10 +78,7 @@ export default function WaitingConfirmation() {
             if (busy || document.hidden || ['completed', 'cancelled'].includes(orderRef.current?.order_status)) return;
             busy = true;
             try {
-                const res = await axios.get(`/api/customer/order/${orderInfo.order_id}/status`, {
-                    params: { customer_token: orderInfo.customer_token }, signal: controller.signal
-                });
-                const d = res.data?.data ?? res.data;
+                const d = await customerOrderStatus(orderInfo.order_id, orderInfo.customer_token, controller.signal);
                 if (!d?.order_status || controller.signal.aborted || orderRef.current?.order_status === 'cancelled') return;
                 const info = {
                     ...orderRef.current,
@@ -150,19 +135,19 @@ export default function WaitingConfirmation() {
 
     const formatRp = (val) => `Rp ${Number(val).toLocaleString('id-ID')}`;
 
-    if (loaded && !orderInfo) return <div className="p-6 text-center">Data pesanan tidak tersedia. <Link href="/" className="text-blue-700 underline">Kembali ke katalog</Link></div>;
+    if (loaded && !orderInfo) return <div className="p-6 text-center">Data pesanan tidak tersedia. <Link href="/" className="text-stone-700 underline">Kembali ke katalog</Link></div>;
 
     if (!orderInfo) {
         return <WaitingSkeleton />;
     }
 
     return (
-        <div className="h-full w-full bg-slate-100 font-sans text-slate-800 flex justify-center overflow-y-auto">
+        <div className="customer-storefront customer-flow h-full w-full bg-slate-100 font-sans text-slate-800 flex justify-center overflow-y-auto">
             <Head title="Pesanan Diterima">
                 <meta name="description" content="Status penerimaan pesanan Motorku. Lacak pembayaran dan konfirmasi kasir." />
             </Head>
 
-            <div className="w-full max-w-md bg-white min-h-full shadow-2xl flex flex-col items-center p-6 space-y-6">
+            <div className="customer-frame w-full max-w-md bg-white min-h-full shadow-2xl flex flex-col items-center p-6 space-y-6">
 
                 {/* HEADER ICON & TITLE */}
                 <div className="text-center space-y-2 pt-6">
@@ -174,7 +159,7 @@ export default function WaitingConfirmation() {
                 </div>
 
                 {/* ORDER DETAILS */}
-                <div className="w-full bg-slate-50 rounded-2xl p-5 space-y-3">
+                <div className="w-full bg-slate-50 rounded-lg p-5 space-y-3">
                     <div className="flex items-center justify-between text-xs">
                         <div className="flex items-center gap-2 text-slate-400">
                             <FiShoppingBag size={14} />
@@ -187,7 +172,7 @@ export default function WaitingConfirmation() {
                             <FiMapPin size={14} />
                             <span>Tipe Pesanan</span>
                         </div>
-                        <span className="font-bold text-blue-600">Ambil di Toko</span>
+                        <span className="font-bold text-stone-600">Ambil di Toko</span>
                     </div>
                     <div className="flex items-center justify-between text-xs">
                         <div className="flex items-center gap-2 text-slate-400">
@@ -198,16 +183,16 @@ export default function WaitingConfirmation() {
                     </div>
                     <div className="border-t border-slate-200 pt-3 flex items-center justify-between">
                         <span className="text-xs font-bold text-slate-500">Total</span>
-                        <span className="font-black text-lg text-blue-600">{formatRp(orderInfo.total)}</span>
+                        <span className="font-black text-lg text-stone-600">{formatRp(orderInfo.total)}</span>
                     </div>
                 </div>
 
                 {/* INVOICE / RINCIAN PESANAN */}
                 {orderInfo.items && orderInfo.items.length > 0 && (
-                    <div className="w-full bg-slate-50 border border-slate-200/80 rounded-2xl p-4 space-y-3">
+                    <div className="w-full bg-slate-50 border border-slate-200/80 rounded-lg p-4 space-y-3">
                         <div className="flex items-center justify-between border-b border-slate-200 pb-2">
                             <h3 className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                                <FiFileText size={14} className="text-blue-500" />
+                                <FiFileText size={14} className="text-stone-500" />
                                 Rincian Pesanan
                             </h3>
                             <span className="text-[10px] text-slate-400 font-medium">{orderInfo.ordered_at || 'Baru Saja'}</span>
@@ -218,9 +203,9 @@ export default function WaitingConfirmation() {
                                     <div className="flex-1 min-w-0 pr-2">
                                         <div className="flex items-center gap-1.5">
                                             <span className="font-bold text-slate-800">{item.product_name}</span>
-                                            <span className="text-[10px] font-bold text-blue-600 bg-blue-100 px-1.5 py-0.5 rounded">x{item.quantity}</span>
+                                            <span className="text-[10px] font-bold text-stone-600 bg-stone-100 px-1.5 py-0.5 rounded">x{item.quantity}</span>
                                         </div>
-                                        {item.notes && <p className="text-[10px] text-blue-600 mt-0.5 italic">Catatan: {item.notes}</p>}
+                                        {item.notes && <p className="text-[10px] text-stone-600 mt-0.5 italic">Catatan: {item.notes}</p>}
                                     </div>
                                     <span className="font-bold text-slate-700 shrink-0">{formatRp(item.subtotal)}</span>
                                 </div>
@@ -247,7 +232,7 @@ export default function WaitingConfirmation() {
                             )}
                             <div className="flex justify-between font-black text-sm text-slate-900 pt-2 border-t border-slate-200">
                                 <span>Total Pembayaran</span>
-                                <span className="text-blue-600">{formatRp(orderInfo.total)}</span>
+                                <span className="text-stone-600">{formatRp(orderInfo.total)}</span>
                             </div>
                         </div>
                     </div>
@@ -255,7 +240,7 @@ export default function WaitingConfirmation() {
 
                 {/* PAYMENT STATUS */}
                 {paymentStatus === 'paid' ? (
-                    <div className="w-full bg-emerald-50 border border-emerald-200 rounded-2xl p-4 flex items-center gap-3">
+                    <div className="w-full bg-emerald-50 border border-emerald-200 rounded-lg p-4 flex items-center gap-3">
                         <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center shrink-0">
                             <FiCheck size={16} className="text-emerald-600" />
                         </div>
@@ -268,7 +253,7 @@ export default function WaitingConfirmation() {
 
                 {/* PAYMENT & ORDER STATUS BANNER */}
                 {(paymentStatus === 'pending' || paymentStatus === 'unpaid') ? (
-                    <div className="w-full bg-yellow-50 border border-yellow-200/80 rounded-2xl p-4 flex items-center gap-3">
+                    <div className="w-full bg-yellow-50 border border-yellow-200/80 rounded-lg p-4 flex items-center gap-3">
                         <FiClock size={20} className="text-yellow-500 shrink-0" />
                         <div>
                             <p className="text-xs font-bold text-yellow-800">Menunggu Konfirmasi Kasir</p>
@@ -278,17 +263,17 @@ export default function WaitingConfirmation() {
                         </div>
                     </div>
                 ) : (
-                    <div className={`w-full rounded-2xl border p-4 flex items-center gap-3 ${
+                    <div className={`w-full rounded-lg border p-4 flex items-center gap-3 ${
                         orderStatus === 'ready' ? 'bg-emerald-50 border-emerald-200' :
                         orderStatus === 'completed' ? 'bg-green-50 border-green-200' :
                         orderStatus === 'cancelled' ? 'bg-red-50 border-red-200' :
-                        'bg-blue-50 border-blue-200'
+                        'bg-stone-50 border-stone-200'
                     }`}>
                         <div className={`w-3.5 h-3.5 rounded-full shrink-0 ${
                             orderStatus === 'ready' ? 'bg-emerald-500' :
                             orderStatus === 'completed' ? 'bg-green-500' :
                             orderStatus === 'cancelled' ? 'bg-red-500' :
-                            'bg-blue-500 animate-pulse'
+                            'bg-[#19231f] animate-pulse'
                         }`}></div>
                         <div>
                             <p className="text-xs font-bold text-slate-800">
@@ -323,7 +308,7 @@ export default function WaitingConfirmation() {
                     onClick={() => {
                         localStorage.setItem(CURRENT_ORDER_KEY, JSON.stringify(orderInfo));
                     }}
-                    className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs shadow-md transition-all flex items-center justify-center gap-2 active:scale-98"
+                    className="w-full py-3.5 bg-[#19231f] hover:bg-[#19231f] text-white font-bold rounded-xl text-xs shadow-md transition-all flex items-center justify-center gap-2 active:scale-98"
                 >
                     <span>Lihat Status Pesanan</span>
                     <FiArrowRight size={14} />
@@ -341,7 +326,7 @@ export default function WaitingConfirmation() {
             {/* CUSTOM CANCEL CONFIRMATION MODAL */}
             {showCancelModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fade-in">
-                    <div className="bg-white rounded-3xl p-6 max-w-xs w-full shadow-2xl space-y-4 text-center border border-slate-100 transform transition-all">
+                    <div className="bg-white rounded-xl p-6 max-w-xs w-full shadow-2xl space-y-4 text-center border border-slate-100 transform transition-all">
                         <div className="w-14 h-14 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
                             <FiAlertTriangle size={28} />
                         </div>

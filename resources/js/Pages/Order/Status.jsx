@@ -1,29 +1,12 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Head, Link, router } from '@inertiajs/react';
+import '../../../css/customer-storefront.css';
+import { cancelCustomerOrder, customerOrderStatus } from '@/Api/customerOrders';
+import { useState, useEffect, useRef } from 'react';
+import { Head, Link } from '@inertiajs/react';
 import useForceLightTheme from '@/Utils/useForceLightTheme';
 import OrderStatusSkeleton from '@/Components/Skeletons/OrderStatusSkeleton';
-import axios from 'axios';
+
 import { mergeOrderUpdates } from '@/Utils/orderHistory';
-import {
-    FiCheck,
-    FiClock,
-    FiTool,
-    FiPackage,
-    FiCheckCircle,
-    FiXCircle,
-    FiMapPin,
-    FiUser,
-    FiShoppingBag,
-    FiArrowRight,
-    FiFileText,
-    FiAlertCircle,
-    FiAlertTriangle,
-    FiCopy,
-    FiChevronDown,
-    FiChevronUp,
-    FiRefreshCw,
-    FiShoppingCart,
-} from 'react-icons/fi';
+import { FiCheck, FiClock, FiTool, FiPackage, FiCheckCircle, FiXCircle, FiMapPin, FiUser, FiShoppingBag, FiFileText, FiAlertCircle, FiAlertTriangle, FiCopy, FiChevronDown, FiChevronUp, FiRefreshCw, FiShoppingCart } from 'react-icons/fi';
 import clsx from 'clsx';
 
 const HISTORY_KEY = 'motorku_orders_history';
@@ -49,11 +32,11 @@ const STATUS_CONFIG = {
         label: 'Sedang Diproses',
         shortLabel: 'Diproses',
         icon: FiTool,
-        bg: 'bg-blue-50',
-        border: 'border-blue-200',
-        badge: 'bg-blue-100 text-blue-700 border-blue-300',
-        dot: 'bg-blue-500',
-        text: 'text-blue-700',
+        bg: 'bg-stone-50',
+        border: 'border-stone-200',
+        badge: 'bg-stone-100 text-stone-700 border-stone-300',
+        dot: 'bg-[#19231f]',
+        text: 'text-stone-700',
         desc: 'Toko sedang menyiapkan pesanan Anda',
         animate: true,
     },
@@ -159,7 +142,7 @@ function OrderCard({ order, onCancel, isCancelling, formatRp }) {
 
     return (
         <div className={clsx(
-            'rounded-2xl border overflow-hidden transition-all',
+            'rounded-lg border overflow-hidden transition-all',
             cfg.border,
             (status === 'ready') && 'ring-2 ring-emerald-300 shadow-md shadow-emerald-100',
         )}>
@@ -239,7 +222,7 @@ function OrderCard({ order, onCancel, isCancelling, formatRp }) {
                         'flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded-lg transition-all cursor-pointer shrink-0',
                         copied
                             ? 'bg-emerald-50 text-emerald-600 border border-emerald-200'
-                            : 'text-blue-600 hover:bg-blue-50 border border-transparent'
+                            : 'text-stone-600 hover:bg-stone-50 border border-transparent'
                     )}
                 >
                     {copied ? (
@@ -260,7 +243,7 @@ function OrderCard({ order, onCancel, isCancelling, formatRp }) {
             <div className="px-4 py-2.5 border-b border-slate-100 bg-white flex items-center gap-4 flex-wrap text-[11px] text-slate-500">
                 <div className="flex items-center gap-1.5">
                     <FiMapPin size={12} className="text-slate-400" />
-                    <span className="font-semibold text-blue-600">Ambil di Toko</span>
+                    <span className="font-semibold text-stone-600">Ambil di Toko</span>
                 </div>
                 {order.customer_name && (
                     <div className="flex items-center gap-1.5">
@@ -277,11 +260,11 @@ function OrderCard({ order, onCancel, isCancelling, formatRp }) {
                         {items.map((item, idx) => (
                             <div key={item.id || idx} className="px-4 py-2.5 flex items-center justify-between gap-3">
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-xs font-semibold text-slate-800 leading-snug truncate">
+                                    <p className="text-xs font-semibold text-slate-800 leading-snug break-words">
                                         {item.product_name}
                                     </p>
                                     {item.notes && (
-                                        <p className="text-[10px] text-blue-500 mt-0.5 truncate italic">
+                                        <p className="text-[10px] text-stone-500 mt-0.5 truncate italic">
                                             {item.notes}
                                         </p>
                                     )}
@@ -351,21 +334,21 @@ function OrderCard({ order, onCancel, isCancelling, formatRp }) {
             )}
 
             {(status === 'pending' && isPaid) && (
-                <div className="px-4 py-3 bg-blue-50 border-t border-blue-200 flex items-center gap-2.5">
-                    <FiCheck size={16} className="text-blue-600 shrink-0" />
+                <div className="px-4 py-3 bg-stone-50 border-t border-stone-200 flex items-center gap-2.5">
+                    <FiCheck size={16} className="text-stone-600 shrink-0" />
                     <div>
-                        <p className="text-xs font-bold text-blue-800">Pembayaran Diterima</p>
-                        <p className="text-[10px] text-blue-600">Pesanan akan segera diproses oleh toko.</p>
+                        <p className="text-xs font-bold text-stone-800">Pembayaran Diterima</p>
+                        <p className="text-[10px] text-stone-600">Pesanan akan segera diproses oleh toko.</p>
                     </div>
                 </div>
             )}
 
             {status === 'preparing' && (
-                <div className="px-4 py-3 bg-blue-50 border-t border-blue-200 flex items-center gap-2.5">
-                    <div className="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin shrink-0" />
+                <div className="px-4 py-3 bg-stone-50 border-t border-stone-200 flex items-center gap-2.5">
+                    <div className="w-4 h-4 border-2 border-stone-400 border-t-transparent rounded-full animate-spin shrink-0" />
                     <div>
-                        <p className="text-xs font-bold text-blue-800">Sedang Disiapkan</p>
-                        <p className="text-[10px] text-blue-600">Toko sedang menyiapkan pesanan Anda.</p>
+                        <p className="text-xs font-bold text-stone-800">Sedang Disiapkan</p>
+                        <p className="text-[10px] text-stone-600">Toko sedang menyiapkan pesanan Anda.</p>
                     </div>
                 </div>
             )}
@@ -416,11 +399,9 @@ export default function OrderStatus() {
         setCancelError(null);
 
         try {
-            const res = await axios.post(`/api/customer/order/${targetOrderToCancel.order_id}/cancel`, {
-                customer_token: targetOrderToCancel.customer_token,
-            });
+            const cancelled = await cancelCustomerOrder(targetOrderToCancel.order_id, targetOrderToCancel.customer_token);
 
-            const updatedStatus = (res.data?.data ?? res.data)?.order_status || 'cancelled';
+            const updatedStatus = cancelled?.order_status || 'cancelled';
 
             const updatedList = ordersRef.current.map(o => o.order_id === targetOrderToCancel.order_id ? { ...o, order_status: updatedStatus } : o);
             ordersRef.current = updatedList;
@@ -479,10 +460,7 @@ export default function OrderStatus() {
             try {
                 const updates = await Promise.all(active.map(async ord => {
                     try {
-                        const res = await axios.get(`/api/customer/order/${ord.order_id}/status`, {
-                            params: { customer_token: ord.customer_token }, signal: controller.signal,
-                        });
-                        const latest = res.data?.data ?? res.data;
+                        const latest = await customerOrderStatus(ord.order_id, ord.customer_token, controller.signal);
                         return latest?.order_status ? { ...ord, ...latest, order_id: ord.order_id, customer_token: ord.customer_token } : null;
                     } catch (error) {
                         return [401, 404].includes(error.response?.status) ? { ...ord, unavailable: true } : null;
@@ -528,18 +506,18 @@ export default function OrderStatus() {
     // ── Empty state ──
     if (ordersList.length === 0) {
         return (
-            <div className="h-full w-full bg-white font-sans text-slate-800 flex justify-center min-h-screen">
+            <div className="customer-storefront customer-flow h-full w-full bg-white font-sans text-slate-800 flex justify-center min-h-screen">
                 <Head title="Pesanan Saya">
                     <meta name="description" content="Belum ada pesanan. Mulai belanja di Motorku." />
                 </Head>
-                <div className="w-full max-w-md bg-white flex flex-col">
+                <div className="customer-frame w-full max-w-md bg-white flex flex-col">
                     {/* Header */}
                     <header className="sticky top-0 z-30 bg-white border-b border-slate-200/80 shadow-xs">
                         <div className="px-4 py-3.5 flex items-center justify-between">
                             <h1 className="text-base font-black text-slate-900">Pesanan Saya</h1>
                             <Link
                                 href="/"
-                                className="text-[11px] bg-[#0f172a] hover:bg-slate-800 text-white px-3.5 py-2 rounded-xl font-bold transition-all flex items-center gap-1.5 shadow-xs active:scale-[0.97]"
+                                className="text-[11px] bg-[#19231f] hover:bg-slate-800 text-white px-3.5 py-2 rounded-xl font-bold transition-all flex items-center gap-1.5 shadow-xs active:scale-[0.97]"
                             >
                                 <FiShoppingBag size={13} />
                                 <span>Belanja</span>
@@ -555,7 +533,7 @@ export default function OrderStatus() {
                         </p>
                         <Link
                             href="/"
-                            className="mt-6 min-h-10 rounded-xl bg-[#0f172a] hover:bg-slate-800 px-6 py-2.5 text-xs font-bold text-white transition-colors flex items-center gap-2"
+                            className="mt-6 min-h-10 rounded-xl bg-[#19231f] hover:bg-slate-800 px-6 py-2.5 text-xs font-bold text-white transition-colors flex items-center gap-2"
                         >
                             <FiShoppingBag size={14} />
                             Mulai belanja
@@ -567,12 +545,12 @@ export default function OrderStatus() {
     }
 
     return (
-        <div className="h-full w-full bg-slate-100 font-sans text-slate-800 flex justify-center overflow-y-auto">
+        <div className="customer-storefront customer-flow h-full w-full bg-slate-100 font-sans text-slate-800 flex justify-center overflow-y-auto">
             <Head title="Pesanan Saya">
                 <meta name="description" content="Lacak status pesanan Anda secara real-time hingga siap diambil di toko." />
             </Head>
 
-            <div className="w-full max-w-md bg-white min-h-full shadow-2xl flex flex-col">
+            <div className="customer-frame w-full max-w-md bg-white min-h-full shadow-2xl flex flex-col">
 
                 {historyUnavailable && <p role="status" className="p-4 text-xs text-slate-600 bg-white">Sebagian status tidak dapat diperbarui. Riwayat tersimpan tetap ditampilkan; hubungi kasir untuk memeriksa pesanan.</p>}
                 {/* ═══ STICKY HEADER ═══ */}
@@ -581,7 +559,7 @@ export default function OrderStatus() {
                         <div className="flex items-center gap-2.5">
                             <h1 className="text-base font-black text-slate-900">Pesanan Saya</h1>
                             {activeCount > 0 && (
-                                <span className="text-[10px] font-extrabold bg-blue-600 text-white px-2 py-0.5 rounded-full min-w-[20px] text-center">
+                                <span className="text-[10px] font-extrabold bg-[#19231f] text-white px-2 py-0.5 rounded-full min-w-[20px] text-center">
                                     {activeCount}
                                 </span>
                             )}
@@ -591,7 +569,7 @@ export default function OrderStatus() {
                         </div>
                         <Link
                             href="/"
-                            className="text-[11px] bg-[#0f172a] hover:bg-slate-800 text-white px-3.5 py-2 rounded-xl font-bold transition-all flex items-center gap-1.5 shadow-xs active:scale-[0.97]"
+                            className="text-[11px] bg-[#19231f] hover:bg-slate-800 text-white px-3.5 py-2 rounded-xl font-bold transition-all flex items-center gap-1.5 shadow-xs active:scale-[0.97]"
                         >
                             <FiShoppingBag size={13} />
                             <span>Belanja Lagi</span>
@@ -652,7 +630,7 @@ export default function OrderStatus() {
             {/* ═══ CANCEL CONFIRMATION MODAL ═══ */}
             {showCancelModal && targetOrderToCancel && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-                    <div className="bg-white rounded-3xl p-6 max-w-xs w-full shadow-2xl space-y-4 text-center border border-slate-100 transform transition-all">
+                    <div className="bg-white rounded-xl p-6 max-w-xs w-full shadow-2xl space-y-4 text-center border border-slate-100 transform transition-all">
                         <div className="w-14 h-14 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
                             <FiAlertTriangle size={28} />
                         </div>

@@ -22,9 +22,30 @@ export default function OrderTableSkeleton({ rows = 6 }) {
                 </div>
 
                 <div className="hidden max-h-[calc(100vh-380px)] overflow-auto sm:block">
-                    <table className="w-full min-w-[840px] text-left">
-                        <thead className="border-b border-slate-200 bg-slate-100 dark:border-slate-800 dark:bg-slate-800"><tr>{[24, 20, 12, 16, 16, 24].map((_, i) => <th key={i} className="px-3.5 py-2.5"><Skeleton className="h-3 w-20" /></th>)}</tr></thead>
-                        <tbody className="divide-y divide-slate-200 dark:divide-slate-800">{Array.from({ length: rows }).map((_, i) => <tr key={i}><td className="px-3.5 py-2.5"><Skeleton className="h-3 w-32" /><Skeleton className="mt-1 h-3 w-40" /></td><td className="px-3.5 py-2.5"><Skeleton className="h-3 w-28" /></td><td className="px-3.5 py-2.5"><Skeleton className="h-3 w-12" /></td><td className="px-3.5 py-2.5"><Skeleton className="h-3 w-24" /></td><td className="px-3.5 py-2.5"><Skeleton className="h-5 w-20 rounded-md" /></td><td className="px-3.5 py-2.5"><Skeleton className="h-7 w-28 rounded-md" /></td></tr>)}</tbody>
+                    <table className="w-full min-w-[840px] table-fixed text-left">
+                        <colgroup>
+                            <col className="w-[21%]" />
+                            <col className="w-[16%]" />
+                            <col className="w-[8%]" />
+                            <col className="w-[15%]" />
+                            <col className="w-[14%]" />
+                            <col className="w-[13%]" />
+                            <col className="w-[13%]" />
+                        </colgroup>
+                        <thead className="border-b border-slate-200 bg-slate-100 dark:border-slate-800 dark:bg-slate-800"><tr>{Array.from({ length: 7 }).map((_, i) => <th key={i} className="px-3.5 py-2.5"><Skeleton className={`h-3 w-20 max-w-full ${i === 3 ? 'ml-auto' : i >= 2 ? 'mx-auto' : ''}`} /></th>)}</tr></thead>
+                        <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                            {Array.from({ length: rows }).map((_, i) => (
+                                <tr key={i}>
+                                    <td className="px-3.5 py-2.5"><Skeleton className="h-3 w-32 max-w-full" /><Skeleton className="mt-1 h-3 w-40 max-w-full" /></td>
+                                    <td className="px-3.5 py-2.5"><Skeleton className="h-3 w-28 max-w-full" /></td>
+                                    <td className="px-3.5 py-2.5"><Skeleton className="mx-auto h-3 w-12 max-w-full" /></td>
+                                    <td className="px-3.5 py-2.5"><Skeleton className="ml-auto h-3 w-24 max-w-full" /></td>
+                                    <td className="px-3.5 py-2.5"><Skeleton className="mx-auto h-5 w-20 max-w-full rounded-md" /></td>
+                                    <td className="px-3.5 py-2.5"><Skeleton className="mx-auto h-3 w-16 max-w-full" /></td>
+                                    <td className="px-3.5 py-2.5"><div className="flex justify-center gap-1"><Skeleton className="h-7 w-7 rounded-md" /><Skeleton className="h-7 w-7 rounded-md" /></div></td>
+                                </tr>
+                            ))}
+                        </tbody>
                     </table>
                 </div>
 
