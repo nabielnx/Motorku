@@ -3,10 +3,16 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#19231f">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
         <title inertia>{{ config('app.name', 'Motorku') }}</title>
         <meta name="description" content="Motorku - Sistem POS Kasir & Katalog QR Sparepart Modern. Pesan online, ambil di toko tanpa antri.">
         <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
+        <link rel="manifest" href="{{ asset('manifest.webmanifest') }}">
+        <link rel="apple-touch-icon" href="{{ asset('icons/motorku-192.png') }}">
         @if (request()->routeIs('home', 'motor-saya'))
             <link rel="canonical" href="{{ request()->routeIs('home') ? route('home') : route('motor-saya', ['slug' => data_get($page, 'props.initialPartsData.motorcycle.slug')]) }}">
         @else
