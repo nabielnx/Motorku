@@ -187,7 +187,8 @@ export default function MotorcycleIndex({
             engine_cc: 110,
             engine_type: (activeType && activeType !== 'semua') ? activeType : 'matic',
             image_url: '',
-            image_file: null
+            image_file: null,
+            remove_image: false
         });
         setFormErrors({});
     };
@@ -201,7 +202,8 @@ export default function MotorcycleIndex({
             engine_cc: m.engine_cc,
             engine_type: m.engine_type,
             image_url: m.image_url || '',
-            image_file: null
+            image_file: null,
+            remove_image: false
         });
         setEditMotorcycle(m);
         setFormErrors({});
@@ -244,6 +246,7 @@ export default function MotorcycleIndex({
             data.append('engine_type', formData.engine_type);
             if (formData.image_url) data.append('image_url', formData.image_url);
             if (formData.image_file) data.append('image', formData.image_file);
+            if (editMotorcycle && formData.remove_image) data.append('remove_image', '1');
 
             if (editMotorcycle) {
                 data.append('_method', 'PUT');

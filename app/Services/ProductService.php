@@ -94,11 +94,24 @@ class ProductService
     {
         $product = Product::findOrFail($id);
         $data['sync_version'] = $product->sync_version + 1;
+        $removeImage = filter_var($data['remove_image'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        unset($data['remove_image']);
         if (isset($data['image'])) {
             $file = $data['image'];
             unset($data['image']);
             app(ImageUploadService::class)->replace($file, 'products', $product->image_path,
                 fn ($path) => $product->update([...$data, 'image_path' => $path]));
+        } elseif ($removeImage) {
+            $oldPath = $product->image_path;
+            $product->update([...$data, 'image_path' => null]);
+
+            if ($oldPath && str_starts_with($oldPath, 'products/') && ! str_contains($oldPath, '..')) {
+                DB::afterCommit(function () use ($oldPath) {
+                    if (! Product::where('image_path', $oldPath)->exists()) {
+                        Storage::disk('public')->delete($oldPath);
+                    }
+                });
+            }
         } else {
             $product->update($data);
         }
