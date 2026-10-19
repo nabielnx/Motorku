@@ -144,7 +144,7 @@ export default function ProductBookView({
         <div className="flex flex-col flex-1 min-h-0 p-2 sm:p-4 gap-2 sm:gap-3 bg-slate-100 dark:bg-slate-800">
             {/* ── BUKU CATATAN (CANVAS PUTIH TINTA HITAM - STROKE TIPIS 1PX) ── */}
             <div
-                className="flex-1 min-h-0 bg-white border border-slate-300 rounded-sm shadow-xs flex flex-col overflow-hidden"
+                className="flex-1 min-h-0 bg-white border border-slate-300 rounded-xl shadow-xs flex flex-col overflow-hidden"
             >
                 {/* ── HEADER CATATAN BUKU ── */}
                 <div className={`shrink-0 px-3 sm:px-5 ${bookTitle ? 'pt-2.5 pb-2' : 'py-2'} border-b border-slate-300 bg-white`}>
@@ -279,7 +279,7 @@ export default function ProductBookView({
                         color: currentPage <= 1 ? '#94a3b8' : '#ffffff',
                         borderColor: currentPage <= 1 ? '#cbd5e1' : '#19231f',
                     }}
-                    className="flex items-center gap-1.5 px-4 py-2 rounded-md border text-xs sm:text-sm font-bold shadow-xs transition active:scale-95 disabled:cursor-not-allowed cursor-pointer"
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl border text-xs sm:text-sm font-bold shadow-xs transition active:scale-95 disabled:cursor-not-allowed cursor-pointer"
                 >
                     <FiChevronLeft size={18} strokeWidth={2.5} />
                     <span>Sebelumnya</span>
@@ -292,10 +292,10 @@ export default function ProductBookView({
                         color: '#19231f',
                         borderColor: '#cbd5e1',
                     }}
-                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-md border text-xs sm:text-sm font-mono font-bold shadow-2xs"
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl border text-xs sm:text-sm font-mono font-bold shadow-2xs"
                 >
                     <span>Hal.</span>
-                    <span style={{ color: '#d97706' }}>{currentPage}</span>
+                    <span style={{ color: '#eab308' }} className="font-black text-sm">{currentPage}</span>
                     <span style={{ color: '#94a3b8' }}>/</span>
                     <span>{totalPages}</span>
                 </div>
@@ -311,7 +311,7 @@ export default function ProductBookView({
                         color: currentPage >= totalPages ? '#94a3b8' : '#ffffff',
                         borderColor: currentPage >= totalPages ? '#cbd5e1' : '#19231f',
                     }}
-                    className="flex items-center gap-1.5 px-4 py-2 rounded-md border text-xs sm:text-sm font-bold shadow-xs transition active:scale-95 disabled:cursor-not-allowed cursor-pointer"
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl border text-xs sm:text-sm font-bold shadow-xs transition active:scale-95 disabled:cursor-not-allowed cursor-pointer"
                 >
                     <span>Selanjutnya</span>
                     <FiChevronRight size={18} strokeWidth={2.5} />

@@ -69,7 +69,7 @@ export default function ProductTableSkeleton({ rows = 16, fullPage = false, view
     const bookContent = (
         <div className="flex-1 min-h-0 overflow-y-auto flex flex-col justify-between p-2 sm:p-4 bg-slate-100 dark:bg-slate-800 gap-2 sm:gap-3">
             {/* White Paper Canvas */}
-            <div className="flex-1 min-h-0 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-sm shadow-xs flex flex-col overflow-hidden">
+            <div className="flex-1 min-h-0 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl shadow-xs flex flex-col overflow-hidden">
                 {/* Header Catatan Skeleton */}
                 <div className="px-3 sm:px-5 py-2 border-b border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 shrink-0">
                     <div className="flex items-center justify-between">
@@ -162,9 +162,9 @@ export default function ProductTableSkeleton({ rows = 16, fullPage = false, view
 
             {/* Navigation Pager Skeleton */}
             <div className="shrink-0 flex items-center justify-center gap-3 sm:gap-6 py-1">
-                <Skeleton className="h-9 w-28 rounded-md" />
-                <Skeleton className="h-9 w-20 rounded-md" />
-                <Skeleton className="h-9 w-28 rounded-md" />
+                <Skeleton className="h-9 w-28 rounded-xl" />
+                <Skeleton className="h-9 w-20 rounded-xl" />
+                <Skeleton className="h-9 w-28 rounded-xl" />
             </div>
         </div>
     );
