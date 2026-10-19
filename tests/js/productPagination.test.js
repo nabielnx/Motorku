@@ -11,7 +11,7 @@ test('all catalog destinations request the correct grid size before loading', ()
             assert.equal(visit.url.searchParams.get('group'), group);
             assert.equal(visit.url.searchParams.get('search'), 'oil');
             assert.equal(productPageSize('list', width), 16);
-            assert.equal(productPageSize('book', width), width >= 768 ? 12 : 6);
+            assert.equal(productPageSize('book', width), width >= 768 ? 24 : 14);
         }
     }
 });

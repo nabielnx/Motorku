@@ -1,6 +1,6 @@
 export function productPageSize(viewMode, width) {
     if (viewMode === 'book') {
-        return width >= 768 ? 12 : 6;
+        return width >= 768 ? 24 : 14;
     }
     // Match the catalog and skeleton grid: 2 / 3 / 4 / 5 columns.
     const columns = width >= 1700 ? 5 : width >= 1280 ? 4 : width >= 640 ? 3 : 2;
