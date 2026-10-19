@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { formatSimpleName } from '../../resources/js/Utils/productBookFormatter.js';
+import { formatProductBookName, formatSimpleName } from '../../resources/js/Utils/productBookFormatter.js';
 
 test('formatSimpleName simplifies bulky product names into clear readable notes', () => {
     // 1. Bulky tire names with application brackets at the end
@@ -34,4 +34,16 @@ test('formatSimpleName simplifies bulky product names into clear readable notes'
     // 3. Fallback and empty
     assert.equal(formatSimpleName(''), '');
     assert.equal(formatSimpleName(null), '');
+});
+
+test('product book hides mapped motorcycle fitment suffixes but keeps technical parentheses', () => {
+    assert.equal(formatProductBookName({
+        name: 'Ban Luar IRC Ring 14 - 100/80 Tubeless (Vario 150 Belakang / PCX 150 Depan)',
+        subtitle: 'Ban luar IRC Tubeless ukuran Ring 14 - 100/80. Peruntukan: Vario 150 Belakang / PCX 150 Depan.',
+    }), 'Ban Luar IRC R14 - 100/80 TL');
+
+    assert.equal(formatProductBookName({
+        name: 'Deltalube Matic (0.8L)',
+        subtitle: 'Oli mesin. Peruntukan: Honda Vario.',
+    }), 'Deltalube Matic (0.8L)');
 });

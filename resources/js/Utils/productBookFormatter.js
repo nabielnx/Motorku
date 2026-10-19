@@ -1,3 +1,5 @@
+import { getProductLabel } from './productLabel.js';
+
 /**
  * Sederhanakan nama barang agar ringkas, padat & jelas (persis gaya tulisan tangan ayah di buku):
  * - Hapus kurung keterangan peruntukan motor yang kepanjangan di belakang
@@ -31,4 +33,17 @@ export function formatSimpleName(rawName) {
     name = name.replace(/\s{2,}/g, ' ').trim();
 
     return name || rawName;
+}
+
+/**
+ * Product-book label that removes a vehicle application only when the catalog
+ * description confirms it, while retaining the existing technical shortening.
+ */
+export function formatProductBookName(product) {
+    const { name } = getProductLabel({
+        name: product?.name,
+        description: product?.subtitle ?? product?.description,
+    });
+
+    return formatSimpleName(name);
 }
