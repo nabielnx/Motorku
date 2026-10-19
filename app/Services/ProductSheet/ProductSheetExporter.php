@@ -6,6 +6,7 @@ namespace App\Services\ProductSheet;
 
 use App\Models\Category;
 use App\Models\Product;
+use Barryvdh\DomPDF\Facade\Pdf;
 use OpenSpout\Common\Entity\Cell;
 use OpenSpout\Common\Entity\Cell\StringCell;
 use OpenSpout\Common\Entity\Row;
@@ -37,25 +38,43 @@ class ProductSheetExporter
                 $view->setFreezeRow(2);
                 $writer->getCurrentSheet()->setSheetView($view);
                 $writer->addRow($this->exportRow($headers, (new Style)->setFontBold()));
-            } else {
+
+                if (! $template) {
+                    foreach (Product::with('category.parent')->inCatalogGroup($group)->orderBy('name')->lazy(200) as $product) {
+                        $values = [Category::CATALOG_GROUPS[$this->group($product->category)], $product->category->name, $product->brand ?? '', $product->name, $product->description ?? '', $product->cost_price === null ? null : (float) $product->cost_price, (float) $product->price, (int) $product->stock, $product->unit, $product->cost_price === null ? null : (float) $product->price - (float) $product->cost_price, $product->sku];
+                        $writer->addRow($this->exportRow($values));
+                    }
+                }
+                $writer->close();
+            } elseif ($format === 'csv') {
                 $stream = fopen($path, 'wb');
                 fwrite($stream, "\xEF\xBB\xBF");
                 fputcsv($stream, $headers, ',', '"', '');
-            }
-            if (! $template) {
-                foreach (Product::with('category.parent')->inCatalogGroup($group)->orderBy('name')->lazy(200) as $product) {
-                    $values = [Category::CATALOG_GROUPS[$this->group($product->category)], $product->category->name, $product->brand ?? '', $product->name, $product->description ?? '', $product->cost_price === null ? null : (float) $product->cost_price, (float) $product->price, (int) $product->stock, $product->unit, $product->cost_price === null ? null : (float) $product->price - (float) $product->cost_price, $product->sku];
-                    if ($format === 'xlsx') {
-                        $writer->addRow($this->exportRow($values));
-                    } else {
+
+                if (! $template) {
+                    foreach (Product::with('category.parent')->inCatalogGroup($group)->orderBy('name')->lazy(200) as $product) {
+                        $values = [Category::CATALOG_GROUPS[$this->group($product->category)], $product->category->name, $product->brand ?? '', $product->name, $product->description ?? '', $product->cost_price === null ? null : (float) $product->cost_price, (float) $product->price, (int) $product->stock, $product->unit, $product->cost_price === null ? null : (float) $product->price - (float) $product->cost_price, $product->sku];
                         fputcsv($stream, array_map(fn ($v) => is_string($v) && preg_match('/^[\s]*[=+\-@]/u', $v) ? "'".$v : $v, $values), ',', '"', '');
                     }
                 }
-            }
-            if ($format === 'xlsx') {
-                $writer->close();
-            } else {
                 fclose($stream);
+            } elseif ($format === 'pdf') {
+                $products = $template ? collect() : Product::query()
+                    ->select(['id', 'category_id', 'sku', 'name', 'description', 'brand', 'price', 'cost_price', 'stock', 'unit'])
+                    ->with('category:id,name')
+                    ->inCatalogGroup($group)
+                    ->orderBy('name')
+                    ->get();
+                $groupLabel = $group ? (Category::CATALOG_GROUPS[$group] ?? $group) : 'Seluruh Katalog';
+                $pdf = Pdf::loadView('pdf.products', [
+                    'products' => $products,
+                    'group' => $group,
+                    'groupLabel' => $groupLabel,
+                    'isTemplate' => $template,
+                    'generatedAt' => now()->translatedFormat('d F Y H:i'),
+                ])->setPaper('a4', 'landscape')->setOption('isPhpEnabled', true);
+
+                $pdf->save($path);
             }
         } catch (\Throwable $exception) {
             if (isset($writer)) {

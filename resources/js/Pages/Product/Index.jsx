@@ -17,9 +17,10 @@ import { Head, router, usePage } from '@inertiajs/react';
 import { getProductImage } from '@/Utils/productImage';
 import { ProductPhoto } from '@/Components/Customer/Storefront';
 
+import ProductBookView from '@/Components/Product/ProductBookView';
 import axios from 'axios';
 import { toast } from 'sonner';
-import { FiPlus, FiEdit2, FiTrash2, FiChevronDown, FiChevronLeft, FiChevronRight, FiX, FiPackage, FiSearch, FiAlertTriangle, FiGrid, FiList, FiFilter, FiFolder } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2, FiChevronDown, FiChevronLeft, FiChevronRight, FiX, FiPackage, FiSearch, FiAlertTriangle, FiGrid, FiList, FiBookOpen, FiFilter, FiFolder } from 'react-icons/fi';
 
 
 
@@ -182,7 +183,7 @@ export default function MenuManagement({
             });
         };
         syncPageSize();
-        const breakpoints = [640, 1280, 1700].map(width => window.matchMedia(`(min-width: ${width}px)`));
+        const breakpoints = [640, 768, 1280, 1700].map(width => window.matchMedia(`(min-width: ${width}px)`));
         breakpoints.forEach(query => query.addEventListener('change', syncPageSize));
         return () => breakpoints.forEach(query => query.removeEventListener('change', syncPageSize));
     }, [viewMode, perPage]);
@@ -616,6 +617,9 @@ export default function MenuManagement({
                                          <button type="button" onClick={() => handleViewModeChange('list')} aria-label="Tampilan daftar" aria-pressed={viewMode === 'list'} className={`p-1.5 rounded-md ${viewMode === 'list' ? 'bg-primary text-white' : 'text-slate-500 dark:text-slate-400'}`}>
                                              <FiList size={15} />
                                          </button>
+                                         <button type="button" onClick={() => handleViewModeChange('book')} aria-label="Tampilan buku katalog" aria-pressed={viewMode === 'book'} className={`p-1.5 rounded-md ${viewMode === 'book' ? 'bg-primary text-white' : 'text-slate-500 dark:text-slate-400'}`}>
+                                             <FiBookOpen size={15} />
+                                         </button>
                                      </div>
                                      </div>
                                      </div>
@@ -723,12 +727,24 @@ export default function MenuManagement({
                                              onClick={() => handleViewModeChange('list')}
                                              className={`p-1.5 rounded-md transition cursor-pointer ${
                                                  viewMode === 'list'
-                                                     ? 'bg-primary text-white shadow-2xs'
+                                                      ? 'bg-primary text-white shadow-2xs'
                                                      : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
                                              }`}
                                              title="Tampilan List (Tabel)" aria-label="Tampilan daftar" aria-pressed={viewMode === 'list'}
                                          >
                                              <FiList size={16} />
+                                         </button>
+                                         <button
+                                             type="button"
+                                             onClick={() => handleViewModeChange('book')}
+                                             className={`p-1.5 rounded-md transition cursor-pointer ${
+                                                 viewMode === 'book'
+                                                     ? 'bg-primary text-white shadow-2xs'
+                                                     : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
+                                             }`}
+                                             title="Tampilan Buku Katalog" aria-label="Tampilan buku katalog" aria-pressed={viewMode === 'book'}
+                                         >
+                                             <FiBookOpen size={16} />
                                          </button>
                                      </div>
 
@@ -785,7 +801,7 @@ export default function MenuManagement({
                     {/* TAB 1: PRODUCTS TABLE WITH ACCORDION & IMAGES */}
                     {activeTab === 'products' && (
                         (isNavigating || skeletonParam) ? (
-                            <ProductTableSkeleton rows={perPage} viewMode={skeletonParam === 'grid' ? 'grid' : (skeletonParam === 'list' ? 'list' : viewMode)} />
+                            <ProductTableSkeleton rows={perPage} viewMode={skeletonParam === 'grid' ? 'grid' : (skeletonParam === 'book' ? 'book' : (skeletonParam === 'list' ? 'list' : viewMode))} />
                         ) : (
                         <>
                             <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden md:overflow-x-auto">
@@ -852,7 +868,25 @@ export default function MenuManagement({
                                             );
                                         })}
                                     </div>}
-                                    {viewMode === 'grid' ? (
+                                    {viewMode === 'book' ? (
+                                        /* BOOK CATALOG VIEW */
+                                        <ProductBookView
+                                            items={filteredItems}
+                                            totalProducts={totalProducts}
+                                            currentPage={currentPage}
+                                            totalPages={totalPages}
+                                            perPage={perPage}
+                                            onPageChange={changeProductPage}
+                                            onOpenAdjust={openAdjustModal}
+                                            onOpenEdit={openEditProductModal}
+                                            onDeleteProduct={handleDeleteProduct}
+                                            onPreviewProduct={setPreviewProduct}
+                                            categories={categories}
+                                            selectedCategory={selectedCategoryFilter}
+                                            onSelectCategory={handleCategoryFilterChange}
+                                            searchQuery={searchQuery}
+                                        />
+                                    ) : viewMode === 'grid' ? (
                                     /* GRID VIEW */
                                     <div className="catalog-grid grid grid-cols-2 gap-3 p-3 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 min-[1700px]:grid-cols-5 md:gap-4 md:p-4">
                                         {filteredItems.map(item => (
@@ -1161,8 +1195,8 @@ export default function MenuManagement({
                                 )}
                             </div>
 
-                            {/* Pinned Pagination Footer */}
-                            {totalProducts > 0 && (
+                            {/* Pinned Pagination Footer (hidden in book view because book has its own controls) */}
+                            {totalProducts > 0 && viewMode !== 'book' && (
                                 <div className="px-3 sm:px-4 py-2 sm:py-2.5 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2 bg-white dark:bg-slate-900 shrink-0 z-10">
                                     <span className="text-[11px] sm:text-xs font-semibold text-slate-500 dark:text-slate-400">
                                         <span className="sm:hidden">{((currentPage - 1) * perPage) + 1}–{Math.min(currentPage * perPage, totalProducts)} / {totalProducts}</span>
