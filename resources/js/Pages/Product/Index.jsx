@@ -164,9 +164,16 @@ export default function MenuManagement({
             return 'list';
         }
     });
+    const [isPageSizeSyncing, setIsPageSizeSyncing] = useState(() => (
+        typeof window !== 'undefined'
+        && perPage !== productPageSize(viewMode, window.innerWidth)
+    ));
 
     const handleViewModeChange = (mode) => {
         setViewMode(mode);
+        if (typeof window !== 'undefined' && perPage !== productPageSize(mode, window.innerWidth)) {
+            setIsPageSizeSyncing(true);
+        }
         try {
             localStorage.setItem('product_view_mode_v2', mode);
         } catch {}
@@ -175,11 +182,16 @@ export default function MenuManagement({
     useEffect(() => {
         const syncPageSize = () => {
             const nextSize = productPageSize(viewMode, window.innerWidth);
-            if (nextSize === perPage) return;
+            if (nextSize === perPage) {
+                setIsPageSizeSyncing(false);
+                return;
+            }
+            setIsPageSizeSyncing(true);
             const params = Object.fromEntries(new URLSearchParams(window.location.search));
             router.get('/products', { ...params, page: 1, per_page: nextSize }, {
                 preserveState: true, preserveScroll: true, replace: true,
                 async: true, showProgress: false, only: ['initialProducts'],
+                onFinish: () => setIsPageSizeSyncing(false),
             });
         };
         syncPageSize();
@@ -800,7 +812,7 @@ export default function MenuManagement({
 
                     {/* TAB 1: PRODUCTS TABLE WITH ACCORDION & IMAGES */}
                     {activeTab === 'products' && (
-                        (isNavigating || skeletonParam) ? (
+                        (isNavigating || isPageSizeSyncing || skeletonParam) ? (
                             <ProductTableSkeleton rows={perPage} viewMode={skeletonParam === 'grid' ? 'grid' : (skeletonParam === 'book' ? 'book' : (skeletonParam === 'list' ? 'list' : viewMode))} />
                         ) : (
                         <>
