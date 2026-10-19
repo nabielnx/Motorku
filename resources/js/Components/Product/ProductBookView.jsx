@@ -270,7 +270,11 @@ export default function ProductBookView({
             </div>
 
             {/* ── NAVIGASI HALAMAN (TOMBOL SOLID, JELAS, BEBAS DARI OVERRIDE CSS) ── */}
-            <div className="shrink-0 flex items-center justify-center gap-3 sm:gap-6 py-1">
+            <div
+                role="group"
+                aria-label="Navigasi halaman daftar produk"
+                className="shrink-0 flex items-center justify-center py-1"
+            >
                 {/* Tombol Sebelumnya */}
                 <button
                     type="button"
@@ -278,26 +282,26 @@ export default function ProductBookView({
                     disabled={currentPage <= 1}
                     aria-label="Balik halaman sebelumnya"
                     style={{
-                        backgroundColor: currentPage <= 1 ? '#e2e8f0' : '#19231f',
-                        color: currentPage <= 1 ? '#94a3b8' : '#ffffff',
-                        borderColor: currentPage <= 1 ? '#cbd5e1' : '#19231f',
+                        backgroundColor: currentPage <= 1 ? '#f3f3ed' : '#ffffff',
+                        color: currentPage <= 1 ? '#94a3b8' : '#19231f',
                     }}
-                    className="flex min-h-11 items-center gap-1.5 px-4 py-2 rounded-xl border text-xs sm:text-sm font-bold shadow-xs transition active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFDD00] focus-visible:ring-offset-2 disabled:cursor-not-allowed cursor-pointer"
+                    className="flex min-h-11 items-center justify-center gap-1.5 rounded-l-xl border border-slate-300 px-3 py-2 text-xs font-bold transition active:scale-95 focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFDD00] focus-visible:ring-offset-2 disabled:cursor-not-allowed cursor-pointer sm:px-4 sm:text-sm"
                 >
                     <FiChevronLeft size={18} strokeWidth={2.5} />
-                    <span>Sebelumnya</span>
+                    <span className="hidden sm:inline">Sebelumnya</span>
                 </button>
 
                 {/* Indikator Halaman */}
                 <div
+                    aria-live="polite"
+                    aria-atomic="true"
                     style={{
                         backgroundColor: '#ffffff',
                         color: '#19231f',
-                        borderColor: '#cbd5e1',
                     }}
-                    className="flex min-h-11 items-center gap-1.5 px-4 py-2 rounded-xl border text-xs sm:text-sm font-mono font-bold shadow-2xs tabular-nums"
+                    className="flex min-h-11 min-w-[4.5rem] items-center justify-center gap-1.5 border-y border-slate-300 px-2 py-2 text-xs font-mono font-bold tabular-nums sm:min-w-[7rem] sm:px-4 sm:text-sm"
                 >
-                    <span>Hal.</span>
+                    <span className="hidden sm:inline">Hal.</span>
                     <span style={{ color: '#eab308' }} className="font-black text-sm">{currentPage}</span>
                     <span style={{ color: '#94a3b8' }}>/</span>
                     <span>{totalPages}</span>
@@ -310,13 +314,12 @@ export default function ProductBookView({
                     disabled={currentPage >= totalPages}
                     aria-label="Buka halaman selanjutnya"
                     style={{
-                        backgroundColor: currentPage >= totalPages ? '#e2e8f0' : '#19231f',
+                        backgroundColor: currentPage >= totalPages ? '#f3f3ed' : '#19231f',
                         color: currentPage >= totalPages ? '#94a3b8' : '#ffffff',
-                        borderColor: currentPage >= totalPages ? '#cbd5e1' : '#19231f',
                     }}
-                    className="flex min-h-11 items-center gap-1.5 px-4 py-2 rounded-xl border text-xs sm:text-sm font-bold shadow-xs transition active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFDD00] focus-visible:ring-offset-2 disabled:cursor-not-allowed cursor-pointer"
+                    className="flex min-h-11 items-center justify-center gap-1.5 rounded-r-xl border border-slate-300 px-3 py-2 text-xs font-bold transition active:scale-95 focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFDD00] focus-visible:ring-offset-2 disabled:cursor-not-allowed cursor-pointer sm:px-4 sm:text-sm"
                 >
-                    <span>Selanjutnya</span>
+                    <span className="hidden sm:inline">Selanjutnya</span>
                     <FiChevronRight size={18} strokeWidth={2.5} />
                 </button>
             </div>
