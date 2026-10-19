@@ -50,53 +50,53 @@ export default function ProductBookView({
     const rightItems   = items.slice(half, perPage);
     const globalOffset = (currentPage - 1) * perPage;
 
-    /* Satu baris catatan */
+    /* Satu baris catatan — grid: no | nama | stok | harga | aksi */
     const Row = ({ item, no }) => {
         const habis  = Number(item.stock) <= 0;
         const kritis = !habis && Number(item.stock) <= (item.minimum_stock ?? 3);
 
         return (
             <div
-                className="group flex items-baseline border-b border-gray-200 hover:bg-yellow-50 transition-colors"
-                style={{ minHeight: 36 }}
+                className="group grid items-center border-b border-gray-200 hover:bg-yellow-50 transition-colors"
+                style={{ gridTemplateColumns: '22px 1fr 44px auto', minHeight: 34 }}
             >
                 {/* Nomor */}
-                <span className="shrink-0 w-6 text-right text-[11px] text-gray-400 font-mono pr-1.5 pt-2 pb-1 self-start">
+                <span className="text-right text-[11px] text-gray-400 font-mono pr-1.5 leading-none">
                     {no}.
                 </span>
 
-                {/* Nama + stok kecil */}
-                <div className="flex-1 min-w-0 py-1.5 pr-2 self-start">
-                    <button
-                        type="button"
-                        onClick={() => onOpenEdit?.(item)}
-                        className="block text-left w-full cursor-pointer hover:underline"
-                    >
-                        <span className="block text-[13px] font-semibold text-gray-900 leading-snug truncate">
-                            {item.name}
-                        </span>
-                    </button>
-                    <span className={`text-[10px] ${
+                {/* Nama */}
+                <button
+                    type="button"
+                    onClick={() => onOpenEdit?.(item)}
+                    className="text-left py-1.5 pr-1 cursor-pointer hover:underline overflow-hidden"
+                >
+                    <span className="block text-[13px] font-semibold text-gray-900 leading-snug" style={{ wordBreak: 'break-word' }}>
+                        {item.name}
+                    </span>
+                    <span className={`block text-[10px] leading-none mt-0.5 ${
                         habis  ? 'text-red-500 font-bold' :
                         kritis ? 'text-amber-600' :
                                  'text-gray-400'
                     }`}>
                         {habis ? 'Habis' : `${item.stock} pcs`}
                     </span>
-                </div>
+                </button>
 
-                {/* Harga — kanan, bold */}
-                <div className="shrink-0 text-right py-1.5 pl-1">
+                {/* Stok kecil — sudah di dalam nama di atas, kolom ini kosong / spare */}
+                <span />
+
+                {/* Harga */}
+                <div className="text-right py-1.5 pl-1 flex items-center gap-0.5">
                     <span className="text-[13px] font-bold text-gray-900 font-mono whitespace-nowrap">
                         {rp(item.price)}
                     </span>
-                </div>
-
-                {/* Aksi hover */}
-                <div className="shrink-0 flex items-center gap-px pl-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity self-start pt-1.5">
-                    <button type="button" onClick={() => onOpenAdjust?.(item)}    title="Stok"  className="p-1 text-gray-300 hover:text-gray-700"><FiPlus   size={10}/></button>
-                    <button type="button" onClick={() => onOpenEdit?.(item)}      title="Edit"  className="p-1 text-gray-300 hover:text-gray-700"><FiEdit2  size={10}/></button>
-                    <button type="button" onClick={() => onDeleteProduct?.(item)} title="Hapus" className="p-1 text-gray-300 hover:text-red-500"><FiTrash2 size={10}/></button>
+                    {/* Aksi hover */}
+                    <div className="flex items-center gap-px pl-0.5 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+                        <button type="button" onClick={() => onOpenAdjust?.(item)}    title="Stok"  className="p-0.5 text-gray-300 hover:text-gray-600"><FiPlus   size={9}/></button>
+                        <button type="button" onClick={() => onOpenEdit?.(item)}      title="Edit"  className="p-0.5 text-gray-300 hover:text-gray-600"><FiEdit2  size={9}/></button>
+                        <button type="button" onClick={() => onDeleteProduct?.(item)} title="Hapus" className="p-0.5 text-gray-300 hover:text-red-500"><FiTrash2 size={9}/></button>
+                    </div>
                 </div>
             </div>
         );
@@ -105,11 +105,15 @@ export default function ProductBookView({
     /* Satu kolom (kiri / kanan) */
     const Col = ({ colItems, startNo }) => (
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-            {/* Sub-header kolom */}
-            <div className="flex items-baseline border-b-2 border-gray-800 pb-1 mb-0">
-                <span className="flex-1 text-[10px] font-black uppercase tracking-widest text-gray-700 pl-7">Nama Barang</span>
-                <span className="text-[10px] font-black uppercase tracking-widest text-gray-700 pr-1">Harga</span>
-                <span className="w-[68px]" />
+            {/* Sub-header kolom — grid sesuai Row */}
+            <div
+                className="grid items-center border-b-2 border-gray-800 pb-1"
+                style={{ gridTemplateColumns: '22px 1fr 44px auto' }}
+            >
+                <span />
+                <span className="text-[10px] font-black uppercase tracking-widest text-gray-700">Nama Barang</span>
+                <span />
+                <span className="text-[10px] font-black uppercase tracking-widest text-gray-700 text-right">Harga</span>
             </div>
             {/* Baris */}
             <div className="flex-1 overflow-y-auto overflow-x-hidden">
@@ -118,7 +122,7 @@ export default function ProductBookView({
                 ))}
                 {/* Baris kosong bergaris */}
                 {Array.from({ length: Math.max(0, half - colItems.length) }).map((_, i) => (
-                    <div key={`e${i}`} className="border-b border-gray-200" style={{ height: 36 }} />
+                    <div key={`e${i}`} className="border-b border-gray-200" style={{ minHeight: 34 }} />
                 ))}
             </div>
         </div>
