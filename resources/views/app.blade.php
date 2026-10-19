@@ -562,14 +562,14 @@
                 </div>
             @else
                 <!-- Fallback Customer App Shell Skeleton -->
-                <div id="app-shell" class="min-h-screen bg-amber-50/60 font-sans flex justify-center">
+                <div id="app-shell" class="min-h-screen bg-[#f3f3ed] font-sans flex justify-center">
                     <div class="w-full max-w-md md:max-w-2xl lg:max-w-4xl bg-white min-h-screen shadow-xl flex flex-col pb-28">
-                        <div class="bg-[#1E3A8A] px-4 py-3.5 text-white border-b-[3px] border-amber-400">
+                        <div class="bg-[#19231f] px-4 py-3.5 text-white border-b-[3px] border-[#FFDD00]">
                             <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-md bg-white/20 animate-pulse shrink-0"></div>
+                                <div class="w-10 h-10 rounded-md bg-[#2b3931] animate-pulse shrink-0"></div>
                                 <div class="space-y-1.5 flex-1">
-                                    <div class="h-4 bg-white/30 rounded w-36 animate-pulse"></div>
-                                    <div class="h-2.5 bg-white/20 rounded w-48 animate-pulse"></div>
+                                    <div class="h-4 bg-[#35423b] rounded w-36 animate-pulse"></div>
+                                    <div class="h-2.5 bg-[#2b3931] rounded w-48 animate-pulse"></div>
                                 </div>
                             </div>
                         </div>
@@ -580,7 +580,7 @@
                                     <div class="border border-slate-100 rounded-md p-2 space-y-2 bg-white">
                                         <div class="h-28 bg-slate-100 rounded-md animate-pulse"></div>
                                         <div class="h-3 bg-slate-100 rounded w-3/4 animate-pulse"></div>
-                                        <div class="h-3 bg-red-100/60 rounded w-1/2 animate-pulse"></div>
+                                        <div class="h-3 bg-slate-200 rounded w-1/2 animate-pulse"></div>
                                     </div>
                                 @endfor
                             </div>
