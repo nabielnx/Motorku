@@ -48,12 +48,13 @@ export default function ProductBookView({
         year: 'numeric',
     });
 
-    // Judul buku catatan
+    // Judul buku catatan (hanya tampil jika ada kategori spesifik / pencarian, tidak menampilkan "HARGA ALL")
+    const hasCategory = selectedCategory && selectedCategory.toLowerCase() !== 'all';
     const bookTitle = searchQuery
         ? `CARI: "${searchQuery.toUpperCase()}"`
-        : selectedCategory
+        : hasCategory
             ? `HARGA ${selectedCategory.toUpperCase()}`
-            : 'DAFTAR HARGA SUKU CADANG';
+            : '';
 
     // Desktop split (12 kiri, 12 kanan)
     const half = Math.ceil(perPage / 2);
@@ -146,9 +147,9 @@ export default function ProductBookView({
                 className="flex-1 min-h-0 bg-white border border-slate-300 rounded-sm shadow-xs flex flex-col overflow-hidden"
             >
                 {/* ── HEADER CATATAN BUKU ── */}
-                <div className="shrink-0 px-3 sm:px-5 pt-3 pb-2 border-b border-slate-300 bg-white">
+                <div className={`shrink-0 px-3 sm:px-5 ${bookTitle ? 'pt-2.5 pb-2' : 'py-2'} border-b border-slate-300 bg-white`}>
                     {/* Baris Atas: Date & Nomor Halaman */}
-                    <div className="flex items-center justify-between text-[11px] font-mono text-slate-600 pb-1">
+                    <div className="flex items-center justify-between text-[11px] font-mono text-slate-600">
                         <span className="font-bold text-slate-800">
                             Date: <span className="underline decoration-slate-400 underline-offset-4">{todayDate}</span>
                         </span>
@@ -157,12 +158,14 @@ export default function ProductBookView({
                         </span>
                     </div>
 
-                    {/* Baris Judul: Tinta Hitam Bold Huruf Kapital */}
-                    <div className="text-center sm:text-left pt-1">
-                        <h2 className="text-sm sm:text-base font-bold tracking-wider text-slate-900 font-heading uppercase">
-                            {bookTitle}
-                        </h2>
-                    </div>
+                    {/* Baris Judul (hanya muncul jika sedang memfilter kategori tertentu atau mencari produk) */}
+                    {bookTitle && (
+                        <div className="text-center sm:text-left pt-1.5">
+                            <h2 className="text-sm sm:text-base font-bold tracking-wider text-slate-900 font-heading uppercase">
+                                {bookTitle}
+                            </h2>
+                        </div>
+                    )}
                 </div>
 
                 {/* ── ISI HALAMAN BUKU (GARIS-GARIS KERTAS) ── */}
