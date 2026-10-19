@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { FiChevronLeft, FiChevronRight, FiPlus, FiEdit2, FiTrash2 } from 'react-icons/fi';
-import { formatSimpleName } from '@/Utils/productBookFormatter';
+import { formatProductBookName } from '@/Utils/productBookFormatter';
 
 /**
  * ProductBookView — Buku Catatan Harga Bengkel (Lined Notebook Style)
@@ -66,7 +66,7 @@ export default function ProductBookView({
     const BookRow = ({ item, no, isDesktop = false }) => {
         const habis = Number(item.stock) <= 0;
         const kritis = !habis && Number(item.stock) <= (item.minimum_stock ?? 3);
-        const displayName = formatSimpleName(item.name);
+        const displayName = formatProductBookName(item);
 
         return (
             <div className={`group flex items-center justify-between border-b border-slate-200 hover:bg-amber-50 transition-colors ${
