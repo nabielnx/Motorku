@@ -75,7 +75,7 @@ export default function ProductSheetTools({ selectedGroup, compact = false }) {
                     <p className="text-sm text-slate-600 dark:text-slate-300">Kolom tetap bahasa Indonesia. Kode Barang membantu mencocokkan barang saat diimpor kembali. Harga beli dan stok ikut tercantum.</p>
                     <div className="grid gap-4 sm:grid-cols-2">
                         <label className="text-sm">Barang yang diekspor<select className={`${control} mt-1`} value={exportGroup} onChange={event => setExportGroup(event.target.value)}><option value="">Seluruh katalog</option>{Object.entries(groups).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label>
-                        <label className="text-sm">Format file<select className={`${control} mt-1`} value={format} onChange={event => setFormat(event.target.value)}><option value="xlsx">Excel (.xlsx)</option><option value="csv">CSV (.csv)</option></select></label>
+                        <label className="text-sm">Format file<select className={`${control} mt-1`} value={format} onChange={event => setFormat(event.target.value)}><option value="xlsx">Excel (.xlsx)</option><option value="csv">CSV (.csv)</option><option value="pdf">PDF (.pdf)</option></select></label>
                     </div>
                     <a className={`${primary} inline-block`} href={route('api.products.sheets.export', { format, ...(exportGroup ? { group: exportGroup } : {}) })}>Unduh daftar barang</a>
                 </div> : !draft ? <div className="space-y-4">

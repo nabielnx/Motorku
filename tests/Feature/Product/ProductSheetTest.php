@@ -427,6 +427,25 @@ class ProductSheetTest extends TestCase
         $this->assertStringContainsString('Elektronik', $content);
     }
 
+    public function test_pdf_export_downloads_catalog_and_filters_groups(): void
+    {
+        $category = Category::factory()->create(['catalog_group' => 'electronics']);
+        Product::factory()->create(['category_id' => $category->id, 'name' => 'Kabel Busi', 'sku' => 'ELC-001', 'price' => 35000, 'cost_price' => 25000]);
+        Product::factory()->create(['name' => 'Oli Mesin']);
+
+        $response = $this->get('/api/products/sheets/export?format=pdf&group=electronics')->assertOk();
+        $this->assertStringContainsString('application/pdf', (string) $response->headers->get('Content-Type'));
+        $this->assertStringContainsString('.pdf', (string) $response->headers->get('Content-Disposition'));
+
+        $path = $response->baseResponse->getFile()->getPathname();
+        $this->temporary[] = $path;
+        $this->assertFileExists($path);
+
+        $content = file_get_contents($path);
+        $this->assertStringStartsWith('%PDF-', $content);
+        $this->assertGreaterThan(1000, strlen($content));
+    }
+
     public function test_actual_cost_has_priority_and_update_only_skips_new_items(): void
     {
         Product::factory()->create(['sku' => 'OLD']);

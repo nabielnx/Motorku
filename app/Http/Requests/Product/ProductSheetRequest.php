@@ -36,7 +36,7 @@ class ProductSheetRequest extends FormRequest
                 'rows.*' => ['required', 'string', 'max:30', 'distinct'],
             ],
             default => [
-                'format' => ['sometimes', Rule::in(['xlsx', 'csv'])],
+                'format' => ['sometimes', Rule::in(['xlsx', 'csv', 'pdf'])],
                 'group' => ['nullable', Rule::in(['automotive', 'bicycle', 'electronics', 'hardware'])],
             ],
         };
