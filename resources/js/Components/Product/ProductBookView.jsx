@@ -1,16 +1,16 @@
 import React, { useRef, useCallback, useEffect } from 'react';
 import { FiChevronLeft, FiChevronRight, FiPlus, FiEdit2, FiTrash2 } from 'react-icons/fi';
+import { formatSimpleName } from '@/Utils/productBookFormatter';
 
 /**
  * ProductBookView — Buku Catatan Harga Bengkel (Lined Notebook Style)
  *
- * Sesuai buku catatan fisik ayah:
+ * Persis seperti buku catatan fisik ayah:
  * - Kertas putih bersih (canvas putih), tulisan tinta hitam
- * - Garis horizontal bergaris buku tulis
+ * - Garis-garis horizontal bergaris buku tulis
  * - Mobile: 1 kolom penuh agar nama barang selalu terbaca jelas & tidak terhimpit
  * - Desktop: 2 kolom (kiri & kanan) dipisah garis tengah vertikal
- * - Header catatan: "Date: ...", judul daftar harga, nomor halaman
- * - Setiap baris: Nomor | Nama Barang | Stok | Harga
+ * - Setiap baris 1 garis lurus: Nomor | Nama Barang Simple | Stok | Harga
  */
 export default function ProductBookView({
     items = [],
@@ -52,8 +52,6 @@ export default function ProductBookView({
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [goPage]);
 
-    const formatRp = (n) => 'Rp ' + Number(n).toLocaleString('id-ID');
-
     // Tanggal hari ini format buku catatan (misal: 19/10/2026)
     const todayDate = new Date().toLocaleDateString('id-ID', {
         day: '2-digit',
@@ -74,119 +72,79 @@ export default function ProductBookView({
     const rightItems = items.slice(half, perPage);
     const globalOffset = (currentPage - 1) * perPage;
 
-    /* Baris versi Mobile (1 kolom lega, nama barang lapang tidak terpotong) */
-    const MobileRow = ({ item, no }) => {
+    /* Baris 1 Garis Lurus (Sesuai Garis Buku Tulis) */
+    const BookRow = ({ item, no, isDesktop = false }) => {
         const habis = Number(item.stock) <= 0;
         const kritis = !habis && Number(item.stock) <= (item.minimum_stock ?? 3);
+        const displayName = formatSimpleName(item.name);
 
         return (
-            <div className="flex items-center justify-between py-2 px-2 border-b border-slate-200 hover:bg-amber-50 transition-colors">
-                {/* Nomor + Nama + Stok */}
-                <div className="flex items-start gap-2 min-w-0 flex-1 pr-3">
-                    <span className="text-xs font-mono font-bold text-slate-400 w-5 text-right shrink-0 pt-0.5">
-                        {no}.
-                    </span>
-                    <div className="min-w-0 flex-1">
-                        <button
-                            type="button"
-                            onClick={() => onOpenEdit?.(item)}
-                            className="text-left cursor-pointer hover:underline block"
-                        >
-                            <span className="text-xs sm:text-sm font-bold text-slate-900 leading-snug line-clamp-2">
-                                {item.name}
-                            </span>
-                        </button>
-                        <div className="flex items-center gap-2 mt-0.5">
-                            <span className={`text-[11px] font-semibold ${
-                                habis ? 'text-red-600 font-bold' :
-                                kritis ? 'text-amber-600 font-bold' :
-                                'text-slate-500'
-                            }`}>
-                                {habis ? 'Habis' : `Stok: ${item.stock} pcs`}
-                            </span>
-                            {item.category && (
-                                <span className="text-[10px] text-slate-400 font-medium">
-                                    · {item.category}
-                                </span>
-                            )}
-                        </div>
-                    </div>
-                </div>
-
-                {/* Harga Jual */}
-                <div className="shrink-0 text-right pl-1">
-                    <span className="text-xs sm:text-sm font-black font-mono text-slate-900 whitespace-nowrap">
-                        {formatRp(item.price)}
-                    </span>
-                </div>
-            </div>
-        );
-    };
-
-    /* Baris versi Desktop (2 kolom berdampingan) */
-    const DesktopRow = ({ item, no }) => {
-        const habis = Number(item.stock) <= 0;
-        const kritis = !habis && Number(item.stock) <= (item.minimum_stock ?? 3);
-
-        return (
-            <div className="group flex items-center justify-between py-2 px-3 border-b border-slate-200 hover:bg-amber-50 transition-colors">
-                {/* No + Nama */}
-                <div className="flex items-center gap-2.5 min-w-0 flex-1 pr-2">
-                    <span className="text-xs font-mono font-bold text-slate-400 w-6 text-right shrink-0">
+            <div className={`group flex items-center justify-between border-b border-slate-200 hover:bg-amber-50 transition-colors ${
+                isDesktop ? 'py-2 px-3' : 'py-2 px-2'
+            }`}>
+                {/* Kiri: Nomor + Nama Barang Simple & Jelas */}
+                <div className="flex items-center gap-2 min-w-0 flex-1 pr-2">
+                    <span className="text-xs font-mono font-bold text-slate-400 w-5 sm:w-6 text-right shrink-0">
                         {no}.
                     </span>
                     <button
                         type="button"
                         onClick={() => onOpenEdit?.(item)}
-                        className="text-left cursor-pointer hover:underline min-w-0 flex-1"
+                        className="text-left cursor-pointer hover:underline min-w-0 flex-1 block"
+                        title={item.name}
                     >
-                        <span className="text-xs lg:text-sm font-bold text-slate-900 truncate block">
-                            {item.name}
+                        <span className="text-xs sm:text-sm font-bold text-slate-900 truncate block">
+                            {displayName}
                         </span>
                     </button>
                 </div>
 
-                {/* Stok + Harga + Aksi */}
-                <div className="shrink-0 flex items-center gap-3">
-                    <span className={`text-xs font-semibold w-16 text-right ${
-                        habis ? 'text-red-600 font-black' :
+                {/* Kanan: Stok + Harga Jual (+ Aksi di Desktop) */}
+                <div className="shrink-0 flex items-center gap-2 sm:gap-3 text-right">
+                    {/* Stok */}
+                    <span className={`text-[11px] sm:text-xs font-semibold ${
+                        habis ? 'text-red-600 font-bold' :
                         kritis ? 'text-amber-600 font-bold' :
                         'text-slate-500'
                     }`}>
                         {habis ? 'Habis' : `${item.stock} pcs`}
                     </span>
 
-                    <span className="text-xs lg:text-sm font-black font-mono text-slate-900 w-28 text-right whitespace-nowrap">
-                        {formatRp(item.price)}
+                    {/* Harga */}
+                    <span className="text-xs sm:text-sm font-black font-mono text-slate-900 whitespace-nowrap min-w-[75px] sm:min-w-[85px] text-right">
+                        <span className="text-[10px] sm:text-xs font-normal text-slate-500 mr-0.5">Rp</span>
+                        {Number(item.price).toLocaleString('id-ID')}
                     </span>
 
-                    {/* Quick actions hover */}
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity w-14 justify-end">
-                        <button
-                            type="button"
-                            onClick={() => onOpenAdjust?.(item)}
-                            title="Atur Stok"
-                            className="p-1 text-slate-400 hover:text-slate-900 rounded"
-                        >
-                            <FiPlus size={11} />
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => onOpenEdit?.(item)}
-                            title="Edit"
-                            className="p-1 text-slate-400 hover:text-slate-900 rounded"
-                        >
-                            <FiEdit2 size={11} />
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => onDeleteProduct?.(item)}
-                            title="Hapus"
-                            className="p-1 text-slate-400 hover:text-red-600 rounded"
-                        >
-                            <FiTrash2 size={11} />
-                        </button>
-                    </div>
+                    {/* Quick action buttons (desktop only hover) */}
+                    {isDesktop && (
+                        <div className="hidden lg:flex items-center gap-0.5 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity w-14 justify-end">
+                            <button
+                                type="button"
+                                onClick={() => onOpenAdjust?.(item)}
+                                title="Atur Stok"
+                                className="p-1 text-slate-400 hover:text-slate-900 rounded"
+                            >
+                                <FiPlus size={11} />
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => onOpenEdit?.(item)}
+                                title="Edit"
+                                className="p-1 text-slate-400 hover:text-slate-900 rounded"
+                            >
+                                <FiEdit2 size={11} />
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => onDeleteProduct?.(item)}
+                                title="Hapus"
+                                className="p-1 text-slate-400 hover:text-red-600 rounded"
+                            >
+                                <FiTrash2 size={11} />
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
         );
@@ -218,28 +176,32 @@ export default function ProductBookView({
                     </div>
                 </div>
 
-                {/* ── ISI HALAMAN BUKU ── */}
+                {/* ── ISI HALAMAN BUKU (GARIS-GARIS KERTAS) ── */}
                 <div className="flex-1 min-h-0 overflow-y-auto">
-                    {/* 1. TAMPILAN MOBILE (1 Kolom Lega: Nama tidak terhimpit) */}
+                    {/* 1. TAMPILAN MOBILE (1 Kolom Lega: Nama Barang Jelas & Ringkas) */}
                     <div className="block md:hidden">
                         {/* Header Kolom Mobile */}
-                        <div className="flex items-center justify-between px-3 py-1.5 border-b-2 border-slate-900 bg-slate-100 text-[10px] font-black uppercase tracking-wider text-slate-700">
-                            <span>Nama Barang & Stok</span>
-                            <span>Harga</span>
+                        <div className="flex items-center justify-between px-2.5 py-1.5 border-b-2 border-slate-900 bg-slate-100 text-[10px] font-black uppercase tracking-wider text-slate-700">
+                            <span className="pl-6">Nama Barang</span>
+                            <div className="flex items-center gap-3 pr-1">
+                                <span>Stok</span>
+                                <span className="w-16 text-right">Harga</span>
+                            </div>
                         </div>
 
-                        {/* Daftar Baris */}
+                        {/* Baris Mobile */}
                         {items.map((item, idx) => (
-                            <MobileRow
+                            <BookRow
                                 key={item.id}
                                 item={item}
                                 no={globalOffset + idx + 1}
+                                isDesktop={false}
                             />
                         ))}
 
                         {/* Garis kosong pelengkap kertas bergaris */}
-                        {Array.from({ length: Math.max(0, 10 - items.length) }).map((_, i) => (
-                            <div key={`m-blank-${i}`} className="border-b border-slate-200 h-10" />
+                        {Array.from({ length: Math.max(0, 12 - items.length) }).map((_, i) => (
+                            <div key={`m-blank-${i}`} className="border-b border-slate-200 h-9" />
                         ))}
                     </div>
 
@@ -248,18 +210,19 @@ export default function ProductBookView({
                         {/* Kolom Kiri */}
                         <div className="flex-1 flex flex-col min-w-0">
                             <div className="flex items-center justify-between px-3 py-1.5 border-b-2 border-slate-900 bg-slate-100 text-[10px] font-black uppercase tracking-wider text-slate-700">
-                                <span className="pl-6">Nama Barang</span>
-                                <div className="flex items-center gap-3 pr-14">
-                                    <span className="w-16 text-right">Stok</span>
-                                    <span className="w-28 text-right">Harga</span>
+                                <span className="pl-7">Nama Barang</span>
+                                <div className="flex items-center gap-3 pr-2 lg:pr-14">
+                                    <span className="w-14 text-right">Stok</span>
+                                    <span className="w-20 text-right">Harga</span>
                                 </div>
                             </div>
                             <div className="flex-1">
                                 {leftItems.map((item, idx) => (
-                                    <DesktopRow
+                                    <BookRow
                                         key={item.id}
                                         item={item}
                                         no={globalOffset + idx + 1}
+                                        isDesktop={true}
                                     />
                                 ))}
                                 {Array.from({ length: Math.max(0, half - leftItems.length) }).map((_, i) => (
@@ -271,18 +234,19 @@ export default function ProductBookView({
                         {/* Kolom Kanan */}
                         <div className="flex-1 flex flex-col min-w-0">
                             <div className="flex items-center justify-between px-3 py-1.5 border-b-2 border-slate-900 bg-slate-100 text-[10px] font-black uppercase tracking-wider text-slate-700">
-                                <span className="pl-6">Nama Barang</span>
-                                <div className="flex items-center gap-3 pr-14">
-                                    <span className="w-16 text-right">Stok</span>
-                                    <span className="w-28 text-right">Harga</span>
+                                <span className="pl-7">Nama Barang</span>
+                                <div className="flex items-center gap-3 pr-2 lg:pr-14">
+                                    <span className="w-14 text-right">Stok</span>
+                                    <span className="w-20 text-right">Harga</span>
                                 </div>
                             </div>
                             <div className="flex-1">
                                 {rightItems.map((item, idx) => (
-                                    <DesktopRow
+                                    <BookRow
                                         key={item.id}
                                         item={item}
                                         no={globalOffset + half + idx + 1}
+                                        isDesktop={true}
                                     />
                                 ))}
                                 {Array.from({ length: Math.max(0, half - rightItems.length) }).map((_, i) => (
