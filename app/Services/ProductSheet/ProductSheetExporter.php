@@ -59,7 +59,12 @@ class ProductSheetExporter
                 }
                 fclose($stream);
             } elseif ($format === 'pdf') {
-                $products = $template ? collect() : Product::with('category.parent')->inCatalogGroup($group)->orderBy('name')->get();
+                $products = $template ? collect() : Product::query()
+                    ->select(['id', 'category_id', 'sku', 'name', 'description', 'brand', 'price', 'cost_price', 'stock', 'unit'])
+                    ->with('category:id,name')
+                    ->inCatalogGroup($group)
+                    ->orderBy('name')
+                    ->get();
                 $groupLabel = $group ? (Category::CATALOG_GROUPS[$group] ?? $group) : 'Seluruh Katalog';
                 $pdf = Pdf::loadView('pdf.products', [
                     'products' => $products,

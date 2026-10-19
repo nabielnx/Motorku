@@ -25,7 +25,7 @@ export default function ProductSheetTools({ selectedGroup, compact = false }) {
     const [mode, setMode] = useState('add');
     const [defaultGroup, setDefaultGroup] = useState(selectedGroup || 'automotive');
     const [estimated, setEstimated] = useState(false);
-    const [exportGroup, setExportGroup] = useState('');
+    const [exportGroup, setExportGroup] = useState(selectedGroup || '');
     const [format, setFormat] = useState('xlsx');
     const close = () => {
         if (busy) return;
@@ -63,7 +63,7 @@ export default function ProductSheetTools({ selectedGroup, compact = false }) {
 
     return <>
         <button type="button" className={secondary} aria-label="Impor daftar barang" title="Impor daftar barang" onClick={() => { setDialog('import'); setError(''); }}><FiUpload aria-hidden="true" /><span className={compact ? 'hidden min-[360px]:inline' : ''}>Impor</span></button>
-        <button type="button" className={secondary} aria-label="Ekspor daftar barang" title="Ekspor daftar barang" onClick={() => { setDialog('export'); setError(''); }}><FiDownload aria-hidden="true" /><span className={compact ? 'hidden min-[360px]:inline' : ''}>Ekspor</span></button>
+        <button type="button" className={secondary} aria-label="Ekspor daftar barang" title="Ekspor daftar barang" onClick={() => { setExportGroup(selectedGroup || ''); setDialog('export'); setError(''); }}><FiDownload aria-hidden="true" /><span className={compact ? 'hidden min-[360px]:inline' : ''}>Ekspor</span></button>
         <AdminDialog show={dialog !== null} onClose={close} closeable={!busy} className="max-w-5xl overflow-hidden">
             <div className="max-h-[85dvh] w-full overflow-y-auto p-4 sm:p-6">
                 <div className="mb-4 flex items-start justify-between gap-3">
@@ -72,12 +72,15 @@ export default function ProductSheetTools({ selectedGroup, compact = false }) {
                 </div>
                 {error && <p role="alert" className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700 dark:bg-red-950 dark:text-red-200">{error}</p>}
                 {dialog === 'export' ? <div className="space-y-4">
-                    <p className="text-sm text-slate-600 dark:text-slate-300">Kolom tetap bahasa Indonesia. Kode Barang membantu mencocokkan barang saat diimpor kembali. Harga beli dan stok ikut tercantum.</p>
+                    <p className="text-sm text-slate-600 dark:text-slate-300">Kolom tetap bahasa Indonesia. Kode Barang membantu mencocokkan barang saat diimpor kembali. Harga beli dan stok ikut tercantum. Ekspor mengikuti grup yang dipilih di bawah.</p>
                     <div className="grid gap-4 sm:grid-cols-2">
                         <label className="text-sm">Barang yang diekspor<select className={`${control} mt-1`} value={exportGroup} onChange={event => setExportGroup(event.target.value)}><option value="">Seluruh katalog</option>{Object.entries(groups).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label>
                         <label className="text-sm">Format file<select className={`${control} mt-1`} value={format} onChange={event => setFormat(event.target.value)}><option value="xlsx">Excel (.xlsx)</option><option value="csv">CSV (.csv)</option><option value="pdf">PDF (.pdf)</option></select></label>
                     </div>
-                    <a className={`${primary} inline-block`} href={route('api.products.sheets.export', { format, ...(exportGroup ? { group: exportGroup } : {}) })}>Unduh daftar barang</a>
+                    <a className={`${primary} inline-flex min-h-11 items-center gap-2`} href={route('api.products.sheets.export', { format, ...(exportGroup ? { group: exportGroup } : {}) })}>
+                        <FiDownload aria-hidden="true" />
+                        Unduh {format === 'pdf' ? 'PDF' : format === 'csv' ? 'CSV' : 'Excel'}
+                    </a>
                 </div> : !draft ? <div className="space-y-4">
                     <p className="text-sm text-slate-600 dark:text-slate-300">Dari Google Sheets: buka <strong>File → Download → Microsoft Excel (.xlsx)</strong>. Semua tab akan ikut terbaca. Bisa juga memakai CSV UTF-8 untuk satu tab.</p>
                     <label className="block text-sm font-medium">Pilih file (maksimal 10 MB, 2.000 barang)<input type="file" accept=".xlsx,.csv" className="mt-2 block w-full text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-slate-100 file:px-3 file:py-2" onChange={event => { setFile(event.target.files?.[0] || null); setError(''); }} /></label>

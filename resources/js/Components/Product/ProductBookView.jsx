@@ -80,10 +80,10 @@ export default function ProductBookView({
                     <button
                         type="button"
                         onClick={() => onOpenEdit?.(item)}
-                        className="text-left cursor-pointer hover:underline min-w-0 flex-1 block"
+                        className="text-left cursor-pointer hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFDD00] focus-visible:ring-offset-2 min-w-0 flex-1 block"
                         title={item.name}
                     >
-                        <span className="text-xs sm:text-sm font-bold text-slate-900 truncate block">
+                        <span className="block whitespace-normal break-words text-xs sm:text-sm font-bold leading-snug text-slate-900">
                             {displayName}
                         </span>
                     </button>
@@ -108,30 +108,33 @@ export default function ProductBookView({
 
                     {/* Quick action buttons (desktop only hover) */}
                     {isDesktop && (
-                        <div className="hidden lg:flex items-center gap-0.5 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity w-14 justify-end">
+                        <div className="hidden lg:flex items-center gap-0.5 w-auto justify-end">
                             <button
                                 type="button"
                                 onClick={() => onOpenAdjust?.(item)}
                                 title="Atur Stok"
-                                className="p-1 text-slate-400 hover:text-slate-900 rounded"
+                                aria-label={`Atur stok ${item.name}`}
+                                className="flex h-8 w-8 items-center justify-center rounded text-slate-500 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFDD00]"
                             >
-                                <FiPlus size={11} />
+                                <FiPlus size={14} />
                             </button>
                             <button
                                 type="button"
                                 onClick={() => onOpenEdit?.(item)}
                                 title="Edit"
-                                className="p-1 text-slate-400 hover:text-slate-900 rounded"
+                                aria-label={`Edit ${item.name}`}
+                                className="flex h-8 w-8 items-center justify-center rounded text-slate-500 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFDD00]"
                             >
-                                <FiEdit2 size={11} />
+                                <FiEdit2 size={14} />
                             </button>
                             <button
                                 type="button"
                                 onClick={() => onDeleteProduct?.(item)}
                                 title="Hapus"
-                                className="p-1 text-slate-400 hover:text-red-600 rounded"
+                                aria-label={`Hapus ${item.name}`}
+                                className="flex h-8 w-8 items-center justify-center rounded text-slate-500 hover:bg-red-50 hover:text-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFDD00]"
                             >
-                                <FiTrash2 size={11} />
+                                <FiTrash2 size={14} />
                             </button>
                         </div>
                     )}
@@ -279,7 +282,7 @@ export default function ProductBookView({
                         color: currentPage <= 1 ? '#94a3b8' : '#ffffff',
                         borderColor: currentPage <= 1 ? '#cbd5e1' : '#19231f',
                     }}
-                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl border text-xs sm:text-sm font-bold shadow-xs transition active:scale-95 disabled:cursor-not-allowed cursor-pointer"
+                    className="flex min-h-11 items-center gap-1.5 px-4 py-2 rounded-xl border text-xs sm:text-sm font-bold shadow-xs transition active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFDD00] focus-visible:ring-offset-2 disabled:cursor-not-allowed cursor-pointer"
                 >
                     <FiChevronLeft size={18} strokeWidth={2.5} />
                     <span>Sebelumnya</span>
@@ -292,7 +295,7 @@ export default function ProductBookView({
                         color: '#19231f',
                         borderColor: '#cbd5e1',
                     }}
-                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl border text-xs sm:text-sm font-mono font-bold shadow-2xs"
+                    className="flex min-h-11 items-center gap-1.5 px-4 py-2 rounded-xl border text-xs sm:text-sm font-mono font-bold shadow-2xs tabular-nums"
                 >
                     <span>Hal.</span>
                     <span style={{ color: '#eab308' }} className="font-black text-sm">{currentPage}</span>
@@ -311,7 +314,7 @@ export default function ProductBookView({
                         color: currentPage >= totalPages ? '#94a3b8' : '#ffffff',
                         borderColor: currentPage >= totalPages ? '#cbd5e1' : '#19231f',
                     }}
-                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl border text-xs sm:text-sm font-bold shadow-xs transition active:scale-95 disabled:cursor-not-allowed cursor-pointer"
+                    className="flex min-h-11 items-center gap-1.5 px-4 py-2 rounded-xl border text-xs sm:text-sm font-bold shadow-xs transition active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFDD00] focus-visible:ring-offset-2 disabled:cursor-not-allowed cursor-pointer"
                 >
                     <span>Selanjutnya</span>
                     <FiChevronRight size={18} strokeWidth={2.5} />
