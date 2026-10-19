@@ -65,61 +65,109 @@ export default function ProductTableSkeleton({ rows = 16, fullPage = false, view
     }
     if (!activeView) activeView = 'list';
 
-    // ─── 0. Book Skeleton View (Buku Katalog 2 Halaman) ───
+    // ─── 0. Book Skeleton View (Buku Catatan Kertas Putih) ───
     const bookContent = (
-        <div className="flex-1 min-h-0 overflow-y-auto flex flex-col justify-between p-2 sm:p-4 bg-[#f3f3ed] dark:bg-[#101719]">
-            {/* Book Spine and Hardcover Frame */}
-            <div className="bg-[#17221e] rounded-xl sm:rounded-2xl p-2 sm:p-3 border-4 border-[#19231f] flex-1 flex flex-col justify-between">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-0 bg-[#fcfcf9] dark:bg-[#1a2521] rounded-lg border border-[#dedfd7] dark:border-[#2d3b33] overflow-hidden flex-1 relative">
-                    {/* Left Page */}
-                    <div className="p-3 space-y-3 border-b md:border-b-0 md:border-r border-[#dedfd7] dark:border-[#2d3b33]">
-                        <div className="flex justify-between pb-2 border-b-2 border-slate-900 dark:border-slate-100">
-                            <Skeleton className="h-4 w-28" />
-                            <Skeleton className="h-4 w-40" />
+        <div className="flex-1 min-h-0 overflow-y-auto flex flex-col justify-between p-2 sm:p-4 bg-slate-100 dark:bg-slate-800 gap-2 sm:gap-3">
+            {/* White Paper Canvas */}
+            <div className="flex-1 min-h-0 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-sm shadow-xs flex flex-col overflow-hidden">
+                {/* Header Catatan Skeleton */}
+                <div className="px-3 sm:px-5 pt-3 pb-2 border-b border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 shrink-0">
+                    <div className="flex items-center justify-between pb-1">
+                        <Skeleton className="h-3 w-28" />
+                        <Skeleton className="h-3 w-20" />
+                    </div>
+                    <div className="pt-1">
+                        <Skeleton className="h-4 w-56" />
+                    </div>
+                </div>
+
+                {/* Content Rows */}
+                <div className="flex-1 overflow-hidden">
+                    {/* Mobile: 1 Column */}
+                    <div className="block md:hidden">
+                        <div className="flex items-center justify-between px-2.5 py-1.5 border-b border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
+                            <Skeleton className="h-3 w-24" />
+                            <div className="flex gap-3">
+                                <Skeleton className="h-3 w-10" />
+                                <Skeleton className="h-3 w-14" />
+                            </div>
                         </div>
-                        {Array.from({ length: 6 }).map((_, i) => (
-                            <div key={i} className="flex items-center gap-3 py-1.5 border-b border-slate-100 dark:border-slate-800">
-                                <Skeleton className="h-10 w-10 sm:h-12 sm:w-12 rounded-md shrink-0" />
-                                <div className="space-y-1.5 flex-1 min-w-0">
-                                    <Skeleton className="h-4 w-3/4" />
-                                    <div className="flex gap-1.5">
-                                        <Skeleton className="h-3 w-16" />
-                                        <Skeleton className="h-3 w-14" />
-                                    </div>
+                        {Array.from({ length: 12 }).map((_, i) => (
+                            <div key={i} className="flex items-center justify-between py-2 px-2 border-b border-slate-200 dark:border-slate-800">
+                                <div className="flex items-center gap-2 flex-1">
+                                    <Skeleton className="h-3 w-5" />
+                                    <Skeleton className="h-3.5 w-44 sm:w-56" />
                                 </div>
-                                <Skeleton className="h-8 w-20 rounded-md shrink-0" />
+                                <div className="flex items-center gap-2">
+                                    <Skeleton className="h-3 w-12" />
+                                    <Skeleton className="h-3.5 w-18" />
+                                </div>
                             </div>
                         ))}
                     </div>
 
-                    {/* Right Page */}
-                    <div className="hidden md:block p-3 space-y-3">
-                        <div className="flex justify-between pb-2 border-b-2 border-slate-900 dark:border-slate-100">
-                            <Skeleton className="h-4 w-40" />
-                            <Skeleton className="h-4 w-28" />
-                        </div>
-                        {Array.from({ length: 6 }).map((_, i) => (
-                            <div key={i} className="flex items-center gap-3 py-1.5 border-b border-slate-100 dark:border-slate-800">
-                                <Skeleton className="h-10 w-10 sm:h-12 sm:w-12 rounded-md shrink-0" />
-                                <div className="space-y-1.5 flex-1 min-w-0">
-                                    <Skeleton className="h-4 w-3/4" />
-                                    <div className="flex gap-1.5">
-                                        <Skeleton className="h-3 w-16" />
-                                        <Skeleton className="h-3 w-14" />
+                    {/* Desktop: 2 Columns */}
+                    <div className="hidden md:flex min-h-full divide-x divide-slate-300 dark:divide-slate-700">
+                        {/* Left Column */}
+                        <div className="flex-1 flex flex-col min-w-0">
+                            <div className="flex items-center justify-between px-3 py-1.5 border-b border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
+                                <Skeleton className="h-3 w-24" />
+                                <div className="flex gap-3 pr-2 lg:pr-14">
+                                    <Skeleton className="h-3 w-12" />
+                                    <Skeleton className="h-3 w-16" />
+                                </div>
+                            </div>
+                            {Array.from({ length: 12 }).map((_, i) => (
+                                <div key={i} className="flex items-center justify-between py-2 px-3 border-b border-slate-200 dark:border-slate-800">
+                                    <div className="flex items-center gap-2 flex-1">
+                                        <Skeleton className="h-3 w-5" />
+                                        <Skeleton className="h-3.5 w-48" />
+                                    </div>
+                                    <div className="flex items-center gap-3 pr-2 lg:pr-14">
+                                        <Skeleton className="h-3 w-12" />
+                                        <Skeleton className="h-3.5 w-18" />
                                     </div>
                                 </div>
-                                <Skeleton className="h-8 w-20 rounded-md shrink-0" />
+                            ))}
+                        </div>
+
+                        {/* Right Column */}
+                        <div className="flex-1 flex flex-col min-w-0">
+                            <div className="flex items-center justify-between px-3 py-1.5 border-b border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
+                                <Skeleton className="h-3 w-24" />
+                                <div className="flex gap-3 pr-2 lg:pr-14">
+                                    <Skeleton className="h-3 w-12" />
+                                    <Skeleton className="h-3 w-16" />
+                                </div>
                             </div>
-                        ))}
+                            {Array.from({ length: 12 }).map((_, i) => (
+                                <div key={i} className="flex items-center justify-between py-2 px-3 border-b border-slate-200 dark:border-slate-800">
+                                    <div className="flex items-center gap-2 flex-1">
+                                        <Skeleton className="h-3 w-5" />
+                                        <Skeleton className="h-3.5 w-48" />
+                                    </div>
+                                    <div className="flex items-center gap-3 pr-2 lg:pr-14">
+                                        <Skeleton className="h-3 w-12" />
+                                        <Skeleton className="h-3.5 w-18" />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </div>
 
-                {/* Book Navigation Footer */}
-                <div className="mt-3 flex items-center justify-between gap-2">
-                    <Skeleton className="h-9 w-36 rounded-xl" />
-                    <Skeleton className="h-7 w-28 rounded-xl" />
-                    <Skeleton className="h-9 w-36 rounded-xl" />
+                {/* Footer Skeleton */}
+                <div className="px-3 sm:px-5 py-2 border-t border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex justify-between shrink-0">
+                    <Skeleton className="h-3 w-36" />
+                    <Skeleton className="h-3 w-28 hidden sm:block" />
                 </div>
+            </div>
+
+            {/* Navigation Pager Skeleton */}
+            <div className="shrink-0 flex items-center justify-center gap-3 sm:gap-6 py-1">
+                <Skeleton className="h-9 w-28 rounded-md" />
+                <Skeleton className="h-9 w-20 rounded-md" />
+                <Skeleton className="h-9 w-28 rounded-md" />
             </div>
         </div>
     );

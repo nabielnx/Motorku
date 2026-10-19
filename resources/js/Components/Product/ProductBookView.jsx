@@ -1,4 +1,4 @@
-import React, { useRef, useCallback, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { FiChevronLeft, FiChevronRight, FiPlus, FiEdit2, FiTrash2 } from 'react-icons/fi';
 import { formatSimpleName } from '@/Utils/productBookFormatter';
 
@@ -7,10 +7,10 @@ import { formatSimpleName } from '@/Utils/productBookFormatter';
  *
  * Persis seperti buku catatan fisik ayah:
  * - Kertas putih bersih (canvas putih), tulisan tinta hitam
- * - Garis-garis horizontal bergaris buku tulis
+ * - Garis-garis tipis bergaris buku tulis (stroke tipis 1px, bukan tebal)
  * - Mobile: 1 kolom penuh agar nama barang selalu terbaca jelas & tidak terhimpit
- * - Desktop: 2 kolom (kiri & kanan) dipisah garis tengah vertikal
- * - Setiap baris 1 garis lurus: Nomor | Nama Barang Simple | Stok | Harga
+ * - Desktop: 2 kolom (kiri & kanan) dipisah garis tipis tengah vertikal
+ * - Tombol navigasi halaman solid, jelas, dan kontras tinggi
  */
 export default function ProductBookView({
     items = [],
@@ -25,32 +25,21 @@ export default function ProductBookView({
     selectedCategory = '',
     searchQuery = '',
 }) {
-    const busy = useRef(false);
-
-    const goPage = useCallback((dir) => {
-        if (busy.current) return;
-        if (dir === 'next' && currentPage >= totalPages) return;
-        if (dir === 'prev' && currentPage <= 1) return;
-        busy.current = true;
-        onPageChange(dir === 'next' ? currentPage + 1 : currentPage - 1);
-        setTimeout(() => { busy.current = false; }, 180);
-    }, [currentPage, totalPages, onPageChange]);
-
     useEffect(() => {
         const handleKeyDown = (e) => {
             if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
             if (e.key === 'ArrowRight' || e.key === 'PageDown') {
                 e.preventDefault();
-                goPage('next');
+                if (currentPage < totalPages) onPageChange(currentPage + 1);
             }
             if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
                 e.preventDefault();
-                goPage('prev');
+                if (currentPage > 1) onPageChange(currentPage - 1);
             }
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [goPage]);
+    }, [currentPage, totalPages, onPageChange]);
 
     // Tanggal hari ini format buku catatan (misal: 19/10/2026)
     const todayDate = new Date().toLocaleDateString('id-ID', {
@@ -72,7 +61,7 @@ export default function ProductBookView({
     const rightItems = items.slice(half, perPage);
     const globalOffset = (currentPage - 1) * perPage;
 
-    /* Baris 1 Garis Lurus (Sesuai Garis Buku Tulis) */
+    /* Baris 1 Garis Lurus (Sesuai Garis Buku Tulis Tipis) */
     const BookRow = ({ item, no, isDesktop = false }) => {
         const habis = Number(item.stock) <= 0;
         const kritis = !habis && Number(item.stock) <= (item.minimum_stock ?? 3);
@@ -152,12 +141,12 @@ export default function ProductBookView({
 
     return (
         <div className="flex flex-col flex-1 min-h-0 p-2 sm:p-4 gap-2 sm:gap-3 bg-slate-100 dark:bg-slate-800">
-            {/* ── BUKU CATATAN (CANVAS PUTIH TINTA HITAM) ── */}
+            {/* ── BUKU CATATAN (CANVAS PUTIH TINTA HITAM - STROKE TIPIS 1PX) ── */}
             <div
-                className="flex-1 min-h-0 bg-white border-2 border-slate-900 rounded-sm shadow-md flex flex-col overflow-hidden"
+                className="flex-1 min-h-0 bg-white border border-slate-300 rounded-sm shadow-xs flex flex-col overflow-hidden"
             >
                 {/* ── HEADER CATATAN BUKU ── */}
-                <div className="shrink-0 px-3 sm:px-5 pt-3 pb-2 border-b-2 border-slate-900 bg-white">
+                <div className="shrink-0 px-3 sm:px-5 pt-3 pb-2 border-b border-slate-300 bg-white">
                     {/* Baris Atas: Date & Nomor Halaman */}
                     <div className="flex items-center justify-between text-[11px] font-mono text-slate-600 pb-1">
                         <span className="font-bold text-slate-800">
@@ -170,7 +159,7 @@ export default function ProductBookView({
 
                     {/* Baris Judul: Tinta Hitam Bold Huruf Kapital */}
                     <div className="text-center sm:text-left pt-1">
-                        <h2 className="text-sm sm:text-base font-black tracking-wider text-slate-900 font-heading uppercase">
+                        <h2 className="text-sm sm:text-base font-bold tracking-wider text-slate-900 font-heading uppercase">
                             {bookTitle}
                         </h2>
                     </div>
@@ -181,7 +170,7 @@ export default function ProductBookView({
                     {/* 1. TAMPILAN MOBILE (1 Kolom Lega: Nama Barang Jelas & Ringkas) */}
                     <div className="block md:hidden">
                         {/* Header Kolom Mobile */}
-                        <div className="flex items-center justify-between px-2.5 py-1.5 border-b-2 border-slate-900 bg-slate-100 text-[10px] font-black uppercase tracking-wider text-slate-700">
+                        <div className="flex items-center justify-between px-2.5 py-1.5 border-b border-slate-300 bg-slate-50 text-[10px] font-bold uppercase tracking-wider text-slate-600">
                             <span className="pl-6">Nama Barang</span>
                             <div className="flex items-center gap-3 pr-1">
                                 <span>Stok</span>
@@ -206,10 +195,10 @@ export default function ProductBookView({
                     </div>
 
                     {/* 2. TAMPILAN DESKTOP (2 Kolom Kiri & Kanan Berdampingan) */}
-                    <div className="hidden md:flex min-h-full divide-x-2 divide-slate-900">
+                    <div className="hidden md:flex min-h-full divide-x divide-slate-300">
                         {/* Kolom Kiri */}
                         <div className="flex-1 flex flex-col min-w-0">
-                            <div className="flex items-center justify-between px-3 py-1.5 border-b-2 border-slate-900 bg-slate-100 text-[10px] font-black uppercase tracking-wider text-slate-700">
+                            <div className="flex items-center justify-between px-3 py-1.5 border-b border-slate-300 bg-slate-50 text-[10px] font-bold uppercase tracking-wider text-slate-600">
                                 <span className="pl-7">Nama Barang</span>
                                 <div className="flex items-center gap-3 pr-2 lg:pr-14">
                                     <span className="w-14 text-right">Stok</span>
@@ -233,7 +222,7 @@ export default function ProductBookView({
 
                         {/* Kolom Kanan */}
                         <div className="flex-1 flex flex-col min-w-0">
-                            <div className="flex items-center justify-between px-3 py-1.5 border-b-2 border-slate-900 bg-slate-100 text-[10px] font-black uppercase tracking-wider text-slate-700">
+                            <div className="flex items-center justify-between px-3 py-1.5 border-b border-slate-300 bg-slate-50 text-[10px] font-bold uppercase tracking-wider text-slate-600">
                                 <span className="pl-7">Nama Barang</span>
                                 <div className="flex items-center gap-3 pr-2 lg:pr-14">
                                     <span className="w-14 text-right">Stok</span>
@@ -258,7 +247,7 @@ export default function ProductBookView({
                 </div>
 
                 {/* ── FOOTER HALAMAN BUKU ── */}
-                <div className="shrink-0 px-3 sm:px-5 py-2 border-t-2 border-slate-900 bg-slate-50 flex items-center justify-between">
+                <div className="shrink-0 px-3 sm:px-5 py-2 border-t border-slate-300 bg-slate-50 flex items-center justify-between">
                     <span className="text-[10px] font-medium text-slate-600">
                         {items.length > 0 ? (
                             <>
@@ -274,32 +263,52 @@ export default function ProductBookView({
                 </div>
             </div>
 
-            {/* ── NAVIGASI HALAMAN (BESAR & JELAS UNTUK ORANG TUA) ── */}
+            {/* ── NAVIGASI HALAMAN (TOMBOL SOLID, JELAS, BEBAS DARI OVERRIDE CSS) ── */}
             <div className="shrink-0 flex items-center justify-center gap-3 sm:gap-6 py-1">
+                {/* Tombol Sebelumnya */}
                 <button
                     type="button"
-                    onClick={() => goPage('prev')}
+                    onClick={() => onPageChange(currentPage - 1)}
                     disabled={currentPage <= 1}
-                    className="flex items-center gap-1 sm:gap-2 px-3 sm:px-5 py-2 bg-slate-900 text-white hover:bg-black disabled:opacity-30 disabled:cursor-not-allowed rounded-md font-bold text-xs sm:text-sm transition shadow-sm cursor-pointer"
                     aria-label="Balik halaman sebelumnya"
+                    style={{
+                        backgroundColor: currentPage <= 1 ? '#e2e8f0' : '#19231f',
+                        color: currentPage <= 1 ? '#94a3b8' : '#ffffff',
+                        borderColor: currentPage <= 1 ? '#cbd5e1' : '#19231f',
+                    }}
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-md border text-xs sm:text-sm font-bold shadow-xs transition active:scale-95 disabled:cursor-not-allowed cursor-pointer"
                 >
                     <FiChevronLeft size={18} strokeWidth={2.5} />
                     <span>Sebelumnya</span>
                 </button>
 
-                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-300 rounded-md font-mono text-xs sm:text-sm font-black text-slate-900 shadow-2xs">
+                {/* Indikator Halaman */}
+                <div
+                    style={{
+                        backgroundColor: '#ffffff',
+                        color: '#19231f',
+                        borderColor: '#cbd5e1',
+                    }}
+                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-md border text-xs sm:text-sm font-mono font-bold shadow-2xs"
+                >
                     <span>Hal.</span>
-                    <span className="text-amber-600">{currentPage}</span>
-                    <span className="text-slate-400">/</span>
+                    <span style={{ color: '#d97706' }}>{currentPage}</span>
+                    <span style={{ color: '#94a3b8' }}>/</span>
                     <span>{totalPages}</span>
                 </div>
 
+                {/* Tombol Selanjutnya */}
                 <button
                     type="button"
-                    onClick={() => goPage('next')}
+                    onClick={() => onPageChange(currentPage + 1)}
                     disabled={currentPage >= totalPages}
-                    className="flex items-center gap-1 sm:gap-2 px-3 sm:px-5 py-2 bg-slate-900 text-white hover:bg-black disabled:opacity-30 disabled:cursor-not-allowed rounded-md font-bold text-xs sm:text-sm transition shadow-sm cursor-pointer"
                     aria-label="Buka halaman selanjutnya"
+                    style={{
+                        backgroundColor: currentPage >= totalPages ? '#e2e8f0' : '#19231f',
+                        color: currentPage >= totalPages ? '#94a3b8' : '#ffffff',
+                        borderColor: currentPage >= totalPages ? '#cbd5e1' : '#19231f',
+                    }}
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-md border text-xs sm:text-sm font-bold shadow-xs transition active:scale-95 disabled:cursor-not-allowed cursor-pointer"
                 >
                     <span>Selanjutnya</span>
                     <FiChevronRight size={18} strokeWidth={2.5} />
