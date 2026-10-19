@@ -51,7 +51,7 @@ function ProductGridCardSkeleton() {
  *
  * @param {number} rows - Number of skeleton rows / cards to render.
  * @param {boolean} fullPage - If true, wraps with full card frame and filter header.
- * @param {'grid'|'list'} viewMode - View mode ('grid' for card grid, 'list' for table).
+ * @param {'grid'|'list'|'book'} viewMode - View mode ('grid' for card grid, 'list' for table, 'book' for catalog book).
  */
 export default function ProductTableSkeleton({ rows = 16, fullPage = false, viewMode }) {
     // Resolve active viewMode: prop -> localStorage -> default 'list'
@@ -64,6 +64,65 @@ export default function ProductTableSkeleton({ rows = 16, fullPage = false, view
         }
     }
     if (!activeView) activeView = 'list';
+
+    // ─── 0. Book Skeleton View (Buku Katalog 2 Halaman) ───
+    const bookContent = (
+        <div className="flex-1 min-h-0 overflow-y-auto flex flex-col justify-between p-2 sm:p-4 bg-[#f3f3ed] dark:bg-[#101719]">
+            {/* Book Spine and Hardcover Frame */}
+            <div className="bg-[#17221e] rounded-xl sm:rounded-2xl p-2 sm:p-3 border-4 border-[#19231f] flex-1 flex flex-col justify-between">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-0 bg-[#fcfcf9] dark:bg-[#1a2521] rounded-lg border border-[#dedfd7] dark:border-[#2d3b33] overflow-hidden flex-1 relative">
+                    {/* Left Page */}
+                    <div className="p-3 space-y-3 border-b md:border-b-0 md:border-r border-[#dedfd7] dark:border-[#2d3b33]">
+                        <div className="flex justify-between pb-2 border-b-2 border-slate-900 dark:border-slate-100">
+                            <Skeleton className="h-4 w-28" />
+                            <Skeleton className="h-4 w-40" />
+                        </div>
+                        {Array.from({ length: 6 }).map((_, i) => (
+                            <div key={i} className="flex items-center gap-3 py-1.5 border-b border-slate-100 dark:border-slate-800">
+                                <Skeleton className="h-10 w-10 sm:h-12 sm:w-12 rounded-md shrink-0" />
+                                <div className="space-y-1.5 flex-1 min-w-0">
+                                    <Skeleton className="h-4 w-3/4" />
+                                    <div className="flex gap-1.5">
+                                        <Skeleton className="h-3 w-16" />
+                                        <Skeleton className="h-3 w-14" />
+                                    </div>
+                                </div>
+                                <Skeleton className="h-8 w-20 rounded-md shrink-0" />
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Right Page */}
+                    <div className="hidden md:block p-3 space-y-3">
+                        <div className="flex justify-between pb-2 border-b-2 border-slate-900 dark:border-slate-100">
+                            <Skeleton className="h-4 w-40" />
+                            <Skeleton className="h-4 w-28" />
+                        </div>
+                        {Array.from({ length: 6 }).map((_, i) => (
+                            <div key={i} className="flex items-center gap-3 py-1.5 border-b border-slate-100 dark:border-slate-800">
+                                <Skeleton className="h-10 w-10 sm:h-12 sm:w-12 rounded-md shrink-0" />
+                                <div className="space-y-1.5 flex-1 min-w-0">
+                                    <Skeleton className="h-4 w-3/4" />
+                                    <div className="flex gap-1.5">
+                                        <Skeleton className="h-3 w-16" />
+                                        <Skeleton className="h-3 w-14" />
+                                    </div>
+                                </div>
+                                <Skeleton className="h-8 w-20 rounded-md shrink-0" />
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Book Navigation Footer */}
+                <div className="mt-3 flex items-center justify-between gap-2">
+                    <Skeleton className="h-9 w-36 rounded-xl" />
+                    <Skeleton className="h-7 w-28 rounded-xl" />
+                    <Skeleton className="h-9 w-36 rounded-xl" />
+                </div>
+            </div>
+        </div>
+    );
 
     // ─── 1. Grid Skeleton View (Kotak-kotak) ───
     const gridContent = (
@@ -191,7 +250,7 @@ export default function ProductTableSkeleton({ rows = 16, fullPage = false, view
         </div>
     );
 
-    const activeContent = activeView === 'grid' ? gridContent : tableContent;
+    const activeContent = activeView === 'book' ? bookContent : (activeView === 'grid' ? gridContent : tableContent);
 
     if (!fullPage) {
         return <SkeletonWrapper>{activeContent}</SkeletonWrapper>;
@@ -231,8 +290,9 @@ export default function ProductTableSkeleton({ rows = 16, fullPage = false, view
                         {/* View toggle and status filter */}
                         <div className="flex flex-row items-center gap-1 shrink-0">
                             <Skeleton className="h-7 w-12 sm:hidden" />
-                            {/* View Toggle (Grid / List) */}
+                            {/* View Toggle (Grid / List / Book) */}
                             <div className="inline-flex items-center bg-white dark:bg-slate-800 p-0.5 rounded-lg border border-slate-300 dark:border-slate-700 shadow-2xs">
+                                <Skeleton className="w-7 h-7 rounded-md" />
                                 <Skeleton className="w-7 h-7 rounded-md" />
                                 <Skeleton className="w-7 h-7 rounded-md" />
                             </div>
