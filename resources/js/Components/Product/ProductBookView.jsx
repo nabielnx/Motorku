@@ -1,16 +1,15 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useRef, useCallback, useEffect } from 'react';
 import { FiChevronLeft, FiChevronRight, FiPlus, FiEdit2, FiTrash2 } from 'react-icons/fi';
 
 /**
- * ProductBookView — Price list buku kertas putih
+ * ProductBookView — Catatan Buku Harga Bengkel
  *
- * Persis seperti print-out price list / buku katalog bengkel:
- * - Kertas putih bersih, tinta hitam, tanpa hiasan
- * - 2 kolom berjejer (kiri & kanan), setiap kolom isi nama + stok + harga
- * - Garis tipis horizontal antar baris
- * - Garis tipis vertikal pemisah kolom
- * - Nomor halaman di bawah
- * - Navigasi sederhana ← Hal. X →
+ * Persis seperti buku catatan harga ayah:
+ * - Kertas putih dengan garis-garis horizontal tipis
+ * - Dua kolom (kiri & kanan) dipisah garis vertikal
+ * - Setiap baris: Nama Barang ........... Harga
+ * - Stok kecil di bawah nama
+ * - Tidak ada kotak, border, atau warna — cuma garis
  */
 export default function ProductBookView({
     items = [],
@@ -23,170 +22,172 @@ export default function ProductBookView({
     onOpenEdit,
     onDeleteProduct,
 }) {
-    const isAnimating = useRef(false);
+    const busy = useRef(false);
 
-    const changePage = useCallback((dir) => {
-        if (isAnimating.current) return;
+    const goPage = useCallback((dir) => {
+        if (busy.current) return;
         if (dir === 'next' && currentPage >= totalPages) return;
         if (dir === 'prev' && currentPage <= 1) return;
-        isAnimating.current = true;
+        busy.current = true;
         onPageChange(dir === 'next' ? currentPage + 1 : currentPage - 1);
-        setTimeout(() => { isAnimating.current = false; }, 200);
+        setTimeout(() => { busy.current = false; }, 150);
     }, [currentPage, totalPages, onPageChange]);
 
     useEffect(() => {
-        const onKey = (e) => {
+        const h = (e) => {
             if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
-            if (e.key === 'ArrowRight' || e.key === 'PageDown') { e.preventDefault(); changePage('next'); }
-            if (e.key === 'ArrowLeft'  || e.key === 'PageUp')   { e.preventDefault(); changePage('prev'); }
+            if (e.key === 'ArrowRight' || e.key === 'PageDown') { e.preventDefault(); goPage('next'); }
+            if (e.key === 'ArrowLeft'  || e.key === 'PageUp')   { e.preventDefault(); goPage('prev'); }
         };
-        window.addEventListener('keydown', onKey);
-        return () => window.removeEventListener('keydown', onKey);
-    }, [changePage]);
+        window.addEventListener('keydown', h);
+        return () => window.removeEventListener('keydown', h);
+    }, [goPage]);
 
-    const formatRp = (n) => 'Rp ' + Number(n).toLocaleString('id-ID');
+    const rp = (n) => 'Rp ' + Number(n).toLocaleString('id-ID');
 
-    // 2 kolom, masing-masing setengah dari perPage
-    const half       = Math.ceil(perPage / 2);
-    const leftItems  = items.slice(0, half);
-    const rightItems = items.slice(half, perPage);
+    const half         = Math.ceil(perPage / 2);
+    const leftItems    = items.slice(0, half);
+    const rightItems   = items.slice(half, perPage);
     const globalOffset = (currentPage - 1) * perPage;
 
-    // Render 1 baris item
-    const Row = ({ item, rowNo }) => {
-        const isHabis  = Number(item.stock) <= 0;
-        const isKritis = !isHabis && Number(item.stock) <= (item.minimum_stock ?? 3);
-        const stockLabel = isHabis ? 'HABIS' : `${item.stock} pcs`;
+    /* Satu baris catatan */
+    const Row = ({ item, no }) => {
+        const habis  = Number(item.stock) <= 0;
+        const kritis = !habis && Number(item.stock) <= (item.minimum_stock ?? 3);
 
         return (
-            <div className="group flex items-start gap-1.5 border-b border-black py-1.5 px-1 hover:bg-gray-50 transition-colors">
-                {/* Nomor urut */}
-                <span className="shrink-0 w-5 text-right text-xs font-mono text-gray-500 pt-px">
-                    {rowNo}.
+            <div
+                className="group flex items-baseline border-b border-gray-200 hover:bg-yellow-50 transition-colors"
+                style={{ minHeight: 36 }}
+            >
+                {/* Nomor */}
+                <span className="shrink-0 w-6 text-right text-[11px] text-gray-400 font-mono pr-1.5 pt-2 pb-1 self-start">
+                    {no}.
                 </span>
 
-                {/* Nama produk */}
-                <button
-                    type="button"
-                    onClick={() => onOpenEdit?.(item)}
-                    className="min-w-0 flex-1 text-left cursor-pointer hover:underline"
-                >
-                    <span className="block text-xs font-bold text-black leading-tight line-clamp-2">
-                        {item.name}
-                    </span>
-                    {item.category && (
-                        <span className="block text-[10px] text-gray-500 leading-tight mt-0.5">
-                            {item.category}
+                {/* Nama + stok kecil */}
+                <div className="flex-1 min-w-0 py-1.5 pr-2 self-start">
+                    <button
+                        type="button"
+                        onClick={() => onOpenEdit?.(item)}
+                        className="block text-left w-full cursor-pointer hover:underline"
+                    >
+                        <span className="block text-[13px] font-semibold text-gray-900 leading-snug truncate">
+                            {item.name}
                         </span>
-                    )}
-                </button>
+                    </button>
+                    <span className={`text-[10px] ${
+                        habis  ? 'text-red-500 font-bold' :
+                        kritis ? 'text-amber-600' :
+                                 'text-gray-400'
+                    }`}>
+                        {habis ? 'Habis' : `${item.stock} pcs`}
+                    </span>
+                </div>
 
-                {/* Stok */}
-                <span className={`shrink-0 text-[10px] font-semibold w-12 text-right leading-tight pt-px ${
-                    isHabis  ? 'text-red-600 font-black' :
-                    isKritis ? 'text-amber-600 font-bold' :
-                               'text-gray-500'
-                }`}>
-                    {stockLabel}
-                </span>
+                {/* Harga — kanan, bold */}
+                <div className="shrink-0 text-right py-1.5 pl-1">
+                    <span className="text-[13px] font-bold text-gray-900 font-mono whitespace-nowrap">
+                        {rp(item.price)}
+                    </span>
+                </div>
 
-                {/* Harga — paling kanan, paling menonjol */}
-                <span className="shrink-0 text-xs font-black text-black text-right leading-tight pt-px whitespace-nowrap">
-                    {formatRp(item.price)}
-                </span>
-
-                {/* Aksi singkat — muncul hover */}
-                <div className="shrink-0 opacity-0 group-hover:opacity-100 focus-within:opacity-100 flex items-center gap-0.5 transition-opacity ml-0.5">
-                    <button type="button" onClick={() => onOpenAdjust?.(item)}    className="p-0.5 text-gray-400 hover:text-black"><FiPlus   size={10}/></button>
-                    <button type="button" onClick={() => onOpenEdit?.(item)}      className="p-0.5 text-gray-400 hover:text-black"><FiEdit2  size={10}/></button>
-                    <button type="button" onClick={() => onDeleteProduct?.(item)} className="p-0.5 text-gray-400 hover:text-red-600"><FiTrash2 size={10}/></button>
+                {/* Aksi hover */}
+                <div className="shrink-0 flex items-center gap-px pl-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity self-start pt-1.5">
+                    <button type="button" onClick={() => onOpenAdjust?.(item)}    title="Stok"  className="p-1 text-gray-300 hover:text-gray-700"><FiPlus   size={10}/></button>
+                    <button type="button" onClick={() => onOpenEdit?.(item)}      title="Edit"  className="p-1 text-gray-300 hover:text-gray-700"><FiEdit2  size={10}/></button>
+                    <button type="button" onClick={() => onDeleteProduct?.(item)} title="Hapus" className="p-1 text-gray-300 hover:text-red-500"><FiTrash2 size={10}/></button>
                 </div>
             </div>
         );
     };
 
-    // Satu kolom halaman (kiri / kanan)
-    const Column = ({ colItems, startIndex }) => (
-        <div className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden">
-            {/* Header kolom */}
-            <div className="flex items-center gap-1.5 border-b-2 border-black px-1 py-1 bg-gray-100">
-                <span className="w-5" />
-                <span className="flex-1 text-[10px] font-black uppercase tracking-wider text-black">Nama Produk</span>
-                <span className="w-12 text-right text-[10px] font-black uppercase tracking-wider text-black">Stok</span>
-                <span className="text-right text-[10px] font-black uppercase tracking-wider text-black">Harga Jual</span>
-                <span className="w-5" />
+    /* Satu kolom (kiri / kanan) */
+    const Col = ({ colItems, startNo }) => (
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+            {/* Sub-header kolom */}
+            <div className="flex items-baseline border-b-2 border-gray-800 pb-1 mb-0">
+                <span className="flex-1 text-[10px] font-black uppercase tracking-widest text-gray-700 pl-7">Nama Barang</span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-gray-700 pr-1">Harga</span>
+                <span className="w-[68px]" />
             </div>
-
-            {/* Baris item */}
-            <div className="flex-1 min-h-0 overflow-y-auto">
-                {colItems.map((item, idx) => (
-                    <Row key={item.id} item={item} rowNo={startIndex + idx} />
+            {/* Baris */}
+            <div className="flex-1 overflow-y-auto overflow-x-hidden">
+                {colItems.map((item, i) => (
+                    <Row key={item.id} item={item} no={startNo + i} />
                 ))}
-                {/* Baris kosong bergaris — seperti kertas buku bergarid */}
+                {/* Baris kosong bergaris */}
                 {Array.from({ length: Math.max(0, half - colItems.length) }).map((_, i) => (
-                    <div key={`blank-${i}`} className="border-b border-gray-300 py-1.5 px-1 h-[36px]" />
+                    <div key={`e${i}`} className="border-b border-gray-200" style={{ height: 36 }} />
                 ))}
             </div>
         </div>
     );
 
     return (
-        <div className="flex flex-col flex-1 min-h-0 bg-gray-200 dark:bg-gray-700 p-2 sm:p-4 gap-2 sm:gap-3">
+        <div className="flex flex-col flex-1 min-h-0 p-3 sm:p-5 gap-2 sm:gap-3 bg-gray-100 dark:bg-gray-800">
 
-            {/* ── BUKU — LEMBAR KERTAS PUTIH ── */}
-            <div className="flex-1 min-h-0 bg-white border border-gray-400 shadow-[4px_4px_0_0_rgba(0,0,0,0.12)] flex flex-col overflow-hidden">
+            {/* Kertas putih */}
+            <div className="flex-1 min-h-0 bg-white flex flex-col overflow-hidden"
+                 style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}>
 
-                {/* Judul / Header buku */}
-                <div className="shrink-0 border-b-2 border-black px-3 py-2 flex items-baseline justify-between">
-                    <span className="text-xs font-black uppercase tracking-widest text-black">
-                        Motorku · Daftar Harga Suku Cadang
+                {/* Kepala halaman — persis seperti nulis di buku */}
+                <div className="shrink-0 px-4 pt-3 pb-1 border-b-2 border-gray-800 flex items-baseline justify-between">
+                    <span className="text-[11px] font-black uppercase tracking-widest text-gray-700">
+                        Daftar Harga Suku Cadang — Motorku
                     </span>
-                    <span className="text-xs font-mono font-semibold text-gray-600">
-                        Hal. {currentPage} / {totalPages}
+                    <span className="text-[11px] font-mono font-semibold text-gray-500 whitespace-nowrap">
+                        {currentPage}/{totalPages}
                     </span>
                 </div>
 
-                {/* Dua kolom konten */}
-                <div className="flex-1 min-h-0 flex flex-row divide-x-2 divide-black overflow-hidden">
-                    <Column colItems={leftItems}  startIndex={globalOffset + 1} />
-                    <Column colItems={rightItems} startIndex={globalOffset + half + 1} />
+                {/* Dua kolom dipisah garis vertikal */}
+                <div className="flex-1 min-h-0 flex overflow-hidden px-1">
+                    <div className="flex-1 min-w-0 flex flex-col overflow-hidden px-2 sm:px-3 py-1">
+                        <Col colItems={leftItems}  startNo={globalOffset + 1} />
+                    </div>
+
+                    {/* Garis pembatas vertikal */}
+                    <div className="shrink-0 w-px bg-gray-300 my-2" />
+
+                    <div className="flex-1 min-w-0 flex flex-col overflow-hidden px-2 sm:px-3 py-1">
+                        <Col colItems={rightItems} startNo={globalOffset + half + 1} />
+                    </div>
                 </div>
 
-                {/* Footer: total produk + info */}
-                <div className="shrink-0 border-t border-gray-300 px-3 py-1.5 flex items-center justify-between">
-                    <span className="text-[10px] text-gray-500 italic">
-                        Menampilkan {((currentPage - 1) * perPage) + 1}–{Math.min(currentPage * perPage, totalProducts)} dari {totalProducts} produk
-                    </span>
+                {/* Kaki halaman */}
+                <div className="shrink-0 px-4 py-1.5 border-t border-gray-200 flex items-center justify-between">
                     <span className="text-[10px] text-gray-400 italic">
-                        *Harga dapat berubah
+                        {((currentPage-1)*perPage)+1}–{Math.min(currentPage*perPage, totalProducts)} dari {totalProducts} barang
                     </span>
+                    <span className="text-[10px] text-gray-300 italic">*harga dapat berubah</span>
                 </div>
             </div>
 
-            {/* ── NAVIGASI — BAWAH BUKU ── */}
-            <div className="shrink-0 flex items-center justify-center gap-4">
+            {/* Navigasi bawah — minimal */}
+            <div className="shrink-0 flex items-center justify-center gap-5">
                 <button
                     type="button"
-                    onClick={() => changePage('prev')}
+                    onClick={() => goPage('prev')}
                     disabled={currentPage <= 1}
-                    className="p-1.5 disabled:opacity-30 disabled:cursor-not-allowed text-black hover:text-gray-600 transition cursor-pointer"
-                    aria-label="Halaman sebelumnya"
+                    className="disabled:opacity-25 disabled:cursor-not-allowed text-gray-600 hover:text-black transition cursor-pointer"
+                    aria-label="Sebelumnya"
                 >
-                    <FiChevronLeft size={22} strokeWidth={2.5} />
+                    <FiChevronLeft size={20} strokeWidth={2.5} />
                 </button>
 
-                <span className="text-sm font-black text-black tracking-widest uppercase">
-                    Hal {currentPage}
+                <span className="text-sm font-black text-gray-800 tracking-widest">
+                    Hal. {currentPage}
                 </span>
 
                 <button
                     type="button"
-                    onClick={() => changePage('next')}
+                    onClick={() => goPage('next')}
                     disabled={currentPage >= totalPages}
-                    className="p-1.5 disabled:opacity-30 disabled:cursor-not-allowed text-black hover:text-gray-600 transition cursor-pointer"
-                    aria-label="Halaman berikutnya"
+                    className="disabled:opacity-25 disabled:cursor-not-allowed text-gray-600 hover:text-black transition cursor-pointer"
+                    aria-label="Selanjutnya"
                 >
-                    <FiChevronRight size={22} strokeWidth={2.5} />
+                    <FiChevronRight size={20} strokeWidth={2.5} />
                 </button>
             </div>
         </div>
