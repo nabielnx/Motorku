@@ -49,7 +49,7 @@ class ProductService
             default => $query->latest(),
         };
 
-        return $query->paginate(in_array($perPage, [16, 18, 20], true) ? $perPage : 16)->withQueryString();
+        return $query->paginate(in_array($perPage, [14, 16, 18, 20, 24], true) ? $perPage : 16)->withQueryString();
     }
 
     public function getAllProducts($perPage = null, $search = null, $stockStatus = null)
