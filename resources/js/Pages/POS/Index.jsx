@@ -787,8 +787,26 @@ return (
 
                     {/* Customer & Order Settings */}
                     <div className="pos-cart-header admin-section-header p-3.5 border-b border-slate-300 dark:border-slate-800 space-y-2 bg-slate-50 dark:bg-slate-800 shrink-0">
-                        <div className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 font-semibold flex flex-wrap items-center justify-between gap-2">
-                            <span className="flex items-center gap-1.5"><FiShoppingBag className="w-4 h-4 text-slate-500 dark:text-slate-400" strokeWidth={2.5} /> Keranjang <span className="admin-cart-count rounded-md px-1.5 py-0.5 text-[10px] font-bold">{cartItemCount} item</span></span>
+                        <div className="flex items-center justify-between gap-2 text-xs font-semibold text-slate-700 dark:text-slate-300 md:hidden">
+                            <button type="button" onClick={() => setIsMobileCartOpen(false)} className="flex min-w-0 flex-1 items-center justify-start gap-1 rounded-lg py-1 text-left text-primary dark:text-primary" aria-label="Kembali ke daftar produk">
+                                <FiArrowLeft className="shrink-0" aria-hidden="true" /> Produk
+                            </button>
+                            <span className="flex shrink-0 items-center gap-1.5 text-center">
+                                <FiShoppingBag className="h-4 w-4 text-slate-500 dark:text-slate-400" strokeWidth={2.5} />
+                                Keranjang <span className="admin-cart-count rounded-md px-1.5 py-0.5 text-[10px] font-bold">{cartItemCount} item</span>
+                            </span>
+                            <button
+                                type="button"
+                                onClick={() => setItemToDelete({ clearAll: true })}
+                                disabled={cart.length === 0 || isSubmittingOrder || isOrderComplete}
+                                aria-label="Kosongkan keranjang"
+                                className="flex min-w-0 flex-1 items-center justify-end gap-0.5 rounded-lg py-1 text-right text-[11px] font-semibold text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40 dark:text-red-400 dark:hover:bg-red-950/40"
+                            >
+                                <FiTrash2 className="h-3 w-3 shrink-0" aria-hidden="true" /> Kosongkan
+                            </button>
+                        </div>
+                        <div className="hidden items-center justify-between gap-2 text-xs font-semibold text-slate-700 dark:text-slate-300 md:flex md:text-sm">
+                            <span className="flex items-center gap-1.5"><FiShoppingBag className="h-4 w-4 text-slate-500 dark:text-slate-400" strokeWidth={2.5} /> Keranjang <span className="admin-cart-count rounded-md px-1.5 py-0.5 text-[10px] font-bold">{cartItemCount} item</span></span>
                             <div className="flex shrink-0 items-center gap-1">
                                 <button
                                     type="button"
@@ -799,7 +817,6 @@ return (
                                 >
                                     <FiTrash2 className="h-3.5 w-3.5" aria-hidden="true" /> Kosongkan
                                 </button>
-                                <button type="button" onClick={() => setIsMobileCartOpen(false)} className="flex items-center gap-1 rounded-lg px-2 py-1 text-primary dark:text-primary md:hidden" aria-label="Kembali ke daftar produk"><FiArrowLeft aria-hidden="true" /> Produk</button>
                             </div>
                         </div>
                         <div className="flex items-center gap-2">
