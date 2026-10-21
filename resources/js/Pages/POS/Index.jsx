@@ -10,15 +10,16 @@ import React, { useState, useEffect, useRef } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import Modal from '@/Components/Modal';
 import PosCardSkeleton from '@/Components/Skeletons/PosCardSkeleton';
-import { Head, router, usePage } from '@inertiajs/react';
+import ProductTableSkeleton from '@/Components/Skeletons/ProductTableSkeleton';
 import { ProductPhoto } from '@/Components/Customer/Storefront';
+import { Head, router, usePage } from '@inertiajs/react';
 import { getVisibleCategoryIds } from '@/Utils/posCategoryFilter';
 import { fuzzyFilterProducts } from '@/Utils/fuzzySearch';
 import { getProductLabel } from '@/Utils/productLabel';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { DialogTitle } from '@headlessui/react';
-import { FiSearch, FiGrid, FiList, FiPlus, FiMinus, FiTrash2, FiShoppingBag, FiCreditCard, FiX, FiUser, FiTag, FiHelpCircle, FiArrowLeft, FiBookOpen, FiChevronDown } from 'react-icons/fi';
+import { FiSearch, FiGrid, FiList, FiPlus, FiMinus, FiTrash2, FiShoppingBag, FiCreditCard, FiX, FiUser, FiTag, FiHelpCircle, FiArrowLeft, FiBookOpen, FiChevronDown, FiCheck } from 'react-icons/fi';
 import ProductBookView from '@/Components/Product/ProductBookView';
 
 
@@ -64,6 +65,7 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
     const submittingRef = useRef(false);
     const handleProcessOrderRef = useRef(null);
     const focusSearchAfterDeleteRef = useRef(false);
+    const cartSelectAllRef = useRef(null);
 
     // State
     const [selectedParentId, setSelectedParentId] = useState(null);
@@ -181,6 +183,9 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
 
     // Calculation
     const cartItemCount = cart.reduce((sum, item) => sum + item.qty, 0);
+    const checkedCartItemCount = cart.filter(item => item.checked).length;
+    const areAllCartItemsChecked = cart.length > 0 && checkedCartItemCount === cart.length;
+    const areSomeCartItemsChecked = checkedCartItemCount > 0 && !areAllCartItemsChecked;
     const subtotal = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
     const taxEnabled = settings['tax.enabled'] !== 'false';
     const taxRate = parseFloat(settings['tax.percentage'] || '0') / 100;
@@ -191,6 +196,12 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
     const cashShortfall = Number(cashReceived) < total ? total - Number(cashReceived) : 0;
 
     const formatRp = (val) => `Rp ${val.toLocaleString('id-ID')}`;
+
+    useEffect(() => {
+        if (cartSelectAllRef.current) {
+            cartSelectAllRef.current.indeterminate = areSomeCartItemsChecked;
+        }
+    }, [areSomeCartItemsChecked]);
 
     const quickCashOptions = React.useMemo(() => {
         if (!total || total <= 0) return [];
@@ -295,6 +306,14 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
 
     const updateNotes = (id, notes) => {
         setCart(prev => prev.map(i => i.id === id ? { ...i, notes } : i));
+    };
+
+    const toggleItemChecked = (id) => {
+        setCart(prev => prev.map(item => item.id === id ? { ...item, checked: !item.checked } : item));
+    };
+
+    const setAllCartItemsChecked = (checked) => {
+        setCart(prev => prev.map(item => ({ ...item, checked })));
     };
 
     // Handle Order Submission
@@ -672,7 +691,7 @@ return (
                     {viewMode === 'book' ? (
                         <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
                             {isNavigating ? (
-                                <div className="flex-1 flex items-center justify-center text-slate-400 dark:text-slate-500 text-xs">Memuat...</div>
+                                <ProductTableSkeleton viewMode="book" rows={BOOK_PER_PAGE} />
                             ) : (
                                 <ProductBookView
                                     items={(() => {
@@ -787,19 +806,36 @@ return (
 
                     {/* Customer & Order Settings */}
                     <div className="pos-cart-header admin-section-header p-3.5 border-b border-slate-300 dark:border-slate-800 space-y-2 bg-slate-50 dark:bg-slate-800 shrink-0">
-                        <div className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 font-semibold flex flex-wrap items-center justify-between gap-2">
-                            <span className="flex items-center gap-1.5"><FiShoppingBag className="w-4 h-4 text-slate-500 dark:text-slate-400" strokeWidth={2.5} /> Keranjang <span className="admin-cart-count rounded-md px-1.5 py-0.5 text-[10px] font-bold">{cartItemCount} item</span></span>
+                        <div className="flex items-center justify-between gap-2 text-xs font-semibold text-slate-700 dark:text-slate-300 md:hidden">
+                            <button type="button" onClick={() => setIsMobileCartOpen(false)} className="flex min-w-0 flex-1 items-center justify-start gap-1 rounded-lg py-1 text-left text-primary dark:text-primary" aria-label="Kembali ke daftar produk">
+                                <FiArrowLeft className="shrink-0" aria-hidden="true" /> Produk
+                            </button>
+                            <span className="flex shrink-0 items-center gap-1.5 text-center">
+                                <FiShoppingBag className="h-4 w-4 text-slate-500 dark:text-slate-400" strokeWidth={2.5} />
+                                Keranjang <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300">{cartItemCount} item</span>
+                            </span>
+                            <button
+                                type="button"
+                                onClick={() => setItemToDelete({ clearAll: true })}
+                                disabled={cart.length === 0 || isSubmittingOrder || isOrderComplete}
+                                aria-label="Kosongkan keranjang"
+                                className="flex min-w-0 flex-1 items-center justify-end gap-0.5 rounded-lg py-1 text-right text-[11px] font-semibold text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40 dark:text-red-400 dark:hover:bg-red-950"
+                            >
+                                <FiTrash2 className="h-3 w-3 shrink-0" aria-hidden="true" /> Kosongkan
+                            </button>
+                        </div>
+                        <div className="hidden items-center justify-between gap-2 text-xs font-semibold text-slate-700 dark:text-slate-300 md:flex md:text-sm">
+                            <span className="flex items-center gap-1.5"><FiShoppingBag className="h-4 w-4 text-slate-500 dark:text-slate-400" strokeWidth={2.5} /> Keranjang <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300">{cartItemCount} item</span></span>
                             <div className="flex shrink-0 items-center gap-1">
                                 <button
                                     type="button"
                                     onClick={() => setItemToDelete({ clearAll: true })}
                                     disabled={cart.length === 0 || isSubmittingOrder || isOrderComplete}
                                     aria-label="Kosongkan keranjang"
-                                    className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40 dark:text-red-400 dark:hover:bg-red-950/40"
+                                    className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40 dark:text-red-400 dark:hover:bg-red-950"
                                 >
                                     <FiTrash2 className="h-3.5 w-3.5" aria-hidden="true" /> Kosongkan
                                 </button>
-                                <button type="button" onClick={() => setIsMobileCartOpen(false)} className="flex items-center gap-1 rounded-lg px-2 py-1 text-primary dark:text-primary md:hidden" aria-label="Kembali ke daftar produk"><FiArrowLeft aria-hidden="true" /> Produk</button>
                             </div>
                         </div>
                         <div className="flex items-center gap-2">
@@ -816,76 +852,120 @@ return (
                     </div>
 
                     {/* Cart Items List */}
-                    <div className="flex-1 overflow-y-auto p-4 space-y-3 divide-y divide-slate-200 dark:divide-slate-800 min-h-0">
+                    <div className="flex-1 overflow-y-auto p-3 space-y-2.5 divide-y divide-slate-200 dark:divide-slate-800 min-h-0">
+                        {cart.length > 0 && (
+                            <div className="flex items-center justify-between gap-3 pb-2">
+                                <label className="inline-flex cursor-pointer items-center gap-2 text-[11px] font-semibold text-slate-700 dark:text-slate-300">
+                                    <input
+                                        ref={cartSelectAllRef}
+                                        type="checkbox"
+                                        checked={areAllCartItemsChecked}
+                                        onChange={(event) => setAllCartItemsChecked(event.target.checked)}
+                                        disabled={isSubmittingOrder || isOrderComplete}
+                                        aria-label="Centang semua barang di keranjang"
+                                        className="peer sr-only"
+                                    />
+                                    <span aria-hidden="true" className="flex h-4 w-4 shrink-0 items-center justify-center rounded-[4px] border border-slate-400 bg-white text-slate-800 peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-slate-500 dark:border-slate-500 dark:bg-slate-900 dark:text-slate-100">
+                                        {areAllCartItemsChecked && <FiCheck className="h-3 w-3" strokeWidth={2.5} />}
+                                        {areSomeCartItemsChecked && <span className="h-0.5 w-2 rounded-sm bg-slate-700 dark:bg-slate-300" />}
+                                    </span>
+                                    Centang semua
+                                </label>
+                                <span className="text-[10px] text-slate-500 dark:text-slate-400">
+                                    {checkedCartItemCount}/{cart.length} dicek
+                                </span>
+                            </div>
+                        )}
                         {cart.map(item => {
                             const label = getProductLabel(item);
                             return (
-                            <div key={item.id} className="pt-3 first:pt-0">
-                                <div className="flex items-start justify-between gap-2">
+                            <div key={item.id} className="pt-2.5 first:pt-0">
+                                <div className="flex items-start justify-between gap-1.5">
+                                    <label className="mt-0.5 inline-flex shrink-0 cursor-pointer items-center">
+                                        <input
+                                            type="checkbox"
+                                            checked={Boolean(item.checked)}
+                                            onChange={() => toggleItemChecked(item.id)}
+                                            disabled={isSubmittingOrder || isOrderComplete}
+                                            aria-label={`Tandai ${item.name} sudah dicek`}
+                                            title="Sudah dicek"
+                                            className="peer sr-only"
+                                        />
+                                        <span aria-hidden="true" className="flex h-4 w-4 items-center justify-center rounded-[4px] border border-slate-400 bg-white text-slate-800 peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-slate-500 dark:border-slate-500 dark:bg-slate-900 dark:text-slate-100">
+                                            {item.checked && <FiCheck className="h-3 w-3" strokeWidth={2.5} />}
+                                        </span>
+                                    </label>
                                     <div className="min-w-0 flex-1">
-                                        <h4 className="whitespace-normal text-sm font-bold text-slate-900 dark:text-white break-words [overflow-wrap:anywhere]">{label.name}</h4>
-                                        {label.application && <p className="mt-0.5 whitespace-normal break-words text-[11px] leading-4 text-slate-600 dark:text-slate-300">Peruntukan: {label.application}</p>}
+                                        <h4 className="whitespace-normal text-xs font-bold text-slate-900 dark:text-white break-words [overflow-wrap:anywhere] leading-snug">{label.name}</h4>
+                                        {label.application && <p className="mt-0.5 whitespace-normal break-words text-[10px] leading-3 text-slate-500 dark:text-slate-400">Peruntukan: {label.application}</p>}
                                     </div>
                                     <button
                                         type="button"
                                         onClick={() => removeFromCart(item)}
                                         aria-label={`Hapus ${item.name} dari keranjang`}
                                         title="Hapus produk"
-                                        className="inline-flex h-8 w-8 shrink-0 items-center justify-center text-slate-400 hover:text-red-600 dark:hover:text-red-400 p-1 rounded hover:bg-red-50 dark:hover:bg-red-950/40 transition cursor-pointer"
+                                        className="inline-flex h-6 w-6 shrink-0 items-center justify-center text-slate-400 hover:text-red-600 dark:hover:text-red-400 p-0.5 rounded hover:bg-red-50 dark:hover:bg-red-950 transition cursor-pointer"
                                     >
                                         <FiTrash2 className="w-3.5 h-3.5" />
                                     </button>
                                 </div>
+
                                 <div className="mt-1 flex items-center justify-between gap-2">
-                                    <span className="min-w-0 truncate text-xs font-medium text-slate-500 dark:text-slate-400">{item.qty} × {formatRp(item.price)}</span>
-                                    <span className="shrink-0 whitespace-nowrap text-sm font-extrabold text-slate-900 dark:text-white">{formatRp(item.price * item.qty)}</span>
+                                    <div className="flex items-center gap-1.5 min-w-0">
+                                        {/* Compact Stepper */}
+                                        <div className="inline-flex items-center h-6 bg-slate-100 dark:bg-slate-800 rounded-md border border-slate-300 dark:border-slate-700 overflow-hidden shrink-0">
+                                            <button
+                                                type="button"
+                                                onClick={() => updateQty(item.id, -1)}
+                                                disabled={item.qty === 1}
+                                                aria-label={`Kurangi jumlah ${item.name}`}
+                                                title={item.qty === 1 ? 'Jumlah minimal 1' : 'Kurangi jumlah'}
+                                                className="w-5 h-full flex items-center justify-center text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-700 transition cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                                            >
+                                                <FiMinus size={10} strokeWidth={2.5} />
+                                            </button>
+                                            <input
+                                                type="number"
+                                                min="1"
+                                                max={item.stock || 999}
+                                                value={item.qty}
+                                                onChange={(e) => setQtyDirect(item.id, e.target.value)}
+                                                aria-label={`Jumlah ${item.name}`}
+                                                className="w-6 text-center text-[11px] font-bold text-slate-900 dark:text-white bg-transparent border-0 p-0 focus:outline-none focus:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none leading-none"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => updateQty(item.id, 1)}
+                                                aria-label={`Tambah jumlah ${item.name}`}
+                                                title="Tambah jumlah"
+                                                className="w-5 h-full flex items-center justify-center text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-700 transition cursor-pointer"
+                                            >
+                                                <FiPlus size={10} strokeWidth={2.5} />
+                                            </button>
+                                        </div>
+                                        <span className="truncate text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                                            × {formatRp(item.price)}
+                                        </span>
+                                    </div>
+
+                                    <span className="shrink-0 whitespace-nowrap text-xs font-bold text-slate-900 dark:text-white">
+                                        {formatRp(item.price * item.qty)}
+                                    </span>
                                 </div>
 
-                                <div className="flex items-start justify-between mt-2 gap-2">
-                                    <details className="min-w-0 flex-1">
-                                        <summary className="block cursor-pointer truncate text-xs font-medium text-primary hover:underline dark:text-primary" title={item.notes || 'Tambah catatan untuk produk ini'}>
-                                            {item.notes ? `Catatan: ${item.notes}` : '+ Catatan'}
-                                        </summary>
-                                        <input
-                                            type="text"
-                                            placeholder="Catatan produk..."
-                                            value={item.notes || ''}
-                                            onChange={(e) => updateNotes(item.id, e.target.value)}
-                                            aria-label={`Catatan untuk ${item.name}`}
-                                            className="mt-2 w-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1 focus:bg-white dark:focus:bg-slate-800 focus:ring-0 focus:border-primary focus:outline-none text-slate-700 dark:text-slate-200"
-                                        />
-                                    </details>
-                                    <div className="flex items-center space-x-1 bg-slate-100 dark:bg-slate-800 rounded-lg p-0.5 shrink-0 border border-slate-300 dark:border-slate-700">
-                                        <button
-                                            type="button"
-                                            onClick={() => updateQty(item.id, -1)}
-                                            disabled={item.qty === 1}
-                                            aria-label={`Kurangi jumlah ${item.name}`}
-                                            title={item.qty === 1 ? 'Jumlah minimal 1' : 'Kurangi jumlah'}
-                                            className="w-6 h-6 flex items-center justify-center hover:bg-white dark:hover:bg-slate-700 rounded text-slate-700 dark:text-slate-200 transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-                                        >
-                                            <FiMinus className="w-3.5 h-3.5" strokeWidth={2.5} />
-                                        </button>
-                                        <input
-                                            type="number"
-                                            min="1"
-                                            max={item.stock || 999}
-                                            value={item.qty}
-                                            onChange={(e) => setQtyDirect(item.id, e.target.value)}
-                                            aria-label={`Jumlah ${item.name}`}
-                                            className="w-8 text-center text-xs font-bold text-slate-900 dark:text-white bg-transparent focus:outline-none focus:ring-0 focus:border-b focus:border-primary rounded [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => updateQty(item.id, 1)}
-                                            aria-label={`Tambah jumlah ${item.name}`}
-                                            title="Tambah jumlah"
-                                            className="w-6 h-6 flex items-center justify-center hover:bg-white dark:hover:bg-slate-700 rounded text-slate-700 dark:text-slate-200 transition cursor-pointer"
-                                        >
-                                            <FiPlus className="w-3.5 h-3.5" strokeWidth={2.5} />
-                                        </button>
-                                    </div>
-                                </div>
+                                <details className="mt-0.5 text-[10px]">
+                                    <summary className="cursor-pointer text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 hover:underline inline-block font-medium" title={item.notes || 'Tambah catatan untuk produk ini'}>
+                                        {item.notes ? `Catatan: ${item.notes}` : '+ Catatan'}
+                                    </summary>
+                                    <input
+                                        type="text"
+                                        placeholder="Catatan produk..."
+                                        value={item.notes || ''}
+                                        onChange={(e) => updateNotes(item.id, e.target.value)}
+                                        aria-label={`Catatan untuk ${item.name}`}
+                                        className="mt-1 w-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md px-2 py-0.5 focus:bg-white dark:focus:bg-slate-800 focus:ring-0 focus:border-primary focus:outline-none text-slate-700 dark:text-slate-200"
+                                    />
+                                </details>
                             </div>
                             );
                         })}

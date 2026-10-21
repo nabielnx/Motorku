@@ -10,7 +10,7 @@ function CardSkeleton({ isGrid = false }) {
     return (
         <article
             className={clsx(
-                'flex flex-col justify-between rounded-xl sm:rounded-lg border border-slate-200/80 bg-white shadow-2xs overflow-hidden',
+                'flex flex-col justify-between rounded-xl sm:rounded-lg border border-slate-200 bg-white shadow-2xs overflow-hidden',
                 isGrid
                     ? 'w-full h-full'
                     : 'w-[calc((100%-20px)/3.25)] sm:w-[calc((100%-24px)/3.35)] md:w-[155px] shrink-0 snap-start'
@@ -87,14 +87,6 @@ export default function MenuSkeleton({ fullPage = true, isGrid = false, showProm
 
     return (
         <SkeletonWrapper className="customer-storefront min-h-screen bg-[#f3f3ed] text-slate-900">
-            {/* ═══ Top Announcement Bar (Desktop) ═══ */}
-            <div className="hidden bg-slate-900/10 sm:block border-b border-slate-200/40">
-                <div className="mx-auto flex max-w-[1280px] items-center justify-between px-6 py-1.5 lg:px-8">
-                    <Skeleton className="h-2.5 w-48 rounded" />
-                    <Skeleton className="h-2.5 w-32 rounded" />
-                </div>
-            </div>
-
             {/* ═══ 1. STORE HEADER ═══ */}
             <header className="store-header">
                 <div className="store-header-shell">
@@ -125,7 +117,7 @@ export default function MenuSkeleton({ fullPage = true, isGrid = false, showProm
             <div className={`mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8 ${hasCart ? 'pb-32' : 'pb-12'}`}>
                 {/* Promo Banner Section */}
                 {showPromo && <section className="pb-1">
-                    <div className="relative rounded-lg sm:rounded-xl bg-slate-100 border border-slate-200/80 overflow-hidden p-2.5 sm:p-3 shadow-2xs">
+                    <div className="relative rounded-lg sm:rounded-xl bg-slate-100 border border-slate-200 overflow-hidden p-2.5 sm:p-3 shadow-2xs">
                         <div className="flex items-stretch gap-2.5">
                             {/* Left Promo Graphic */}
                             <div className="w-[45%] sm:w-[35%] shrink-0 rounded-xl sm:rounded-lg bg-slate-200 p-3 flex flex-col justify-between">

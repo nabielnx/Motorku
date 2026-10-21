@@ -145,7 +145,7 @@ export default function Payment() {
                 <div className="flex-1 p-4 space-y-4">
 
                     {/* ORDER INFO */}
-                    <div className="bg-stone-50 border border-stone-200/60 rounded-lg p-4 space-y-2">
+                    <div className="bg-stone-50 border border-stone-200 rounded-lg p-4 space-y-2">
                         <div className="flex items-center gap-2 text-xs text-stone-800">
                             <FiShoppingBag size={14} />
                             <span className="font-bold">Ambil di Toko</span>
@@ -157,8 +157,8 @@ export default function Payment() {
                     </div>
 
                     {/* ORDER ITEMS */}
-                    <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-3">
-                        <div className="flex items-center justify-between border-b border-slate-200/80 pb-2">
+                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-3">
+                        <div className="flex items-center justify-between border-b border-slate-200 pb-2">
                             <h3 className="text-xs font-bold text-slate-800">Ringkasan Pesanan</h3>
                             <div className="flex items-center gap-3">
                                 <span className="text-[10px] text-slate-500 font-semibold">{orderData.cart.length} Item</span>
@@ -175,7 +175,7 @@ export default function Payment() {
                         </div>
 
                         {/* Table Header */}
-                        <div className="grid grid-cols-12 gap-2 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider border-b border-slate-200/60 pb-1.5 px-0.5">
+                        <div className="grid grid-cols-12 gap-2 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider border-b border-slate-200 pb-1.5 px-0.5">
                             <span className="col-span-6">Nama Produk</span>
                             <span className="col-span-2 text-center">Qty</span>
                             <span className="col-span-4 text-right">Subtotal</span>
@@ -190,7 +190,7 @@ export default function Payment() {
                                         {item.notes && <p className="text-[10px] text-stone-600 truncate">{item.notes}</p>}
                                     </div>
                                     <div className="col-span-2 flex justify-center">
-                                        <span className="text-[11px] font-black text-slate-800 bg-slate-200/80 border border-slate-300/60 px-2 py-0.5 rounded text-center">
+                                        <span className="text-[11px] font-black text-slate-800 bg-slate-200 border border-slate-300 px-2 py-0.5 rounded text-center">
                                             x{item.qty}
                                         </span>
                                     </div>
@@ -227,7 +227,7 @@ export default function Payment() {
                             value={customerName}
                             onChange={(e) => { setCustomerName(e.target.value); if (error) setError(null); }}
                             className={`w-full bg-slate-50 border rounded-xl px-4 py-3 text-xs font-bold text-slate-800 focus:ring-2 focus:ring-stone-500 focus:outline-none transition-colors ${
-                                error && !customerName.trim() ? 'border-red-400 bg-red-50/50' : 'border-slate-200'
+                                error && !customerName.trim() ? 'border-red-400 bg-red-50' : 'border-slate-200'
                             }`}
                         />
                     </div>

@@ -193,7 +193,7 @@ export default function ProductFormModal({
                                         onClick={() => productFormData.imageFile
                                             ? setProductFormData({ ...productFormData, imageFile: null, imagePreview: productFormData.image, removeImage: false })
                                             : setProductFormData({ ...productFormData, image: '', imageFile: null, imagePreview: null, removeImage: !!editingItem && !!productFormData.image })}
-                                        className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:opacity-50 dark:border-red-900 dark:text-red-300 dark:hover:bg-red-950/40"
+                                        className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:opacity-50 dark:border-red-900 dark:text-red-300 dark:hover:bg-red-950"
                                     >
                                         <FiTrash2 size={14} aria-hidden="true" /> {productFormData.imageFile ? 'Batal pilih foto' : 'Hapus gambar'}
                                     </button>

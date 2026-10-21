@@ -13,13 +13,13 @@ export default memo(function CustomerProductCard({ item, isGrid = false, onOpen 
             onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onOpen(item); } }}
             onClick={() => onOpen(item)}
             className={clsx(
-                "store-product-card group flex flex-col justify-between rounded-xl sm:rounded-lg border border-slate-200/90 bg-white shadow-2xs hover:border-slate-300 hover:shadow-xs transition-all relative overflow-hidden cursor-pointer active:scale-[0.99]",
+                "store-product-card group flex flex-col justify-between rounded-xl sm:rounded-lg border border-slate-200 bg-white shadow-2xs hover:border-slate-300 hover:shadow-xs transition-all relative overflow-hidden cursor-pointer active:scale-[0.99]",
                 isGrid
                     ? "w-full h-full"
                     : "w-[calc((100%-20px)/3.25)] sm:w-[calc((100%-24px)/3.35)] md:w-[155px] shrink-0 snap-start"
             )}>
             <div>
-                <div className="relative block w-full overflow-hidden text-left bg-slate-50/80">
+                <div className="relative block w-full overflow-hidden text-left bg-slate-50">
                     <ProductPhoto src={item.image} name={item.name} category={item.category} compact className="aspect-square w-full transition-transform group-hover:scale-102" />
                     {outOfStock && (
                         <div className="absolute left-2 top-2">

@@ -545,8 +545,8 @@ export default function MotorcycleIndex({
             {notification && (
                 <div className={`fixed top-4 right-4 z-50 flex items-center gap-2.5 px-4 py-3 rounded-lg shadow-xl text-xs sm:text-sm font-bold border transition-all animate-in fade-in slide-in-from-top-2 ${
                     notification.type === 'success'
-                        ? 'bg-emerald-50 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-200 border-emerald-200 dark:border-emerald-800'
-                        : 'bg-rose-50 dark:bg-rose-950/80 text-rose-800 dark:text-rose-200 border-rose-200 dark:border-rose-800'
+                        ? 'bg-emerald-50 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-200 border-emerald-200 dark:border-emerald-800'
+                        : 'bg-rose-50 dark:bg-rose-950 text-rose-800 dark:text-rose-200 border-rose-200 dark:border-rose-800'
                 }`}>
                     {notification.type === 'success' ? <FiCheckCircle size={18} className="text-emerald-600 dark:text-emerald-400 shrink-0" /> : <FiAlertCircle size={18} className="text-rose-600 dark:text-rose-400 shrink-0" />}
                     <span>{notification.message}</span>
@@ -749,8 +749,8 @@ export default function MotorcycleIndex({
                                                         {m.image_url ? (
                                                             <>
                                                                 <img src={m.image_url} alt={m.model} className="w-full h-full object-contain p-1 group-hover:scale-105 transition-transform duration-200" />
-                                                                <div className="absolute inset-0 bg-slate-950/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none rounded-lg">
-                                                                    <div className="p-1 rounded bg-black/60 text-white shadow-xs">
+                                                                <div className="absolute inset-0 bg-slate-900 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none rounded-lg">
+                                                                    <div className="p-1 rounded bg-black text-white shadow-xs">
                                                                         <FiMaximize2 size={13} />
                                                                     </div>
                                                                 </div>
@@ -842,7 +842,7 @@ export default function MotorcycleIndex({
 
                                         {/* EXPANDED PANEL: Seamless Unified Sub-Table */}
                                         {isExpanded && (
-                                            <div id={`motor-parts-${m.id}`} className="border-t border-primary/20 dark:border-accentYellow/20 bg-white dark:bg-slate-900">
+                                            <div id={`motor-parts-${m.id}`} className="border-t border-primary dark:border-accentYellow bg-white dark:bg-slate-900">
                                                 {/* Unified Single-Row Control Bar */}
                                                 <div className="px-2 sm:px-4 py-1 xl:py-2 bg-white xl:bg-slate-50 dark:bg-slate-900 dark:xl:bg-slate-800 border-b border-slate-100 xl:border-slate-200 dark:border-slate-800 flex flex-wrap  items-center gap-1.5 xl:gap-2">
                                                         {/* Search inside motorcycle parts */}

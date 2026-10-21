@@ -254,7 +254,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                     <div className="admin-surface col-span-12 xl:col-span-8 order-3 h-[280px] min-w-0 overflow-hidden bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-800 shadow-xs flex flex-col transition-colors">
                         <div className="flex shrink-0 items-center justify-between gap-3 admin-section-header px-4 py-3 sm:px-5">
                             <h3 className="font-bold text-white text-sm">Penjualan</h3>
-                            <p className="text-right text-[11px] leading-5 text-white/80">{stats.sales_range}</p>
+                            <p className="text-right text-[11px] leading-5 text-white">{stats.sales_range}</p>
                         </div>
 
                         <div className="flex min-h-0 flex-1 flex-col p-4 sm:p-5">
@@ -281,7 +281,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                                         <div className="flex min-w-0 flex-1 flex-col">
                                             <div className="relative min-h-0 flex-1">
                                                 <div className="pointer-events-none absolute inset-0 flex flex-col justify-between" aria-hidden="true">
-                                                    {yAxisTicks.map((_, i) => <div key={i} className="w-full border-b border-dashed border-slate-200/70 dark:border-slate-800" />)}
+                                                    {yAxisTicks.map((_, i) => <div key={i} className="w-full border-b border-dashed border-slate-200 dark:border-slate-800" />)}
                                                 </div>
                                                 <div className="absolute inset-0 flex items-end">
                                                     {salesData.map((data, idx) => {
@@ -430,7 +430,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                                     recentOrders.map((ord) => {
                                         const formattedInv = formatInvoiceNumber(ord);
                                         return (
-                                            <tr key={ord.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
+                                            <tr key={ord.id} className="hover:bg-slate-50 dark:hover:bg-slate-800 transition">
                                                 <td className="px-4 py-2 font-mono font-bold text-slate-900 dark:text-white">{formattedInv}</td>
                                                 <td className="px-4 py-2 font-bold text-slate-800 dark:text-slate-200">
                                                     {ord.customer_name || 'Pelanggan Umum'}
@@ -461,7 +461,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                     </div>
 
                     {totalOrdersCount > 0 && (
-                        <div className="flex shrink-0 items-center justify-between gap-2 border-t border-slate-200 bg-slate-50 px-3 py-3 text-xs font-semibold text-slate-600 dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-400">
+                        <div className="flex shrink-0 items-center justify-between gap-2 border-t border-slate-200 bg-slate-50 px-3 py-3 text-xs font-semibold text-slate-600 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-400">
                             <span>{(currentPage - 1) * 15 + 1}–{Math.min(currentPage * 15, totalOrdersCount)} dari {totalOrdersCount}</span>
                             <div className="flex items-center gap-1.5">
                                 <button type="button" onClick={() => fetchOrdersPage(currentPage - 1)} disabled={currentPage === 1 || isFetchingOrders} aria-label="Halaman pesanan sebelumnya" className="flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-2 py-1 font-bold text-slate-700 disabled:opacity-40 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 sm:px-3">

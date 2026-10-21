@@ -1162,7 +1162,7 @@ export default function MenuManagement({
                                                                             </div>
 
                                                                             {item.subtitle && (
-                                                                                <div className="pt-2 border-t border-slate-200/60 dark:border-slate-700/60">
+                                                                                <div className="pt-2 border-t border-slate-200 dark:border-slate-700">
                                                                                     <span className="text-slate-400 dark:text-slate-500 font-medium block">Deskripsi / Catatan</span>
                                                                                     <p className="text-slate-700 dark:text-slate-300 font-medium mt-0.5 leading-relaxed">{item.subtitle}</p>
                                                                                 </div>

@@ -104,7 +104,7 @@ export default function MotoQuickPromoSection({
                         type="button"
                         onClick={() => scrollByAmount('left')}
                         aria-label="Geser ke kiri"
-                        className="absolute left-2 top-1/2 -translate-y-1/2 z-20 hidden sm:flex h-8 w-8 items-center justify-center rounded-full bg-white/95 text-slate-900 shadow-lg hover:bg-white hover:scale-105 active:scale-95 transition-all cursor-pointer"
+                        className="absolute left-2 top-1/2 -translate-y-1/2 z-20 hidden sm:flex h-8 w-8 items-center justify-center rounded-full bg-white text-slate-900 shadow-lg hover:scale-105 active:scale-95 transition-all cursor-pointer"
                     >
                         <FiChevronLeft size={18} />
                     </button>
@@ -114,7 +114,7 @@ export default function MotoQuickPromoSection({
                         type="button"
                         onClick={() => scrollByAmount('right')}
                         aria-label="Geser ke kanan"
-                        className="absolute right-2 top-1/2 -translate-y-1/2 z-20 hidden sm:flex h-8 w-8 items-center justify-center rounded-full bg-white/95 text-slate-900 shadow-lg hover:bg-white hover:scale-105 active:scale-95 transition-all cursor-pointer"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 z-20 hidden sm:flex h-8 w-8 items-center justify-center rounded-full bg-white text-slate-900 shadow-lg hover:scale-105 active:scale-95 transition-all cursor-pointer"
                     >
                         <FiChevronRight size={18} />
                     </button>
@@ -172,10 +172,10 @@ export default function MotoQuickPromoSection({
                                     if (hasDraggedRef.current) return;
                                     onProductClick && onProductClick(item);
                                 }}
-                                className="group flex flex-col justify-between rounded-xl sm:rounded-lg border border-slate-200/90 bg-white shadow-2xs hover:border-slate-300 hover:shadow-xs transition-all relative overflow-hidden cursor-pointer active:scale-[0.99] w-[calc((100%-20px)/3.25)] sm:w-[calc((100%-24px)/3.35)] md:w-[155px] shrink-0 snap-start"
+                                className="group flex flex-col justify-between rounded-xl sm:rounded-lg border border-slate-200 bg-white shadow-2xs hover:border-slate-300 hover:shadow-xs transition-all relative overflow-hidden cursor-pointer active:scale-[0.99] w-[calc((100%-20px)/3.25)] sm:w-[calc((100%-24px)/3.35)] md:w-[155px] shrink-0 snap-start"
                             >
                                 <div>
-                                    <div className="relative block w-full overflow-hidden text-left bg-slate-50/80">
+                                    <div className="relative block w-full overflow-hidden text-left bg-slate-50">
                                         <ProductPhoto
                                             src={item.image}
                                             name={item.name}
@@ -184,8 +184,8 @@ export default function MotoQuickPromoSection({
                                             className="aspect-square w-full transition-transform group-hover:scale-102"
                                         />
                                         {outOfStock && (
-                                            <div className="absolute inset-0 bg-white/70 backdrop-blur-[1px] flex items-center justify-center">
-                                                <span className="rounded bg-slate-800/85 px-1.5 py-0.5 text-[9px] font-bold text-white shadow-xs">
+                                            <div className="absolute inset-0 bg-white flex items-center justify-center">
+                                                <span className="rounded bg-slate-900 px-1.5 py-0.5 text-[9px] font-bold text-white shadow-xs">
                                                     Habis
                                                 </span>
                                             </div>

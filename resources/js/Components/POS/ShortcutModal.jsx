@@ -4,9 +4,9 @@ export default function ShortcutModal({
     setIsShortcutModalOpen
 }) {
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-xs p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900 dark:bg-slate-950 p-4">
             <div className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-150 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-white">
-                <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/80">
+                <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800">
                     <div className="flex items-center gap-2">
                         <FiHelpCircle className="w-4 h-4 text-blue-600 dark:text-yellow-400" strokeWidth={2.5} />
                         <h3 className="font-bold text-slate-900 dark:text-white text-sm">Petunjuk Keyboard Shortcut POS</h3>
@@ -36,7 +36,7 @@ export default function ShortcutModal({
                     ))}
                 </div>
 
-                <div className="p-3 bg-slate-50 dark:bg-slate-800/80 border-t border-slate-200 dark:border-slate-800 text-center">
+                <div className="p-3 bg-slate-50 dark:bg-slate-800 border-t border-slate-200 dark:border-slate-800 text-center">
                     <button
                         onClick={() => setIsShortcutModalOpen(false)}
                         className="px-4 py-2 bg-slate-800 dark:bg-slate-700 hover:bg-slate-900 dark:hover:bg-slate-600 text-white font-bold text-xs rounded-lg transition cursor-pointer"

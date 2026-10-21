@@ -228,7 +228,7 @@ export default function ProductTableSkeleton({ rows = 16, fullPage = false, view
                 {/* Table rows */}
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                     {Array.from({ length: rows }).map((_, i) => (
-                        <tr key={i} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
+                        <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                             {/* Expander */}
                             <td className="w-8 pl-3 pr-0 py-3 text-center">
                                 <Skeleton className="w-4 h-4 mx-auto rounded" />

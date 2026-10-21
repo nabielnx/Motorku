@@ -9,7 +9,7 @@ export default function PartPreviewModal({
     return (
         <Dialog
             open
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-xs p-4 animate-in fade-in duration-150"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black p-4 animate-in fade-in duration-150"
             onClose={() => setPreviewPart(null)}
         >
             <DialogPanel
