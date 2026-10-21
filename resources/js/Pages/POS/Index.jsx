@@ -18,7 +18,8 @@ import { getProductLabel } from '@/Utils/productLabel';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { DialogTitle } from '@headlessui/react';
-import { FiSearch, FiGrid, FiList, FiPlus, FiMinus, FiTrash2, FiShoppingBag, FiCreditCard, FiX, FiUser, FiTag, FiHelpCircle, FiArrowLeft } from 'react-icons/fi';
+import { FiSearch, FiGrid, FiList, FiPlus, FiMinus, FiTrash2, FiShoppingBag, FiCreditCard, FiX, FiUser, FiTag, FiHelpCircle, FiArrowLeft, FiBookOpen, FiChevronDown } from 'react-icons/fi';
+import ProductBookView from '@/Components/Product/ProductBookView';
 
 
 export default function POSIndex({ initialProducts = [], initialCategories = [], settings = {} }) {
@@ -70,12 +71,37 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
     const [searchQuery, setSearchQuery] = useState('');
     const [isMobileCartOpen, setIsMobileCartOpen] = useState(false);
     const [previewProduct, setPreviewProduct] = useState(null);
-    const [viewMode, setViewMode] = useState(() => localStorage.getItem('pos_view_mode') === 'grid' ? 'grid' : 'list');
+    const [viewMode, setViewMode] = useState(() => {
+        const saved = localStorage.getItem('pos_view_mode');
+        return saved === 'grid' || saved === 'book' ? saved : 'list';
+    });
+    const [viewMenuOpen, setViewMenuOpen] = useState(false);
+    const viewMenuRef = useRef(null);
+    const [bookPage, setBookPage] = useState(1);
+    const BOOK_PER_PAGE = 24;
     const [customerName, setCustomerName] = useState(() => localStorage.getItem('pos_customer_name') || '');
 
     useEffect(() => {
         localStorage.setItem('pos_view_mode', viewMode);
+        setBookPage(1); // reset page when view changes
     }, [viewMode]);
+
+    // Reset book page when search/filter changes
+    useEffect(() => {
+        setBookPage(1);
+    }, [searchQuery, selectedParentId, selectedChildId]);
+
+    // Close view menu on outside click
+    useEffect(() => {
+        if (!viewMenuOpen) return;
+        const handler = (e) => {
+            if (viewMenuRef.current && !viewMenuRef.current.contains(e.target)) {
+                setViewMenuOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, [viewMenuOpen]);
 
     // Cart State
     const [cart, setCart] = useState(() => readPosCart(localStorage));
@@ -579,24 +605,51 @@ return (
                                         <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
                                             {filteredMenu.length} produk
                                         </span>
-                                        <div className="admin-view-switch" role="group" aria-label="Tampilan produk">
-                                            {[
-                                                { mode: 'list', label: 'Daftar', Icon: FiList },
-                                                { mode: 'grid', label: 'Grid', Icon: FiGrid },
-                                            ].map(({ mode, label, Icon }) => (
-                                                <button
-                                                    key={mode}
-                                                    type="button"
-                                                    onClick={() => setViewMode(mode)}
-                                                    aria-pressed={viewMode === mode}
-                                                    title={label}
-                                                    aria-label={label}
-                                                    className={`flex min-h-8 min-w-8 items-center justify-center gap-1 rounded-md px-2 py-1 text-xs font-semibold transition ${viewMode === mode ? 'bg-primary text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white'}`}
+                                        {/* View mode: single button + popover */}
+                                        <div className="relative" ref={viewMenuRef}>
+                                            <button
+                                                type="button"
+                                                id="pos-view-mode-btn"
+                                                aria-haspopup="true"
+                                                aria-expanded={viewMenuOpen}
+                                                onClick={() => setViewMenuOpen(v => !v)}
+                                                title="Ganti tampilan produk"
+                                                aria-label="Ganti tampilan produk"
+                                                className="flex min-h-8 min-w-8 items-center justify-center gap-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition shadow-xs"
+                                            >
+                                                {viewMode === 'grid' ? <FiGrid size={14} aria-hidden="true" /> : viewMode === 'book' ? <FiBookOpen size={14} aria-hidden="true" /> : <FiList size={14} aria-hidden="true" />}
+                                                <span className="hidden sm:inline">{viewMode === 'grid' ? 'Grid' : viewMode === 'book' ? 'Buku' : 'Daftar'}</span>
+                                                <FiChevronDown size={12} className={`transition-transform ${viewMenuOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
+                                            </button>
+                                            {viewMenuOpen && (
+                                                <div
+                                                    role="menu"
+                                                    aria-label="Pilihan tampilan"
+                                                    className="absolute right-0 top-full mt-1 z-50 min-w-[130px] rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-lg py-1 overflow-hidden"
                                                 >
-                                                    <Icon size={14} aria-hidden="true" />
-                                                    <span className="hidden xl:inline">{label}</span>
-                                                </button>
-                                            ))}
+                                                    {[
+                                                        { mode: 'list', label: 'Daftar', Icon: FiList },
+                                                        { mode: 'grid', label: 'Grid', Icon: FiGrid },
+                                                        { mode: 'book', label: 'Buku Harga', Icon: FiBookOpen },
+                                                    ].map(({ mode, label, Icon }) => (
+                                                        <button
+                                                            key={mode}
+                                                            type="button"
+                                                            role="menuitem"
+                                                            onClick={() => { setViewMode(mode); setViewMenuOpen(false); }}
+                                                            className={`flex w-full items-center gap-2.5 px-3 py-2 text-xs font-semibold transition ${
+                                                                viewMode === mode
+                                                                    ? 'bg-primary text-white'
+                                                                    : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
+                                                            }`}
+                                                        >
+                                                            <Icon size={14} aria-hidden="true" />
+                                                            {label}
+                                                            {viewMode === mode && <span className="ml-auto text-[10px] font-bold opacity-80">✓</span>}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
                                         <button
                                             onClick={() => setIsShortcutModalOpen(true)}
@@ -615,7 +668,29 @@ return (
                         </div>
                     </div>
 
-                    {/* Grid ringkas untuk melihat foto, daftar untuk detail produk */}
+                    {/* Grid ringkas untuk melihat foto, daftar untuk detail produk, buku untuk referensi harga cepat */}
+                    {viewMode === 'book' ? (
+                        <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
+                            {isNavigating ? (
+                                <div className="flex-1 flex items-center justify-center text-slate-400 dark:text-slate-500 text-xs">Memuat...</div>
+                            ) : (
+                                <ProductBookView
+                                    items={(() => {
+                                        const start = (bookPage - 1) * BOOK_PER_PAGE;
+                                        return filteredMenu.slice(start, start + BOOK_PER_PAGE);
+                                    })()}
+                                    totalProducts={filteredMenu.length}
+                                    currentPage={bookPage}
+                                    totalPages={Math.max(1, Math.ceil(filteredMenu.length / BOOK_PER_PAGE))}
+                                    perPage={BOOK_PER_PAGE}
+                                    onPageChange={setBookPage}
+                                    selectedCategory={selectedParentId ? (categories.find(c => c.id === selectedParentId)?.name || '') : ''}
+                                    searchQuery={searchQuery}
+                                    onOpenEdit={(item) => addToCart(item)}
+                                />
+                            )}
+                        </div>
+                    ) : (
                     <div className="flex-1 min-h-0 overflow-y-auto [scrollbar-gutter:stable] p-3">
                         {isNavigating ? (
                             <PosCardSkeleton count={8} mode={viewMode} />
@@ -694,6 +769,7 @@ return (
                         </div>
                         )}
                     </div>
+                    )}
                     <div className="pos-mobile-cart-bar shrink-0 border-t border-slate-200 bg-white p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] dark:border-slate-800 dark:bg-slate-900 md:hidden">
                         <button
                             type="button"

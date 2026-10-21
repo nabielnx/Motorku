@@ -38,6 +38,7 @@ class ReportController extends Controller implements HasMiddleware
         return Inertia::render('Report/Index', [
             'reportStats' => $reportStats,
             'filters' => [
+                'period' => $request->validated('period'),
                 'start_date' => $startDate->format('Y-m-d'),
                 'end_date' => $endDate->format('Y-m-d'),
             ],

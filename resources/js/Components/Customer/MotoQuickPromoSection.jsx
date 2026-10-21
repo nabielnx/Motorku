@@ -96,7 +96,7 @@ export default function MotoQuickPromoSection({
     };
 
     return (
-        <div className="store-promo mb-5">
+        <div className="store-promo mb-5 isolate">
             <div className="relative rounded-lg overflow-hidden select-none">
                 {/* ══ Desktop Navigation Arrows ══ */}
                 {canScrollLeft && (
@@ -104,7 +104,7 @@ export default function MotoQuickPromoSection({
                         type="button"
                         onClick={() => scrollByAmount('left')}
                         aria-label="Geser ke kiri"
-                        className="absolute left-2 top-1/2 -translate-y-1/2 z-30 hidden sm:flex h-8 w-8 items-center justify-center rounded-full bg-white/95 text-slate-900 shadow-lg hover:bg-white hover:scale-105 active:scale-95 transition-all cursor-pointer"
+                        className="absolute left-2 top-1/2 -translate-y-1/2 z-20 hidden sm:flex h-8 w-8 items-center justify-center rounded-full bg-white/95 text-slate-900 shadow-lg hover:bg-white hover:scale-105 active:scale-95 transition-all cursor-pointer"
                     >
                         <FiChevronLeft size={18} />
                     </button>
@@ -114,7 +114,7 @@ export default function MotoQuickPromoSection({
                         type="button"
                         onClick={() => scrollByAmount('right')}
                         aria-label="Geser ke kanan"
-                        className="absolute right-2 top-1/2 -translate-y-1/2 z-30 hidden sm:flex h-8 w-8 items-center justify-center rounded-full bg-white/95 text-slate-900 shadow-lg hover:bg-white hover:scale-105 active:scale-95 transition-all cursor-pointer"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 z-20 hidden sm:flex h-8 w-8 items-center justify-center rounded-full bg-white/95 text-slate-900 shadow-lg hover:bg-white hover:scale-105 active:scale-95 transition-all cursor-pointer"
                     >
                         <FiChevronRight size={18} />
                     </button>
