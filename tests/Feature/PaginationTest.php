@@ -91,13 +91,13 @@ class PaginationTest extends TestCase
         // Page 1
         $r1 = $this->actingAs($this->owner)->get('/orders?page=1');
         $summaryPage1 = $r1->viewData('page')['props']['summary'];
-        $this->assertEquals(12, $summaryPage1['today_order_count']);
+        $this->assertEquals(12, $summaryPage1['period_order_count']);
         $this->assertEquals(12, $summaryPage1['pending_count']);
 
         // Page 2
         $r2 = $this->actingAs($this->owner)->get('/orders?page=2');
         $summaryPage2 = $r2->viewData('page')['props']['summary'];
-        $this->assertEquals(12, $summaryPage2['today_order_count']);
+        $this->assertEquals(12, $summaryPage2['period_order_count']);
         $this->assertEquals(12, $summaryPage2['pending_count']);
     }
 
