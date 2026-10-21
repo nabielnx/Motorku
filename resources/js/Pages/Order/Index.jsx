@@ -454,7 +454,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                             >
                                 {isRevenueVisible ? <FiEye size={16} /> : <FiEyeOff size={16} />}
                             </button>
-                            <strong className="min-w-[5.5rem] text-right text-sm text-primaryDark dark:text-white">{isRevenueVisible ? formatRp(periodOrderValue) : 'Rp ••••••'}</strong>
+                            <strong className="w-32 shrink-0 whitespace-nowrap text-right text-sm tabular-nums text-primaryDark dark:text-white">{isRevenueVisible ? formatRp(periodOrderValue) : 'Rp ••••••'}</strong>
                         </div>
                     </div>
                     <div className="mt-1">Perlu ditangani <strong className="text-slate-900 dark:text-white">{activeCount}</strong></div>
