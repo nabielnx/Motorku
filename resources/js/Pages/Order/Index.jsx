@@ -464,13 +464,13 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                 <div className="hidden sm:flex flex-wrap items-center gap-x-8 gap-y-2 border-b border-slate-200 dark:border-slate-800 px-1 pb-3 text-sm text-slate-500 dark:text-slate-400">
                     <span>{summaryPeriodLabel} <strong className="ml-1 text-primaryDark dark:text-white">{periodOrderCount} pesanan</strong></span>
                     <span className="inline-flex items-center gap-1">Pendapatan
-                        <strong className="ml-1 text-primaryDark dark:text-white">{isRevenueVisible ? formatRp(periodOrderValue) : 'Rp ••••••'}</strong>
+                        <strong className="ml-1 inline-block w-36 whitespace-nowrap text-right tabular-nums text-primaryDark dark:text-white">{isRevenueVisible ? formatRp(periodOrderValue) : 'Rp ••••••'}</strong>
                         <button
                             type="button"
                             onClick={() => setIsRevenueVisible((visible) => !visible)}
                             aria-label={isRevenueVisible ? 'Sembunyikan pendapatan' : 'Tampilkan pendapatan'}
                             title={isRevenueVisible ? 'Sembunyikan pendapatan' : 'Tampilkan pendapatan'}
-                            className="ml-1 flex h-7 w-7 items-center justify-center rounded-md text-primaryDark hover:bg-slate-100 dark:text-accentYellow dark:hover:bg-slate-800"
+                            className="ml-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-primaryDark hover:bg-slate-100 dark:text-accentYellow dark:hover:bg-slate-800"
                         >
                             {isRevenueVisible ? <FiEye size={15} /> : <FiEyeOff size={15} />}
                         </button>
