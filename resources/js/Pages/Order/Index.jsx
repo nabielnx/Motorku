@@ -454,7 +454,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                             >
                                 {isRevenueVisible ? <FiEye size={16} /> : <FiEyeOff size={16} />}
                             </button>
-                            <strong className="w-32 shrink-0 whitespace-nowrap text-right text-sm tabular-nums text-primaryDark dark:text-white">{isRevenueVisible ? formatRp(periodOrderValue) : 'Rp ••••••'}</strong>
+                            <strong className="w-32 shrink-0 whitespace-nowrap text-left text-sm tabular-nums text-primaryDark dark:text-white">{isRevenueVisible ? formatRp(periodOrderValue) : 'Rp ••••••'}</strong>
                         </div>
                     </div>
                     <div className="mt-1">Perlu ditangani <strong className="text-slate-900 dark:text-white">{activeCount}</strong></div>
@@ -464,7 +464,6 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                 <div className="hidden sm:flex flex-wrap items-center gap-x-8 gap-y-2 border-b border-slate-200 dark:border-slate-800 px-1 pb-3 text-sm text-slate-500 dark:text-slate-400">
                     <span>{summaryPeriodLabel} <strong className="ml-1 text-primaryDark dark:text-white">{periodOrderCount} pesanan</strong></span>
                     <span className="inline-flex items-center gap-1">Pendapatan
-                        <strong className="ml-1 inline-block w-36 whitespace-nowrap text-right tabular-nums text-primaryDark dark:text-white">{isRevenueVisible ? formatRp(periodOrderValue) : 'Rp ••••••'}</strong>
                         <button
                             type="button"
                             onClick={() => setIsRevenueVisible((visible) => !visible)}
@@ -474,6 +473,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                         >
                             {isRevenueVisible ? <FiEye size={15} /> : <FiEyeOff size={15} />}
                         </button>
+                        <strong className="w-36 whitespace-nowrap text-left tabular-nums text-primaryDark dark:text-white">{isRevenueVisible ? formatRp(periodOrderValue) : 'Rp ••••••'}</strong>
                     </span>
                     <span>Perlu ditangani <strong className="ml-1 text-slate-900 dark:text-white">{activeCount}</strong></span>
                 </div>
