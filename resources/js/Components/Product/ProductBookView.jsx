@@ -25,6 +25,14 @@ export default function ProductBookView({
     selectedCategory = '',
     searchQuery = '',
 }) {
+    // Bug fix: jika currentPage melampaui totalPages (misalnya saat ganti kategori),
+    // langsung reset ke halaman 1 agar tidak menampilkan halaman kosong.
+    useEffect(() => {
+        if (currentPage > totalPages && totalPages >= 1) {
+            onPageChange(1);
+        }
+    }, [currentPage, totalPages]);
+
     useEffect(() => {
         const handleKeyDown = (e) => {
             if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
@@ -150,25 +158,24 @@ export default function ProductBookView({
                 className="flex-1 min-h-0 bg-white border border-slate-300 rounded-xl shadow-xs flex flex-col overflow-hidden"
             >
                 {/* ── HEADER CATATAN BUKU ── */}
-                <div className={`shrink-0 px-3 sm:px-5 ${bookTitle ? 'pt-2.5 pb-2' : 'py-2'} border-b border-slate-300 bg-white`}>
-                    {/* Baris Atas: Date & Nomor Halaman */}
-                    <div className="flex items-center justify-between text-[11px] font-mono text-slate-600">
-                        <span className="font-bold text-slate-800">
+                <div className="shrink-0 px-3 sm:px-5 py-2 border-b border-slate-300 bg-white">
+                    {/* Satu baris: Date | Judul (opsional, kecil) | Hal. X/Y */}
+                    <div className="flex items-center justify-between gap-2 text-[11px] font-mono text-slate-600">
+                        <span className="font-bold text-slate-800 shrink-0">
                             Date: <span className="underline decoration-slate-400 underline-offset-4">{todayDate}</span>
                         </span>
-                        <span className="font-bold text-slate-800">
+
+                        {/* Judul kategori/pencarian — ditengah, kecil, terpotong jika terlalu panjang */}
+                        {bookTitle && (
+                            <span className="flex-1 text-center text-[10px] font-bold tracking-wider text-slate-600 uppercase truncate px-1">
+                                {bookTitle}
+                            </span>
+                        )}
+
+                        <span className="font-bold text-slate-800 shrink-0">
                             Hal. {currentPage} / {totalPages}
                         </span>
                     </div>
-
-                    {/* Baris Judul (hanya muncul jika sedang memfilter kategori tertentu atau mencari produk) */}
-                    {bookTitle && (
-                        <div className="text-center sm:text-left pt-1.5">
-                            <h2 className="text-sm sm:text-base font-bold tracking-wider text-slate-900 font-heading uppercase">
-                                {bookTitle}
-                            </h2>
-                        </div>
-                    )}
                 </div>
 
                 {/* ── ISI HALAMAN BUKU (GARIS-GARIS KERTAS) ── */}

@@ -62,7 +62,7 @@
                     </div>
 
                     <!-- Store Header -->
-                    <header class="sticky top-0 z-30 border-b border-slate-200/80 bg-white shadow-2xs overflow-hidden relative">
+                    <header class="sticky top-0 z-40 border-b border-slate-200/80 bg-white shadow-2xs overflow-hidden relative">
                         <div class="mx-auto flex min-h-[54px] max-w-[1280px] items-center justify-between gap-2 px-3.5 sm:min-h-[62px] sm:gap-4 sm:px-6 lg:px-8 relative z-10">
                             <div class="flex shrink-0 items-center gap-2.5">
                                 <div class="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-slate-200 animate-pulse"></div>
