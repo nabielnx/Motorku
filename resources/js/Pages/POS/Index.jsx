@@ -793,7 +793,7 @@ return (
                             </button>
                             <span className="flex shrink-0 items-center gap-1.5 text-center">
                                 <FiShoppingBag className="h-4 w-4 text-slate-500 dark:text-slate-400" strokeWidth={2.5} />
-                                Keranjang <span className="admin-cart-count rounded-md px-1.5 py-0.5 text-[10px] font-bold">{cartItemCount} item</span>
+                                Keranjang <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300">{cartItemCount} item</span>
                             </span>
                             <button
                                 type="button"
@@ -806,7 +806,7 @@ return (
                             </button>
                         </div>
                         <div className="hidden items-center justify-between gap-2 text-xs font-semibold text-slate-700 dark:text-slate-300 md:flex md:text-sm">
-                            <span className="flex items-center gap-1.5"><FiShoppingBag className="h-4 w-4 text-slate-500 dark:text-slate-400" strokeWidth={2.5} /> Keranjang <span className="admin-cart-count rounded-md px-1.5 py-0.5 text-[10px] font-bold">{cartItemCount} item</span></span>
+                            <span className="flex items-center gap-1.5"><FiShoppingBag className="h-4 w-4 text-slate-500 dark:text-slate-400" strokeWidth={2.5} /> Keranjang <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300">{cartItemCount} item</span></span>
                             <div className="flex shrink-0 items-center gap-1">
                                 <button
                                     type="button"
