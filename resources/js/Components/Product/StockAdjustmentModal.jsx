@@ -16,7 +16,7 @@ export default function StockAdjustmentModal({
 }) {
     return (
         <AdminDialog onClose={() => setSelectedProductForAdjust(null)} closeable={!adjustLoading} className="max-w-md max-h-[calc(100dvh-2rem)] flex flex-col overflow-hidden dark:text-white">
-            <div className="shrink-0 px-4 py-3 border-b border-slate-200 dark:border-slate-800 flex items-start gap-3 bg-slate-50 dark:bg-slate-800/80">
+            <div className="shrink-0 px-4 py-3 border-b border-slate-200 dark:border-slate-800 flex items-start gap-3 bg-slate-50 dark:bg-slate-800">
                 <div className="min-w-0 flex-1">
                     <DialogTitle className="admin-dialog-title">
                         Atur Stok

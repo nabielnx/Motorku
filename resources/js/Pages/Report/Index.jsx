@@ -6,6 +6,7 @@ import DateRangePicker from '@/Components/DateRangePicker';
 import { useState, useEffect } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import ReportSkeleton from '@/Components/Skeletons/ReportSkeleton';
+import Skeleton from '@/Components/Skeleton';
 import { Head, usePage, router } from '@inertiajs/react';
 
 import { toast } from 'sonner';
@@ -307,7 +308,27 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
                         {cashSummary.closing ? <p className="text-xs font-bold text-primaryDark dark:text-white">Kas ditutup. Rekap terkunci; transaksi setelahnya tidak masuk rekap ini.</p> : (
                             <AdminButton type="button" onClick={saveCashClosing} disabled={savingCash || actualCash === '' || Number(openingCash) < 0 || Number(cashOut) < 0 || Number(actualCash) < 0} variant="primary">{savingCash ? 'Menyimpan...' : 'Simpan Tutup Kas'}</AdminButton>
                         )}
-                    </> : <p className="text-xs text-slate-500">{cashError ? 'Rekap kas gagal dimuat. Coba pilih tanggal kembali atau muat ulang halaman.' : 'Memuat rekap kas...'}</p>}
+                    </> : cashError ? (
+                        <p className="text-xs text-red-600">Rekap kas gagal dimuat. Coba pilih tanggal kembali atau muat ulang halaman.</p>
+                    ) : (
+                        <div className="space-y-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                                {Array.from({ length: 4 }).map((_, i) => (
+                                    <div key={i} className="space-y-1">
+                                        <Skeleton className="h-3 w-24" />
+                                        {i === 0 || i === 3 ? <Skeleton className="h-10 w-full rounded-lg" /> : <Skeleton className="h-4 w-24 mt-2" />}
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 border-t border-slate-200 dark:border-slate-800 pt-3">
+                                <div className="space-y-1"><Skeleton className="h-3 w-24" /><Skeleton className="h-6 w-32" /></div>
+                                <div className="space-y-1"><Skeleton className="h-3 w-36" /><Skeleton className="h-10 w-full rounded-lg" /></div>
+                                <div className="space-y-1"><Skeleton className="h-3 w-12" /><Skeleton className="h-6 w-24" /></div>
+                            </div>
+                            <Skeleton className="h-9 w-full rounded-lg" />
+                            <Skeleton className="h-8 w-36 rounded-lg" />
+                        </div>
+                    )}
                 </section>
 
                 {/* Content Grid: Top Products + Category */}

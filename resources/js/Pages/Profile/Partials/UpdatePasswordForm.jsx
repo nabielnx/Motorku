@@ -131,7 +131,7 @@ export default function UpdatePasswordForm({ className = '' }) {
                     </div>
 
                     {data.password && (
-                        <div className="mt-3 space-y-2 p-3 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg">
+                        <div className="mt-3 space-y-2 p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg">
                             <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
                                 <div className={`h-full transition-all duration-300 ${bar.color}`} style={{ width: bar.width }} />
                             </div>

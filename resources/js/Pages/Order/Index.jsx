@@ -877,7 +877,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
 
             {/* Payment Confirmation Modal */}
             {paymentOrder && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950 p-4">
                     <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-slate-900 p-6 shadow-2xl border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white">
                         <h3 className="text-lg font-black text-slate-900 dark:text-white">Konfirmasi Pembayaran</h3>
                         <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{paymentOrder.id} · {paymentOrder.customer}</p>

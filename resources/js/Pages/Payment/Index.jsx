@@ -227,7 +227,7 @@ export default function Payment() {
                             value={customerName}
                             onChange={(e) => { setCustomerName(e.target.value); if (error) setError(null); }}
                             className={`w-full bg-slate-50 border rounded-xl px-4 py-3 text-xs font-bold text-slate-800 focus:ring-2 focus:ring-stone-500 focus:outline-none transition-colors ${
-                                error && !customerName.trim() ? 'border-red-400 bg-red-50/50' : 'border-slate-200'
+                                error && !customerName.trim() ? 'border-red-400 bg-red-50' : 'border-slate-200'
                             }`}
                         />
                     </div>

@@ -143,7 +143,7 @@ export default function DateRangePicker({ initialStart = '', initialEnd = '', on
             {/* Popover Calendar Modal */}
             {isOpen && (
                 <>
-                <button type="button" aria-label="Tutup pemilih tanggal" onClick={() => setIsOpen(false)} className="fixed inset-0 z-40 bg-slate-950/40 sm:hidden" />
+                <button type="button" aria-label="Tutup pemilih tanggal" onClick={() => setIsOpen(false)} className="fixed inset-0 z-40 bg-slate-950 sm:hidden" />
                 <div className="fixed left-4 right-4 top-1/2 z-50 mx-auto max-h-[calc(100dvh-2rem)] max-w-sm -translate-y-1/2 overflow-y-auto rounded-2xl border border-slate-200 bg-white p-3 text-slate-800 shadow-xl dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 sm:absolute sm:left-auto sm:right-0 sm:top-auto sm:mx-0 sm:mt-2 sm:w-80 sm:translate-y-0 sm:p-4">
                     
                     {/* Popover Header */}

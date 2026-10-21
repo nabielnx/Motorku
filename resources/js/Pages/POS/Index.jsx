@@ -10,8 +10,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import Modal from '@/Components/Modal';
 import PosCardSkeleton from '@/Components/Skeletons/PosCardSkeleton';
-import { Head, router, usePage } from '@inertiajs/react';
+import ProductTableSkeleton from '@/Components/Skeletons/ProductTableSkeleton';
 import { ProductPhoto } from '@/Components/Customer/Storefront';
+import { Head, router, usePage } from '@inertiajs/react';
 import { getVisibleCategoryIds } from '@/Utils/posCategoryFilter';
 import { fuzzyFilterProducts } from '@/Utils/fuzzySearch';
 import { getProductLabel } from '@/Utils/productLabel';
@@ -672,7 +673,7 @@ return (
                     {viewMode === 'book' ? (
                         <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
                             {isNavigating ? (
-                                <div className="flex-1 flex items-center justify-center text-slate-400 dark:text-slate-500 text-xs">Memuat...</div>
+                                <ProductTableSkeleton viewMode="book" rows={BOOK_PER_PAGE} />
                             ) : (
                                 <ProductBookView
                                     items={(() => {
@@ -800,7 +801,7 @@ return (
                                 onClick={() => setItemToDelete({ clearAll: true })}
                                 disabled={cart.length === 0 || isSubmittingOrder || isOrderComplete}
                                 aria-label="Kosongkan keranjang"
-                                className="flex min-w-0 flex-1 items-center justify-end gap-0.5 rounded-lg py-1 text-right text-[11px] font-semibold text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40 dark:text-red-400 dark:hover:bg-red-950/40"
+                                className="flex min-w-0 flex-1 items-center justify-end gap-0.5 rounded-lg py-1 text-right text-[11px] font-semibold text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40 dark:text-red-400 dark:hover:bg-red-950"
                             >
                                 <FiTrash2 className="h-3 w-3 shrink-0" aria-hidden="true" /> Kosongkan
                             </button>
@@ -813,7 +814,7 @@ return (
                                     onClick={() => setItemToDelete({ clearAll: true })}
                                     disabled={cart.length === 0 || isSubmittingOrder || isOrderComplete}
                                     aria-label="Kosongkan keranjang"
-                                    className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40 dark:text-red-400 dark:hover:bg-red-950/40"
+                                    className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40 dark:text-red-400 dark:hover:bg-red-950"
                                 >
                                     <FiTrash2 className="h-3.5 w-3.5" aria-hidden="true" /> Kosongkan
                                 </button>
@@ -848,7 +849,7 @@ return (
                                         onClick={() => removeFromCart(item)}
                                         aria-label={`Hapus ${item.name} dari keranjang`}
                                         title="Hapus produk"
-                                        className="inline-flex h-8 w-8 shrink-0 items-center justify-center text-slate-400 hover:text-red-600 dark:hover:text-red-400 p-1 rounded hover:bg-red-50 dark:hover:bg-red-950/40 transition cursor-pointer"
+                                        className="inline-flex h-8 w-8 shrink-0 items-center justify-center text-slate-400 hover:text-red-600 dark:hover:text-red-400 p-1 rounded hover:bg-red-50 dark:hover:bg-red-950 transition cursor-pointer"
                                     >
                                         <FiTrash2 className="w-3.5 h-3.5" />
                                     </button>

@@ -87,7 +87,7 @@ export default function CategoryFormModal({
                                             const updated = categoryFormData.sub_categories.filter((_, i) => i !== idx);
                                             setCategoryFormData({ ...categoryFormData, sub_categories: updated });
                                         }}
-                                        className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/50 rounded-lg transition shrink-0 cursor-pointer admin-icon-button"
+                                        className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950 rounded-lg transition shrink-0 cursor-pointer admin-icon-button"
                                         aria-label={`Hapus subkategori ${idx + 1}`}
                                     >
                                         <FiTrash2 size={15} />

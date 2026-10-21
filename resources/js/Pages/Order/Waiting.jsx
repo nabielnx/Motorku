@@ -253,7 +253,7 @@ export default function WaitingConfirmation() {
 
                 {/* PAYMENT & ORDER STATUS BANNER */}
                 {(paymentStatus === 'pending' || paymentStatus === 'unpaid') ? (
-                    <div className="w-full bg-yellow-50 border border-yellow-200/80 rounded-lg p-4 flex items-center gap-3">
+                    <div className="w-full bg-yellow-50 border border-yellow-200 rounded-lg p-4 flex items-center gap-3">
                         <FiClock size={20} className="text-yellow-500 shrink-0" />
                         <div>
                             <p className="text-xs font-bold text-yellow-800">Menunggu Konfirmasi Kasir</p>
@@ -295,7 +295,7 @@ export default function WaitingConfirmation() {
                     <button
                         onClick={openCancelModal}
                         disabled={cancelling}
-                        className="w-full py-3 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200/80 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 active:scale-98"
+                        className="w-full py-3 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 active:scale-98"
                     >
                         <FiXCircle size={14} />
                         <span>Batalkan Pesanan</span>
@@ -325,7 +325,7 @@ export default function WaitingConfirmation() {
 
             {/* CUSTOM CANCEL CONFIRMATION MODAL */}
             {showCancelModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fade-in">
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900 animate-fade-in">
                     <div className="bg-white rounded-xl p-6 max-w-xs w-full shadow-2xl space-y-4 text-center border border-slate-100 transform transition-all">
                         <div className="w-14 h-14 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
                             <FiAlertTriangle size={28} />

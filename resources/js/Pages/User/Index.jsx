@@ -343,7 +343,7 @@ export default function UserIndex({ initialUsers = {}, activeOwnersCount = 0, ma
                                                     <button 
                                                         onClick={() => confirmDelete(user.id)} 
                                                         disabled={deleteDisabled}
-                                                        className={`p-2 rounded-lg transition-colors cursor-pointer admin-icon-button ${deleteDisabled ? 'text-slate-200 dark:text-slate-700 cursor-not-allowed' : 'text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/50'}`}
+                                                        className={`p-2 rounded-lg transition-colors cursor-pointer admin-icon-button ${deleteDisabled ? 'text-slate-200 dark:text-slate-700 cursor-not-allowed' : 'text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950'}`}
                                                         title={deleteTooltip}
                                                         aria-label={`Hapus staf ${user.name}`}
                                                     >
@@ -403,7 +403,7 @@ export default function UserIndex({ initialUsers = {}, activeOwnersCount = 0, ma
                         </div>
 
                         {formError && (
-                            <div className="p-3 bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 rounded-xl text-xs font-bold flex items-center justify-between gap-2">
+                            <div className="p-3 bg-rose-50 dark:bg-rose-950 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 rounded-xl text-xs font-bold flex items-center justify-between gap-2">
                                 <div className="flex items-center gap-2">
                                     <FiAlertCircle className="shrink-0 text-rose-600 dark:text-rose-400" size={16} />
                                     <span>{formError}</span>
@@ -464,7 +464,7 @@ export default function UserIndex({ initialUsers = {}, activeOwnersCount = 0, ma
             {modal === 'delete' && (
                 <AdminDialog onClose={() => setModal(null)} closeable={!loading} className="max-w-sm overflow-y-auto">
                     <div className="p-4 sm:p-6 text-center">
-                        <div className="w-16 h-16 bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <div className="w-16 h-16 bg-rose-100 dark:bg-rose-950 text-rose-600 dark:text-rose-400 rounded-full flex items-center justify-center mx-auto mb-4">
                             <FiTrash2 size={32} />
                         </div>
                         <DialogTitle className="admin-dialog-title">Hapus Staf?</DialogTitle>

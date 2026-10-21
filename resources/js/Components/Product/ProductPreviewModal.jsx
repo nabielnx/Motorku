@@ -6,7 +6,7 @@ export default function ProductPreviewModal({
 }) {
     return (
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-xs p-4 animate-in fade-in duration-200"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black p-4 animate-in fade-in duration-200"
             onClick={() => setPreviewProduct(null)}
         >
             <div

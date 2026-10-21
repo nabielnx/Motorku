@@ -25,7 +25,7 @@ export default function MotorcycleFormModal({
             </div>
 
             {formErrors.general && (
-                <div className="p-3 bg-red-50 dark:bg-red-950/60 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-xs rounded-md font-semibold flex items-center gap-2">
+                <div className="p-3 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-xs rounded-md font-semibold flex items-center gap-2">
                     <FiAlertCircle size={15} /> {formErrors.general}
                 </div>
             )}
@@ -137,7 +137,7 @@ export default function MotorcycleFormModal({
                                     onClick={() => formData.image_file
                                         ? setFormData({ ...formData, image_file: null, remove_image: false })
                                         : setFormData({ ...formData, image_url: '', remove_image: !!editMotorcycle })}
-                                    className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:opacity-50 dark:border-red-900 dark:text-red-300 dark:hover:bg-red-950/40"
+                                    className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:opacity-50 dark:border-red-900 dark:text-red-300 dark:hover:bg-red-950"
                                 >
                                     <FiTrash2 size={14} aria-hidden="true" /> {formData.image_file ? 'Batal pilih foto' : 'Hapus gambar'}
                                 </button>
