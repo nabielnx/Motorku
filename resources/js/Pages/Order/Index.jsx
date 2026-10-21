@@ -503,6 +503,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                                             onChange={(e) => handlePeriodChange(e.target.value)}
                                             aria-label="Pilih periode pesanan"
                                             className="w-full min-w-0 appearance-none rounded-xl border border-primary bg-primary py-2 pl-9 pr-8 text-xs font-bold text-white cursor-pointer transition hover:bg-primaryDark focus:outline-none focus:ring-0 focus:border-primaryDark"
+                                            style={{ appearance: 'none', WebkitAppearance: 'none', backgroundImage: 'none' }}
                                         >
                                             <option className="bg-white text-slate-900" value="" disabled hidden>Pilihan Cepat...</option>
                                             <option className="bg-white text-slate-900" value="all">Semua tanggal</option>
