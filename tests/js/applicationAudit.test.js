@@ -4,7 +4,7 @@ import axios from 'axios';
 import { installCsrfRecovery, clearCsrfHeaders } from '../../resources/js/Utils/csrf.js';
 import { moneyDigits, validMoneyInput } from '../../resources/js/Utils/money.js';
 import { mergeOrderUpdates } from '../../resources/js/Utils/orderHistory.js';
-import { storeDate, reportPeriods } from '../../resources/js/Utils/dates.js';
+import { storeDate, reportPeriods, dashboardDateRange } from '../../resources/js/Utils/dates.js';
 
 test('CSRF recovery refreshes once concurrently, discards stale headers and bounds retries', async () => {
     let refreshes = 0;
@@ -69,4 +69,9 @@ test('report calendar uses store timezone and preserves month/year boundaries', 
     assert.deepEqual(reportPeriods('2026-01-02')[3], { label: 'Bulan Lalu', start: '2025-12-01', end: '2025-12-31' });
     assert.equal(reportPeriods('2026-01-02')[1].start, '2025-12-27');
     assert.equal(reportPeriods('2024-03-01')[3].end, '2024-02-29');
+    assert.deepEqual(dashboardDateRange('today', '2026-10-05'), { start: '2026-10-05', end: '2026-10-05' });
+    assert.deepEqual(dashboardDateRange('7_days', '2026-10-05'), { start: '2026-09-29', end: '2026-10-05' });
+    assert.deepEqual(dashboardDateRange('30_days', '2026-10-05'), { start: '2026-09-06', end: '2026-10-05' });
+    assert.deepEqual(dashboardDateRange('this_month', '2026-10-05'), { start: '2026-10-01', end: '2026-10-05' });
+    assert.deepEqual(dashboardDateRange('this_year', '2026-10-05'), { start: '2026-01-01', end: '2026-10-05' });
 });

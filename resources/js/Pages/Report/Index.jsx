@@ -1,7 +1,8 @@
 import AdminButton from '@/Components/Admin/Button';
 import { cashSummary as fetchCashSummary, closeCash } from '@/Api/cashReports';
-import { storeDate, reportPeriods } from '@/Utils/dates';
+import { storeDate, dashboardDateRange } from '@/Utils/dates';
 import MoneyInput from '@/Components/MoneyInput';
+import DateRangePicker from '@/Components/DateRangePicker';
 import { useState, useEffect } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import ReportSkeleton from '@/Components/Skeletons/ReportSkeleton';
@@ -120,29 +121,44 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
         return `${val}%`;
     };
 
-    // Period presets
-    const [periodOpen, setPeriodOpen] = useState(false);
+    const periodFilter = filters.period || 'this_month';
+    const [startDate, setStartDate] = useState(filters.start_date || '');
+    const [endDate, setEndDate] = useState(filters.end_date || '');
     const periodLabel = () => {
+        if (periodFilter === 'today') return 'Hari Ini';
+        if (periodFilter === '7_days') return '7 Hari Terakhir';
+        if (periodFilter === '30_days') return '30 Hari Terakhir';
+        if (periodFilter === 'this_year') return 'Tahun Ini';
+        if (periodFilter === 'this_month') return 'Bulan Ini';
         const s = filters.start_date;
         const e = filters.end_date;
-        if (!s || !e) return 'Bulan Ini';
-
-        const startOfMonth = `${today.slice(0, 7)}-01`;
-        if (s === startOfMonth && e === today) return 'Bulan Ini';
+        if (!s || !e) return 'Pilih periode';
 
         const fmt = (d) => new Date(d).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
         return `${fmt(s)} — ${fmt(e)}`;
     };
 
-    const applyPeriod = (startDate, endDate) => {
+    const applyPeriod = (period, startDate, endDate) => {
         router.get(route('reports.index'), {
+            period,
             start_date: startDate,
             end_date: endDate,
         }, { preserveState: true, preserveScroll: true });
-        setPeriodOpen(false);
     };
 
-    const presets = () => reportPeriods(today);
+    const handlePeriodChange = (event) => {
+        const period = event.target.value;
+        const range = dashboardDateRange(period, today);
+        setStartDate(range.start);
+        setEndDate(range.end);
+        applyPeriod(period, range.start, range.end);
+    };
+
+    const handleApplyDateRange = (start, end) => {
+        setStartDate(start);
+        setEndDate(end);
+        applyPeriod('custom', start, end);
+    };
 
     // Print report
     const todayFormatted = new Date().toLocaleDateString('id-ID', {
@@ -188,32 +204,31 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
 
                 {/* Toolbar: Period + Export */}
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                    <div className="relative">
-                        <button
-                            onClick={() => setPeriodOpen(!periodOpen)}
-                            className="inline-flex items-center gap-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3.5 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 hover:border-slate-300 dark:hover:border-slate-600 transition cursor-pointer"
-                        >
-                            <FiCalendar size={14} className="text-slate-400 dark:text-slate-500" />
-                            {periodLabel()}
-                            <FiChevronDown size={14} className={`text-slate-400 dark:text-slate-500 transition-transform ${periodOpen ? 'rotate-180' : ''}`} />
-                        </button>
-
-                        {periodOpen && (
-                            <>
-                                <div className="fixed inset-0 z-30" onClick={() => setPeriodOpen(false)} />
-                                <div className="admin-surface absolute left-0 top-full mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-lg z-40 py-1 min-w-[180px]">
-                                    {presets().map((p, i) => (
-                                        <button
-                                            key={i}
-                                            onClick={() => applyPeriod(p.start, p.end)}
-                                            className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition cursor-pointer"
-                                        >
-                                            {p.label}
-                                        </button>
-                                    ))}
-                                </div>
-                            </>
-                        )}
+                    <div className="grid w-full min-w-0 grid-cols-2 gap-2 sm:w-auto sm:flex sm:flex-wrap sm:items-center">
+                        <div className="relative min-w-0 w-full sm:w-auto">
+                            <FiCalendar aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-accentYellow" size={15} />
+                            <select
+                                value={periodFilter === 'custom' ? '' : periodFilter}
+                                onChange={handlePeriodChange}
+                                aria-label="Pilih periode laporan"
+                                className="w-full appearance-none rounded-xl border border-primary bg-primary py-2 pl-9 pr-8 text-xs font-bold text-white shadow-2xs cursor-pointer transition hover:bg-primaryDark focus:outline-none focus:ring-0 focus:border-primaryDark"
+                                style={{ appearance: 'none', WebkitAppearance: 'none', backgroundImage: 'none' }}
+                            >
+                                <option className="bg-white text-slate-900" value="" disabled hidden>Pilihan Cepat...</option>
+                                <option className="bg-white text-slate-900" value="today">Hari Ini</option>
+                                <option className="bg-white text-slate-900" value="7_days">7 Hari Terakhir</option>
+                                <option className="bg-white text-slate-900" value="30_days">30 Hari Terakhir</option>
+                                <option className="bg-white text-slate-900" value="this_month">Bulan Ini</option>
+                                <option className="bg-white text-slate-900" value="this_year">Tahun Ini</option>
+                            </select>
+                            <FiChevronDown aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-white" size={14} />
+                        </div>
+                        <DateRangePicker
+                            initialStart={startDate}
+                            initialEnd={endDate}
+                            activePeriod={periodFilter}
+                            onApply={handleApplyDateRange}
+                        />
                     </div>
 
                     <button

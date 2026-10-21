@@ -22,6 +22,7 @@ class ReportDateRangeRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'period' => ['nullable', 'in:today,7_days,30_days,this_month,this_year,custom'],
             'start_date' => ['required', 'date_format:Y-m-d'],
             'end_date' => ['required', 'date_format:Y-m-d', 'after_or_equal:start_date'],
         ];
