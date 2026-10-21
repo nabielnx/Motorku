@@ -429,6 +429,19 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
     };
 
     const cleanUserName = (auth?.user?.name || 'Kasir').replace(/\s*\(.*?\)/g, '');
+    const revenueText = formatRp(periodOrderValue);
+    const renderRevenueValue = () => (
+        <strong
+            aria-label={isRevenueVisible ? revenueText : 'Pendapatan disembunyikan'}
+            className="relative inline-block whitespace-nowrap text-sm tabular-nums text-primaryDark dark:text-white"
+        >
+            {Array.from(revenueText, (character, index) => (
+                /\d/.test(character)
+                    ? <span key={index} className="inline-flex w-[0.65em] justify-center">{isRevenueVisible ? character : '•'}</span>
+                    : <span key={index}>{character}</span>
+            ))}
+        </strong>
+    );
 
     return (
         <AuthenticatedLayout pageTitle={locale === 'en' ? 'Orders List' : 'Daftar Pesanan'}>
@@ -454,7 +467,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                             >
                                 {isRevenueVisible ? <FiEye size={16} /> : <FiEyeOff size={16} />}
                             </button>
-                            <strong className="w-32 shrink-0 whitespace-nowrap text-left text-sm tabular-nums text-primaryDark dark:text-white">{isRevenueVisible ? formatRp(periodOrderValue) : 'Rp ••••••'}</strong>
+                            {renderRevenueValue()}
                         </div>
                     </div>
                     <div className="mt-1">Perlu ditangani <strong className="text-slate-900 dark:text-white">{activeCount}</strong></div>
@@ -473,7 +486,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                         >
                             {isRevenueVisible ? <FiEye size={15} /> : <FiEyeOff size={15} />}
                         </button>
-                        <strong className="w-36 whitespace-nowrap text-left tabular-nums text-primaryDark dark:text-white">{isRevenueVisible ? formatRp(periodOrderValue) : 'Rp ••••••'}</strong>
+                        {renderRevenueValue()}
                     </span>
                     <span>Perlu ditangani <strong className="ml-1 text-slate-900 dark:text-white">{activeCount}</strong></span>
                 </div>
