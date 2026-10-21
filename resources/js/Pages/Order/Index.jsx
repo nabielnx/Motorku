@@ -5,6 +5,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import { toast } from 'sonner';
+import DateRangePicker from '@/Components/DateRangePicker';
 import { 
     FiSearch, 
     FiEye, 
@@ -16,7 +17,9 @@ import {
     FiClock, 
     FiCheckCircle, 
     FiAlertCircle, 
-    FiXCircle
+    FiXCircle,
+    FiCalendar,
+    FiChevronDown
 } from 'react-icons/fi';
 
 export default function OrderIndex({ initialOrders = {}, summary = {}, filters = {} }) {
@@ -38,7 +41,9 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
     const [orders, setOrders] = useState(() => paginator.data);
     const ordersSourceRef = useRef(initialOrders);
     const statusFilter = filters.status || 'All';
-    const dateFilter = filters.date || 'all';
+    const periodFilter = filters.period || (filters.date === 'week' ? '7_days' : (filters.date || 'all'));
+    const [startDate, setStartDate] = useState(filters.start_date || '');
+    const [endDate, setEndDate] = useState(filters.end_date || '');
     const [searchQuery, setSearchQuery] = useState(filters.search || '');
     const [paymentOrder, setPaymentOrder] = useState(null);
     const [paymentMethod, setPaymentMethod] = useState('cash');
@@ -84,12 +89,29 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
     const totalItems = paginator.total ?? orders.length;
     const perPage = paginator.per_page || 10;
 
+    const periodFilterRef = useRef(periodFilter);
+    const startDateRef = useRef(startDate);
+    const endDateRef = useRef(endDate);
+    useEffect(() => { periodFilterRef.current = periodFilter; }, [periodFilter]);
+    useEffect(() => { startDateRef.current = startDate; }, [startDate]);
+    useEffect(() => { endDateRef.current = endDate; }, [endDate]);
+    useEffect(() => {
+        setStartDate(filters.start_date || '');
+        setEndDate(filters.end_date || '');
+    }, [filters.start_date, filters.end_date]);
+
+    const dateParams = (targetStatus = statusFilter, targetPeriod = periodFilterRef.current, start = startDateRef.current, end = endDateRef.current) => (
+        targetStatus !== 'All' || targetPeriod === 'all'
+            ? {}
+            : { period: targetPeriod, ...(targetPeriod === 'custom' ? { start_date: start || undefined, end_date: end || undefined } : {}) }
+    );
+
     const changePage = (newPage) => {
         if (newPage < 1 || newPage > totalPages) return;
         router.get('/orders', {
             page: newPage,
             status: statusFilter,
-            date: statusFilter === 'All' && dateFilter !== 'all' ? dateFilter : undefined,
+            ...dateParams(),
             search: searchQuery || undefined,
         }, { preserveState: true, preserveScroll: true, showProgress: false });
     };
@@ -97,22 +119,43 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
     const handleFilterChange = (newStatus) => {
         if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
         statusFilterRef.current = newStatus;
-        if (newStatus === 'action') dateFilterRef.current = 'all';
+        if (newStatus === 'action') {
+            periodFilterRef.current = 'all';
+            startDateRef.current = '';
+            endDateRef.current = '';
+            setStartDate('');
+            setEndDate('');
+        }
         router.get('/orders', {
             page: 1,
             status: newStatus,
-            date: newStatus === 'All' && dateFilterRef.current !== 'all' ? dateFilterRef.current : undefined,
+            ...dateParams(newStatus),
             search: searchQuery || undefined,
         }, { preserveState: true, preserveScroll: true, showProgress: false });
     };
 
-    const handleDateFilterChange = (newDate) => {
+    const handlePeriodChange = (newPeriod) => {
         if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
-        dateFilterRef.current = newDate;
+        periodFilterRef.current = newPeriod;
         router.get('/orders', {
             page: 1,
             status: statusFilter,
-            date: newDate !== 'all' ? newDate : undefined,
+            ...dateParams(statusFilter, newPeriod, '', ''),
+            search: searchQuery || undefined,
+        }, { preserveState: true, preserveScroll: true, showProgress: false });
+    };
+
+    const handleApplyDateRange = (start, end) => {
+        if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+        periodFilterRef.current = 'custom';
+        startDateRef.current = start;
+        endDateRef.current = end;
+        setStartDate(start);
+        setEndDate(end);
+        router.get('/orders', {
+            page: 1,
+            status: statusFilter,
+            ...dateParams(statusFilter, 'custom', start, end),
             search: searchQuery || undefined,
         }, { preserveState: true, preserveScroll: true, showProgress: false });
     };
@@ -120,10 +163,8 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
     // Search di-debounce → refetch dari server agar mencari SEMUA pesanan (lintas halaman).
     // Filter diambil via ref agar pencarian memakai pilihan terbaru tanpa double-refetch.
     const statusFilterRef = useRef(statusFilter);
-    const dateFilterRef = useRef(dateFilter);
     const searchTimerRef = useRef(null);
     useEffect(() => { statusFilterRef.current = statusFilter; }, [statusFilter]);
-    useEffect(() => { dateFilterRef.current = dateFilter; }, [dateFilter]);
 
     const isFirstSearchRender = useRef(true);
     useEffect(() => {
@@ -135,7 +176,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
             router.get('/orders', {
                 page: 1,
                 status: statusFilterRef.current,
-                date: statusFilterRef.current === 'All' && dateFilterRef.current !== 'all' ? dateFilterRef.current : undefined,
+                ...dateParams(statusFilterRef.current),
                 search: searchQuery || undefined,
             }, { preserveState: true, preserveScroll: true, showProgress: false });
         }, 400);
@@ -146,7 +187,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
     const refreshOrders = () => router.get('/orders', {
         page: currentPage,
         status: statusFilter,
-        date: statusFilter === 'All' && dateFilter !== 'all' ? dateFilter : undefined,
+        ...dateParams(),
         search: searchQuery || undefined,
     }, { preserveState: true, preserveScroll: true, showProgress: false });
 
@@ -453,16 +494,34 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                                 />
                             </div>
 
-                            {statusFilter === 'All' && <select
-                                value={dateFilter}
-                                onChange={(e) => handleDateFilterChange(e.target.value)}
-                                aria-label="Filter tanggal pesanan"
-                                className="w-32 shrink-0 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-0 focus:border-slate-400"
-                            >
-                                <option value="all">Semua tanggal</option>
-                                <option value="today">Hari ini</option>
-                                <option value="week">7 hari terakhir</option>
-                            </select>}
+                            {statusFilter === 'All' && (
+                                <div className="grid w-full min-w-0 grid-cols-2 gap-2 sm:w-auto sm:flex sm:items-center">
+                                    <div className="relative min-w-0 sm:w-auto">
+                                        <FiCalendar aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-accentYellow" size={15} />
+                                        <select
+                                            value={periodFilter === 'custom' ? '' : periodFilter}
+                                            onChange={(e) => handlePeriodChange(e.target.value)}
+                                            aria-label="Pilih periode pesanan"
+                                            className="w-full appearance-none rounded-xl border border-primary bg-primary py-2 pl-9 pr-8 text-xs font-bold text-white cursor-pointer transition hover:bg-primaryDark focus:outline-none focus:ring-0 focus:border-primaryDark sm:w-auto"
+                                        >
+                                            <option className="bg-white text-slate-900" value="" disabled hidden>Pilihan Cepat...</option>
+                                            <option className="bg-white text-slate-900" value="all">Semua tanggal</option>
+                                            <option className="bg-white text-slate-900" value="today">Hari Ini</option>
+                                            <option className="bg-white text-slate-900" value="7_days">7 Hari Terakhir</option>
+                                            <option className="bg-white text-slate-900" value="30_days">30 Hari Terakhir</option>
+                                            <option className="bg-white text-slate-900" value="this_month">Bulan Ini</option>
+                                            <option className="bg-white text-slate-900" value="this_year">Tahun Ini</option>
+                                        </select>
+                                        <FiChevronDown aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-white" size={14} />
+                                    </div>
+                                    <DateRangePicker
+                                        initialStart={startDate}
+                                        initialEnd={endDate}
+                                        activePeriod={periodFilter}
+                                        onApply={handleApplyDateRange}
+                                    />
+                                </div>
+                            )}
                         </div>
                     </div>
 
