@@ -141,6 +141,8 @@ class OrderListFilterTest extends TestCase
                 ->where('filters.period', 'custom')
                 ->where('filters.start_date', '2026-10-10')
                 ->where('filters.end_date', '2026-10-12')
+                ->where('summary.period_order_count', 2)
+                ->where('summary.period', 'custom')
                 ->where('initialOrders.total', 2));
     }
 
