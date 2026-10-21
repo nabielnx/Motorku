@@ -375,18 +375,69 @@
                         </div>
                         <div class="w-full bg-slate-50 rounded-lg p-5 space-y-3 border border-slate-100">
                             <div class="flex items-center justify-between">
-                                <div class="h-3 w-20 rounded bg-slate-200 animate-pulse"></div>
+                                <div class="flex items-center gap-2">
+                                    <div class="w-3.5 h-3.5 rounded bg-slate-200 animate-pulse"></div>
+                                    <div class="h-3 w-16 rounded bg-slate-200 animate-pulse"></div>
+                                </div>
                                 <div class="h-3 w-28 rounded bg-slate-200 animate-pulse"></div>
                             </div>
                             <div class="flex items-center justify-between">
-                                <div class="h-3 w-20 rounded bg-slate-200 animate-pulse"></div>
+                                <div class="flex items-center gap-2">
+                                    <div class="w-3.5 h-3.5 rounded bg-slate-200 animate-pulse"></div>
+                                    <div class="h-3 w-20 rounded bg-slate-200 animate-pulse"></div>
+                                </div>
                                 <div class="h-3 w-24 rounded bg-slate-200 animate-pulse"></div>
                             </div>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-3.5 h-3.5 rounded bg-slate-200 animate-pulse"></div>
+                                    <div class="h-3 w-16 rounded bg-slate-200 animate-pulse"></div>
+                                </div>
+                                <div class="h-3 w-20 rounded bg-slate-200 animate-pulse"></div>
+                            </div>
                             <div class="border-t border-slate-200 pt-3 flex items-center justify-between">
-                                <div class="h-3.5 w-16 rounded bg-slate-200 animate-pulse"></div>
+                                <div class="h-3.5 w-12 rounded bg-slate-200 animate-pulse"></div>
                                 <div class="h-5 w-28 rounded bg-slate-200 animate-pulse"></div>
                             </div>
                         </div>
+
+                        <!-- Rincian Pesanan (Invoice) Card -->
+                        <div class="w-full bg-slate-50 border border-slate-200 rounded-lg p-4 space-y-3">
+                            <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+                                <div class="flex items-center gap-1.5">
+                                    <div class="w-3.5 h-3.5 rounded bg-slate-200 animate-pulse"></div>
+                                    <div class="h-3.5 w-24 rounded bg-slate-200 animate-pulse"></div>
+                                </div>
+                                <div class="h-2.5 w-16 rounded bg-slate-200 animate-pulse"></div>
+                            </div>
+                            <div class="space-y-2.5">
+                                <div class="flex justify-between items-start">
+                                    <div class="flex items-center gap-1.5 flex-1">
+                                        <div class="h-3.5 w-3/5 rounded bg-slate-200 animate-pulse"></div>
+                                        <div class="h-4 w-6 rounded bg-slate-200 animate-pulse"></div>
+                                    </div>
+                                    <div class="h-3.5 w-16 rounded bg-slate-200 animate-pulse"></div>
+                                </div>
+                                <div class="flex justify-between items-start">
+                                    <div class="flex items-center gap-1.5 flex-1">
+                                        <div class="h-3.5 w-1/2 rounded bg-slate-200 animate-pulse"></div>
+                                        <div class="h-4 w-6 rounded bg-slate-200 animate-pulse"></div>
+                                    </div>
+                                    <div class="h-3.5 w-16 rounded bg-slate-200 animate-pulse"></div>
+                                </div>
+                            </div>
+                            <div class="border-t border-dashed border-slate-300 pt-2.5 space-y-2">
+                                <div class="flex justify-between">
+                                    <div class="h-3 w-14 rounded bg-slate-200 animate-pulse"></div>
+                                    <div class="h-3 w-18 rounded bg-slate-200 animate-pulse"></div>
+                                </div>
+                                <div class="flex justify-between pt-2 border-t border-slate-200">
+                                    <div class="h-4 w-28 rounded bg-slate-200 animate-pulse"></div>
+                                    <div class="h-4 w-24 rounded bg-slate-200 animate-pulse"></div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="w-full bg-yellow-50 border border-yellow-200 rounded-lg p-4 flex items-center gap-3">
                             <div class="w-5 h-5 rounded-full bg-yellow-200 animate-pulse shrink-0"></div>
                             <div class="space-y-1 flex-1">
@@ -396,6 +447,7 @@
                         </div>
                         <div class="h-10 w-full rounded-xl bg-slate-100 border border-slate-200 animate-pulse"></div>
                         <div class="h-11 w-full rounded-xl bg-slate-200 animate-pulse"></div>
+                        <div class="h-3 w-28 rounded bg-slate-200 animate-pulse"></div>
                     </div>
                 </div>
             @elseif ($comp === 'Order/Status')
@@ -415,7 +467,10 @@
                                             <div class="h-2 w-2 rounded-full bg-slate-200 animate-pulse"></div>
                                             <div class="h-5 w-20 rounded-md bg-slate-200 animate-pulse"></div>
                                         </div>
-                                        <div class="h-3 w-16 rounded bg-slate-200 animate-pulse"></div>
+                                        <div class="space-y-1">
+                                            <div class="h-3 w-16 rounded bg-slate-200 animate-pulse"></div>
+                                            <div class="ml-auto h-2.5 w-10 rounded bg-slate-100 animate-pulse"></div>
+                                        </div>
                                     </div>
                                     <div class="flex items-center gap-3 bg-white px-4 py-3">
                                         <div class="min-w-0 flex-1 space-y-1.5">
@@ -423,6 +478,7 @@
                                             <div class="h-3 w-1/3 rounded bg-slate-200 animate-pulse"></div>
                                         </div>
                                         <div class="h-4 w-20 rounded bg-slate-200 animate-pulse shrink-0"></div>
+                                        <div class="h-4 w-4 rounded bg-slate-200 animate-pulse shrink-0"></div>
                                     </div>
                                 </div>
                             @endfor
@@ -540,6 +596,85 @@
                                                 </div>
                                             @endfor
                                         </div>
+
+                                        <!-- BOOK VIEW SKELETON (Toggled if pos_view_mode === 'book') -->
+                                        <div id="pos-book-skeleton" class="hidden flex-1 min-h-0 flex flex-col justify-between p-1 bg-slate-100 gap-2">
+                                            <div class="flex-1 min-h-0 bg-white border border-slate-300 rounded-xl shadow-xs flex flex-col overflow-hidden">
+                                                <div class="px-3 sm:px-5 py-2 border-b border-slate-300 bg-white shrink-0 flex items-center justify-between">
+                                                    <div class="h-3 w-28 rounded bg-slate-200 animate-pulse"></div>
+                                                    <div class="h-3 w-20 rounded bg-slate-200 animate-pulse"></div>
+                                                </div>
+                                                <div class="flex-1 overflow-hidden">
+                                                    <!-- Mobile: 1 Column -->
+                                                    <div class="block md:hidden">
+                                                        <div class="flex items-center justify-between px-2.5 py-1.5 border-b border-slate-300 bg-slate-50">
+                                                            <div class="h-3 w-24 rounded bg-slate-200 animate-pulse"></div>
+                                                            <div class="flex gap-3">
+                                                                <div class="h-3 w-10 rounded bg-slate-200 animate-pulse"></div>
+                                                                <div class="h-3 w-14 rounded bg-slate-200 animate-pulse"></div>
+                                                            </div>
+                                                        </div>
+                                                        @for ($i = 0; $i < 8; $i++)
+                                                            <div class="flex items-center justify-between py-2 px-2 border-b border-slate-200">
+                                                                <div class="flex items-center gap-2 flex-1">
+                                                                    <div class="h-3 w-5 rounded bg-slate-200 animate-pulse"></div>
+                                                                    <div class="h-3.5 w-44 rounded bg-slate-200 animate-pulse"></div>
+                                                                </div>
+                                                                <div class="flex items-center gap-2">
+                                                                    <div class="h-3 w-12 rounded bg-slate-200 animate-pulse"></div>
+                                                                    <div class="h-3.5 w-18 rounded bg-slate-200 animate-pulse"></div>
+                                                                </div>
+                                                            </div>
+                                                        @endfor
+                                                    </div>
+                                                    <!-- Desktop: 2 Columns -->
+                                                    <div class="hidden md:flex min-h-full divide-x divide-slate-300">
+                                                        <div class="flex-1 flex flex-col min-w-0">
+                                                            <div class="flex items-center justify-between px-3 py-1.5 border-b border-slate-300 bg-slate-50">
+                                                                <div class="h-3 w-24 rounded bg-slate-200 animate-pulse"></div>
+                                                                <div class="flex gap-3 pr-2 lg:pr-14">
+                                                                    <div class="h-3 w-12 rounded bg-slate-200 animate-pulse"></div>
+                                                                    <div class="h-3 w-16 rounded bg-slate-200 animate-pulse"></div>
+                                                                </div>
+                                                            </div>
+                                                            @for ($i = 0; $i < 8; $i++)
+                                                                <div class="flex items-center justify-between py-2 px-3 border-b border-slate-200">
+                                                                    <div class="flex items-center gap-2 flex-1">
+                                                                        <div class="h-3 w-5 rounded bg-slate-200 animate-pulse"></div>
+                                                                        <div class="h-3.5 w-44 rounded bg-slate-200 animate-pulse"></div>
+                                                                    </div>
+                                                                    <div class="flex items-center gap-3 pr-2 lg:pr-14">
+                                                                        <div class="h-3 w-12 rounded bg-slate-200 animate-pulse"></div>
+                                                                        <div class="h-3.5 w-18 rounded bg-slate-200 animate-pulse"></div>
+                                                                    </div>
+                                                                </div>
+                                                            @endfor
+                                                        </div>
+                                                        <div class="flex-1 flex flex-col min-w-0">
+                                                            <div class="flex items-center justify-between px-3 py-1.5 border-b border-slate-300 bg-slate-50">
+                                                                <div class="h-3 w-24 rounded bg-slate-200 animate-pulse"></div>
+                                                                <div class="flex gap-3 pr-2 lg:pr-14">
+                                                                    <div class="h-3 w-12 rounded bg-slate-200 animate-pulse"></div>
+                                                                    <div class="h-3 w-16 rounded bg-slate-200 animate-pulse"></div>
+                                                                </div>
+                                                            </div>
+                                                            @for ($i = 0; $i < 8; $i++)
+                                                                <div class="flex items-center justify-between py-2 px-3 border-b border-slate-200">
+                                                                    <div class="flex items-center gap-2 flex-1">
+                                                                        <div class="h-3 w-5 rounded bg-slate-200 animate-pulse"></div>
+                                                                        <div class="h-3.5 w-44 rounded bg-slate-200 animate-pulse"></div>
+                                                                    </div>
+                                                                    <div class="flex items-center gap-3 pr-2 lg:pr-14">
+                                                                        <div class="h-3 w-12 rounded bg-slate-200 animate-pulse"></div>
+                                                                        <div class="h-3.5 w-18 rounded bg-slate-200 animate-pulse"></div>
+                                                                    </div>
+                                                                </div>
+                                                            @endfor
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
 
                                     <!-- Mobile Cart Bar -->
@@ -569,10 +704,16 @@
                 </div>
                 <script nonce="{{ Illuminate\Support\Facades\Vite::cspNonce() }}">
                     try {
-                        if (localStorage.getItem('pos_view_mode') === 'grid') {
-                            var g = document.getElementById('pos-grid-skeleton');
-                            var l = document.getElementById('pos-list-skeleton');
-                            if (g && l) { g.classList.remove('hidden'); l.classList.add('hidden'); }
+                        var posMode = localStorage.getItem('pos_view_mode');
+                        var g = document.getElementById('pos-grid-skeleton');
+                        var l = document.getElementById('pos-list-skeleton');
+                        var b = document.getElementById('pos-book-skeleton');
+                        if (posMode === 'grid' && g && l) {
+                            l.classList.add('hidden');
+                            g.classList.remove('hidden');
+                        } else if (posMode === 'book' && b && l) {
+                            l.classList.add('hidden');
+                            b.classList.remove('hidden');
                         }
                     } catch(e) {}
                 </script>
@@ -668,7 +809,30 @@
                                             <div class="h-6 w-16 bg-slate-200 rounded-lg animate-pulse"></div>
                                             <div class="h-6 w-16 bg-slate-200 rounded-lg animate-pulse"></div>
                                         </div>
-                                        <table class="w-full text-left">
+                                        <!-- Mobile Card List -->
+                                        <div class="md:hidden divide-y divide-slate-100">
+                                            @for ($i = 0; $i < 5; $i++)
+                                                <div class="p-3 space-y-3">
+                                                    <div class="flex items-center gap-3">
+                                                        <div class="w-9 h-9 rounded-full bg-slate-200 animate-pulse shrink-0"></div>
+                                                        <div class="min-w-0 flex-1 space-y-1.5">
+                                                            <div class="h-4 w-3/4 rounded bg-slate-200 animate-pulse"></div>
+                                                            <div class="h-3 w-full rounded bg-slate-100 animate-pulse"></div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="flex justify-between">
+                                                        <div class="h-5 w-16 rounded bg-slate-200 animate-pulse"></div>
+                                                        <div class="h-4 w-16 rounded bg-slate-200 animate-pulse"></div>
+                                                    </div>
+                                                    <div class="flex justify-end gap-2">
+                                                        <div class="h-9 w-9 rounded-lg bg-slate-100 animate-pulse"></div>
+                                                        <div class="h-9 w-9 rounded-lg bg-slate-100 animate-pulse"></div>
+                                                    </div>
+                                                </div>
+                                            @endfor
+                                        </div>
+                                        <!-- Desktop Table -->
+                                        <table class="hidden md:table w-full text-left">
                                             <thead>
                                                 <tr class="border-b border-slate-100 bg-slate-50">
                                                     <th class="py-3.5 px-5"><div class="h-3 w-20 bg-slate-200 rounded animate-pulse"></div></th>
@@ -689,8 +853,8 @@
                                                                 </div>
                                                             </div>
                                                         </td>
-                                                        <td class="py-4 px-5"><div class="h-6 w-20 bg-purple-100 rounded-full animate-pulse"></div></td>
-                                                        <td class="py-4 px-5"><div class="h-6 w-20 bg-emerald-100 rounded-md animate-pulse"></div></td>
+                                                        <td class="py-4 px-5"><div class="h-6 w-20 bg-slate-200 rounded-full animate-pulse"></div></td>
+                                                        <td class="py-4 px-5"><div class="h-4 w-16 bg-slate-200 rounded animate-pulse"></div></td>
                                                         <td class="py-4 px-5 text-right">
                                                             <div class="flex justify-end gap-2">
                                                                 <div class="w-8 h-8 rounded-lg bg-slate-100 animate-pulse"></div>
@@ -948,25 +1112,111 @@
                                     } catch(e) {}
                                 </script>
                             @elseif ($comp === 'Order/Index')
-                                <!-- Order/Index layout preview -->
-                                <div class="w-full space-y-4">
-                                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
-                                        @for ($i = 0; $i < 4; $i++)
-                                            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs space-y-2">
-                                                <div class="h-2.5 w-24 bg-slate-200 rounded animate-pulse"></div>
-                                                <div class="h-6 w-16 bg-slate-300 rounded animate-pulse"></div>
-                                            </div>
+                                <!-- Order/Index layout preview (1:1 with OrderTableSkeleton) -->
+                                <div class="mx-auto w-full max-w-[1440px] space-y-3 p-2 sm:space-y-4 sm:px-5 sm:pb-5 sm:pt-0">
+                                    <div class="space-y-1 px-1 py-1 sm:hidden">
+                                        <div class="flex justify-between">
+                                            <div class="h-4 w-32 rounded bg-slate-200 animate-pulse"></div>
+                                            <div class="h-4 w-24 rounded bg-slate-200 animate-pulse"></div>
+                                        </div>
+                                        <div class="h-3 w-28 rounded bg-slate-200 animate-pulse"></div>
+                                    </div>
+                                    <div class="hidden flex-wrap items-center gap-8 border-b border-slate-200 px-1 pb-3 sm:flex">
+                                        @for ($i = 0; $i < 3; $i++)
+                                            <div class="h-4 w-36 rounded bg-slate-200 animate-pulse"></div>
                                         @endfor
                                     </div>
-                                    <div class="bg-white rounded-xl shadow-2xs border border-slate-200 overflow-hidden">
-                                        <div class="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
-                                            <div class="h-5 w-36 bg-slate-200 rounded animate-pulse"></div>
-                                            <div class="h-8 w-64 bg-slate-100 rounded-lg animate-pulse"></div>
+
+                                    <div class="overflow-hidden bg-white sm:rounded-xl sm:border sm:border-slate-200">
+                                        <div class="flex flex-col gap-2 border-b border-slate-200 p-3 sm:p-4 lg:flex-row lg:items-center lg:justify-between">
+                                            <div class="flex w-full items-center justify-between lg:w-auto">
+                                                <div class="h-5 w-20 rounded bg-slate-200 animate-pulse"></div>
+                                                <div class="h-7 w-7 rounded bg-slate-100 animate-pulse lg:hidden"></div>
+                                            </div>
+                                            <div class="flex w-full flex-wrap items-center gap-2 lg:w-auto">
+                                                <div class="hidden items-center gap-1 sm:flex">
+                                                    @for ($i = 0; $i < 6; $i++)
+                                                        <div class="h-7 w-20 rounded-lg bg-slate-100 animate-pulse"></div>
+                                                    @endfor
+                                                </div>
+                                                <div class="order-first h-8 w-full rounded-lg bg-slate-100 border border-slate-200 sm:order-none sm:w-64 lg:w-72 animate-pulse"></div>
+                                                <div class="h-8 w-40 rounded-lg bg-slate-100 sm:hidden animate-pulse"></div>
+                                                <div class="h-8 w-32 rounded-lg bg-slate-100 animate-pulse"></div>
+                                            </div>
                                         </div>
-                                        <div class="p-4 space-y-3">
-                                            @for ($i = 0; $i < 5; $i++)
-                                                <div class="h-10 w-full bg-slate-50 rounded-lg animate-pulse"></div>
+
+                                        <div class="divide-y divide-slate-100 sm:hidden">
+                                            @for ($i = 0; $i < 6; $i++)
+                                                <div class="space-y-2 px-3 py-3">
+                                                    <div class="flex justify-between gap-3">
+                                                        <div class="space-y-1">
+                                                            <div class="h-3 w-32 rounded bg-slate-200 animate-pulse"></div>
+                                                            <div class="h-4 w-24 rounded bg-slate-200 animate-pulse"></div>
+                                                        </div>
+                                                        <div class="h-4 w-20 rounded bg-slate-200 animate-pulse"></div>
+                                                    </div>
+                                                    <div class="h-3 w-40 rounded bg-slate-200 animate-pulse"></div>
+                                                    <div class="h-3 w-3/4 rounded bg-slate-200 animate-pulse"></div>
+                                                    <div class="h-3 w-1/2 rounded bg-slate-200 animate-pulse"></div>
+                                                    <div class="flex justify-between border-t border-slate-100 pt-2">
+                                                        <div class="h-5 w-20 rounded bg-slate-200 animate-pulse"></div>
+                                                        <div class="h-7 w-24 rounded-md bg-slate-100 animate-pulse"></div>
+                                                    </div>
+                                                </div>
                                             @endfor
+                                        </div>
+
+                                        <div class="hidden max-h-[calc(100vh-380px)] overflow-auto sm:block">
+                                            <table class="w-full min-w-[840px] table-fixed text-left">
+                                                <colgroup>
+                                                    <col class="w-[21%]" />
+                                                    <col class="w-[16%]" />
+                                                    <col class="w-[8%]" />
+                                                    <col class="w-[15%]" />
+                                                    <col class="w-[14%]" />
+                                                    <col class="w-[13%]" />
+                                                    <col class="w-[13%]" />
+                                                </colgroup>
+                                                <thead class="border-b border-slate-200 bg-slate-100">
+                                                    <tr>
+                                                        @for ($i = 0; $i < 7; $i++)
+                                                            <th class="px-3.5 py-2.5">
+                                                                <div class="h-3 w-20 max-w-full rounded bg-slate-200 animate-pulse {{ $i === 3 ? 'ml-auto' : ($i >= 2 ? 'mx-auto' : '') }}"></div>
+                                                            </th>
+                                                        @endfor
+                                                    </tr>
+                                                </thead>
+                                                <tbody class="divide-y divide-slate-200">
+                                                    @for ($i = 0; $i < 6; $i++)
+                                                        <tr>
+                                                            <td class="px-3.5 py-2.5">
+                                                                <div class="h-3 w-32 max-w-full rounded bg-slate-200 animate-pulse"></div>
+                                                                <div class="mt-1 h-3 w-40 max-w-full rounded bg-slate-100 animate-pulse"></div>
+                                                            </td>
+                                                            <td class="px-3.5 py-2.5"><div class="h-3 w-28 max-w-full rounded bg-slate-200 animate-pulse"></div></td>
+                                                            <td class="px-3.5 py-2.5"><div class="mx-auto h-3 w-12 max-w-full rounded bg-slate-200 animate-pulse"></div></td>
+                                                            <td class="px-3.5 py-2.5"><div class="ml-auto h-3 w-24 max-w-full rounded bg-slate-200 animate-pulse"></div></td>
+                                                            <td class="px-3.5 py-2.5"><div class="mx-auto h-5 w-20 max-w-full rounded-md bg-slate-200 animate-pulse"></div></td>
+                                                            <td class="px-3.5 py-2.5"><div class="mx-auto h-3 w-16 max-w-full rounded bg-slate-200 animate-pulse"></div></td>
+                                                            <td class="px-3.5 py-2.5">
+                                                                <div class="flex justify-center gap-1">
+                                                                    <div class="h-7 w-7 rounded-md bg-slate-100 animate-pulse"></div>
+                                                                    <div class="h-7 w-7 rounded-md bg-slate-100 animate-pulse"></div>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    @endfor
+                                                </tbody>
+                                            </table>
+                                        </div>
+
+                                        <div class="flex items-center justify-between gap-2 border-t border-slate-200 p-3">
+                                            <div class="h-3 w-36 rounded bg-slate-200 animate-pulse"></div>
+                                            <div class="flex gap-2">
+                                                <div class="h-7 w-8 rounded-lg sm:w-24 bg-slate-200 animate-pulse"></div>
+                                                <div class="h-7 w-10 rounded-lg bg-slate-200 animate-pulse"></div>
+                                                <div class="h-7 w-8 rounded-lg sm:w-24 bg-slate-200 animate-pulse"></div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

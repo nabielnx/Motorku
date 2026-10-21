@@ -49,6 +49,6 @@ createInertiaApp({
         root.render(<App {...props} />);
     },
     progress: {
-        color: '#2563eb', // blue-600
+        color: '#FFDD00', // Accent Yellow (Workshop Ledger)
     },
 });
