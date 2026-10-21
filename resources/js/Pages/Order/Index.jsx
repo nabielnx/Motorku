@@ -495,14 +495,14 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                             </div>
 
                             {statusFilter === 'All' && (
-                                <div className="grid w-full min-w-0 grid-cols-2 gap-2 sm:w-auto sm:flex sm:items-center">
-                                    <div className="relative min-w-0 sm:w-auto">
+                                <div className="grid w-full min-w-0 grid-cols-2 gap-2 sm:flex-none sm:grid sm:w-[26rem] sm:max-w-full sm:grid-cols-2 sm:items-center">
+                                    <div className="relative min-w-0 sm:w-full">
                                         <FiCalendar aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-accentYellow" size={15} />
                                         <select
                                             value={periodFilter === 'custom' ? '' : periodFilter}
                                             onChange={(e) => handlePeriodChange(e.target.value)}
                                             aria-label="Pilih periode pesanan"
-                                            className="w-full appearance-none rounded-xl border border-primary bg-primary py-2 pl-9 pr-8 text-xs font-bold text-white cursor-pointer transition hover:bg-primaryDark focus:outline-none focus:ring-0 focus:border-primaryDark sm:w-auto"
+                                            className="w-full min-w-0 appearance-none rounded-xl border border-primary bg-primary py-2 pl-9 pr-8 text-xs font-bold text-white cursor-pointer transition hover:bg-primaryDark focus:outline-none focus:ring-0 focus:border-primaryDark"
                                         >
                                             <option className="bg-white text-slate-900" value="" disabled hidden>Pilihan Cepat...</option>
                                             <option className="bg-white text-slate-900" value="all">Semua tanggal</option>
@@ -518,6 +518,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                                         initialStart={startDate}
                                         initialEnd={endDate}
                                         activePeriod={periodFilter}
+                                        fullWidth
                                         onApply={handleApplyDateRange}
                                     />
                                 </div>
