@@ -189,7 +189,7 @@ export default function WaitingConfirmation() {
 
                 {/* INVOICE / RINCIAN PESANAN */}
                 {orderInfo.items && orderInfo.items.length > 0 && (
-                    <div className="w-full bg-slate-50 border border-slate-200/80 rounded-lg p-4 space-y-3">
+                    <div className="w-full bg-slate-50 border border-slate-200 rounded-lg p-4 space-y-3">
                         <div className="flex items-center justify-between border-b border-slate-200 pb-2">
                             <h3 className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
                                 <FiFileText size={14} className="text-stone-500" />

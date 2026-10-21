@@ -277,11 +277,11 @@ export default function UserIndex({ initialUsers = {}, activeOwnersCount = 0, ma
                     <div className="overflow-x-auto">
                         <table className="admin-staff-table block md:table w-full text-left">
                             <thead className="hidden md:table-header-group">
-                                <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-400 dark:text-slate-500 font-bold text-xs uppercase sticky top-0 z-10 bg-slate-50/60 dark:bg-slate-800/90">
-                                    <th className="py-3.5 px-5 bg-slate-50/60 dark:bg-slate-800/90">Pegawai</th>
-                                    <th className="py-3.5 px-5 bg-slate-50/60 dark:bg-slate-800/90">Role</th>
-                                    <th className="py-3.5 px-5 bg-slate-50/60 dark:bg-slate-800/90">Status Akun</th>
-                                    <th className="py-3.5 px-5 text-right bg-slate-50/60 dark:bg-slate-800/90">Aksi</th>
+                                <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-400 dark:text-slate-500 font-bold text-xs uppercase sticky top-0 z-10 bg-slate-50 dark:bg-slate-800">
+                                    <th className="py-3.5 px-5 bg-slate-50 dark:bg-slate-800">Pegawai</th>
+                                    <th className="py-3.5 px-5 bg-slate-50 dark:bg-slate-800">Role</th>
+                                    <th className="py-3.5 px-5 bg-slate-50 dark:bg-slate-800">Status Akun</th>
+                                    <th className="py-3.5 px-5 text-right bg-slate-50 dark:bg-slate-800">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody className="block md:table-row-group divide-y divide-slate-100 dark:divide-slate-800">
@@ -296,7 +296,7 @@ export default function UserIndex({ initialUsers = {}, activeOwnersCount = 0, ma
                                         : (isLastOwnerRow ? "Tidak dapat menghapus owner terakhir yang aktif" : "Hapus Staf");
 
                                     return (
-                                        <tr key={user.id} className="grid grid-cols-2 md:table-row hover:bg-slate-50/60 dark:hover:bg-slate-800/50 transition-colors">
+                                        <tr key={user.id} className="grid grid-cols-2 md:table-row hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                                             <td className="block md:table-cell col-span-2 min-w-0 py-4 px-4 md:px-4">
                                                 <div className="flex items-center gap-3">
                                                     {user.avatar ? (

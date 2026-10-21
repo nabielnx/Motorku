@@ -7,7 +7,7 @@ export default function SettingSkeleton() {
     return (
         <div className="admin-settings max-w-6xl mx-auto space-y-4 pb-8" aria-busy="true" aria-label="Memuat pengaturan">
             {/* 1. Logo Toko Card */}
-            <div className="admin-surface admin-setting-section bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4 transition-colors">
+            <div className="admin-surface admin-setting-section bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4 transition-colors">
                 <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
                     <Skeleton className="w-5 h-5 rounded-md" />
                     <Skeleton className="h-5 w-28" />
@@ -24,14 +24,14 @@ export default function SettingSkeleton() {
             </div>
 
             {/* QRIS store image */}
-            <div className="admin-surface admin-setting-section bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
+            <div className="admin-surface admin-setting-section bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
                 <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3"><Skeleton className="w-5 h-5" /><Skeleton className="h-5 w-36" /></div>
                 <Skeleton className="h-3 w-3/4" />
                 <div className="flex flex-wrap items-start gap-4"><Skeleton className="h-32 w-32 rounded-xl" /><div className="space-y-2"><Skeleton className="h-9 w-32 rounded-lg" /><Skeleton className="h-3 w-40" /></div></div>
             </div>
 
             {/* Banner Promo Card */}
-            <div className="admin-surface admin-setting-section bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4 transition-colors">
+            <div className="admin-surface admin-setting-section bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4 transition-colors">
                 <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                     <div className="flex items-center gap-2">
                         <Skeleton className="w-5 h-5 rounded-md" />
@@ -54,7 +54,7 @@ export default function SettingSkeleton() {
 
             {/* Setting form sections */}
             {[4, 2, 2, 2, 2, 2].map((fieldCount, idx) => (
-                <div key={idx} className="admin-surface admin-setting-section bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4 transition-colors">
+                <div key={idx} className="admin-surface admin-setting-section bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4 transition-colors">
                     <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
                         <Skeleton className="w-5 h-5 rounded-md" />
                         <Skeleton className="h-5 w-36" />
@@ -77,7 +77,7 @@ export default function SettingSkeleton() {
                 <Skeleton className="h-11 w-36 rounded-xl" />
             </div>
 
-            <div className="admin-surface admin-setting-section bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200/80 dark:border-slate-800 space-y-3">
+            <div className="admin-surface admin-setting-section bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 space-y-3">
                 <Skeleton className="h-5 w-36" /><Skeleton className="h-3 w-3/4" /><Skeleton className="h-9 w-40 rounded-lg" />
             </div>
         </div>

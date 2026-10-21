@@ -24,8 +24,8 @@ export default function DashboardSkeleton() {
                 ))}
             </div>
 
-            <div className={`${panel} col-span-12 order-2 flex h-[390px] min-h-0 flex-col overflow-hidden xl:order-1 xl:col-span-8`}>
-                <div className="flex shrink-0 items-center justify-between bg-slate-100 px-4 py-3 dark:bg-slate-800 sm:px-5"><Skeleton className="h-5 w-32" /><Skeleton className="h-4 w-20" /></div>
+            <div className={`admin-surface ${panel} col-span-12 order-2 flex h-[390px] min-h-0 flex-col overflow-hidden xl:order-1 xl:col-span-8`}>
+                <div className="admin-section-header flex shrink-0 items-center justify-between px-4 py-3 sm:px-5"><Skeleton className="h-5 w-32" /><Skeleton className="h-4 w-20" /></div>
                 <div className="min-h-0 flex-1 divide-y divide-slate-100 overflow-hidden sm:hidden dark:divide-slate-800">
                     {Array.from({ length: 7 }).map((_, i) => <div key={i} className="flex justify-between gap-3 px-4 py-3"><div className="space-y-2"><Skeleton className="h-3 w-32" /><Skeleton className="h-3 w-24" /><Skeleton className="h-2.5 w-20" /></div><div className="space-y-2"><Skeleton className="ml-auto h-3 w-20" /><Skeleton className="ml-auto h-3 w-12" /></div></div>)}
                 </div>
@@ -35,11 +35,11 @@ export default function DashboardSkeleton() {
                         <tbody className="divide-y divide-slate-200 dark:divide-slate-800">{Array.from({ length: 7 }).map((_, i) => <tr key={i}>{Array.from({ length: 5 }).map((_, j) => <td key={j} className="px-4 py-2"><Skeleton className="h-3.5 w-20" /></td>)}</tr>)}</tbody>
                     </table>
                 </div>
-                <div className="flex shrink-0 items-center justify-between border-t border-slate-200 bg-slate-50 px-3 py-3 dark:border-slate-800 dark:bg-slate-800/60"><Skeleton className="h-3 w-20" /><Skeleton className="h-6 w-44" /></div>
+                <div className="flex shrink-0 items-center justify-between border-t border-slate-200 bg-slate-50 px-3 py-3 dark:border-slate-800 dark:bg-slate-800"><Skeleton className="h-3 w-20" /><Skeleton className="h-6 w-44" /></div>
             </div>
 
-            <div className={`${panel} col-span-12 order-1 flex h-[280px] min-h-0 flex-col overflow-hidden xl:order-2 xl:col-span-4 xl:h-auto xl:self-stretch`}>
-                <div className="shrink-0 bg-slate-100 px-4 py-3 dark:bg-slate-800 sm:px-5"><Skeleton className="h-4 w-32" /></div>
+            <div className={`admin-surface ${panel} col-span-12 order-1 flex h-[280px] min-h-0 flex-col overflow-hidden xl:order-2 xl:col-span-4 xl:h-auto xl:self-stretch`}>
+                <div className="admin-section-header shrink-0 px-4 py-3 sm:px-5"><Skeleton className="h-4 w-32" /></div>
                 <div className="flex min-h-0 flex-1 flex-col p-4 sm:p-5 xl:py-3">
                     <div className="relative min-h-0 flex-1">
                         <div className="absolute inset-0 overflow-hidden">
@@ -50,16 +50,16 @@ export default function DashboardSkeleton() {
                 </div>
             </div>
 
-            <div className={`${panel} col-span-12 order-3 flex h-[280px] flex-col overflow-hidden xl:col-span-8`}>
-                <div className="flex shrink-0 items-center justify-between gap-3 bg-slate-100 px-4 py-3 dark:bg-slate-800 sm:px-5"><Skeleton className="h-5 w-24" /><Skeleton className="h-3 w-44" /></div>
+            <div className={`admin-surface ${panel} col-span-12 order-3 flex h-[280px] flex-col overflow-hidden xl:col-span-8`}>
+                <div className="admin-section-header flex shrink-0 items-center justify-between gap-3 px-4 py-3 sm:px-5"><Skeleton className="h-5 w-24" /><Skeleton className="h-3 w-44" /></div>
                 <div className="flex min-h-0 flex-1 flex-col p-4 sm:p-5">
                     <div className="flex min-h-0 flex-1 items-end gap-3 pl-14 pt-1">{[30, 55, 20, 75, 40, 60, 35].map((height, i) => <div key={i} className="flex h-full flex-1 items-end"><div className="w-full" style={{ height: `${height}%` }}><Skeleton className="h-full w-full rounded-t-md" /></div></div>)}</div>
                     <div className="flex h-7 shrink-0 items-end justify-between gap-3 pb-1 pl-14">{Array.from({ length: 7 }).map((_, i) => <Skeleton key={i} className="h-2 w-8" />)}</div>
                 </div>
             </div>
 
-            <div className={`${panel} col-span-12 order-4 h-[280px] overflow-hidden xl:col-span-4`}>
-                <div className="bg-slate-100 px-4 py-3 dark:bg-slate-800 sm:px-5"><Skeleton className="h-4 w-32" /></div>
+            <div className={`admin-surface ${panel} col-span-12 order-4 h-[280px] overflow-hidden xl:col-span-4`}>
+                <div className="admin-section-header px-4 py-3 sm:px-5"><Skeleton className="h-4 w-32" /></div>
                 <div className="px-4 pb-3 pt-1 sm:px-5">
                     {Array.from({ length: 5 }).map((_, i) => <div key={i} className="flex items-center justify-between gap-3 border-t border-slate-100 py-2 dark:border-slate-800"><div className="flex min-w-0 flex-1 items-center gap-2.5"><Skeleton className="h-[26px] w-[26px] shrink-0 !rounded-lg" /><Skeleton className="h-3 w-3/4" /></div><Skeleton className="h-3 w-16 shrink-0" /></div>)}
                 </div>

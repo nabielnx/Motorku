@@ -16,7 +16,7 @@ export default function PaymentSkeleton() {
                 {/* ═══ CONTENT ═══ */}
                 <div className="flex-1 p-4 space-y-4">
                     {/* Order Info Banner (Ambil di Toko) */}
-                    <div className="bg-stone-50 border border-stone-200/60 rounded-lg p-4 space-y-2">
+                    <div className="bg-stone-50 border border-stone-200 rounded-lg p-4 space-y-2">
                         <div className="flex items-center gap-2">
                             <Skeleton className="w-4 h-4 rounded" />
                             <Skeleton className="h-3.5 w-28" />
@@ -28,14 +28,14 @@ export default function PaymentSkeleton() {
                     </div>
 
                     {/* Order Items Summary Card */}
-                    <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-3">
-                        <div className="flex items-center justify-between border-b border-slate-200/80 pb-2">
+                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-3">
+                        <div className="flex items-center justify-between border-b border-slate-200 pb-2">
                             <Skeleton className="h-3.5 w-32" />
                             <Skeleton className="h-3 w-14" />
                         </div>
 
                         {/* Table Header */}
-                        <div className="grid grid-cols-12 gap-2 border-b border-slate-200/60 pb-1.5 px-0.5">
+                        <div className="grid grid-cols-12 gap-2 border-b border-slate-200 pb-1.5 px-0.5">
                             <Skeleton className="col-span-6 h-2.5 w-20" />
                             <Skeleton className="col-span-2 h-2.5 w-8 mx-auto" />
                             <Skeleton className="col-span-4 h-2.5 w-14 ml-auto" />

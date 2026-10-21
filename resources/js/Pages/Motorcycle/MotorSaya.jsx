@@ -350,7 +350,7 @@ export default function MotorSaya({
                                     aria-label="Cari model motor" placeholder="Cari model motor (misal: BeAT, Vario, NMAX)..."
                                     value={searchMotor}
                                     onChange={(e) => setSearchMotor(e.target.value)}
-                                    className="w-full bg-slate-50 hover:bg-slate-100/60 focus:bg-white pl-9 pr-8 py-1.5 rounded-full text-xs font-medium border border-slate-200/80 focus:outline-none focus:border-[#19231f] focus:ring-2 focus:ring-[#19231f]/20 transition-all placeholder:text-slate-400"
+                                    className="w-full bg-slate-50 hover:bg-slate-100 focus:bg-white pl-9 pr-8 py-1.5 rounded-full text-xs font-medium border border-slate-200 focus:outline-none focus:border-[#19231f] focus:ring-2 focus:ring-[#19231f] transition-all placeholder:text-slate-400"
                                 />
                                 {searchMotor && (
                                     <button
@@ -382,7 +382,7 @@ export default function MotorSaya({
                                                     'shrink-0 min-h-10 py-2 px-3 rounded-lg text-[10.5px] sm:text-[11px] font-bold text-center transition-all border cursor-pointer truncate',
                                                     isActive
                                                         ? 'bg-[#19231f] border-[#19231f] text-white font-black shadow-xs'
-                                                        : 'bg-white border-slate-200/90 text-slate-700 hover:bg-slate-50 hover:border-slate-300 font-bold'
+                                                        : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 font-bold'
                                                 )}
                                             >
                                                 {label}
@@ -405,7 +405,7 @@ export default function MotorSaya({
                                                     'shrink-0 min-h-10 py-2 px-3 rounded-full text-[10.5px] sm:text-[11px] font-bold text-center transition-all border cursor-pointer truncate',
                                                     isActive
                                                         ? 'bg-[#FFDD00] border-[#FFDD00] text-slate-950 font-black shadow-xs'
-                                                        : 'bg-white border-slate-200/90 text-slate-700 hover:bg-slate-50 hover:border-slate-300 font-bold'
+                                                        : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 font-bold'
                                                 )}
                                             >
                                                 {label}

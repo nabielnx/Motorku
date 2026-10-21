@@ -2,6 +2,7 @@ import ThermalReceipt from '@/Components/ThermalReceipt';
 import MoneyInput from '@/Components/MoneyInput';
 import React, { useEffect, useState, useRef } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import OrderTableSkeleton from '@/Components/Skeletons/OrderTableSkeleton';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import { toast } from 'sonner';
@@ -11,7 +12,7 @@ import {
     FiEye, 
     FiEdit2, 
     FiPrinter, 
-    FiRefreshCw,
+    FiRefreshCw, 
     FiChevronLeft, 
     FiChevronRight,
     FiClock, 
@@ -24,6 +25,25 @@ import {
 } from 'react-icons/fi';
 
 export default function OrderIndex({ initialOrders = {}, summary = {}, filters = {} }) {
+    const [isNavigating, setIsNavigating] = useState(false);
+
+    useEffect(() => {
+        const removeStart = router.on('start', (event) => {
+            const rawUrl = event?.detail?.visit?.url;
+            let targetPath = '';
+            if (typeof rawUrl === 'string') {
+                targetPath = new URL(rawUrl, window.location.origin).pathname;
+            } else if (rawUrl?.pathname) {
+                targetPath = rawUrl.pathname;
+            }
+            if (targetPath && targetPath.startsWith('/orders')) {
+                setIsNavigating(true);
+            }
+        });
+        const removeFinish = router.on('finish', () => setIsNavigating(false));
+        return () => { removeStart(); removeFinish(); };
+    }, []);
+
     const { auth, app_settings, summary: sharedSummary } = usePage().props;
     const locale = app_settings?.locale || 'id';
     const userName = auth?.user?.name || 'Kasir';
@@ -443,12 +463,17 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
         </strong>
     );
 
+    const skeletonParam = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('skeleton') : null;
+
     return (
         <AuthenticatedLayout pageTitle={locale === 'en' ? 'Orders List' : 'Daftar Pesanan'}>
             <Head title={`${locale === 'en' ? 'Orders List' : 'Daftar Pesanan'}`}>
                 <meta name="description" content="Kelola dan pantau seluruh daftar pesanan pelanggan Motorku secara real-time." />
             </Head>
 
+            {(isNavigating || skeletonParam) ? (
+                <OrderTableSkeleton />
+            ) : (
             <div className="mx-auto w-full max-w-[1440px] space-y-3 p-2 sm:space-y-4 sm:px-5 sm:pb-5 sm:pt-0">
 
                 <div className="px-1 py-1 text-xs text-slate-600 dark:text-slate-300 sm:hidden">
@@ -492,7 +517,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                 </div>
 
                 {/* Main Transaction Panel */}
-                <div className="bg-white dark:bg-slate-900 sm:rounded-xl sm:shadow-2xs sm:border sm:border-slate-200/80 dark:sm:border-slate-800 overflow-hidden transition-colors">
+                <div className="bg-white dark:bg-slate-900 sm:rounded-xl sm:shadow-2xs sm:border sm:border-slate-200 dark:sm:border-slate-800 overflow-hidden transition-colors">
 
                     {/* Unified Control Bar */}
                     <div className="p-3 sm:p-4 border-b border-slate-200 dark:border-slate-800 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-2 sm:gap-3 sm:bg-slate-50 dark:sm:bg-slate-800">
@@ -848,6 +873,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                     </div>
                 </div>
             </div>
+            )}
 
             {/* Payment Confirmation Modal */}
             {paymentOrder && (

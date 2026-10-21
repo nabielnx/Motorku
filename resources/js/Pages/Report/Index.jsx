@@ -333,7 +333,7 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
                                 </thead>
                                 <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
                                     {topSelling.length > 0 ? topSelling.map((item) => (
-                                        <tr key={item.rank} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
+                                        <tr key={item.rank} className="hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                                             <td className={`py-2.5 px-4 font-bold ${item.rank <= 3 ? 'text-primaryDark dark:text-accentYellow' : 'text-slate-400 dark:text-slate-500'}`}>{String(item.rank).padStart(2, '0')}</td>
                                             <td className="py-2.5 px-4 font-bold text-slate-900 dark:text-white">{item.name}</td>
                                             <td className="py-2.5 px-4">

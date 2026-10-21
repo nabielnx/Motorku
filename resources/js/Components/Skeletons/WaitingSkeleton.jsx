@@ -41,7 +41,7 @@ export default function WaitingSkeleton() {
                 </div>
 
                 {/* ═══ RINCIAN PESANAN (INVOICE) CARD ═══ */}
-                <div className="w-full bg-slate-50 border border-slate-200/80 rounded-lg p-4 space-y-3">
+                <div className="w-full bg-slate-50 border border-slate-200 rounded-lg p-4 space-y-3">
                     <div className="flex items-center justify-between border-b border-slate-200 pb-2">
                         <div className="flex items-center gap-1.5">
                             <Skeleton className="w-3.5 h-3.5 rounded" />
@@ -80,7 +80,7 @@ export default function WaitingSkeleton() {
                 </div>
 
                 {/* ═══ STATUS BANNER ═══ */}
-                <div className="w-full bg-yellow-50/80 border border-yellow-200/70 rounded-lg p-4 flex items-center gap-3">
+                <div className="w-full bg-yellow-50 border border-yellow-200 rounded-lg p-4 flex items-center gap-3">
                     <Skeleton variant="circle" className="w-5 h-5 shrink-0" />
                     <div className="space-y-1 flex-1">
                         <Skeleton className="h-3.5 w-40" />
