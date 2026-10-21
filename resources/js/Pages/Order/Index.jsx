@@ -19,6 +19,7 @@ import {
     FiAlertCircle, 
     FiXCircle,
     FiCalendar,
+    FiEyeOff,
     FiChevronDown
 } from 'react-icons/fi';
 
@@ -46,6 +47,8 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
     const [endDate, setEndDate] = useState(filters.end_date || '');
     const [searchQuery, setSearchQuery] = useState(filters.search || '');
     const [paymentOrder, setPaymentOrder] = useState(null);
+    const [isRevenueVisible, setIsRevenueVisible] = useState(false);
+    const [showMobileDateFilters, setShowMobileDateFilters] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState('cash');
     const [amountReceived, setAmountReceived] = useState('');
     const [isProcessingPayment, setIsProcessingPayment] = useState(false);
@@ -137,6 +140,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
     const handlePeriodChange = (newPeriod) => {
         if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
         periodFilterRef.current = newPeriod;
+        setShowMobileDateFilters(false);
         router.get('/orders', {
             page: 1,
             status: statusFilter,
@@ -148,6 +152,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
     const handleApplyDateRange = (start, end) => {
         if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
         periodFilterRef.current = 'custom';
+        setShowMobileDateFilters(false);
         startDateRef.current = start;
         endDateRef.current = end;
         setStartDate(start);
@@ -401,8 +406,19 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
 
     const summaryData = localSummary && Object.keys(localSummary).length > 0 ? localSummary : (summary && Object.keys(summary).length > 0 ? summary : (sharedSummary || {}));
 
-    const todayOrderCount = summaryData.today_order_count ?? totalItems;
-    const todayOrderValue = summaryData.today_order_value ?? 0;
+    const periodOrderCount = summaryData.period_order_count ?? summaryData.today_order_count ?? totalItems;
+    const periodOrderValue = summaryData.period_order_value ?? summaryData.today_order_value ?? 0;
+    const summaryPeriod = summaryData.period || periodFilter;
+    const summaryPeriodLabel = summaryPeriod === 'custom' && startDate && endDate
+        ? `${startDate.split('-').reverse().join('/')} – ${endDate.split('-').reverse().join('/')}`
+        : ({
+            all: 'Semua tanggal',
+            today: 'Hari ini',
+            '7_days': '7 hari terakhir',
+            '30_days': '30 hari terakhir',
+            this_month: 'Bulan ini',
+            this_year: 'Tahun ini',
+        }[summaryPeriod] || 'Semua tanggal');
     const activeCount = summaryData.active_count ?? 0;
 
     const getNextStatusAction = (order) => {
@@ -413,6 +429,19 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
     };
 
     const cleanUserName = (auth?.user?.name || 'Kasir').replace(/\s*\(.*?\)/g, '');
+    const revenueText = formatRp(periodOrderValue);
+    const renderRevenueValue = () => (
+        <strong
+            aria-label={isRevenueVisible ? revenueText : 'Pendapatan disembunyikan'}
+            className="relative inline-block whitespace-nowrap text-sm tabular-nums text-primaryDark dark:text-white"
+        >
+            {Array.from(revenueText, (character, index) => (
+                /\d/.test(character)
+                    ? <span key={index} className="inline-flex w-[0.65em] justify-center">{isRevenueVisible ? character : '•'}</span>
+                    : <span key={index}>{character}</span>
+            ))}
+        </strong>
+    );
 
     return (
         <AuthenticatedLayout pageTitle={locale === 'en' ? 'Orders List' : 'Daftar Pesanan'}>
@@ -422,19 +451,43 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
 
             <div className="mx-auto w-full max-w-[1440px] space-y-3 p-2 sm:space-y-4 sm:px-5 sm:pb-5 sm:pt-0">
 
-                <div className="sm:hidden px-1 py-1 text-xs text-slate-600 dark:text-slate-300">
-                    <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-                        <span>Hari ini</span>
-                        <strong className="text-sm text-primaryDark dark:text-white">{todayOrderCount} pesanan</strong>
-                        <strong className="ml-auto text-sm text-primaryDark dark:text-white">{formatRp(todayOrderValue)}</strong>
+                <div className="px-1 py-1 text-xs text-slate-600 dark:text-slate-300 sm:hidden">
+                    <div className="flex items-center justify-between gap-2">
+                        <div className="min-w-0">
+                            <span className="block truncate text-[10px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">{summaryPeriodLabel}</span>
+                            <strong className="text-sm text-primaryDark dark:text-white">{periodOrderCount} pesanan</strong>
+                        </div>
+                        <div className="flex shrink-0 items-center gap-1.5">
+                            <button
+                                type="button"
+                                onClick={() => setIsRevenueVisible((visible) => !visible)}
+                                aria-label={isRevenueVisible ? 'Sembunyikan pendapatan' : 'Tampilkan pendapatan'}
+                                title={isRevenueVisible ? 'Sembunyikan pendapatan' : 'Tampilkan pendapatan'}
+                                className="flex h-8 w-8 items-center justify-center rounded-lg text-primaryDark hover:bg-slate-100 dark:text-accentYellow dark:hover:bg-slate-800"
+                            >
+                                {isRevenueVisible ? <FiEye size={16} /> : <FiEyeOff size={16} />}
+                            </button>
+                            {renderRevenueValue()}
+                        </div>
                     </div>
                     <div className="mt-1">Perlu ditangani <strong className="text-slate-900 dark:text-white">{activeCount}</strong></div>
                 </div>
 
                 {/* Desktop summary */}
                 <div className="hidden sm:flex flex-wrap items-center gap-x-8 gap-y-2 border-b border-slate-200 dark:border-slate-800 px-1 pb-3 text-sm text-slate-500 dark:text-slate-400">
-                    <span>Hari ini <strong className="ml-1 text-primaryDark dark:text-white">{todayOrderCount} pesanan</strong></span>
-                    <span>Nilai <strong className="ml-1 text-primaryDark dark:text-white">{formatRp(todayOrderValue)}</strong></span>
+                    <span>{summaryPeriodLabel} <strong className="ml-1 text-primaryDark dark:text-white">{periodOrderCount} pesanan</strong></span>
+                    <span className="inline-flex items-center gap-1">Pendapatan
+                        <button
+                            type="button"
+                            onClick={() => setIsRevenueVisible((visible) => !visible)}
+                            aria-label={isRevenueVisible ? 'Sembunyikan pendapatan' : 'Tampilkan pendapatan'}
+                            title={isRevenueVisible ? 'Sembunyikan pendapatan' : 'Tampilkan pendapatan'}
+                            className="ml-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-primaryDark hover:bg-slate-100 dark:text-accentYellow dark:hover:bg-slate-800"
+                        >
+                            {isRevenueVisible ? <FiEye size={15} /> : <FiEyeOff size={15} />}
+                        </button>
+                        {renderRevenueValue()}
+                    </span>
                     <span>Perlu ditangani <strong className="ml-1 text-slate-900 dark:text-white">{activeCount}</strong></span>
                 </div>
 
@@ -476,7 +529,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                                 value={statusFilter}
                                 onChange={(e) => handleFilterChange(e.target.value)}
                                 aria-label="Filter status pesanan"
-                                className="sm:hidden w-40 shrink-0 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-0 focus:border-slate-400"
+                                className="sm:hidden h-[34px] min-w-0 flex-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-0 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-0 focus:border-slate-400"
                             >
                                 {statuses.map(s => <option key={s} value={s}>{statusLabel(s)}</option>)}
                             </select>
@@ -495,34 +548,78 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                             </div>
 
                             {statusFilter === 'All' && (
-                                <div className="grid w-full min-w-0 grid-cols-2 gap-2 sm:flex-none sm:grid sm:w-[26rem] sm:max-w-full sm:grid-cols-2 sm:items-center">
-                                    <div className="relative min-w-0 sm:w-full">
-                                        <FiCalendar aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-accentYellow" size={15} />
-                                        <select
-                                            value={periodFilter === 'custom' ? '' : periodFilter}
-                                            onChange={(e) => handlePeriodChange(e.target.value)}
-                                            aria-label="Pilih periode pesanan"
-                                            className="w-full min-w-0 appearance-none rounded-xl border border-primary bg-primary py-2 pl-9 pr-8 text-xs font-bold text-white cursor-pointer transition hover:bg-primaryDark focus:outline-none focus:ring-0 focus:border-primaryDark"
-                                            style={{ appearance: 'none', WebkitAppearance: 'none', backgroundImage: 'none' }}
-                                        >
-                                            <option className="bg-white text-slate-900" value="" disabled hidden>Pilihan Cepat...</option>
-                                            <option className="bg-white text-slate-900" value="all">Semua tanggal</option>
-                                            <option className="bg-white text-slate-900" value="today">Hari Ini</option>
-                                            <option className="bg-white text-slate-900" value="7_days">7 Hari Terakhir</option>
-                                            <option className="bg-white text-slate-900" value="30_days">30 Hari Terakhir</option>
-                                            <option className="bg-white text-slate-900" value="this_month">Bulan Ini</option>
-                                            <option className="bg-white text-slate-900" value="this_year">Tahun Ini</option>
-                                        </select>
-                                        <FiChevronDown aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-white" size={14} />
+                                <>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowMobileDateFilters((visible) => !visible)}
+                                        aria-expanded={showMobileDateFilters}
+                                        aria-label={showMobileDateFilters ? 'Tutup filter tanggal' : 'Tampilkan filter tanggal'}
+                                        className="flex h-[34px] min-w-0 flex-1 items-center justify-between gap-2 rounded-lg border border-slate-300 bg-white px-2.5 text-xs font-semibold text-slate-700 sm:hidden dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                                    >
+                                        <span className="flex min-w-0 items-center gap-1.5 truncate"><FiCalendar className="shrink-0 text-accentYellow" size={14} />{periodFilter === 'custom' ? 'Rentang khusus' : summaryPeriodLabel}</span>
+                                        <FiChevronDown className={`shrink-0 transition-transform ${showMobileDateFilters ? 'rotate-180' : ''}`} size={14} />
+                                    </button>
+
+                                    {showMobileDateFilters && (
+                                        <div className="grid w-full grid-cols-2 gap-2 sm:hidden">
+                                            <div className="relative min-w-0">
+                                                <FiCalendar aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-accentYellow" size={15} />
+                                                <select
+                                                    value={periodFilter === 'custom' ? '' : periodFilter}
+                                                    onChange={(e) => handlePeriodChange(e.target.value)}
+                                                    aria-label="Pilih periode pesanan"
+                                                    className="h-[34px] w-full min-w-0 appearance-none rounded-lg border border-primary bg-primary py-0 pl-9 pr-8 text-xs font-bold text-white cursor-pointer focus:outline-none focus:ring-0"
+                                                    style={{ appearance: 'none', WebkitAppearance: 'none', backgroundImage: 'none' }}
+                                                >
+                                                    <option className="bg-white text-slate-900" value="" disabled hidden>Pilihan cepat</option>
+                                                    <option className="bg-white text-slate-900" value="all">Semua tanggal</option>
+                                                    <option className="bg-white text-slate-900" value="today">Hari ini</option>
+                                                    <option className="bg-white text-slate-900" value="7_days">7 hari</option>
+                                                    <option className="bg-white text-slate-900" value="30_days">30 hari</option>
+                                                    <option className="bg-white text-slate-900" value="this_month">Bulan ini</option>
+                                                    <option className="bg-white text-slate-900" value="this_year">Tahun ini</option>
+                                                </select>
+                                                <FiChevronDown aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-white" size={14} />
+                                            </div>
+                                            <DateRangePicker
+                                                initialStart={startDate}
+                                                initialEnd={endDate}
+                                                activePeriod={periodFilter}
+                                                fullWidth
+                                                onApply={handleApplyDateRange}
+                                            />
+                                        </div>
+                                    )}
+
+                                    <div className="hidden min-w-0 sm:grid sm:w-[26rem] sm:max-w-full sm:grid-cols-2 sm:items-center sm:gap-2">
+                                        <div className="relative min-w-0 sm:w-full">
+                                            <FiCalendar aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-accentYellow" size={15} />
+                                            <select
+                                                value={periodFilter === 'custom' ? '' : periodFilter}
+                                                onChange={(e) => handlePeriodChange(e.target.value)}
+                                                aria-label="Pilih periode pesanan"
+                                                className="w-full min-w-0 appearance-none rounded-xl border border-primary bg-primary py-2 pl-9 pr-8 text-xs font-bold text-white cursor-pointer transition hover:bg-primaryDark focus:outline-none focus:ring-0 focus:border-primaryDark"
+                                                style={{ appearance: 'none', WebkitAppearance: 'none', backgroundImage: 'none' }}
+                                            >
+                                                <option className="bg-white text-slate-900" value="" disabled hidden>Pilihan Cepat...</option>
+                                                <option className="bg-white text-slate-900" value="all">Semua tanggal</option>
+                                                <option className="bg-white text-slate-900" value="today">Hari Ini</option>
+                                                <option className="bg-white text-slate-900" value="7_days">7 Hari Terakhir</option>
+                                                <option className="bg-white text-slate-900" value="30_days">30 Hari Terakhir</option>
+                                                <option className="bg-white text-slate-900" value="this_month">Bulan Ini</option>
+                                                <option className="bg-white text-slate-900" value="this_year">Tahun Ini</option>
+                                            </select>
+                                            <FiChevronDown aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-white" size={14} />
+                                        </div>
+                                        <DateRangePicker
+                                            initialStart={startDate}
+                                            initialEnd={endDate}
+                                            activePeriod={periodFilter}
+                                            fullWidth
+                                            onApply={handleApplyDateRange}
+                                        />
                                     </div>
-                                    <DateRangePicker
-                                        initialStart={startDate}
-                                        initialEnd={endDate}
-                                        activePeriod={periodFilter}
-                                        fullWidth
-                                        onApply={handleApplyDateRange}
-                                    />
-                                </div>
+                                </>
                             )}
                         </div>
                     </div>

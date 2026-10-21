@@ -11,10 +11,12 @@ use App\Http\Requests\Order\StorePosSaleRequest;
 use App\Http\Requests\Order\UpdateOrderRequest;
 use App\Http\Resources\OrderResource;
 use App\Models\Order;
+use App\Models\OrderReturn;
 use App\Services\OrderReturnService;
 use App\Services\OrderService;
 use App\Services\ReportService;
 use App\Traits\ApiResponseHelpers;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
@@ -71,7 +73,16 @@ class OrderController extends Controller implements HasMiddleware
 
         $orders = $this->orderService->getOrdersForWeb($status, $search, $period, $startDate, $endDate);
 
-        $today = now()->toDateString();
+        $summaryPeriod = $status === 'action' ? 'today' : $period;
+        [$summaryStart, $summaryEnd] = $this->summaryDateRange($summaryPeriod, $startDate, $endDate);
+        $summaryOrders = Order::query();
+
+        if ($summaryStart && $summaryEnd) {
+            $summaryOrders->whereBetween('created_at', [$summaryStart, $summaryEnd]);
+            $periodOrderValue = $this->reportService->netRevenue($summaryStart, $summaryEnd);
+        } else {
+            $periodOrderValue = (float) Order::paid()->sum('total') - (float) OrderReturn::sum('amount');
+        }
 
         return Inertia::render('Order/Index', [
             'initialOrders' => fn () => $orders,
@@ -83,13 +94,33 @@ class OrderController extends Controller implements HasMiddleware
                 'end_date' => $endDate,
             ],
             'summary' => fn () => [
-                'today_order_count' => Order::whereDate('created_at', $today)->count(),
-                'today_order_value' => $this->reportService->netRevenue(now()->startOfDay(), now()->endOfDay()),
+                'period_order_count' => $summaryOrders->count(),
+                'period_order_value' => $periodOrderValue,
+                'period' => $summaryPeriod,
                 'active_count' => $activeCount,
                 'pending_count' => Order::where('order_status', 'pending')->count(),
                 'processing_count' => Order::whereIn('order_status', ['preparing', 'processing'])->count(),
             ],
         ]);
+    }
+
+    /** @return array{Carbon, Carbon}|array{null, null} */
+    private function summaryDateRange(string $period, ?string $startDate, ?string $endDate): array
+    {
+        $today = Carbon::today();
+
+        return match ($period) {
+            'today' => [$today->copy()->startOfDay(), $today->copy()->endOfDay()],
+            '7_days' => [$today->copy()->subDays(6)->startOfDay(), $today->copy()->endOfDay()],
+            '30_days' => [$today->copy()->subDays(29)->startOfDay(), $today->copy()->endOfDay()],
+            'this_month' => [$today->copy()->startOfMonth(), $today->copy()->endOfDay()],
+            'this_year' => [$today->copy()->startOfYear(), $today->copy()->endOfDay()],
+            'custom' => [
+                $startDate ? Carbon::parse($startDate)->startOfDay() : $today->copy()->subDays(6)->startOfDay(),
+                $endDate ? Carbon::parse($endDate)->endOfDay() : $today->copy()->endOfDay(),
+            ],
+            default => [null, null],
+        };
     }
 
     public function showWeb(string $orderId): InertiaResponse
