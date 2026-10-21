@@ -13,7 +13,10 @@ class ReportDateRangeRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
+        $hasDateRange = $this->query->has('start_date') || $this->query->has('end_date');
+
         $this->merge([
+            'period' => $this->input('period', $hasDateRange ? 'custom' : 'this_month'),
             'start_date' => $this->input('start_date', now()->startOfMonth()->toDateString()),
             'end_date' => $this->input('end_date', now()->toDateString()),
         ]);
