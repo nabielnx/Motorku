@@ -93,8 +93,7 @@ class OrderService
         ?string $date = null,
         ?string $startDate = null,
         ?string $endDate = null
-    )
-    {
+    ) {
         $query = Order::with(['items', 'cashier', 'payments'])->withSum('returns', 'amount')->latest()->orderByDesc('id');
 
         if ($status === 'action') {
