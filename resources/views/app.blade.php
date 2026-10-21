@@ -47,22 +47,14 @@
         @vite(['resources/js/app.jsx'])
         @inertiaHead
     </head>
-    <body class="font-sans antialiased h-full bg-amber-50/60">
+    <body class="font-sans antialiased h-full bg-[#f3f3ed]">
         <div id="app" data-page="{{ json_encode($page) }}">
             @php $comp = $page['component'] ?? ''; @endphp
             @if ($comp === 'Order/Menu')
                 <!-- Motorku Customer Storefront Catalog Shell (1:1 Exact Monochromatic Parity) -->
                 <div class="customer-storefront min-h-screen bg-[#f8fafc] text-slate-900" aria-busy="true" aria-label="Memuat katalog sparepart">
-                    <!-- Top Announcement Bar (Desktop) -->
-                    <div class="hidden bg-slate-900/10 sm:block border-b border-slate-200/40">
-                        <div class="mx-auto flex max-w-[1280px] items-center justify-between px-6 py-1.5 lg:px-8">
-                            <div class="h-2.5 w-48 rounded bg-slate-200 animate-pulse"></div>
-                            <div class="h-2.5 w-32 rounded bg-slate-200 animate-pulse"></div>
-                        </div>
-                    </div>
-
                     <!-- Store Header -->
-                    <header class="sticky top-0 z-40 border-b border-slate-200/80 bg-white shadow-2xs overflow-hidden relative">
+                    <header class="sticky top-0 z-40 border-b border-slate-200 bg-white shadow-2xs overflow-hidden relative">
                         <div class="mx-auto flex min-h-[54px] max-w-[1280px] items-center justify-between gap-2 px-3.5 sm:min-h-[62px] sm:gap-4 sm:px-6 lg:px-8 relative z-10">
                             <div class="flex shrink-0 items-center gap-2.5">
                                 <div class="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-slate-200 animate-pulse"></div>
@@ -73,7 +65,7 @@
                                 <div class="h-4 w-20 rounded bg-slate-200 animate-pulse"></div>
                             </div>
                             <div class="flex-1 max-w-md px-1">
-                                <div class="h-8.5 sm:h-9 w-full rounded-full bg-slate-100 border border-slate-200/80 flex items-center px-3.5 gap-2">
+                                <div class="h-8.5 sm:h-9 w-full rounded-full bg-slate-100 border border-slate-200 flex items-center px-3.5 gap-2">
                                     <div class="w-3.5 h-3.5 rounded-full bg-slate-200 animate-pulse shrink-0"></div>
                                     <div class="h-3 w-32 rounded bg-slate-200 animate-pulse"></div>
                                 </div>
@@ -86,7 +78,7 @@
                     </header>
 
                     <!-- Motor Saya Banner (Exact Curved Bottom) -->
-                    <section class="w-full bg-slate-100 border-b border-slate-200/80 rounded-b-[36px] sm:rounded-b-[48px] shadow-2xs mb-3.5 sm:mb-4.5 overflow-hidden">
+                    <section class="w-full bg-slate-100 border-b border-slate-200 rounded-b-[36px] sm:rounded-b-[48px] shadow-2xs mb-3.5 sm:mb-4.5 overflow-hidden">
                         <div class="mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8 py-3 sm:py-3.5">
                             <div class="flex items-center gap-3 sm:gap-4 pl-3 sm:pl-4 md:pl-5 pr-3.5 sm:pr-5 md:pr-6">
                                 <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-200 animate-pulse shrink-0"></div>
@@ -103,7 +95,7 @@
                     <div class="mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8 pb-12">
                         <!-- Promo Banner Section -->
                         <section class="pb-3">
-                            <div class="rounded-2xl sm:rounded-3xl bg-slate-100 border border-slate-200/80 overflow-hidden p-2.5 sm:p-3 shadow-2xs">
+                            <div class="rounded-2xl sm:rounded-3xl bg-slate-100 border border-slate-200 overflow-hidden p-2.5 sm:p-3 shadow-2xs">
                                 <div class="flex items-stretch gap-2.5">
                                     <div class="w-[45%] sm:w-[35%] shrink-0 rounded-xl sm:rounded-2xl bg-slate-200 p-3 flex flex-col justify-between">
                                         <div class="space-y-1.5">
@@ -114,7 +106,7 @@
                                     </div>
                                     <div class="flex-1 flex gap-2 sm:gap-2.5 overflow-x-hidden">
                                         @for ($k = 0; $k < 2; $k++)
-                                            <div class="w-[calc((100%-20px)/3.25)] sm:w-[calc((100%-24px)/3.35)] md:w-[155px] shrink-0 rounded-xl sm:rounded-2xl border border-slate-200/80 bg-white overflow-hidden shadow-2xs">
+                                            <div class="w-[calc((100%-20px)/3.25)] sm:w-[calc((100%-24px)/3.35)] md:w-[155px] shrink-0 rounded-xl sm:rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-2xs">
                                                 <div class="aspect-square w-full bg-slate-100 animate-pulse"></div>
                                                 <div class="p-1.5 sm:p-2 space-y-1.5">
                                                     <div class="h-2.5 w-5/6 rounded bg-slate-200 animate-pulse"></div>
@@ -159,7 +151,7 @@
                                         </div>
                                         <div class="flex gap-2 sm:gap-2.5 overflow-x-hidden pb-2">
                                             @for ($c = 0; $c < 4; $c++)
-                                                <div class="w-[calc((100%-20px)/3.25)] sm:w-[calc((100%-24px)/3.35)] md:w-[155px] shrink-0 rounded-xl sm:rounded-2xl border border-slate-200/80 bg-white shadow-2xs overflow-hidden">
+                                                <div class="w-[calc((100%-20px)/3.25)] sm:w-[calc((100%-24px)/3.35)] md:w-[155px] shrink-0 rounded-xl sm:rounded-2xl border border-slate-200 bg-white shadow-2xs overflow-hidden">
                                                     <div class="aspect-square w-full bg-slate-100 animate-pulse"></div>
                                                     <div class="p-1.5 sm:p-2 space-y-1.5">
                                                         <div class="h-2.5 sm:h-3 w-5/6 rounded bg-slate-200 animate-pulse"></div>
@@ -260,8 +252,8 @@
                 @endif
             @elseif (str_starts_with($comp, 'Auth/'))
                 <!-- Auth Pages Shell -->
-                <div class="min-h-screen bg-amber-50/60 flex flex-col justify-center items-center p-4">
-                    <div class="w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-200/80 p-8 space-y-6">
+                <div class="min-h-screen bg-[#f3f3ed] flex flex-col justify-center items-center p-4">
+                    <div class="w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-200 p-8 space-y-6">
                         <div class="flex flex-col items-center space-y-2">
                             <div class="w-12 h-12 rounded-xl bg-slate-200 animate-pulse"></div>
                             <div class="h-5 w-36 bg-slate-200 rounded animate-pulse"></div>
@@ -269,60 +261,142 @@
                         <div class="space-y-4">
                             <div class="space-y-1.5"><div class="h-3 w-16 bg-slate-200 rounded animate-pulse"></div><div class="h-10 w-full bg-slate-100 rounded-xl animate-pulse"></div></div>
                             <div class="space-y-1.5"><div class="h-3 w-20 bg-slate-200 rounded animate-pulse"></div><div class="h-10 w-full bg-slate-100 rounded-xl animate-pulse"></div></div>
-                            <div class="h-11 w-full bg-blue-600/40 rounded-xl animate-pulse"></div>
+                            <div class="h-11 w-full bg-[#19231f] text-white rounded-xl animate-pulse"></div>
                         </div>
                     </div>
                 </div>
             @elseif ($comp === 'POS/Index')
-                <!-- POS Cashier Layout Shell -->
-                <div class="h-screen w-screen overflow-hidden bg-slate-100 flex flex-col font-sans">
-                    <div class="h-14 sm:h-16 bg-white border-b border-slate-300 flex items-center justify-between px-4 shrink-0">
-                        <div class="flex items-center gap-3">
-                            <div class="h-6 w-32 bg-slate-200 rounded animate-pulse"></div>
-                            <div class="h-8 w-64 bg-slate-100 rounded-lg animate-pulse hidden sm:block"></div>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <div class="h-8 w-24 bg-slate-100 rounded-lg animate-pulse"></div>
-                            <div class="w-9 h-9 rounded-lg bg-slate-200 animate-pulse"></div>
-                        </div>
-                    </div>
-                    <div class="flex-1 flex overflow-hidden">
-                        <div class="flex-1 p-4 overflow-y-auto space-y-4">
-                            <div class="flex gap-2 py-1 overflow-hidden">
-                                @for ($i = 0; $i < 5; $i++)
-                                    <div class="h-7 w-20 bg-slate-200 rounded-lg animate-pulse shrink-0"></div>
-                                @endfor
+                <!-- POS Cashier Layout Shell (Matches AuthenticatedLayout + POS/Index) -->
+                <div class="admin-layout flex h-screen w-screen overflow-hidden bg-slate-50 font-sans text-slate-800">
+                    <!-- Desktop Sidebar -->
+                    <aside class="admin-sidebar hidden lg:flex flex-col w-64 bg-white border-r border-slate-300 shrink-0">
+                        <div class="p-5 border-b border-slate-100 flex items-center gap-3 shrink-0">
+                            <div class="w-10 h-10 rounded-lg bg-slate-100 animate-pulse shrink-0"></div>
+                            <div class="space-y-1">
+                                <div class="h-4 w-24 bg-slate-200 rounded animate-pulse"></div>
+                                <div class="h-2.5 w-16 bg-slate-100 rounded animate-pulse"></div>
                             </div>
-                            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-3.5">
-                                @for ($i = 0; $i < 8; $i++)
-                                    <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-xs">
-                                        <div class="h-36 w-full bg-slate-200 animate-pulse"></div>
-                                        <div class="p-3 space-y-2">
-                                            <div class="h-3.5 w-3/4 bg-slate-200 rounded animate-pulse"></div>
-                                            <div class="h-2.5 w-1/2 bg-slate-100 rounded animate-pulse"></div>
-                                            <div class="flex justify-between items-center pt-2 border-t border-slate-100">
-                                                <div class="h-4 w-16 bg-slate-200 rounded animate-pulse"></div>
-                                                <div class="w-7 h-7 bg-blue-600/30 rounded-md animate-pulse"></div>
+                        </div>
+                        <div class="flex-1 p-3 space-y-2 overflow-hidden">
+                            @for ($s = 0; $s < 6; $s++)
+                                <div class="h-9 w-full rounded-lg bg-slate-100 animate-pulse"></div>
+                            @endfor
+                        </div>
+                    </aside>
+
+                    <!-- Main Content Column -->
+                    <div class="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden">
+                        <!-- Top Header -->
+                        <header class="admin-topbar h-14 sm:h-16 bg-white border-b border-slate-300 flex items-center justify-between px-4 sm:px-6 lg:px-8 shrink-0 z-20">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-slate-100 animate-pulse lg:hidden"></div>
+                                <div class="h-6 w-28 rounded bg-slate-200 animate-pulse"></div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="w-8 h-8 rounded-lg bg-slate-100 animate-pulse"></div>
+                                <div class="w-8 h-8 rounded-lg bg-slate-100 animate-pulse"></div>
+                                <div class="w-8 h-8 rounded-full bg-slate-200 animate-pulse"></div>
+                            </div>
+                        </header>
+
+                        <!-- POS Container -->
+                        <main class="admin-main flex-1 min-h-0 p-0 flex flex-col overflow-hidden">
+                            <div class="admin-pos flex min-h-0 flex-1 flex-col md:flex-row w-full overflow-hidden bg-slate-100">
+                                <!-- Products Column -->
+                                <div class="flex flex-1 flex-col min-w-0 min-h-0 overflow-hidden">
+                                    <!-- Toolbar -->
+                                    <div class="pos-toolbar bg-white p-3 sm:p-4 border-b border-slate-300 space-y-2 sm:space-y-3 shrink-0">
+                                        <div class="h-9 w-full rounded-lg bg-slate-100 border border-slate-200 animate-pulse"></div>
+                                        <div class="flex items-center justify-between gap-2 border-t border-slate-200 pt-2 sm:pt-3">
+                                            <div class="flex gap-1.5 overflow-hidden">
+                                                @for ($i = 0; $i < 4; $i++)
+                                                    <div class="h-7 w-20 rounded-lg bg-slate-200 animate-pulse shrink-0"></div>
+                                                @endfor
+                                            </div>
+                                            <div class="flex items-center gap-2 shrink-0">
+                                                <div class="h-7 w-16 rounded-lg bg-slate-100 animate-pulse"></div>
+                                                <div class="h-7 w-20 rounded-lg bg-slate-100 animate-pulse"></div>
                                             </div>
                                         </div>
                                     </div>
-                                @endfor
-                            </div>
-                        </div>
-                        <div class="w-80 lg:w-96 bg-white border-l border-slate-200 hidden md:flex flex-col p-4 shrink-0 space-y-4">
-                            <div class="h-6 w-32 bg-slate-200 rounded animate-pulse"></div>
-                            <div class="flex-1 space-y-3">
-                                @for ($i = 0; $i < 3; $i++)
-                                    <div class="p-3 rounded-xl bg-slate-50 border border-slate-100 space-y-1.5">
-                                        <div class="h-3.5 w-2/3 bg-slate-200 rounded animate-pulse"></div>
-                                        <div class="h-3 w-1/3 bg-slate-100 rounded animate-pulse"></div>
+
+                                    <!-- Products Scroll Area -->
+                                    <div class="flex-1 min-h-0 overflow-y-auto p-3">
+                                        <!-- LIST VIEW SKELETON (Default) -->
+                                        <div id="pos-list-skeleton" class="grid items-stretch gap-2 grid-cols-1 2xl:grid-cols-2">
+                                            @for ($i = 0; $i < 8; $i++)
+                                                <div class="flex items-start gap-3 rounded-xl p-2.5 border border-slate-200 bg-white">
+                                                    <div class="h-14 w-14 shrink-0 rounded-lg bg-slate-100 border border-slate-200 animate-pulse"></div>
+                                                    <div class="flex min-w-0 flex-1 flex-col">
+                                                        <div class="flex flex-col gap-2">
+                                                            <div class="h-4 w-3/5 rounded bg-slate-200 animate-pulse"></div>
+                                                            <div class="flex items-center justify-between gap-2">
+                                                                <div class="h-4 w-16 rounded bg-slate-200 animate-pulse"></div>
+                                                                <div class="h-3 w-12 rounded bg-slate-200 animate-pulse"></div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="mt-1">
+                                                            <div class="h-3 w-2/5 rounded bg-slate-200 animate-pulse"></div>
+                                                        </div>
+                                                        <div class="mt-0.5 h-4">
+                                                            <div class="h-3 w-3/5 rounded bg-slate-200 animate-pulse"></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            @endfor
+                                        </div>
+
+                                        <!-- GRID VIEW SKELETON (Toggled if pos_view_mode === 'grid') -->
+                                        <div id="pos-grid-skeleton" class="hidden grid items-stretch gap-2 grid-cols-2 min-[900px]:grid-cols-[repeat(auto-fill,minmax(144px,1fr))]">
+                                            @for ($i = 0; $i < 8; $i++)
+                                                <div class="flex flex-col rounded-xl overflow-hidden border border-slate-200 bg-white">
+                                                    <div class="aspect-square w-full shrink-0 bg-slate-100 animate-pulse"></div>
+                                                    <div class="w-full p-2.5 space-y-2">
+                                                        <div class="h-3.5 w-3/5 rounded bg-slate-200 animate-pulse"></div>
+                                                        <div class="flex items-center justify-between gap-2">
+                                                            <div class="h-3.5 w-16 rounded bg-slate-200 animate-pulse"></div>
+                                                        </div>
+                                                        <div class="h-3 w-2/5 rounded bg-slate-200 animate-pulse"></div>
+                                                    </div>
+                                                </div>
+                                            @endfor
+                                        </div>
                                     </div>
-                                @endfor
+
+                                    <!-- Mobile Cart Bar -->
+                                    <div class="mx-3 mb-3 h-12 rounded-xl bg-slate-200 animate-pulse md:hidden shrink-0"></div>
+                                </div>
+
+                                <!-- Desktop Cart Panel -->
+                                <div class="hidden md:flex w-80 lg:w-[410px] bg-white border-l border-slate-300 flex-col min-h-0 shrink-0">
+                                    <div class="p-3.5 border-b border-slate-300 space-y-2">
+                                        <div class="h-4 w-32 rounded bg-slate-200 animate-pulse"></div>
+                                        <div class="h-9 w-full rounded-lg bg-slate-100 animate-pulse"></div>
+                                    </div>
+                                    <div class="flex-1 p-4 space-y-3">
+                                        @for ($c = 0; $c < 3; $c++)
+                                            <div class="h-16 w-full rounded-xl bg-slate-100 animate-pulse"></div>
+                                        @endfor
+                                    </div>
+                                    <div class="border-t border-slate-300 p-4 space-y-3">
+                                        <div class="h-4 w-full rounded bg-slate-200 animate-pulse"></div>
+                                        <div class="h-6 w-2/3 rounded bg-slate-200 animate-pulse"></div>
+                                        <div class="h-12 w-full rounded-xl bg-[#19231f] text-white animate-pulse"></div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="h-12 w-full bg-blue-600/40 rounded-xl animate-pulse"></div>
-                        </div>
+                        </main>
                     </div>
                 </div>
+                <script nonce="{{ Illuminate\Support\Facades\Vite::cspNonce() }}">
+                    try {
+                        if (localStorage.getItem('pos_view_mode') === 'grid') {
+                            var g = document.getElementById('pos-grid-skeleton');
+                            var l = document.getElementById('pos-list-skeleton');
+                            if (g && l) { g.classList.remove('hidden'); l.classList.add('hidden'); }
+                        }
+                    } catch(e) {}
+                </script>
             @elseif (in_array($comp, ['User/Index', 'Dashboard/Owner/Index', 'Product/Index', 'Order/Index', 'Report/Index', 'Setting/Index', 'Motorcycle/Index', 'Profile/Edit']) || str_starts_with($comp, 'Dashboard/'))
                 <!-- Authenticated Dashboard Shell (Matching AuthenticatedLayout) -->
                 <div class="h-screen w-screen overflow-hidden bg-slate-50 flex font-sans text-slate-800">
@@ -394,27 +468,27 @@
                                 <!-- Exact User/Index layout preview -->
                                 <div class="max-w-7xl mx-auto space-y-6">
                                     <!-- Card 1: Header + Search + Button -->
-                                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                                         <div>
                                             <div class="h-5 w-48 bg-slate-200 rounded animate-pulse"></div>
                                             <div class="h-3 w-72 bg-slate-100 rounded animate-pulse mt-1.5"></div>
                                         </div>
                                         <div class="flex items-center gap-3 w-full sm:w-auto">
                                             <div class="h-9 w-full sm:w-64 bg-slate-100 border border-slate-200 rounded-xl animate-pulse"></div>
-                                            <div class="h-9 w-36 bg-blue-600/40 rounded-xl animate-pulse shrink-0"></div>
+                                            <div class="h-9 w-36 bg-[#19231f] rounded-xl animate-pulse shrink-0"></div>
                                         </div>
                                     </div>
                                     <!-- Card 2: Filter + Table + Pagination -->
-                                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
-                                        <div class="p-4 bg-slate-50/60 border-b border-slate-100 flex items-center gap-2">
+                                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                                        <div class="p-4 bg-slate-50 border-b border-slate-100 flex items-center gap-2">
                                             <div class="h-3 w-20 bg-slate-200 rounded animate-pulse"></div>
-                                            <div class="h-6 w-16 bg-blue-600/30 rounded-lg animate-pulse"></div>
+                                            <div class="h-6 w-16 bg-[#19231f] rounded-lg animate-pulse"></div>
                                             <div class="h-6 w-16 bg-slate-200 rounded-lg animate-pulse"></div>
                                             <div class="h-6 w-16 bg-slate-200 rounded-lg animate-pulse"></div>
                                         </div>
                                         <table class="w-full text-left">
                                             <thead>
-                                                <tr class="border-b border-slate-100 bg-slate-50/60">
+                                                <tr class="border-b border-slate-100 bg-slate-50">
                                                     <th class="py-3.5 px-5"><div class="h-3 w-20 bg-slate-200 rounded animate-pulse"></div></th>
                                                     <th class="py-3.5 px-5"><div class="h-3 w-14 bg-slate-200 rounded animate-pulse"></div></th>
                                                     <th class="py-3.5 px-5"><div class="h-3 w-24 bg-slate-200 rounded animate-pulse"></div></th>
@@ -460,14 +534,14 @@
                                 <div class="w-full space-y-4">
                                     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
                                         @for ($i = 0; $i < 4; $i++)
-                                            <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-2xs space-y-2">
+                                            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs space-y-2">
                                                 <div class="h-2.5 w-24 bg-slate-200 rounded animate-pulse"></div>
                                                 <div class="h-6 w-16 bg-slate-300 rounded animate-pulse"></div>
                                             </div>
                                         @endfor
                                     </div>
-                                    <div class="bg-white rounded-xl shadow-2xs border border-slate-200/80 overflow-hidden">
-                                        <div class="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50/50">
+                                    <div class="bg-white rounded-xl shadow-2xs border border-slate-200 overflow-hidden">
+                                        <div class="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
                                             <div class="h-5 w-36 bg-slate-200 rounded animate-pulse"></div>
                                             <div class="h-8 w-64 bg-slate-100 rounded-lg animate-pulse"></div>
                                         </div>
@@ -481,14 +555,14 @@
                             @elseif ($comp === 'Setting/Index')
                                 <!-- Setting/Index layout preview -->
                                 <div class="max-w-4xl mx-auto space-y-6 pb-8">
-                                    <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm space-y-4">
+                                    <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
                                         <div class="h-5 w-32 bg-slate-200 rounded animate-pulse"></div>
                                         <div class="flex items-center gap-6">
                                             <div class="w-24 aspect-[3/4] rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 animate-pulse"></div>
-                                            <div class="h-9 w-32 bg-blue-600/30 rounded-lg animate-pulse"></div>
+                                            <div class="h-9 w-32 bg-[#19231f] text-white rounded-lg animate-pulse"></div>
                                         </div>
                                     </div>
-                                    <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm space-y-4">
+                                    <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
                                         <div class="h-5 w-48 bg-slate-200 rounded animate-pulse"></div>
                                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                             <div class="h-10 bg-slate-50 rounded-xl animate-pulse"></div>

@@ -93,6 +93,11 @@ function getDestinationInfo(url, locale = 'id') {
         };
     }
     if (path.startsWith('/pos')) {
+        let posMode = 'list';
+        try {
+            const saved = localStorage.getItem('pos_view_mode');
+            if (saved === 'grid' || saved === 'book') posMode = saved;
+        } catch {}
         return {
             title: 'POS Kasir',
             component: (
@@ -109,7 +114,7 @@ function getDestinationInfo(url, locale = 'id') {
                                 <Skeleton className="h-7 w-28 shrink-0 rounded-lg" />
                             </div>
                         </div>
-                        <div className="flex-1 min-h-0 overflow-y-auto p-3"><PosCardSkeleton count={8} /></div>
+                        <div className="flex-1 min-h-0 overflow-y-auto p-3"><PosCardSkeleton count={8} mode={posMode} /></div>
                         <Skeleton className="mx-3 mb-3 h-12 rounded-xl md:hidden" />
                     </div>
                     <div className="hidden md:flex w-96 lg:w-[410px] bg-white dark:bg-slate-900 border-l border-slate-300 dark:border-slate-800 flex-col min-h-0 shrink-0">
