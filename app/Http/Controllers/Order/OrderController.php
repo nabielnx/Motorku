@@ -20,6 +20,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 
@@ -41,6 +42,12 @@ class OrderController extends Controller implements HasMiddleware
 
     public function indexWeb(Request $request): InertiaResponse
     {
+        $request->validate([
+            'period' => ['sometimes', Rule::in(['all', 'today', '7_days', '30_days', 'this_month', 'this_year', 'custom'])],
+            'start_date' => ['nullable', 'date_format:Y-m-d'],
+            'end_date' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:start_date'],
+        ]);
+
         $activeCount = $this->orderService->countActiveOrders();
         $search = $request->string('search')->value();
         $status = match ($request->string('status')->value()) {
@@ -48,15 +55,33 @@ class OrderController extends Controller implements HasMiddleware
             'All', 'completed', 'cancelled' => 'All',
             default => $activeCount > 0 && $search === '' ? 'action' : 'All',
         };
-        $date = $status === 'action' ? '' : $request->string('date')->value();
+        $legacyDate = $request->string('date')->value();
+        $period = $request->query('period', match ($legacyDate) {
+            'today' => 'today',
+            'week' => '7_days',
+            default => 'all',
+        });
+        $startDate = $request->query('start_date');
+        $endDate = $request->query('end_date');
+        if ($status === 'action') {
+            $period = 'all';
+            $startDate = null;
+            $endDate = null;
+        }
 
-        $orders = $this->orderService->getOrdersForWeb($status, $search, $date);
+        $orders = $this->orderService->getOrdersForWeb($status, $search, $period, $startDate, $endDate);
 
         $today = now()->toDateString();
 
         return Inertia::render('Order/Index', [
             'initialOrders' => fn () => $orders,
-            'filters' => ['status' => $status, 'search' => $search, 'date' => $date],
+            'filters' => [
+                'status' => $status,
+                'search' => $search,
+                'period' => $period,
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+            ],
             'summary' => fn () => [
                 'today_order_count' => Order::whereDate('created_at', $today)->count(),
                 'today_order_value' => $this->reportService->netRevenue(now()->startOfDay(), now()->endOfDay()),

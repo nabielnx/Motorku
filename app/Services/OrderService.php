@@ -11,6 +11,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\Setting;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -86,7 +87,13 @@ class OrderService
         }, 3);
     }
 
-    public function getOrdersForWeb(?string $status = null, ?string $search = null, ?string $date = null)
+    public function getOrdersForWeb(
+        ?string $status = null,
+        ?string $search = null,
+        ?string $date = null,
+        ?string $startDate = null,
+        ?string $endDate = null
+    )
     {
         $query = Order::with(['items', 'cashier', 'payments'])->withSum('returns', 'amount')->latest()->orderByDesc('id');
 
@@ -96,10 +103,29 @@ class OrderService
             $query->where('order_status', $status);
         }
 
-        if ($date === 'today') {
-            $query->whereBetween('created_at', [now()->startOfDay(), now()->endOfDay()]);
-        } elseif ($date === 'week') {
-            $query->whereBetween('created_at', [now()->subDays(6)->startOfDay(), now()->endOfDay()]);
+        $today = Carbon::today();
+        $period = $date === 'week' ? '7_days' : $date;
+        $range = match ($period) {
+            'today' => [$today->copy()->startOfDay(), $today->copy()->endOfDay()],
+            '7_days', 'week' => [$today->copy()->subDays(6)->startOfDay(), $today->copy()->endOfDay()],
+            '30_days' => [$today->copy()->subDays(29)->startOfDay(), $today->copy()->endOfDay()],
+            'this_month' => [$today->copy()->startOfMonth(), $today->copy()->endOfDay()],
+            'this_year' => [$today->copy()->startOfYear(), $today->copy()->endOfDay()],
+            'custom' => [
+                $startDate ? Carbon::parse($startDate)->startOfDay() : $today->copy()->subDays(6)->startOfDay(),
+                $endDate ? Carbon::parse($endDate)->endOfDay() : $today->copy()->endOfDay(),
+            ],
+            default => null,
+        };
+
+        if ($range) {
+            [$rangeStart, $rangeEnd] = $range;
+            if ($rangeEnd->lt($rangeStart) || $rangeStart->diffInDays($rangeEnd) > 366) {
+                throw ValidationException::withMessages([
+                    'start_date' => 'Rentang tanggal maksimal 366 hari dan tanggal akhir tidak boleh lebih awal.',
+                ]);
+            }
+            $query->whereBetween('created_at', [$rangeStart, $rangeEnd]);
         }
 
         if ($search) {
