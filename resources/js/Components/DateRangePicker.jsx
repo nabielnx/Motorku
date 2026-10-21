@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { FiCalendar, FiChevronLeft, FiChevronRight, FiX, FiCheck } from 'react-icons/fi';
 
-export default function DateRangePicker({ initialStart = '', initialEnd = '', onApply, activePeriod = '' }) {
+export default function DateRangePicker({ initialStart = '', initialEnd = '', onApply, activePeriod = '', fullWidth = false }) {
     const [isOpen, setIsOpen] = useState(false);
 
     const parseLocalDate = (dateStr) => {
@@ -128,16 +128,16 @@ export default function DateRangePicker({ initialStart = '', initialEnd = '', on
         : 'Rentang Tanggal...';
 
     return (
-        <div className="relative w-full text-left sm:w-auto" ref={containerRef}>
+        <div className={`relative w-full min-w-0 text-left ${fullWidth ? 'sm:w-full' : 'sm:w-auto'}`} ref={containerRef}>
             {/* Outer Button */}
             <button
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex w-full items-center gap-2 rounded-xl border border-primary bg-primary px-3 py-2 text-xs font-bold text-white shadow-2xs transition hover:bg-primaryDark focus-visible:outline-2 focus-visible:outline-accentYellow sm:w-auto sm:px-3.5"
+                className={`flex w-full min-w-0 items-center gap-2 rounded-xl border border-primary bg-primary px-3 py-2 text-xs font-bold text-white shadow-2xs transition hover:bg-primaryDark focus-visible:outline-2 focus-visible:outline-accentYellow ${fullWidth ? 'sm:w-full' : 'sm:w-auto'} sm:px-3.5`}
             >
                 <FiCalendar size={15} className="text-accentYellow" />
-                <span className="truncate sm:hidden">{isCustomActive ? 'Rentang khusus' : 'Pilih tanggal'}</span>
-                <span className="hidden sm:inline">{activeLabel}</span>
+                <span className="min-w-0 flex-1 truncate sm:hidden">{isCustomActive ? 'Rentang khusus' : 'Pilih tanggal'}</span>
+                <span className="hidden min-w-0 flex-1 truncate sm:inline">{activeLabel}</span>
             </button>
 
             {/* Popover Calendar Modal */}
