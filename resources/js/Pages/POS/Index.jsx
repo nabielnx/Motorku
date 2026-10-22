@@ -19,7 +19,7 @@ import { getProductLabel } from '@/Utils/productLabel';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { DialogTitle } from '@headlessui/react';
-import { FiSearch, FiGrid, FiList, FiPlus, FiMinus, FiTrash2, FiShoppingBag, FiCreditCard, FiX, FiUser, FiTag, FiHelpCircle, FiArrowLeft, FiBookOpen, FiChevronDown, FiCheck } from 'react-icons/fi';
+import { FiSearch, FiGrid, FiList, FiPlus, FiMinus, FiTrash2, FiShoppingBag, FiCreditCard, FiX, FiUser, FiTag, FiHelpCircle, FiArrowLeft, FiBookOpen, FiChevronDown } from 'react-icons/fi';
 import ProductBookView from '@/Components/Product/ProductBookView';
 
 
@@ -866,7 +866,11 @@ return (
                                         className="peer sr-only"
                                     />
                                     <span aria-hidden="true" className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-[4px] border peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-slate-500 ${areAllCartItemsChecked || areSomeCartItemsChecked ? 'border-[#19231f] bg-[#19231f] text-[#FFDD00]' : 'border-slate-400 bg-white text-slate-800 dark:border-slate-500 dark:bg-slate-900 dark:text-slate-100'}`}>
-                                        {areAllCartItemsChecked && <FiCheck className="h-4 w-4" strokeWidth={12} />}
+                                        {areAllCartItemsChecked && (
+                                            <svg aria-hidden="true" className="h-4 w-4" viewBox="0 0 16 16">
+                                                <path d="M6.1 13.1 1.1 8.1l3-3 2 2 6-6 3 3-9 9z" fill="currentColor" />
+                                            </svg>
+                                        )}
                                         {areSomeCartItemsChecked && <span className="h-0.5 w-2 rounded-sm bg-[#FFDD00]" />}
                                     </span>
                                     Centang semua
@@ -892,7 +896,11 @@ return (
                                             className="peer sr-only"
                                         />
                                         <span aria-hidden="true" className={`flex h-4 w-4 items-center justify-center rounded-[4px] border peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-slate-500 ${item.checked ? 'border-[#19231f] bg-[#19231f] text-[#FFDD00]' : 'border-slate-400 bg-white text-slate-800 dark:border-slate-500 dark:bg-slate-900 dark:text-slate-100'}`}>
-                                            {item.checked && <FiCheck className="h-4 w-4" strokeWidth={12} />}
+                                            {item.checked && (
+                                                <svg aria-hidden="true" className="h-4 w-4" viewBox="0 0 16 16">
+                                                    <path d="M6.1 13.1 1.1 8.1l3-3 2 2 6-6 3 3-9 9z" fill="currentColor" />
+                                                </svg>
+                                            )}
                                         </span>
                                     </label>
                                     <div className="min-w-0 flex-1">
