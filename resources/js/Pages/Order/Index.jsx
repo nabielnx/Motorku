@@ -22,6 +22,7 @@ import {
     FiAlertCircle, 
     FiXCircle,
     FiCalendar,
+    FiFilter,
     FiEyeOff,
     FiChevronDown
 } from 'react-icons/fi';
@@ -475,48 +476,114 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
             ) : (
             <div className="mx-auto w-full max-w-[1440px] space-y-3 p-2 sm:space-y-4 sm:px-5 sm:pb-5 sm:pt-0">
 
-                <div className="px-1 py-1 text-xs text-slate-600 dark:text-slate-300 sm:hidden">
-                    <div className="flex items-center justify-between gap-2">
-                        <div className="min-w-0">
-                            <span className="block truncate text-[10px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">{summaryPeriodLabel}</span>
-                            <strong className="text-sm text-primaryDark dark:text-white">{periodOrderCount} pesanan</strong>
+                {/* Mini Ledger KPI Summary Card */}
+                <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-3 sm:px-4 sm:py-3.5 shadow-2xs">
+                    {/* Mobile View (< sm) */}
+                    <div className="sm:hidden space-y-2.5">
+                        <div className="flex items-center justify-between gap-3">
+                            <div className="min-w-0">
+                                <span className="block truncate text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                                    {summaryPeriodLabel}
+                                </span>
+                                <div className="text-base font-heading font-extrabold text-primaryDark dark:text-white">
+                                    {periodOrderCount} <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">pesanan</span>
+                                </div>
+                            </div>
+                            <div className="text-right shrink-0">
+                                <div className="flex items-center justify-end gap-1">
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                                        Pendapatan
+                                    </span>
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsRevenueVisible((visible) => !visible)}
+                                        aria-label={isRevenueVisible ? 'Sembunyikan pendapatan' : 'Tampilkan pendapatan'}
+                                        title={isRevenueVisible ? 'Sembunyikan pendapatan' : 'Tampilkan pendapatan'}
+                                        className="flex h-5 w-5 items-center justify-center rounded text-slate-500 hover:text-primaryDark hover:bg-slate-100 dark:text-accentYellow dark:hover:bg-slate-800 transition-colors"
+                                    >
+                                        {isRevenueVisible ? <FiEye size={13} /> : <FiEyeOff size={13} />}
+                                    </button>
+                                </div>
+                                <div className="font-heading font-extrabold text-primaryDark dark:text-white text-right">
+                                    {renderRevenueValue()}
+                                </div>
+                            </div>
                         </div>
-                        <div className="flex shrink-0 items-center gap-1.5">
-                            <button
-                                type="button"
-                                onClick={() => setIsRevenueVisible((visible) => !visible)}
-                                aria-label={isRevenueVisible ? 'Sembunyikan pendapatan' : 'Tampilkan pendapatan'}
-                                title={isRevenueVisible ? 'Sembunyikan pendapatan' : 'Tampilkan pendapatan'}
-                                className="flex h-8 w-8 items-center justify-center rounded-lg text-primaryDark hover:bg-slate-100 dark:text-accentYellow dark:hover:bg-slate-800"
-                            >
-                                {isRevenueVisible ? <FiEye size={16} /> : <FiEyeOff size={16} />}
-                            </button>
-                            {renderRevenueValue()}
+
+                        <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-2 text-xs">
+                            <span className="text-slate-500 dark:text-slate-400 font-medium">Antrean Perlu Ditangani</span>
+                            {activeCount > 0 ? (
+                                <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 dark:bg-amber-950 px-2.5 py-0.5 text-xs font-bold text-amber-900 dark:text-amber-300 border border-amber-300 dark:border-amber-800">
+                                    <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+                                    {activeCount} pesanan
+                                </span>
+                            ) : (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 text-xs font-semibold text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700">
+                                    0 pesanan
+                                </span>
+                            )}
                         </div>
                     </div>
-                    <div className="mt-1">Perlu ditangani <strong className="text-slate-900 dark:text-white">{activeCount}</strong></div>
-                </div>
 
-                {/* Desktop summary */}
-                <div className="hidden sm:flex flex-wrap items-center gap-x-8 gap-y-2 border-b border-slate-200 dark:border-slate-800 px-1 pb-3 text-sm text-slate-500 dark:text-slate-400">
-                    <span>{summaryPeriodLabel} <strong className="ml-1 text-primaryDark dark:text-white">{periodOrderCount} pesanan</strong></span>
-                    <span className="inline-flex items-center gap-1">Pendapatan
-                        <button
-                            type="button"
-                            onClick={() => setIsRevenueVisible((visible) => !visible)}
-                            aria-label={isRevenueVisible ? 'Sembunyikan pendapatan' : 'Tampilkan pendapatan'}
-                            title={isRevenueVisible ? 'Sembunyikan pendapatan' : 'Tampilkan pendapatan'}
-                            className="ml-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-primaryDark hover:bg-slate-100 dark:text-accentYellow dark:hover:bg-slate-800"
-                        >
-                            {isRevenueVisible ? <FiEye size={15} /> : <FiEyeOff size={15} />}
-                        </button>
-                        {renderRevenueValue()}
-                    </span>
-                    <span>Perlu ditangani <strong className="ml-1 text-slate-900 dark:text-white">{activeCount}</strong></span>
+                    {/* Desktop View (>= sm) */}
+                    <div className="hidden sm:grid sm:grid-cols-3 sm:divide-x sm:divide-slate-200 dark:sm:divide-slate-800">
+                        {/* Col 1: Periode & Total Pesanan */}
+                        <div className="pr-4">
+                            <span className="block truncate text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                                {summaryPeriodLabel}
+                            </span>
+                            <div className="mt-1 text-lg font-heading font-extrabold text-primaryDark dark:text-white">
+                                {periodOrderCount} <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">pesanan</span>
+                            </div>
+                        </div>
+
+                        {/* Col 2: Total Pendapatan + Toggle */}
+                        <div className="px-4">
+                            <div className="flex items-center justify-between gap-1">
+                                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                                    Total Pendapatan
+                                </span>
+                                <button
+                                    type="button"
+                                    onClick={() => setIsRevenueVisible((visible) => !visible)}
+                                    aria-label={isRevenueVisible ? 'Sembunyikan pendapatan' : 'Tampilkan pendapatan'}
+                                    title={isRevenueVisible ? 'Sembunyikan pendapatan' : 'Tampilkan pendapatan'}
+                                    className="flex h-6 w-6 items-center justify-center rounded text-slate-500 hover:text-primaryDark hover:bg-slate-100 dark:text-accentYellow dark:hover:bg-slate-800 transition-colors"
+                                >
+                                    {isRevenueVisible ? <FiEye size={14} /> : <FiEyeOff size={14} />}
+                                </button>
+                            </div>
+                            <div className="mt-1 font-heading font-extrabold text-primaryDark dark:text-white">
+                                {renderRevenueValue()}
+                            </div>
+                        </div>
+
+                        {/* Col 3: Status Penanganan */}
+                        <div className="pl-4">
+                            <span className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                                Status Penanganan
+                            </span>
+                            <div className="mt-1 flex items-center gap-2">
+                                <span className="text-lg font-heading font-extrabold text-primaryDark dark:text-white">
+                                    {activeCount}
+                                </span>
+                                {activeCount > 0 ? (
+                                    <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 dark:bg-amber-950 px-2.5 py-0.5 text-xs font-bold text-amber-900 dark:text-amber-300 border border-amber-300 dark:border-amber-800">
+                                        <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+                                        Perlu ditangani
+                                    </span>
+                                ) : (
+                                    <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 text-xs font-semibold text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700">
+                                        Semua selesai
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Main Transaction Panel */}
-                <div className="bg-white dark:bg-slate-900 sm:rounded-xl sm:shadow-2xs sm:border sm:border-slate-200 dark:sm:border-slate-800 overflow-hidden transition-colors">
+                <div className="bg-white dark:bg-slate-900 rounded-xl shadow-2xs border border-slate-200 dark:border-slate-800 overflow-hidden transition-colors">
 
                     {/* Unified Control Bar */}
                     <div className="p-3 sm:p-4 border-b border-slate-200 dark:border-slate-800 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-2 sm:gap-3 sm:bg-slate-50 dark:sm:bg-slate-800">
@@ -527,8 +594,8 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                             </button>
                         </div>
 
-                        <div className="flex w-full flex-wrap items-center gap-2 lg:w-auto">
-                            {/* Filter Tabs */}
+                        <div className="flex w-full flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2 lg:w-auto">
+                            {/* Filter Tabs (Desktop) */}
                             <div className="hidden sm:flex min-w-0 max-w-full items-center gap-1 overflow-x-auto no-scrollbar">
                                 {statuses.map(s => {
                                     const isActive = statusFilter === s;
@@ -549,15 +616,6 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                                 })}
                             </div>
 
-                            <select
-                                value={statusFilter}
-                                onChange={(e) => handleFilterChange(e.target.value)}
-                                aria-label="Filter status pesanan"
-                                className="sm:hidden h-[34px] min-w-0 flex-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-0 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-0 focus:border-slate-400"
-                            >
-                                {statuses.map(s => <option key={s} value={s}>{statusLabel(s)}</option>)}
-                            </select>
-
                             {/* Search Input */}
                             <div className="relative order-first w-full min-w-0 sm:order-none sm:w-64 lg:w-72">
                                 <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" size={15} />
@@ -567,25 +625,46 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                     placeholder="Cari nomor, pelanggan, atau barang..."
-                                    className="w-full min-w-0 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg pl-9 pr-3 py-1.5 text-xs text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500 transition-all"
+                                    className="w-full h-9 min-w-0 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl pl-9 pr-3 text-xs text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-slate-400 dark:focus:border-slate-500 transition-all"
                                 />
                             </div>
 
-                            {statusFilter === 'All' && (
-                                <>
+                            {/* Mobile Filters Row */}
+                            <div className="flex w-full items-center gap-2 sm:hidden">
+                                <div className="relative flex-1 min-w-0">
+                                    <FiFilter className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-accentYellow" size={13} />
+                                    <select
+                                        value={statusFilter}
+                                        onChange={(e) => handleFilterChange(e.target.value)}
+                                        aria-label="Filter status pesanan"
+                                        className="w-full h-9 appearance-none rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 pl-8 pr-7 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:border-slate-400 dark:focus:border-slate-500 transition-colors"
+                                    >
+                                        {statuses.map(s => <option key={s} value={s}>{statusLabel(s)}</option>)}
+                                    </select>
+                                    <FiChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
+                                </div>
+
+                                {statusFilter === 'All' && (
                                     <button
                                         type="button"
                                         onClick={() => setShowMobileDateFilters((visible) => !visible)}
                                         aria-expanded={showMobileDateFilters}
                                         aria-label={showMobileDateFilters ? 'Tutup filter tanggal' : 'Tampilkan filter tanggal'}
-                                        className="flex h-[34px] min-w-0 flex-1 items-center justify-between gap-2 rounded-lg border border-slate-300 bg-white px-2.5 text-xs font-semibold text-slate-700 sm:hidden dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                                        className="flex-1 min-w-0 h-9 flex items-center justify-between gap-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 transition-colors"
                                     >
-                                        <span className="flex min-w-0 items-center gap-1.5 truncate"><FiCalendar className="shrink-0 text-accentYellow" size={14} />{periodFilter === 'custom' ? 'Rentang khusus' : summaryPeriodLabel}</span>
-                                        <FiChevronDown className={`shrink-0 transition-transform ${showMobileDateFilters ? 'rotate-180' : ''}`} size={14} />
+                                        <span className="flex min-w-0 items-center gap-1.5 truncate">
+                                            <FiCalendar className="shrink-0 text-accentYellow" size={13} />
+                                            <span className="truncate">{periodFilter === 'custom' ? 'Rentang khusus' : summaryPeriodLabel}</span>
+                                        </span>
+                                        <FiChevronDown className={`shrink-0 text-slate-400 transition-transform ${showMobileDateFilters ? 'rotate-180' : ''}`} size={14} />
                                     </button>
+                                )}
+                            </div>
 
+                            {statusFilter === 'All' && (
+                                <>
                                     {showMobileDateFilters && (
-                                        <div className="grid w-full grid-cols-2 gap-2 sm:hidden">
+                                        <div className="grid w-full grid-cols-2 gap-2 sm:hidden pt-0.5">
                                             <PeriodSelectDropdown
                                                 value={periodFilter === 'custom' ? '' : periodFilter}
                                                 onChange={handlePeriodChange}
