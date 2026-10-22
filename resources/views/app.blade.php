@@ -15,8 +15,6 @@
         <link rel="apple-touch-icon" href="{{ asset('icons/motorku-v2-192.png') }}">
         @if (request()->routeIs('home', 'motor-saya'))
             <link rel="canonical" href="{{ request()->routeIs('home') ? route('home') : route('motor-saya', ['slug' => data_get($page, 'props.initialPartsData.motorcycle.slug')]) }}">
-        @else
-            <meta name="robots" content="noindex, nofollow">
         @endif
 
         <!-- Fonts (Non-blocking) -->
