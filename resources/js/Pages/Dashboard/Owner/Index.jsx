@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import DateRangePicker from '@/Components/DateRangePicker';
+import PeriodSelectDropdown from '@/Components/PeriodSelectDropdown';
 import DashboardSkeleton from '@/Components/Skeletons/DashboardSkeleton';
 import MaskedCurrency from '@/Components/MaskedCurrency';
 import { Head, Link, router } from '@inertiajs/react';
@@ -50,7 +51,8 @@ export default function Dashboard({ stats = {}, filters = {} }) {
     const [endDate, setEndDate] = useState(filters.end_date || '');
 
     const handlePeriodChange = (e) => {
-        const val = e.target.value;
+        const val = typeof e === 'string' ? e : e?.target?.value;
+        if (!val) return;
         router.get('/dashboard', { period: val }, { preserveState: true, preserveScroll: true });
     };
 
@@ -165,23 +167,10 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                     <h2 className="text-base sm:text-lg font-semibold text-primaryDark dark:text-white">Ringkasan Toko</h2>
                     <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
                         {/* Preset Select Dropdown */}
-                        <div className="relative min-w-0 w-full sm:w-auto">
-                            <FiCalendar aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-accentYellow" size={15} />
-                            <select
-                                value={currentPeriod === 'custom' ? '' : currentPeriod}
-                                onChange={handlePeriodChange}
-                                aria-label="Pilih periode dashboard"
-                                className="w-full appearance-none rounded-xl border border-primary bg-primary py-2 pl-9 pr-8 text-xs font-bold text-white shadow-2xs cursor-pointer transition hover:bg-primaryDark focus:outline-none focus:ring-0 focus:border-primaryDark"
-                            >
-                                <option className="bg-white text-slate-900" value="" disabled hidden>Pilihan Cepat...</option>
-                                <option className="bg-white text-slate-900" value="today">Hari Ini</option>
-                                <option className="bg-white text-slate-900" value="7_days">7 Hari Terakhir</option>
-                                <option className="bg-white text-slate-900" value="30_days">30 Hari Terakhir</option>
-                                <option className="bg-white text-slate-900" value="this_month">Bulan Ini</option>
-                                <option className="bg-white text-slate-900" value="this_year">Tahun Ini</option>
-                            </select>
-                            <FiChevronDown aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-white" size={14} />
-                        </div>
+                        <PeriodSelectDropdown
+                            value={currentPeriod === 'custom' ? '' : currentPeriod}
+                            onChange={handlePeriodChange}
+                        />
 
                         {/* Separate Single Calendar Range Picker */}
                         <DateRangePicker 

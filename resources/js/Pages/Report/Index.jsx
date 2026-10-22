@@ -3,6 +3,7 @@ import { cashSummary as fetchCashSummary, closeCash } from '@/Api/cashReports';
 import { storeDate, dashboardDateRange } from '@/Utils/dates';
 import MoneyInput from '@/Components/MoneyInput';
 import DateRangePicker from '@/Components/DateRangePicker';
+import PeriodSelectDropdown from '@/Components/PeriodSelectDropdown';
 import { useState, useEffect } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import ReportSkeleton from '@/Components/Skeletons/ReportSkeleton';
@@ -148,7 +149,8 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
     };
 
     const handlePeriodChange = (event) => {
-        const period = event.target.value;
+        const period = typeof event === 'string' ? event : event?.target?.value;
+        if (!period) return;
         const range = dashboardDateRange(period, today);
         setStartDate(range.start);
         setEndDate(range.end);
@@ -206,24 +208,10 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
                 {/* Toolbar: Period + Export */}
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                     <div className="grid w-full min-w-0 grid-cols-2 gap-2 sm:w-auto sm:flex sm:flex-wrap sm:items-center">
-                        <div className="relative min-w-0 w-full sm:w-auto">
-                            <FiCalendar aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-accentYellow" size={15} />
-                            <select
-                                value={periodFilter === 'custom' ? '' : periodFilter}
-                                onChange={handlePeriodChange}
-                                aria-label="Pilih periode laporan"
-                                className="w-full appearance-none rounded-xl border border-primary bg-primary py-2 pl-9 pr-8 text-xs font-bold text-white shadow-2xs cursor-pointer transition hover:bg-primaryDark focus:outline-none focus:ring-0 focus:border-primaryDark"
-                                style={{ appearance: 'none', WebkitAppearance: 'none', backgroundImage: 'none' }}
-                            >
-                                <option className="bg-white text-slate-900" value="" disabled hidden>Pilihan Cepat...</option>
-                                <option className="bg-white text-slate-900" value="today">Hari Ini</option>
-                                <option className="bg-white text-slate-900" value="7_days">7 Hari Terakhir</option>
-                                <option className="bg-white text-slate-900" value="30_days">30 Hari Terakhir</option>
-                                <option className="bg-white text-slate-900" value="this_month">Bulan Ini</option>
-                                <option className="bg-white text-slate-900" value="this_year">Tahun Ini</option>
-                            </select>
-                            <FiChevronDown aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-white" size={14} />
-                        </div>
+                        <PeriodSelectDropdown
+                            value={periodFilter === 'custom' ? '' : periodFilter}
+                            onChange={handlePeriodChange}
+                        />
                         <DateRangePicker
                             initialStart={startDate}
                             initialEnd={endDate}

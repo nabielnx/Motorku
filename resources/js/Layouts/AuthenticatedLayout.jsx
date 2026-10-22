@@ -401,7 +401,7 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
             {/* OVERLAY MOBILE */}
             {isSidebarOpen && (
                 <div 
-                    className="fixed inset-0 bg-slate-900 z-40 lg:hidden transition-opacity"
+                    className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 lg:hidden transition-opacity"
                     onClick={() => setIsSidebarOpen(false)}
                 ></div>
             )}

@@ -101,7 +101,7 @@ export default function NotificationCenter({ user, roles, onActiveOrderCountChan
                 {count > 0 && <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full border border-white bg-rose-600 px-1 text-[9px] font-black text-white dark:border-slate-900">{count > 99 ? '99+' : count}</span>}
             </button>
             <Dialog open={open} onClose={() => setOpen(false)} className="relative z-50">
-                <div className="fixed inset-0 bg-slate-900" aria-hidden="true" />
+                <div className="fixed inset-0 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-xs" aria-hidden="true" />
                 <div className="fixed inset-0 flex justify-end p-2 sm:p-4">
                     <DialogPanel className="admin-dialog admin-notifications flex h-full w-full max-w-md flex-col overflow-hidden rounded-xl bg-white shadow-xl dark:bg-slate-900">
                         <div className="flex shrink-0 items-center gap-3 bg-primary px-5 py-4 text-white">

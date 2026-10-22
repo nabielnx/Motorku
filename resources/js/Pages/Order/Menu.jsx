@@ -502,7 +502,7 @@ export default function CustomerMenu({
             )}
 
             <Dialog open={showCart} onClose={() => setShowCart(false)} className="customer-storefront relative z-50">
-                <div className="fixed inset-0 bg-slate-900" aria-hidden="true" />
+                <div className="fixed inset-0 bg-black/40 backdrop-blur-2xs" aria-hidden="true" />
                 <div className="fixed inset-0 flex justify-end">
                     <DialogPanel className="flex h-full w-full max-w-md flex-col bg-white text-slate-900 shadow-2xl">
                         <div className="flex items-center justify-between border-b border-slate-200 px-5 py-3.5 sm:px-6">
@@ -572,7 +572,7 @@ export default function CustomerMenu({
             </Dialog>
 
             <Dialog open={!!selectedDetailProduct} onClose={() => setSelectedDetailProduct(null)} className="customer-storefront relative z-50">
-                <div className="fixed inset-0 bg-slate-900" aria-hidden="true" />
+                <div className="fixed inset-0 bg-black/40 backdrop-blur-2xs" aria-hidden="true" />
                 <div className="fixed inset-0 overflow-y-auto">
                     <div className="flex min-h-full items-center justify-center p-3 sm:p-6">
                         {selectedDetailProduct && (

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\AddRobotsHeader;
 use App\Http\Middleware\ApplySystemSettings;
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\HandleInertiaRequests;
@@ -56,7 +57,7 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         $middleware->prepend(SecurityHeaders::class);
-        $middleware->append([ApplySystemSettings::class, FrameGuard::class]);
+        $middleware->append([ApplySystemSettings::class, FrameGuard::class, AddRobotsHeader::class]);
         $middleware->web(append: [
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,

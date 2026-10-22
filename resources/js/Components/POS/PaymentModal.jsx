@@ -32,7 +32,7 @@ export default function PaymentModal({
 }) {
     return (
         <div
-            className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900 dark:bg-slate-950 p-0 sm:p-4 animate-in fade-in duration-150"
+            className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-xs p-0 sm:p-4 animate-in fade-in duration-150"
             onClick={(e) => {
                 if (e.target === e.currentTarget && !isSubmittingOrder && !isOrderComplete) {
                     resetQrisFlow();
@@ -216,9 +216,26 @@ export default function PaymentModal({
                                         placeholder="No. referensi (opsional)"
                                         className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
                                     />
-                                    <label className="flex items-start gap-2 text-xs font-semibold text-slate-700 dark:text-slate-200">
-                                        <input type="checkbox" checked={qrisVerified} onChange={(event) => setQrisVerified(event.target.checked)} className="mt-0.5" />
-                                        Saya sudah memastikan pembayaran masuk di aplikasi/rekening toko.
+                                    <label className="flex items-start gap-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 cursor-pointer select-none">
+                                        <span className="relative flex items-center justify-center mt-0.5 shrink-0">
+                                            <input
+                                                type="checkbox"
+                                                checked={qrisVerified}
+                                                onChange={(event) => setQrisVerified(event.target.checked)}
+                                                className="peer sr-only"
+                                            />
+                                            <span
+                                                aria-hidden="true"
+                                                className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-[4px] border transition-colors peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-1 peer-focus-visible:outline-slate-500 ${
+                                                    qrisVerified
+                                                        ? 'border-[#19231f] bg-[#19231f] text-white dark:border-white dark:bg-white dark:text-slate-900'
+                                                        : 'border-slate-400 bg-white hover:border-slate-600 dark:border-slate-500 dark:bg-slate-800'
+                                                }`}
+                                            >
+                                                {qrisVerified && <FiCheck className="w-3 h-3" strokeWidth={3} />}
+                                            </span>
+                                        </span>
+                                        <span className="leading-5">Saya sudah memastikan pembayaran masuk di aplikasi/rekening toko.</span>
                                     </label>
                                 </div>
                             )}

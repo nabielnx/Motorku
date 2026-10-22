@@ -4,7 +4,7 @@ export default function ShortcutModal({
     setIsShortcutModalOpen
 }) {
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900 dark:bg-slate-950 p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-xs p-4">
             <div className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-150 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-white">
                 <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800">
                     <div className="flex items-center gap-2">

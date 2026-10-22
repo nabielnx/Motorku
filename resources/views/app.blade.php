@@ -15,8 +15,6 @@
         <link rel="apple-touch-icon" href="{{ asset('icons/motorku-v2-192.png') }}">
         @if (request()->routeIs('home', 'motor-saya'))
             <link rel="canonical" href="{{ request()->routeIs('home') ? route('home') : route('motor-saya', ['slug' => data_get($page, 'props.initialPartsData.motorcycle.slug')]) }}">
-        @else
-            <meta name="robots" content="noindex, nofollow">
         @endif
 
         <!-- Fonts (Non-blocking) -->
@@ -722,44 +720,65 @@
                     $isAdminNoPadding = in_array($comp, ['POS/Index', 'Product/Index', 'Motorcycle/Index']);
                 @endphp
                 <!-- Authenticated Dashboard Shell (Matching AuthenticatedLayout) -->
-                <div class="h-screen w-screen overflow-hidden bg-slate-50 flex font-sans text-slate-800">
+                <div class="admin-workspace h-[100dvh] w-screen overflow-hidden bg-slate-50 dark:bg-slate-950 flex font-sans antialiased text-slate-800 dark:text-slate-100">
                     <!-- SIDEBAR -->
-                    <aside class="w-64 bg-white border-r border-slate-200 hidden lg:flex flex-col shrink-0">
+                    <aside class="admin-sidebar hidden lg:flex flex-col shrink-0">
                         <!-- Brand -->
-                        <div class="p-5 border-b border-slate-100 flex items-center gap-3 shrink-0">
-                            <div class="w-10 h-10 rounded-lg bg-slate-100 animate-pulse shrink-0"></div>
+                        <div class="admin-brand flex items-center gap-3 shrink-0">
+                            <div class="w-10 h-10 rounded-lg bg-[#2b3931] animate-pulse shrink-0"></div>
                             <div class="space-y-1">
-                                <div class="h-4 w-24 bg-slate-200 rounded animate-pulse"></div>
-                                <div class="h-2.5 w-16 bg-slate-100 rounded animate-pulse"></div>
+                                <div class="h-4 w-24 bg-[#35423b] rounded animate-pulse"></div>
+                                <div class="h-2.5 w-16 bg-[#2b3931] rounded animate-pulse"></div>
                             </div>
                         </div>
                         <!-- Menu Items -->
-                        <div class="flex-1 p-3 space-y-5 overflow-hidden">
+                        <div class="admin-navigation flex-1 space-y-4 overflow-hidden">
                             <div>
-                                <div class="px-3 mb-2 h-2.5 w-12 bg-slate-200 rounded animate-pulse"></div>
+                                <div class="px-3 mb-2 h-2.5 w-12 bg-[#35423b] rounded animate-pulse"></div>
                                 <div class="space-y-1">
-                                    <div class="h-9 rounded-lg {{ str_starts_with($comp, 'Dashboard/') ? 'bg-slate-100 border-l-4 border-slate-300' : 'bg-slate-50' }} animate-pulse"></div>
+                                    <div class="admin-nav-link {{ str_starts_with($comp, 'Dashboard/') ? 'admin-nav-link--active' : 'bg-[#1e2a25]' }} flex items-center gap-3 px-3 py-2 rounded-lg animate-pulse">
+                                        <div class="w-4 h-4 rounded {{ str_starts_with($comp, 'Dashboard/') ? 'bg-[#17221e]' : 'bg-[#35423b]' }}"></div>
+                                        <div class="h-3.5 w-20 rounded {{ str_starts_with($comp, 'Dashboard/') ? 'bg-[#17221e]' : 'bg-[#35423b]' }}"></div>
+                                    </div>
                                 </div>
                             </div>
                             <div>
-                                <div class="px-3 mb-2 h-2.5 w-16 bg-slate-200 rounded animate-pulse"></div>
+                                <div class="px-3 mb-2 h-2.5 w-16 bg-[#35423b] rounded animate-pulse"></div>
                                 <div class="space-y-1">
-                                    <div class="h-9 rounded-lg {{ str_starts_with($comp, 'Order/') ? 'bg-slate-100 border-l-4 border-slate-300' : 'bg-slate-50' }} animate-pulse"></div>
-                                    <div class="h-9 rounded-lg {{ $comp === 'Product/Index' ? 'bg-slate-100 border-l-4 border-slate-300' : 'bg-slate-50' }} animate-pulse"></div>
-                                    <div class="h-9 rounded-lg {{ $comp === 'Motorcycle/Index' ? 'bg-slate-100 border-l-4 border-slate-300' : 'bg-slate-50' }} animate-pulse"></div>
+                                    <div class="admin-nav-link {{ str_starts_with($comp, 'Order/') ? 'admin-nav-link--active' : 'bg-[#1e2a25]' }} flex items-center gap-3 px-3 py-2 rounded-lg animate-pulse">
+                                        <div class="w-4 h-4 rounded {{ str_starts_with($comp, 'Order/') ? 'bg-[#17221e]' : 'bg-[#35423b]' }}"></div>
+                                        <div class="h-3.5 w-16 rounded {{ str_starts_with($comp, 'Order/') ? 'bg-[#17221e]' : 'bg-[#35423b]' }}"></div>
+                                    </div>
+                                    <div class="admin-nav-link {{ $comp === 'Product/Index' ? 'admin-nav-link--active' : 'bg-[#1e2a25]' }} flex items-center gap-3 px-3 py-2 rounded-lg animate-pulse">
+                                        <div class="w-4 h-4 rounded {{ $comp === 'Product/Index' ? 'bg-[#17221e]' : 'bg-[#35423b]' }}"></div>
+                                        <div class="h-3.5 w-16 rounded {{ $comp === 'Product/Index' ? 'bg-[#17221e]' : 'bg-[#35423b]' }}"></div>
+                                    </div>
+                                    <div class="admin-nav-link {{ $comp === 'Motorcycle/Index' ? 'admin-nav-link--active' : 'bg-[#1e2a25]' }} flex items-center gap-3 px-3 py-2 rounded-lg animate-pulse">
+                                        <div class="w-4 h-4 rounded {{ $comp === 'Motorcycle/Index' ? 'bg-[#17221e]' : 'bg-[#35423b]' }}"></div>
+                                        <div class="h-3.5 w-20 rounded {{ $comp === 'Motorcycle/Index' ? 'bg-[#17221e]' : 'bg-[#35423b]' }}"></div>
+                                    </div>
                                 </div>
                             </div>
                             <div>
-                                <div class="px-3 mb-2 h-2.5 w-14 bg-slate-200 rounded animate-pulse"></div>
+                                <div class="px-3 mb-2 h-2.5 w-14 bg-[#35423b] rounded animate-pulse"></div>
                                 <div class="space-y-1">
-                                    <div class="h-9 rounded-lg {{ $comp === 'Report/Index' ? 'bg-slate-100 border-l-4 border-slate-300' : 'bg-slate-50' }} animate-pulse"></div>
+                                    <div class="admin-nav-link {{ $comp === 'Report/Index' ? 'admin-nav-link--active' : 'bg-[#1e2a25]' }} flex items-center gap-3 px-3 py-2 rounded-lg animate-pulse">
+                                        <div class="w-4 h-4 rounded {{ $comp === 'Report/Index' ? 'bg-[#17221e]' : 'bg-[#35423b]' }}"></div>
+                                        <div class="h-3.5 w-16 rounded {{ $comp === 'Report/Index' ? 'bg-[#17221e]' : 'bg-[#35423b]' }}"></div>
+                                    </div>
                                 </div>
                             </div>
                             <div>
-                                <div class="px-3 mb-2 h-2.5 w-20 bg-slate-200 rounded animate-pulse"></div>
+                                <div class="px-3 mb-2 h-2.5 w-20 bg-[#35423b] rounded animate-pulse"></div>
                                 <div class="space-y-1">
-                                    <div class="h-9 rounded-lg {{ $comp === 'User/Index' ? 'bg-slate-100 border-l-4 border-slate-300' : 'bg-slate-50' }} animate-pulse"></div>
-                                    <div class="h-9 rounded-lg {{ $comp === 'Setting/Index' ? 'bg-slate-100 border-l-4 border-slate-300' : 'bg-slate-50' }} animate-pulse"></div>
+                                    <div class="admin-nav-link {{ $comp === 'User/Index' ? 'admin-nav-link--active' : 'bg-[#1e2a25]' }} flex items-center gap-3 px-3 py-2 rounded-lg animate-pulse">
+                                        <div class="w-4 h-4 rounded {{ $comp === 'User/Index' ? 'bg-[#17221e]' : 'bg-[#35423b]' }}"></div>
+                                        <div class="h-3.5 w-20 rounded {{ $comp === 'User/Index' ? 'bg-[#17221e]' : 'bg-[#35423b]' }}"></div>
+                                    </div>
+                                    <div class="admin-nav-link {{ $comp === 'Setting/Index' ? 'admin-nav-link--active' : 'bg-[#1e2a25]' }} flex items-center gap-3 px-3 py-2 rounded-lg animate-pulse">
+                                        <div class="w-4 h-4 rounded {{ $comp === 'Setting/Index' ? 'bg-[#17221e]' : 'bg-[#35423b]' }}"></div>
+                                        <div class="h-3.5 w-20 rounded {{ $comp === 'Setting/Index' ? 'bg-[#17221e]' : 'bg-[#35423b]' }}"></div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -768,15 +787,18 @@
                     <!-- MAIN CONTENT AREA -->
                     <div class="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden">
                         <!-- TOP NAVBAR -->
-                        <header class="h-14 sm:h-16 bg-white border-b border-slate-300 flex items-center justify-between px-4 sm:px-6 lg:px-8 shrink-0">
-                            <div class="flex items-center gap-3">
+                        <header class="admin-topbar h-14 sm:h-16 bg-white dark:bg-slate-900 border-b border-slate-300 dark:border-slate-800 flex items-center justify-between px-4 sm:px-6 lg:px-8 shrink-0 z-20">
+                            <div class="flex items-center gap-2 sm:gap-3">
+                                <div class="p-1.5 rounded-lg text-slate-400 lg:hidden shrink-0">
+                                    <div class="w-5 h-5 rounded bg-slate-200 animate-pulse"></div>
+                                </div>
                                 <div class="h-5 sm:h-6 {{ $comp === 'User/Index' ? 'w-44' : ($comp === 'Product/Index' ? 'w-40' : ($comp === 'Report/Index' ? 'w-44' : 'w-32')) }} bg-slate-300 rounded-md animate-pulse"></div>
                             </div>
-                            <div class="flex items-center gap-2">
+                            <div class="admin-account-actions flex items-center gap-1 sm:gap-1.5">
                                 <div class="w-8 h-8 rounded-lg bg-slate-100 animate-pulse"></div>
                                 <div class="w-8 h-8 rounded-lg bg-slate-100 animate-pulse"></div>
-                                <div class="flex items-center gap-2.5 pl-2">
-                                    <div class="w-9 h-9 rounded-lg bg-slate-200 animate-pulse"></div>
+                                <div class="flex items-center gap-2 px-1 py-1 sm:px-2 rounded-lg">
+                                    <div class="w-8 h-8 rounded-full bg-slate-200 animate-pulse shrink-0"></div>
                                     <div class="hidden sm:block space-y-1">
                                         <div class="h-3 w-16 bg-slate-200 rounded animate-pulse"></div>
                                         <div class="h-2 w-10 bg-slate-100 rounded animate-pulse"></div>
@@ -786,7 +808,7 @@
                         </header>
 
                         <!-- SCROLLABLE PAGE BODY -->
-                        <main class="admin-main flex-1 min-h-0 {{ $isAdminNoPadding ? 'p-0 flex flex-col overflow-hidden' : 'p-3 sm:p-6 lg:p-8 overflow-y-auto' }} bg-slate-50">
+                        <main class="admin-main flex-1 min-h-0 {{ $isAdminNoPadding ? 'p-0 flex flex-col overflow-hidden' : 'p-3 sm:p-6 lg:p-8 overflow-y-auto' }}">
                             @if ($comp === 'User/Index')
                                 <!-- Exact User/Index layout preview -->
                                 <div class="max-w-7xl mx-auto space-y-6">
@@ -1473,7 +1495,7 @@
                                     </div>
                                 </div>
                             @elseif (str_starts_with($comp, 'Dashboard/'))
-                                <!-- Dashboard Shell (Matches DashboardSkeleton 12-col grid) -->
+                                <!-- Dashboard Shell (Matches DashboardSkeleton 12-col grid & ledger theme) -->
                                 <div class="grid w-full grid-cols-12 items-start gap-3 sm:gap-4">
                                     <!-- Title & Actions -->
                                     <div class="col-span-12 flex flex-col justify-between gap-2 sm:flex-row sm:items-center sm:gap-3">
@@ -1484,37 +1506,44 @@
                                         </div>
                                     </div>
 
-                                    <!-- 4 KPI Summary Cards -->
-                                    <div class="col-span-12 grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                    <!-- 4 KPI Summary Cards (Matches DashboardSkeleton admin-dashboard-summary) -->
+                                    <div class="admin-dashboard-summary col-span-12 grid grid-cols-3 sm:grid-cols-4">
                                         @for ($i = 0; $i < 4; $i++)
-                                            <div class="bg-white rounded-xl border border-slate-200 p-4 space-y-2 shadow-2xs">
+                                            <div class="admin-metric relative overflow-hidden {{ $i === 0 ? 'admin-metric--primary' : '' }}">
                                                 <div class="flex items-start justify-between gap-2">
                                                     <div class="min-w-0 space-y-2 flex-1">
-                                                        <div class="h-3 w-24 sm:w-28 rounded bg-slate-200 animate-pulse"></div>
-                                                        <div class="h-6 w-16 sm:h-8 sm:w-32 rounded bg-slate-300 animate-pulse"></div>
+                                                        <div class="h-3 w-24 sm:w-28 rounded {{ $i === 0 ? 'bg-[#2b3931]' : 'bg-slate-200' }} animate-pulse"></div>
+                                                        <div class="h-6 w-16 sm:h-8 sm:w-32 rounded {{ $i === 0 ? 'bg-[#35423b]' : 'bg-slate-300' }} animate-pulse"></div>
                                                     </div>
-                                                    <div class="hidden sm:block h-5 w-5 rounded bg-slate-200 animate-pulse"></div>
+                                                    <div class="hidden sm:block h-5 w-5 rounded {{ $i === 0 ? 'bg-[#2b3931]' : 'bg-slate-200' }} animate-pulse"></div>
                                                 </div>
                                             </div>
                                         @endfor
                                     </div>
 
                                     <!-- 8-Col Recent Orders Panel -->
-                                    <div class="col-span-12 order-2 xl:order-1 xl:col-span-8 flex h-[390px] min-h-0 flex-col overflow-hidden rounded-xl border border-slate-300 bg-white">
-                                        <div class="flex shrink-0 items-center justify-between px-4 py-3 sm:px-5 border-b border-slate-100 bg-slate-50">
+                                    <div class="admin-surface rounded-xl border border-slate-300 bg-white col-span-12 order-2 flex h-[390px] min-h-0 flex-col overflow-hidden xl:order-1 xl:col-span-8">
+                                        <div class="admin-section-header flex shrink-0 items-center justify-between px-4 py-3 sm:px-5">
                                             <div class="h-5 w-32 rounded bg-slate-200 animate-pulse"></div>
                                             <div class="h-4 w-20 rounded bg-slate-200 animate-pulse"></div>
                                         </div>
                                         <div class="min-h-0 flex-1 divide-y divide-slate-100 overflow-hidden sm:hidden">
-                                            @for ($i = 0; $i < 5; $i++)
+                                            @for ($i = 0; $i < 7; $i++)
                                                 <div class="flex justify-between gap-3 px-4 py-3">
-                                                    <div class="space-y-2"><div class="h-3 w-32 rounded bg-slate-200 animate-pulse"></div><div class="h-3 w-24 rounded bg-slate-200 animate-pulse"></div></div>
-                                                    <div class="space-y-2"><div class="h-3 w-20 rounded bg-slate-200 animate-pulse ml-auto"></div></div>
+                                                    <div class="space-y-2">
+                                                        <div class="h-3 w-32 rounded bg-slate-200 animate-pulse"></div>
+                                                        <div class="h-3 w-24 rounded bg-slate-200 animate-pulse"></div>
+                                                        <div class="h-2.5 w-20 rounded bg-slate-100 animate-pulse"></div>
+                                                    </div>
+                                                    <div class="space-y-2">
+                                                        <div class="h-3 w-20 rounded bg-slate-200 animate-pulse ml-auto"></div>
+                                                        <div class="h-3 w-12 rounded bg-slate-100 animate-pulse ml-auto"></div>
+                                                    </div>
                                                 </div>
                                             @endfor
                                         </div>
                                         <div class="hidden min-h-0 flex-1 overflow-hidden sm:block">
-                                            <table class="w-full text-left text-xs">
+                                            <table class="w-full min-w-[650px] text-left text-xs">
                                                 <thead class="border-b border-slate-200 bg-slate-100">
                                                     <tr>
                                                         @for ($i = 0; $i < 5; $i++)
@@ -1522,11 +1551,11 @@
                                                         @endfor
                                                     </tr>
                                                 </thead>
-                                                <tbody class="divide-y divide-slate-100">
-                                                    @for ($i = 0; $i < 6; $i++)
+                                                <tbody class="divide-y divide-slate-200">
+                                                    @for ($i = 0; $i < 7; $i++)
                                                         <tr>
                                                             @for ($j = 0; $j < 5; $j++)
-                                                                <td class="px-4 py-2.5"><div class="h-3.5 w-20 rounded bg-slate-200 animate-pulse"></div></td>
+                                                                <td class="px-4 py-2"><div class="h-3.5 w-20 rounded bg-slate-200 animate-pulse"></div></td>
                                                             @endfor
                                                         </tr>
                                                     @endfor
@@ -1540,57 +1569,63 @@
                                     </div>
 
                                     <!-- 4-Col Stock Alert Panel -->
-                                    <div class="col-span-12 order-1 xl:order-2 xl:col-span-4 flex h-[280px] xl:h-[390px] min-h-0 flex-col overflow-hidden rounded-xl border border-slate-300 bg-white">
-                                        <div class="shrink-0 px-4 py-3 sm:px-5 border-b border-slate-100 bg-slate-50">
+                                    <div class="admin-surface rounded-xl border border-slate-300 bg-white col-span-12 order-1 flex h-[280px] min-h-0 flex-col overflow-hidden xl:order-2 xl:col-span-4 xl:h-auto xl:self-stretch">
+                                        <div class="admin-section-header shrink-0 px-4 py-3 sm:px-5">
                                             <div class="h-4 w-32 rounded bg-slate-200 animate-pulse"></div>
                                         </div>
-                                        <div class="flex min-h-0 flex-1 flex-col p-4 sm:p-5">
-                                            <div class="space-y-3">
-                                                @for ($i = 0; $i < 5; $i++)
-                                                    <div class="flex items-center justify-between gap-3 border-b border-slate-100 pb-2">
-                                                        <div class="flex items-center gap-2.5 flex-1 min-w-0">
-                                                            <div class="h-7 w-7 rounded-lg bg-slate-100 animate-pulse shrink-0"></div>
-                                                            <div class="h-3 w-3/4 rounded bg-slate-200 animate-pulse"></div>
+                                        <div class="flex min-h-0 flex-1 flex-col p-4 sm:p-5 xl:py-3">
+                                            <div class="relative min-h-0 flex-1">
+                                                <div class="absolute inset-0 overflow-hidden">
+                                                    @for ($i = 0; $i < 5; $i++)
+                                                        <div class="flex items-center justify-between gap-3 border-t border-slate-100 py-2">
+                                                            <div class="flex min-w-0 flex-1 items-center gap-2.5">
+                                                                <div class="h-[26px] w-[26px] shrink-0 rounded-lg bg-slate-100 animate-pulse"></div>
+                                                                <div class="h-3 w-3/4 rounded bg-slate-200 animate-pulse"></div>
+                                                            </div>
+                                                            <div class="h-3 w-12 rounded bg-slate-200 animate-pulse shrink-0"></div>
                                                         </div>
-                                                        <div class="h-3 w-12 rounded bg-slate-200 animate-pulse shrink-0"></div>
-                                                    </div>
-                                                @endfor
+                                                    @endfor
+                                                </div>
                                             </div>
+                                            <div class="mt-2 h-3 w-20 rounded bg-slate-200 animate-pulse shrink-0"></div>
                                         </div>
                                     </div>
 
                                     <!-- 8-Col Revenue Chart Panel -->
-                                    <div class="col-span-12 order-3 xl:col-span-8 flex h-[280px] flex-col overflow-hidden rounded-xl border border-slate-300 bg-white">
-                                        <div class="flex shrink-0 items-center justify-between gap-3 px-4 py-3 sm:px-5 border-b border-slate-100 bg-slate-50">
+                                    <div class="admin-surface rounded-xl border border-slate-300 bg-white col-span-12 order-3 flex h-[280px] flex-col overflow-hidden xl:col-span-8">
+                                        <div class="admin-section-header flex shrink-0 items-center justify-between gap-3 px-4 py-3 sm:px-5">
                                             <div class="h-5 w-24 rounded bg-slate-200 animate-pulse"></div>
                                             <div class="h-3 w-44 rounded bg-slate-200 animate-pulse"></div>
                                         </div>
                                         <div class="flex min-h-0 flex-1 flex-col p-4 sm:p-5">
                                             <div class="flex min-h-0 flex-1 items-end gap-3 pl-14 pt-1">
-                                                <div class="flex h-full flex-1 items-end"><div class="w-full h-[30%] bg-slate-200 rounded-t-md animate-pulse"></div></div>
-                                                <div class="flex h-full flex-1 items-end"><div class="w-full h-[55%] bg-slate-200 rounded-t-md animate-pulse"></div></div>
-                                                <div class="flex h-full flex-1 items-end"><div class="w-full h-[20%] bg-slate-200 rounded-t-md animate-pulse"></div></div>
-                                                <div class="flex h-full flex-1 items-end"><div class="w-full h-[75%] bg-slate-200 rounded-t-md animate-pulse"></div></div>
-                                                <div class="flex h-full flex-1 items-end"><div class="w-full h-[40%] bg-slate-200 rounded-t-md animate-pulse"></div></div>
-                                                <div class="flex h-full flex-1 items-end"><div class="w-full h-[60%] bg-slate-200 rounded-t-md animate-pulse"></div></div>
-                                                <div class="flex h-full flex-1 items-end"><div class="w-full h-[35%] bg-slate-200 rounded-t-md animate-pulse"></div></div>
+                                                @foreach ([30, 55, 20, 75, 40, 60, 35] as $height)
+                                                    <div class="flex h-full flex-1 items-end">
+                                                        <div class="w-full bg-slate-200 rounded-t-md animate-pulse" style="height: {{ $height }}%"></div>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                            <div class="flex h-7 shrink-0 items-end justify-between gap-3 pb-1 pl-14">
+                                                @for ($i = 0; $i < 7; $i++)
+                                                    <div class="h-2 w-8 rounded bg-slate-200 animate-pulse"></div>
+                                                @endfor
                                             </div>
                                         </div>
                                     </div>
 
                                     <!-- 4-Col Category Breakdown Panel -->
-                                    <div class="col-span-12 order-4 xl:col-span-4 h-[280px] overflow-hidden rounded-xl border border-slate-300 bg-white">
-                                        <div class="px-4 py-3 sm:px-5 border-b border-slate-100 bg-slate-50">
+                                    <div class="admin-surface rounded-xl border border-slate-300 bg-white col-span-12 order-4 h-[280px] overflow-hidden xl:col-span-4">
+                                        <div class="admin-section-header px-4 py-3 sm:px-5">
                                             <div class="h-4 w-32 rounded bg-slate-200 animate-pulse"></div>
                                         </div>
-                                        <div class="px-4 py-3 sm:px-5 space-y-3">
+                                        <div class="px-4 pb-3 pt-1 sm:px-5">
                                             @for ($i = 0; $i < 5; $i++)
-                                                <div class="flex items-center justify-between gap-3 border-b border-slate-100 pb-2">
-                                                    <div class="flex items-center gap-2.5 flex-1 min-w-0">
-                                                        <div class="h-6 w-6 rounded-lg bg-slate-100 animate-pulse shrink-0"></div>
+                                                <div class="flex items-center justify-between gap-3 border-t border-slate-100 py-2">
+                                                    <div class="flex min-w-0 flex-1 items-center gap-2.5">
+                                                        <div class="h-[26px] w-[26px] shrink-0 rounded-lg bg-slate-100 animate-pulse"></div>
                                                         <div class="h-3 w-3/4 rounded bg-slate-200 animate-pulse"></div>
                                                     </div>
-                                                    <div class="h-3 w-14 rounded bg-slate-200 animate-pulse shrink-0"></div>
+                                                    <div class="h-3 w-16 rounded bg-slate-200 animate-pulse shrink-0"></div>
                                                 </div>
                                             @endfor
                                         </div>
@@ -1616,6 +1651,23 @@
                                 </div>
                             @endif
                         </main>
+                        <!-- Mobile Quick-Nav Dock (Matches AuthenticatedLayout admin-mobile-dock) -->
+                        <nav class="admin-mobile-dock" aria-label="Navigasi cepat" style="grid-template-columns: repeat(4, minmax(0, 1fr))">
+                            @php
+                                $dockItems = [
+                                    ['name' => 'Dashboard', 'active' => str_starts_with($comp, 'Dashboard/')],
+                                    ['name' => 'Kasir', 'active' => $comp === 'POS/Index'],
+                                    ['name' => 'Produk', 'active' => in_array($comp, ['Product/Index', 'Motorcycle/Index'])],
+                                    ['name' => 'Pesanan', 'active' => str_starts_with($comp, 'Order/')],
+                                ];
+                            @endphp
+                            @foreach ($dockItems as $dItem)
+                                <div class="admin-dock-item {{ $dItem['active'] ? 'admin-dock-item--active' : '' }}">
+                                    <div class="w-4 h-4 rounded {{ $dItem['active'] ? 'bg-[#17221e]' : 'bg-slate-200' }} animate-pulse"></div>
+                                    <span>{{ $dItem['name'] }}</span>
+                                </div>
+                            @endforeach
+                        </nav>
                     </div>
                 </div>
             @else
