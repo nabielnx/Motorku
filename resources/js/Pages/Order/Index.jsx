@@ -3,6 +3,7 @@ import MoneyInput from '@/Components/MoneyInput';
 import React, { useEffect, useState, useRef } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import OrderTableSkeleton from '@/Components/Skeletons/OrderTableSkeleton';
+import MaskedCurrency from '@/Components/MaskedCurrency';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import { toast } from 'sonner';
@@ -451,16 +452,12 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
     const cleanUserName = (auth?.user?.name || 'Kasir').replace(/\s*\(.*?\)/g, '');
     const revenueText = formatRp(periodOrderValue);
     const renderRevenueValue = () => (
-        <strong
-            aria-label={isRevenueVisible ? revenueText : 'Pendapatan disembunyikan'}
-            className="relative inline-block whitespace-nowrap text-sm tabular-nums text-primaryDark dark:text-white"
-        >
-            {Array.from(revenueText, (character, index) => (
-                /\d/.test(character)
-                    ? <span key={index} className="inline-flex w-[0.65em] justify-center">{isRevenueVisible ? character : '•'}</span>
-                    : <span key={index}>{character}</span>
-            ))}
-        </strong>
+        <MaskedCurrency
+            as="strong"
+            text={revenueText}
+            visible={isRevenueVisible}
+            className="relative text-sm text-primaryDark dark:text-white"
+        />
     );
 
     const skeletonParam = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('skeleton') : null;
