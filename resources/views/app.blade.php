@@ -1473,7 +1473,7 @@
                                     </div>
                                 </div>
                             @elseif (str_starts_with($comp, 'Dashboard/'))
-                                <!-- Dashboard Shell (Matches DashboardSkeleton 12-col grid) -->
+                                <!-- Dashboard Shell (Matches DashboardSkeleton 12-col grid & ledger theme) -->
                                 <div class="grid w-full grid-cols-12 items-start gap-3 sm:gap-4">
                                     <!-- Title & Actions -->
                                     <div class="col-span-12 flex flex-col justify-between gap-2 sm:flex-row sm:items-center sm:gap-3">
@@ -1484,10 +1484,10 @@
                                         </div>
                                     </div>
 
-                                    <!-- 4 KPI Summary Cards -->
-                                    <div class="col-span-12 grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                    <!-- 4 KPI Summary Cards (Matches DashboardSkeleton admin-dashboard-summary) -->
+                                    <div class="admin-dashboard-summary col-span-12 grid grid-cols-3 sm:grid-cols-4">
                                         @for ($i = 0; $i < 4; $i++)
-                                            <div class="bg-white rounded-xl border border-slate-200 p-4 space-y-2 shadow-2xs">
+                                            <div class="admin-metric relative overflow-hidden">
                                                 <div class="flex items-start justify-between gap-2">
                                                     <div class="min-w-0 space-y-2 flex-1">
                                                         <div class="h-3 w-24 sm:w-28 rounded bg-slate-200 animate-pulse"></div>
@@ -1500,21 +1500,28 @@
                                     </div>
 
                                     <!-- 8-Col Recent Orders Panel -->
-                                    <div class="col-span-12 order-2 xl:order-1 xl:col-span-8 flex h-[390px] min-h-0 flex-col overflow-hidden rounded-xl border border-slate-300 bg-white">
-                                        <div class="flex shrink-0 items-center justify-between px-4 py-3 sm:px-5 border-b border-slate-100 bg-slate-50">
+                                    <div class="admin-surface rounded-xl border border-slate-300 bg-white col-span-12 order-2 flex h-[390px] min-h-0 flex-col overflow-hidden xl:order-1 xl:col-span-8">
+                                        <div class="admin-section-header flex shrink-0 items-center justify-between px-4 py-3 sm:px-5">
                                             <div class="h-5 w-32 rounded bg-slate-200 animate-pulse"></div>
                                             <div class="h-4 w-20 rounded bg-slate-200 animate-pulse"></div>
                                         </div>
                                         <div class="min-h-0 flex-1 divide-y divide-slate-100 overflow-hidden sm:hidden">
-                                            @for ($i = 0; $i < 5; $i++)
+                                            @for ($i = 0; $i < 7; $i++)
                                                 <div class="flex justify-between gap-3 px-4 py-3">
-                                                    <div class="space-y-2"><div class="h-3 w-32 rounded bg-slate-200 animate-pulse"></div><div class="h-3 w-24 rounded bg-slate-200 animate-pulse"></div></div>
-                                                    <div class="space-y-2"><div class="h-3 w-20 rounded bg-slate-200 animate-pulse ml-auto"></div></div>
+                                                    <div class="space-y-2">
+                                                        <div class="h-3 w-32 rounded bg-slate-200 animate-pulse"></div>
+                                                        <div class="h-3 w-24 rounded bg-slate-200 animate-pulse"></div>
+                                                        <div class="h-2.5 w-20 rounded bg-slate-100 animate-pulse"></div>
+                                                    </div>
+                                                    <div class="space-y-2">
+                                                        <div class="h-3 w-20 rounded bg-slate-200 animate-pulse ml-auto"></div>
+                                                        <div class="h-3 w-12 rounded bg-slate-100 animate-pulse ml-auto"></div>
+                                                    </div>
                                                 </div>
                                             @endfor
                                         </div>
                                         <div class="hidden min-h-0 flex-1 overflow-hidden sm:block">
-                                            <table class="w-full text-left text-xs">
+                                            <table class="w-full min-w-[650px] text-left text-xs">
                                                 <thead class="border-b border-slate-200 bg-slate-100">
                                                     <tr>
                                                         @for ($i = 0; $i < 5; $i++)
@@ -1522,11 +1529,11 @@
                                                         @endfor
                                                     </tr>
                                                 </thead>
-                                                <tbody class="divide-y divide-slate-100">
-                                                    @for ($i = 0; $i < 6; $i++)
+                                                <tbody class="divide-y divide-slate-200">
+                                                    @for ($i = 0; $i < 7; $i++)
                                                         <tr>
                                                             @for ($j = 0; $j < 5; $j++)
-                                                                <td class="px-4 py-2.5"><div class="h-3.5 w-20 rounded bg-slate-200 animate-pulse"></div></td>
+                                                                <td class="px-4 py-2"><div class="h-3.5 w-20 rounded bg-slate-200 animate-pulse"></div></td>
                                                             @endfor
                                                         </tr>
                                                     @endfor
@@ -1540,57 +1547,63 @@
                                     </div>
 
                                     <!-- 4-Col Stock Alert Panel -->
-                                    <div class="col-span-12 order-1 xl:order-2 xl:col-span-4 flex h-[280px] xl:h-[390px] min-h-0 flex-col overflow-hidden rounded-xl border border-slate-300 bg-white">
-                                        <div class="shrink-0 px-4 py-3 sm:px-5 border-b border-slate-100 bg-slate-50">
+                                    <div class="admin-surface rounded-xl border border-slate-300 bg-white col-span-12 order-1 flex h-[280px] min-h-0 flex-col overflow-hidden xl:order-2 xl:col-span-4 xl:h-auto xl:self-stretch">
+                                        <div class="admin-section-header shrink-0 px-4 py-3 sm:px-5">
                                             <div class="h-4 w-32 rounded bg-slate-200 animate-pulse"></div>
                                         </div>
-                                        <div class="flex min-h-0 flex-1 flex-col p-4 sm:p-5">
-                                            <div class="space-y-3">
-                                                @for ($i = 0; $i < 5; $i++)
-                                                    <div class="flex items-center justify-between gap-3 border-b border-slate-100 pb-2">
-                                                        <div class="flex items-center gap-2.5 flex-1 min-w-0">
-                                                            <div class="h-7 w-7 rounded-lg bg-slate-100 animate-pulse shrink-0"></div>
-                                                            <div class="h-3 w-3/4 rounded bg-slate-200 animate-pulse"></div>
+                                        <div class="flex min-h-0 flex-1 flex-col p-4 sm:p-5 xl:py-3">
+                                            <div class="relative min-h-0 flex-1">
+                                                <div class="absolute inset-0 overflow-hidden">
+                                                    @for ($i = 0; $i < 5; $i++)
+                                                        <div class="flex items-center justify-between gap-3 border-t border-slate-100 py-2">
+                                                            <div class="flex min-w-0 flex-1 items-center gap-2.5">
+                                                                <div class="h-[26px] w-[26px] shrink-0 rounded-lg bg-slate-100 animate-pulse"></div>
+                                                                <div class="h-3 w-3/4 rounded bg-slate-200 animate-pulse"></div>
+                                                            </div>
+                                                            <div class="h-3 w-12 rounded bg-slate-200 animate-pulse shrink-0"></div>
                                                         </div>
-                                                        <div class="h-3 w-12 rounded bg-slate-200 animate-pulse shrink-0"></div>
-                                                    </div>
-                                                @endfor
+                                                    @endfor
+                                                </div>
                                             </div>
+                                            <div class="mt-2 h-3 w-20 rounded bg-slate-200 animate-pulse shrink-0"></div>
                                         </div>
                                     </div>
 
                                     <!-- 8-Col Revenue Chart Panel -->
-                                    <div class="col-span-12 order-3 xl:col-span-8 flex h-[280px] flex-col overflow-hidden rounded-xl border border-slate-300 bg-white">
-                                        <div class="flex shrink-0 items-center justify-between gap-3 px-4 py-3 sm:px-5 border-b border-slate-100 bg-slate-50">
+                                    <div class="admin-surface rounded-xl border border-slate-300 bg-white col-span-12 order-3 flex h-[280px] flex-col overflow-hidden xl:col-span-8">
+                                        <div class="admin-section-header flex shrink-0 items-center justify-between gap-3 px-4 py-3 sm:px-5">
                                             <div class="h-5 w-24 rounded bg-slate-200 animate-pulse"></div>
                                             <div class="h-3 w-44 rounded bg-slate-200 animate-pulse"></div>
                                         </div>
                                         <div class="flex min-h-0 flex-1 flex-col p-4 sm:p-5">
                                             <div class="flex min-h-0 flex-1 items-end gap-3 pl-14 pt-1">
-                                                <div class="flex h-full flex-1 items-end"><div class="w-full h-[30%] bg-slate-200 rounded-t-md animate-pulse"></div></div>
-                                                <div class="flex h-full flex-1 items-end"><div class="w-full h-[55%] bg-slate-200 rounded-t-md animate-pulse"></div></div>
-                                                <div class="flex h-full flex-1 items-end"><div class="w-full h-[20%] bg-slate-200 rounded-t-md animate-pulse"></div></div>
-                                                <div class="flex h-full flex-1 items-end"><div class="w-full h-[75%] bg-slate-200 rounded-t-md animate-pulse"></div></div>
-                                                <div class="flex h-full flex-1 items-end"><div class="w-full h-[40%] bg-slate-200 rounded-t-md animate-pulse"></div></div>
-                                                <div class="flex h-full flex-1 items-end"><div class="w-full h-[60%] bg-slate-200 rounded-t-md animate-pulse"></div></div>
-                                                <div class="flex h-full flex-1 items-end"><div class="w-full h-[35%] bg-slate-200 rounded-t-md animate-pulse"></div></div>
+                                                @foreach ([30, 55, 20, 75, 40, 60, 35] as $height)
+                                                    <div class="flex h-full flex-1 items-end">
+                                                        <div class="w-full bg-slate-200 rounded-t-md animate-pulse" style="height: {{ $height }}%"></div>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                            <div class="flex h-7 shrink-0 items-end justify-between gap-3 pb-1 pl-14">
+                                                @for ($i = 0; $i < 7; $i++)
+                                                    <div class="h-2 w-8 rounded bg-slate-200 animate-pulse"></div>
+                                                @endfor
                                             </div>
                                         </div>
                                     </div>
 
                                     <!-- 4-Col Category Breakdown Panel -->
-                                    <div class="col-span-12 order-4 xl:col-span-4 h-[280px] overflow-hidden rounded-xl border border-slate-300 bg-white">
-                                        <div class="px-4 py-3 sm:px-5 border-b border-slate-100 bg-slate-50">
+                                    <div class="admin-surface rounded-xl border border-slate-300 bg-white col-span-12 order-4 h-[280px] overflow-hidden xl:col-span-4">
+                                        <div class="admin-section-header px-4 py-3 sm:px-5">
                                             <div class="h-4 w-32 rounded bg-slate-200 animate-pulse"></div>
                                         </div>
-                                        <div class="px-4 py-3 sm:px-5 space-y-3">
+                                        <div class="px-4 pb-3 pt-1 sm:px-5">
                                             @for ($i = 0; $i < 5; $i++)
-                                                <div class="flex items-center justify-between gap-3 border-b border-slate-100 pb-2">
-                                                    <div class="flex items-center gap-2.5 flex-1 min-w-0">
-                                                        <div class="h-6 w-6 rounded-lg bg-slate-100 animate-pulse shrink-0"></div>
+                                                <div class="flex items-center justify-between gap-3 border-t border-slate-100 py-2">
+                                                    <div class="flex min-w-0 flex-1 items-center gap-2.5">
+                                                        <div class="h-[26px] w-[26px] shrink-0 rounded-lg bg-slate-100 animate-pulse"></div>
                                                         <div class="h-3 w-3/4 rounded bg-slate-200 animate-pulse"></div>
                                                     </div>
-                                                    <div class="h-3 w-14 rounded bg-slate-200 animate-pulse shrink-0"></div>
+                                                    <div class="h-3 w-16 rounded bg-slate-200 animate-pulse shrink-0"></div>
                                                 </div>
                                             @endfor
                                         </div>
