@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services;
 
 use App\Enums\OrderStatus;
@@ -23,6 +25,7 @@ class PaymentService
             $order = Order::whereKey($data['order_id'])->lockForUpdate()->firstOrFail();
 
             $method = $data['payment_method'] ?? null;
+            $this->assertCashEnabled($method);
             if (! in_array($method, ['cash', 'qris_manual'], true)) {
                 throw ValidationException::withMessages([
                     'payment_method' => 'Metode pembayaran tidak didukung.',
@@ -124,6 +127,7 @@ class PaymentService
             }
 
             if ($status === 'paid') {
+                $this->assertCashEnabled($payment->payment_method);
                 if ($order->order_status === OrderStatus::Cancelled) {
                     throw ValidationException::withMessages(['order_id' => 'Pesanan yang dibatalkan tidak bisa dibayar.']);
                 }
@@ -164,10 +168,16 @@ class PaymentService
         });
     }
 
+    private function assertCashEnabled(?string $method): void
+    {
+        if ($method === 'cash' && Setting::where('group', 'payment')->where('key', 'cash_enabled')->value('value') === 'false') {
+            throw ValidationException::withMessages(['payment_method' => 'Pembayaran tunai sedang dinonaktifkan. Pilih metode pembayaran lain.']);
+        }
+    }
+
     /**
-     * Finalize an order when payment is marked as paid:
-     * 1. Update Order: payment_status = 'paid'
-     * (Order status remains pending/preparing/ready until staff complete the order flow)
+     * Finalize an order when payment is marked as paid.
+     * Staff still complete the order flow separately.
      */
     public function finalizePaidOrder(Order $order): void
     {

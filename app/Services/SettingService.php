@@ -21,7 +21,7 @@ class SettingService
     public function applyRuntimeSettings(): void
     {
         $settings = Cache::remember(CacheService::SETTINGS_SHARED, CacheService::TTL_SETTINGS,
-            fn () => Setting::whereIn('group', ['store', 'system', 'printer', 'catalog'])->get()
+            fn () => Setting::whereIn('group', ['store', 'system', 'printer', 'catalog', 'payment'])->get()
                 ->mapWithKeys(fn ($row) => ["{$row->group}.{$row->key}" => $row->value])->all());
         $timezone = $settings['system.timezone'] ?? config('app.timezone');
         if (in_array($timezone, ['Asia/Jakarta', 'Asia/Makassar', 'Asia/Jayapura'], true)) {

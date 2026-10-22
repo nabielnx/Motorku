@@ -89,7 +89,8 @@ export default function PaymentModal({
                                     <button
                                         type="button"
                                         onClick={() => { resetQrisFlow(); setPaymentMethod('cash'); }}
-                                        className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border text-xs font-bold transition cursor-pointer ${
+                                        disabled={settings['payment.cash_enabled'] === 'false'}
+                                        className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border text-xs font-bold transition cursor-pointer disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500 dark:disabled:bg-slate-800 dark:disabled:text-slate-400 ${
                                             paymentMethod === 'cash'
                                                 ? 'border-primary bg-primary text-white shadow-2xs'
                                                 : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600'
@@ -240,14 +241,17 @@ export default function PaymentModal({
                                 </div>
                             )}
 
+                            {settings['payment.cash_enabled'] === 'false' && (
+                                <p role="status" className="text-xs text-slate-600 dark:text-slate-300">Pembayaran tunai dinonaktifkan oleh owner.</p>
+                            )}
                             {/* Action Button */}
                             <button
                                 type="button"
                                 onClick={handleProcessOrder}
                                 disabled={
                                     isSubmittingOrder ||
-                                    (paymentMethod === 'cash' && (!cashReceived || cashShortfall > 0)) ||
-                                    (paymentMethod === 'qris_manual' && (!qrisImageUrl || !qrisVerified))
+                                    (paymentMethod === 'cash' && (settings['payment.cash_enabled'] === 'false' || !cashReceived || cashShortfall > 0)) ||
+                                    (paymentMethod === 'qris_manual' && (settings['payment.qris_enabled'] === 'false' || !qrisImageUrl || !qrisVerified))
                                 }
                                 className="w-full py-3.5 px-4 bg-primary hover:bg-primaryDark disabled:bg-slate-200 dark:disabled:bg-slate-800 disabled:text-slate-400 dark:disabled:text-slate-600 text-white font-bold rounded-xl text-xs sm:text-sm shadow-sm transition flex items-center justify-center gap-2 group cursor-pointer disabled:cursor-not-allowed"
                             >

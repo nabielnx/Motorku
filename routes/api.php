@@ -2,11 +2,12 @@
 
 use App\Http\Controllers\Order\CustomerMenuController;
 use App\Http\Controllers\Setting\SettingController;
+use App\Http\Middleware\EnsureUserIsActive;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/user', fn (Request $request) => $request->user())
-    ->middleware(['auth:sanctum', 'verified']);
+    ->middleware(['auth:sanctum', EnsureUserIsActive::class, 'verified']);
 
 // ─── PUBLIC: Customer QR Self-Order (no auth, no CSRF) ───
 Route::post('/customer/order', [CustomerMenuController::class, 'storeOrder'])

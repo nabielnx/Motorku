@@ -129,7 +129,7 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
     const [isShortcutModalOpen, setIsShortcutModalOpen] = useState(false);
     const [itemToDelete, setItemToDelete] = useState(null);
     // Canonical payment method values accepted by the backend.
-    const [paymentMethod, setPaymentMethod] = useState('cash');
+    const [paymentMethod, setPaymentMethod] = useState(() => settings['payment.cash_enabled'] === 'false' ? 'qris_manual' : 'cash');
     const [cashReceived, setCashReceived] = useState('');
     const [isSubmittingOrder, setIsSubmittingOrder] = useState(false);
     const [isOrderComplete, setIsOrderComplete] = useState(false);
@@ -329,6 +329,10 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
 
     const handleProcessOrder = async () => {
         if (submittingRef.current) return;
+        if (paymentMethod === 'cash' && settings['payment.cash_enabled'] === 'false') {
+            toast.error('Pembayaran tunai sedang dinonaktifkan. Pilih metode pembayaran lain.');
+            return;
+        }
         const { isValid, message } = validateBeforePayment();
         if (!isValid) {
             toast.error(message);
@@ -440,7 +444,7 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
             // IF PAYMENT MODAL IS OPEN & ORDER NOT COMPLETE:
             if (isPaymentModalOpen && !isOrderComplete) {
                 // 1 / Alt+1: Select Cash
-                if (e.key === '1' && (e.altKey || document.activeElement !== cashInputRef.current)) {
+                if (settings['payment.cash_enabled'] !== 'false' && e.key === '1' && (e.altKey || document.activeElement !== cashInputRef.current)) {
                     e.preventDefault();
                     resetQrisFlow();
                     setPaymentMethod('cash');
@@ -533,7 +537,7 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [cart, isPaymentModalOpen, isOrderComplete, paymentMethod, cashReceived, total, customerName, isSubmittingOrder, isShortcutModalOpen, searchQuery, filteredMenu, itemToDelete, previewProduct]);
+    }, [cart, isPaymentModalOpen, isOrderComplete, paymentMethod, cashReceived, total, customerName, isSubmittingOrder, isShortcutModalOpen, searchQuery, filteredMenu, itemToDelete, previewProduct, settings]);
 return (
         <AuthenticatedLayout pageTitle="POS Kasir" noPadding={true}>
             <Head title="POS Kasir">
