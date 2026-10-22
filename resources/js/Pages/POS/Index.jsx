@@ -868,7 +868,7 @@ return (
                                     <span aria-hidden="true" className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-[4px] border peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-slate-500 ${areAllCartItemsChecked || areSomeCartItemsChecked ? 'border-[#19231f] bg-[#19231f] text-[#FFDD00]' : 'border-slate-400 bg-white text-slate-800 dark:border-slate-500 dark:bg-slate-900 dark:text-slate-100'}`}>
                                         {areAllCartItemsChecked && (
                                             <svg aria-hidden="true" className="h-4 w-4" viewBox="0 0 16 16">
-                                                <path d="M6.1 13.1 1.1 8.1l3-3 2 2 6-6 3 3-9 9z" fill="currentColor" />
+                                                <path d="m6.1 11.7-3.3-3.3 1.6-1.6 1.7 1.7 5.4-5.4 1.6 1.6-7 7z" fill="currentColor" />
                                             </svg>
                                         )}
                                         {areSomeCartItemsChecked && <span className="h-0.5 w-2 rounded-sm bg-[#FFDD00]" />}
@@ -898,7 +898,7 @@ return (
                                         <span aria-hidden="true" className={`flex h-4 w-4 items-center justify-center rounded-[4px] border peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-slate-500 ${item.checked ? 'border-[#19231f] bg-[#19231f] text-[#FFDD00]' : 'border-slate-400 bg-white text-slate-800 dark:border-slate-500 dark:bg-slate-900 dark:text-slate-100'}`}>
                                             {item.checked && (
                                                 <svg aria-hidden="true" className="h-4 w-4" viewBox="0 0 16 16">
-                                                    <path d="M6.1 13.1 1.1 8.1l3-3 2 2 6-6 3 3-9 9z" fill="currentColor" />
+                                                    <path d="m6.1 11.7-3.3-3.3 1.6-1.6 1.7 1.7 5.4-5.4 1.6 1.6-7 7z" fill="currentColor" />
                                                 </svg>
                                             )}
                                         </span>
