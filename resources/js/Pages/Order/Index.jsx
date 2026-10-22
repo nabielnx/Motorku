@@ -456,6 +456,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
             as="strong"
             text={revenueText}
             visible={isRevenueVisible}
+            maskGroupingSeparators
             className="relative text-sm text-primaryDark dark:text-white"
         />
     );
