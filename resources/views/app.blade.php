@@ -722,44 +722,65 @@
                     $isAdminNoPadding = in_array($comp, ['POS/Index', 'Product/Index', 'Motorcycle/Index']);
                 @endphp
                 <!-- Authenticated Dashboard Shell (Matching AuthenticatedLayout) -->
-                <div class="h-screen w-screen overflow-hidden bg-slate-50 flex font-sans text-slate-800">
+                <div class="admin-workspace h-[100dvh] w-screen overflow-hidden bg-slate-50 dark:bg-slate-950 flex font-sans antialiased text-slate-800 dark:text-slate-100">
                     <!-- SIDEBAR -->
-                    <aside class="w-64 bg-white border-r border-slate-200 hidden lg:flex flex-col shrink-0">
+                    <aside class="admin-sidebar hidden lg:flex flex-col shrink-0">
                         <!-- Brand -->
-                        <div class="p-5 border-b border-slate-100 flex items-center gap-3 shrink-0">
-                            <div class="w-10 h-10 rounded-lg bg-slate-100 animate-pulse shrink-0"></div>
+                        <div class="admin-brand flex items-center gap-3 shrink-0">
+                            <div class="w-10 h-10 rounded-lg bg-[#2b3931] animate-pulse shrink-0"></div>
                             <div class="space-y-1">
-                                <div class="h-4 w-24 bg-slate-200 rounded animate-pulse"></div>
-                                <div class="h-2.5 w-16 bg-slate-100 rounded animate-pulse"></div>
+                                <div class="h-4 w-24 bg-[#35423b] rounded animate-pulse"></div>
+                                <div class="h-2.5 w-16 bg-[#2b3931] rounded animate-pulse"></div>
                             </div>
                         </div>
                         <!-- Menu Items -->
-                        <div class="flex-1 p-3 space-y-5 overflow-hidden">
+                        <div class="admin-navigation flex-1 space-y-4 overflow-hidden">
                             <div>
-                                <div class="px-3 mb-2 h-2.5 w-12 bg-slate-200 rounded animate-pulse"></div>
+                                <div class="px-3 mb-2 h-2.5 w-12 bg-[#35423b] rounded animate-pulse"></div>
                                 <div class="space-y-1">
-                                    <div class="h-9 rounded-lg {{ str_starts_with($comp, 'Dashboard/') ? 'bg-slate-100 border-l-4 border-slate-300' : 'bg-slate-50' }} animate-pulse"></div>
+                                    <div class="admin-nav-link {{ str_starts_with($comp, 'Dashboard/') ? 'admin-nav-link--active' : 'bg-[#1e2a25]' }} flex items-center gap-3 px-3 py-2 rounded-lg animate-pulse">
+                                        <div class="w-4 h-4 rounded {{ str_starts_with($comp, 'Dashboard/') ? 'bg-[#17221e]' : 'bg-[#35423b]' }}"></div>
+                                        <div class="h-3.5 w-20 rounded {{ str_starts_with($comp, 'Dashboard/') ? 'bg-[#17221e]' : 'bg-[#35423b]' }}"></div>
+                                    </div>
                                 </div>
                             </div>
                             <div>
-                                <div class="px-3 mb-2 h-2.5 w-16 bg-slate-200 rounded animate-pulse"></div>
+                                <div class="px-3 mb-2 h-2.5 w-16 bg-[#35423b] rounded animate-pulse"></div>
                                 <div class="space-y-1">
-                                    <div class="h-9 rounded-lg {{ str_starts_with($comp, 'Order/') ? 'bg-slate-100 border-l-4 border-slate-300' : 'bg-slate-50' }} animate-pulse"></div>
-                                    <div class="h-9 rounded-lg {{ $comp === 'Product/Index' ? 'bg-slate-100 border-l-4 border-slate-300' : 'bg-slate-50' }} animate-pulse"></div>
-                                    <div class="h-9 rounded-lg {{ $comp === 'Motorcycle/Index' ? 'bg-slate-100 border-l-4 border-slate-300' : 'bg-slate-50' }} animate-pulse"></div>
+                                    <div class="admin-nav-link {{ str_starts_with($comp, 'Order/') ? 'admin-nav-link--active' : 'bg-[#1e2a25]' }} flex items-center gap-3 px-3 py-2 rounded-lg animate-pulse">
+                                        <div class="w-4 h-4 rounded {{ str_starts_with($comp, 'Order/') ? 'bg-[#17221e]' : 'bg-[#35423b]' }}"></div>
+                                        <div class="h-3.5 w-16 rounded {{ str_starts_with($comp, 'Order/') ? 'bg-[#17221e]' : 'bg-[#35423b]' }}"></div>
+                                    </div>
+                                    <div class="admin-nav-link {{ $comp === 'Product/Index' ? 'admin-nav-link--active' : 'bg-[#1e2a25]' }} flex items-center gap-3 px-3 py-2 rounded-lg animate-pulse">
+                                        <div class="w-4 h-4 rounded {{ $comp === 'Product/Index' ? 'bg-[#17221e]' : 'bg-[#35423b]' }}"></div>
+                                        <div class="h-3.5 w-16 rounded {{ $comp === 'Product/Index' ? 'bg-[#17221e]' : 'bg-[#35423b]' }}"></div>
+                                    </div>
+                                    <div class="admin-nav-link {{ $comp === 'Motorcycle/Index' ? 'admin-nav-link--active' : 'bg-[#1e2a25]' }} flex items-center gap-3 px-3 py-2 rounded-lg animate-pulse">
+                                        <div class="w-4 h-4 rounded {{ $comp === 'Motorcycle/Index' ? 'bg-[#17221e]' : 'bg-[#35423b]' }}"></div>
+                                        <div class="h-3.5 w-20 rounded {{ $comp === 'Motorcycle/Index' ? 'bg-[#17221e]' : 'bg-[#35423b]' }}"></div>
+                                    </div>
                                 </div>
                             </div>
                             <div>
-                                <div class="px-3 mb-2 h-2.5 w-14 bg-slate-200 rounded animate-pulse"></div>
+                                <div class="px-3 mb-2 h-2.5 w-14 bg-[#35423b] rounded animate-pulse"></div>
                                 <div class="space-y-1">
-                                    <div class="h-9 rounded-lg {{ $comp === 'Report/Index' ? 'bg-slate-100 border-l-4 border-slate-300' : 'bg-slate-50' }} animate-pulse"></div>
+                                    <div class="admin-nav-link {{ $comp === 'Report/Index' ? 'admin-nav-link--active' : 'bg-[#1e2a25]' }} flex items-center gap-3 px-3 py-2 rounded-lg animate-pulse">
+                                        <div class="w-4 h-4 rounded {{ $comp === 'Report/Index' ? 'bg-[#17221e]' : 'bg-[#35423b]' }}"></div>
+                                        <div class="h-3.5 w-16 rounded {{ $comp === 'Report/Index' ? 'bg-[#17221e]' : 'bg-[#35423b]' }}"></div>
+                                    </div>
                                 </div>
                             </div>
                             <div>
-                                <div class="px-3 mb-2 h-2.5 w-20 bg-slate-200 rounded animate-pulse"></div>
+                                <div class="px-3 mb-2 h-2.5 w-20 bg-[#35423b] rounded animate-pulse"></div>
                                 <div class="space-y-1">
-                                    <div class="h-9 rounded-lg {{ $comp === 'User/Index' ? 'bg-slate-100 border-l-4 border-slate-300' : 'bg-slate-50' }} animate-pulse"></div>
-                                    <div class="h-9 rounded-lg {{ $comp === 'Setting/Index' ? 'bg-slate-100 border-l-4 border-slate-300' : 'bg-slate-50' }} animate-pulse"></div>
+                                    <div class="admin-nav-link {{ $comp === 'User/Index' ? 'admin-nav-link--active' : 'bg-[#1e2a25]' }} flex items-center gap-3 px-3 py-2 rounded-lg animate-pulse">
+                                        <div class="w-4 h-4 rounded {{ $comp === 'User/Index' ? 'bg-[#17221e]' : 'bg-[#35423b]' }}"></div>
+                                        <div class="h-3.5 w-20 rounded {{ $comp === 'User/Index' ? 'bg-[#17221e]' : 'bg-[#35423b]' }}"></div>
+                                    </div>
+                                    <div class="admin-nav-link {{ $comp === 'Setting/Index' ? 'admin-nav-link--active' : 'bg-[#1e2a25]' }} flex items-center gap-3 px-3 py-2 rounded-lg animate-pulse">
+                                        <div class="w-4 h-4 rounded {{ $comp === 'Setting/Index' ? 'bg-[#17221e]' : 'bg-[#35423b]' }}"></div>
+                                        <div class="h-3.5 w-20 rounded {{ $comp === 'Setting/Index' ? 'bg-[#17221e]' : 'bg-[#35423b]' }}"></div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -768,15 +789,18 @@
                     <!-- MAIN CONTENT AREA -->
                     <div class="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden">
                         <!-- TOP NAVBAR -->
-                        <header class="h-14 sm:h-16 bg-white border-b border-slate-300 flex items-center justify-between px-4 sm:px-6 lg:px-8 shrink-0">
-                            <div class="flex items-center gap-3">
+                        <header class="admin-topbar h-14 sm:h-16 bg-white dark:bg-slate-900 border-b border-slate-300 dark:border-slate-800 flex items-center justify-between px-4 sm:px-6 lg:px-8 shrink-0 z-20">
+                            <div class="flex items-center gap-2 sm:gap-3">
+                                <div class="p-1.5 rounded-lg text-slate-400 lg:hidden shrink-0">
+                                    <div class="w-5 h-5 rounded bg-slate-200 animate-pulse"></div>
+                                </div>
                                 <div class="h-5 sm:h-6 {{ $comp === 'User/Index' ? 'w-44' : ($comp === 'Product/Index' ? 'w-40' : ($comp === 'Report/Index' ? 'w-44' : 'w-32')) }} bg-slate-300 rounded-md animate-pulse"></div>
                             </div>
-                            <div class="flex items-center gap-2">
+                            <div class="admin-account-actions flex items-center gap-1 sm:gap-1.5">
                                 <div class="w-8 h-8 rounded-lg bg-slate-100 animate-pulse"></div>
                                 <div class="w-8 h-8 rounded-lg bg-slate-100 animate-pulse"></div>
-                                <div class="flex items-center gap-2.5 pl-2">
-                                    <div class="w-9 h-9 rounded-lg bg-slate-200 animate-pulse"></div>
+                                <div class="flex items-center gap-2 px-1 py-1 sm:px-2 rounded-lg">
+                                    <div class="w-8 h-8 rounded-full bg-slate-200 animate-pulse shrink-0"></div>
                                     <div class="hidden sm:block space-y-1">
                                         <div class="h-3 w-16 bg-slate-200 rounded animate-pulse"></div>
                                         <div class="h-2 w-10 bg-slate-100 rounded animate-pulse"></div>
@@ -786,7 +810,7 @@
                         </header>
 
                         <!-- SCROLLABLE PAGE BODY -->
-                        <main class="admin-main flex-1 min-h-0 {{ $isAdminNoPadding ? 'p-0 flex flex-col overflow-hidden' : 'p-3 sm:p-6 lg:p-8 overflow-y-auto' }} bg-slate-50">
+                        <main class="admin-main flex-1 min-h-0 {{ $isAdminNoPadding ? 'p-0 flex flex-col overflow-hidden' : 'p-3 sm:p-6 lg:p-8 overflow-y-auto' }}">
                             @if ($comp === 'User/Index')
                                 <!-- Exact User/Index layout preview -->
                                 <div class="max-w-7xl mx-auto space-y-6">
@@ -1487,13 +1511,13 @@
                                     <!-- 4 KPI Summary Cards (Matches DashboardSkeleton admin-dashboard-summary) -->
                                     <div class="admin-dashboard-summary col-span-12 grid grid-cols-3 sm:grid-cols-4">
                                         @for ($i = 0; $i < 4; $i++)
-                                            <div class="admin-metric relative overflow-hidden">
+                                            <div class="admin-metric relative overflow-hidden {{ $i === 0 ? 'admin-metric--primary' : '' }}">
                                                 <div class="flex items-start justify-between gap-2">
                                                     <div class="min-w-0 space-y-2 flex-1">
-                                                        <div class="h-3 w-24 sm:w-28 rounded bg-slate-200 animate-pulse"></div>
-                                                        <div class="h-6 w-16 sm:h-8 sm:w-32 rounded bg-slate-300 animate-pulse"></div>
+                                                        <div class="h-3 w-24 sm:w-28 rounded {{ $i === 0 ? 'bg-[#2b3931]' : 'bg-slate-200' }} animate-pulse"></div>
+                                                        <div class="h-6 w-16 sm:h-8 sm:w-32 rounded {{ $i === 0 ? 'bg-[#35423b]' : 'bg-slate-300' }} animate-pulse"></div>
                                                     </div>
-                                                    <div class="hidden sm:block h-5 w-5 rounded bg-slate-200 animate-pulse"></div>
+                                                    <div class="hidden sm:block h-5 w-5 rounded {{ $i === 0 ? 'bg-[#2b3931]' : 'bg-slate-200' }} animate-pulse"></div>
                                                 </div>
                                             </div>
                                         @endfor
@@ -1629,6 +1653,23 @@
                                 </div>
                             @endif
                         </main>
+                        <!-- Mobile Quick-Nav Dock (Matches AuthenticatedLayout admin-mobile-dock) -->
+                        <nav class="admin-mobile-dock" aria-label="Navigasi cepat" style="grid-template-columns: repeat(4, minmax(0, 1fr))">
+                            @php
+                                $dockItems = [
+                                    ['name' => 'Dashboard', 'active' => str_starts_with($comp, 'Dashboard/')],
+                                    ['name' => 'Kasir', 'active' => $comp === 'POS/Index'],
+                                    ['name' => 'Produk', 'active' => in_array($comp, ['Product/Index', 'Motorcycle/Index'])],
+                                    ['name' => 'Pesanan', 'active' => str_starts_with($comp, 'Order/')],
+                                ];
+                            @endphp
+                            @foreach ($dockItems as $dItem)
+                                <div class="admin-dock-item {{ $dItem['active'] ? 'admin-dock-item--active' : '' }}">
+                                    <div class="w-4 h-4 rounded {{ $dItem['active'] ? 'bg-[#17221e]' : 'bg-slate-200' }} animate-pulse"></div>
+                                    <span>{{ $dItem['name'] }}</span>
+                                </div>
+                            @endforeach
+                        </nav>
                     </div>
                 </div>
             @else
