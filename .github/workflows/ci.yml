@@ -41,10 +41,17 @@ jobs:
         with:
           node-version: '22'
           cache: npm
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache/files
+          key: ${{ runner.os }}-composer-${{ hashFiles('composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
       - name: Install dependencies
         run: |
-          composer install --no-interaction --prefer-dist
-          npm ci
+          composer install --no-interaction --prefer-dist --no-progress
+          npm ci --no-audit
       - name: Prepare test environment
         run: |
           cp .env.example .env
@@ -56,12 +63,32 @@ jobs:
           vendor/bin/pint --test app bootstrap/*.php config database routes scripts tests
           composer validate --strict
           composer audit
-          npm audit --omit=dev
-      - name: Record build dependency advisory report
-        run: npm audit --json > npm-audit.json || true
+      - name: Audit production npm dependencies
+        shell: bash
+        run: |
+          output_file=npm-audit.json
+
+          for attempt in 1 2 3; do
+            if npm audit --omit=dev --json --fetch-retries=0 --fetch-timeout=30000 >"$output_file" 2>&1; then
+              node -e "const report=JSON.parse(require('fs').readFileSync(process.argv[1], 'utf8')); console.log('Production dependency vulnerabilities:', JSON.stringify(report.metadata?.vulnerabilities ?? {}))" "$output_file"
+              exit 0
+            else
+              exit_code=$?
+            fi
+
+            cat "$output_file"
+
+            if grep -Eqi '(^|[^0-9])(502|503|504)([^0-9]|$)|ECONNRESET|ETIMEDOUT|EAI_AGAIN|ENOTFOUND' "$output_file" && [ "$attempt" -lt 3 ]; then
+              echo "npm audit service/network error; retrying ($((attempt + 1))/3) after $((attempt * 10)) seconds."
+              sleep $((attempt * 10))
+              continue
+            fi
+
+            exit "$exit_code"
+          done
       - uses: actions/upload-artifact@v4
         with:
-          name: dependency-advisories
+          name: production-dependency-advisories
           path: npm-audit.json
       - name: JavaScript regression tests
         run: node --test tests/js/*.test.js
