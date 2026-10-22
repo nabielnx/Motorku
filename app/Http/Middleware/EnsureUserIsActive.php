@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Middleware;
 
 use Closure;
@@ -14,16 +16,23 @@ class EnsureUserIsActive
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (Auth::check() && ! Auth::user()->is_active) {
-            Auth::logout();
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
+        if ($request->user() && ! $request->user()->is_active) {
+            $request->user()->tokens()->delete();
+            if ($request->hasSession()) {
+                Auth::guard('web')->logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+            }
 
             if ($request->expectsJson()) {
                 return response()->json(['message' => 'Akun Anda telah dinonaktifkan.'], 403);
             }
 
-            return redirect()->route('login')->with('error', 'Akun Anda telah dinonaktifkan. Hubungi pemilik toko.');
+            $response = redirect()->route('login');
+
+            return $request->hasSession()
+                ? $response->with('error', 'Akun Anda telah dinonaktifkan. Hubungi pemilik toko.')
+                : $response;
         }
 
         return $next($request);

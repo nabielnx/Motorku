@@ -376,6 +376,10 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
     };
 
     const openPayment = (order) => {
+        if (app_settings?.cash_enabled === false) {
+            toast.error('Pembayaran tunai sedang dinonaktifkan. Hubungi owner untuk mengaktifkannya.');
+            return;
+        }
         setPaymentOrder(order);
         setPaymentMethod('cash');
         setAmountReceived(String(order.total));

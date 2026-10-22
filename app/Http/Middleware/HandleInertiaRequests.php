@@ -23,7 +23,7 @@ class HandleInertiaRequests extends Middleware
 
         // 1 query untuk semua settings — cached for 60 min, flushed on save
         $s = Cache::remember(CacheService::SETTINGS_SHARED, CacheService::TTL_SETTINGS, function () {
-            return Setting::whereIn('group', ['store', 'system', 'printer', 'catalog'])
+            return Setting::whereIn('group', ['store', 'system', 'printer', 'catalog', 'payment'])
                 ->get()
                 ->mapWithKeys(fn ($row) => ["{$row->group}.{$row->key}" => $row->value])
                 ->toArray();
@@ -60,6 +60,7 @@ class HandleInertiaRequests extends Middleware
             'login_image_url' => ! empty($s['store.login_image']) ? (str_starts_with($s['store.login_image'], 'http') ? $s['store.login_image'] : '/storage/'.ltrim($s['store.login_image'], '/')) : null,
 
             'app_settings' => [
+                'cash_enabled' => ($s['payment.cash_enabled'] ?? 'true') !== 'false',
                 'timezone' => $timezone,
                 'locale' => $s['system.locale'] ?? 'id',
                 'store_tagline' => $s['store.tagline'] ?? 'POS & ORDER',

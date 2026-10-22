@@ -200,7 +200,7 @@ class UserService
             $user->forceFill($updateData)->save();
             $accountChanged = $user->wasChanged(['name', 'email', 'password', 'is_active']);
 
-            if ($emailChanged || ! empty($data['password'])) {
+            if ($emailChanged || ! empty($data['password']) || ! $user->is_active) {
                 $this->revokeOldAccess($user);
             }
 
