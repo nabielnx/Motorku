@@ -19,7 +19,7 @@ import { getProductLabel } from '@/Utils/productLabel';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { DialogTitle } from '@headlessui/react';
-import { FiSearch, FiGrid, FiList, FiPlus, FiMinus, FiTrash2, FiShoppingBag, FiCreditCard, FiX, FiUser, FiTag, FiHelpCircle, FiArrowLeft, FiBookOpen, FiChevronDown, FiCheck } from 'react-icons/fi';
+import { FiSearch, FiGrid, FiList, FiPlus, FiMinus, FiTrash2, FiShoppingBag, FiCreditCard, FiX, FiUser, FiTag, FiHelpCircle, FiArrowLeft, FiBookOpen, FiChevronDown } from 'react-icons/fi';
 import ProductBookView from '@/Components/Product/ProductBookView';
 
 
@@ -865,9 +865,13 @@ return (
                                         aria-label="Centang semua barang di keranjang"
                                         className="peer sr-only"
                                     />
-                                    <span aria-hidden="true" className="flex h-4 w-4 shrink-0 items-center justify-center rounded-[4px] border border-slate-400 bg-white text-slate-800 peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-slate-500 dark:border-slate-500 dark:bg-slate-900 dark:text-slate-100">
-                                        {areAllCartItemsChecked && <FiCheck className="h-3 w-3" strokeWidth={2.5} />}
-                                        {areSomeCartItemsChecked && <span className="h-0.5 w-2 rounded-sm bg-slate-700 dark:bg-slate-300" />}
+                                    <span aria-hidden="true" className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-[4px] border peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-slate-500 ${areAllCartItemsChecked || areSomeCartItemsChecked ? 'border-[#19231f] bg-[#19231f] text-[#FFDD00]' : 'border-slate-400 bg-white text-slate-800 dark:border-slate-500 dark:bg-slate-900 dark:text-slate-100'}`}>
+                                        {areAllCartItemsChecked && (
+                                            <svg aria-hidden="true" className="h-4 w-4" viewBox="0 0 16 16">
+                                                <path d="m6.1 11.7-3.3-3.3 1.6-1.6 1.7 1.7 5.4-5.4 1.6 1.6-7 7z" fill="currentColor" />
+                                            </svg>
+                                        )}
+                                        {areSomeCartItemsChecked && <span className="h-0.5 w-2 rounded-sm bg-[#FFDD00]" />}
                                     </span>
                                     Centang semua
                                 </label>
@@ -891,8 +895,12 @@ return (
                                             title="Sudah dicek"
                                             className="peer sr-only"
                                         />
-                                        <span aria-hidden="true" className="flex h-4 w-4 items-center justify-center rounded-[4px] border border-slate-400 bg-white text-slate-800 peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-slate-500 dark:border-slate-500 dark:bg-slate-900 dark:text-slate-100">
-                                            {item.checked && <FiCheck className="h-3 w-3" strokeWidth={2.5} />}
+                                        <span aria-hidden="true" className={`flex h-4 w-4 items-center justify-center rounded-[4px] border peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-slate-500 ${item.checked ? 'border-[#19231f] bg-[#19231f] text-[#FFDD00]' : 'border-slate-400 bg-white text-slate-800 dark:border-slate-500 dark:bg-slate-900 dark:text-slate-100'}`}>
+                                            {item.checked && (
+                                                <svg aria-hidden="true" className="h-4 w-4" viewBox="0 0 16 16">
+                                                    <path d="m6.1 11.7-3.3-3.3 1.6-1.6 1.7 1.7 5.4-5.4 1.6 1.6-7 7z" fill="currentColor" />
+                                                </svg>
+                                            )}
                                         </span>
                                     </label>
                                     <div className="min-w-0 flex-1">
