@@ -8,6 +8,7 @@ import { Head, Link, router, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import DateRangePicker from '@/Components/DateRangePicker';
+import PeriodSelectDropdown from '@/Components/PeriodSelectDropdown';
 import { 
     FiSearch, 
     FiEye, 
@@ -585,25 +586,12 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
 
                                     {showMobileDateFilters && (
                                         <div className="grid w-full grid-cols-2 gap-2 sm:hidden">
-                                            <div className="relative min-w-0">
-                                                <FiCalendar aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-accentYellow" size={15} />
-                                                <select
-                                                    value={periodFilter === 'custom' ? '' : periodFilter}
-                                                    onChange={(e) => handlePeriodChange(e.target.value)}
-                                                    aria-label="Pilih periode pesanan"
-                                                    className="h-[34px] w-full min-w-0 appearance-none rounded-lg border border-primary bg-primary py-0 pl-9 pr-8 text-xs font-bold text-white cursor-pointer focus:outline-none focus:ring-0"
-                                                    style={{ appearance: 'none', WebkitAppearance: 'none', backgroundImage: 'none' }}
-                                                >
-                                                    <option className="bg-white text-slate-900" value="" disabled hidden>Pilihan cepat</option>
-                                                    <option className="bg-white text-slate-900" value="all">Semua tanggal</option>
-                                                    <option className="bg-white text-slate-900" value="today">Hari ini</option>
-                                                    <option className="bg-white text-slate-900" value="7_days">7 hari</option>
-                                                    <option className="bg-white text-slate-900" value="30_days">30 hari</option>
-                                                    <option className="bg-white text-slate-900" value="this_month">Bulan ini</option>
-                                                    <option className="bg-white text-slate-900" value="this_year">Tahun ini</option>
-                                                </select>
-                                                <FiChevronDown aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-white" size={14} />
-                                            </div>
+                                            <PeriodSelectDropdown
+                                                value={periodFilter === 'custom' ? '' : periodFilter}
+                                                onChange={handlePeriodChange}
+                                                includeAll
+                                                fullWidth
+                                            />
                                             <DateRangePicker
                                                 initialStart={startDate}
                                                 initialEnd={endDate}
@@ -615,25 +603,12 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                                     )}
 
                                     <div className="hidden min-w-0 sm:grid sm:w-[26rem] sm:max-w-full sm:grid-cols-2 sm:items-center sm:gap-2">
-                                        <div className="relative min-w-0 sm:w-full">
-                                            <FiCalendar aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-accentYellow" size={15} />
-                                            <select
-                                                value={periodFilter === 'custom' ? '' : periodFilter}
-                                                onChange={(e) => handlePeriodChange(e.target.value)}
-                                                aria-label="Pilih periode pesanan"
-                                                className="w-full min-w-0 appearance-none rounded-xl border border-primary bg-primary py-2 pl-9 pr-8 text-xs font-bold text-white cursor-pointer transition hover:bg-primaryDark focus:outline-none focus:ring-0 focus:border-primaryDark"
-                                                style={{ appearance: 'none', WebkitAppearance: 'none', backgroundImage: 'none' }}
-                                            >
-                                                <option className="bg-white text-slate-900" value="" disabled hidden>Pilihan Cepat...</option>
-                                                <option className="bg-white text-slate-900" value="all">Semua tanggal</option>
-                                                <option className="bg-white text-slate-900" value="today">Hari Ini</option>
-                                                <option className="bg-white text-slate-900" value="7_days">7 Hari Terakhir</option>
-                                                <option className="bg-white text-slate-900" value="30_days">30 Hari Terakhir</option>
-                                                <option className="bg-white text-slate-900" value="this_month">Bulan Ini</option>
-                                                <option className="bg-white text-slate-900" value="this_year">Tahun Ini</option>
-                                            </select>
-                                            <FiChevronDown aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-white" size={14} />
-                                        </div>
+                                        <PeriodSelectDropdown
+                                            value={periodFilter === 'custom' ? '' : periodFilter}
+                                            onChange={handlePeriodChange}
+                                            includeAll
+                                            fullWidth
+                                        />
                                         <DateRangePicker
                                             initialStart={startDate}
                                             initialEnd={endDate}

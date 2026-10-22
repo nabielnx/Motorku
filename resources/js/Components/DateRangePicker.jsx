@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { FiCalendar, FiChevronLeft, FiChevronRight, FiX, FiCheck } from 'react-icons/fi';
+import { FiCalendar, FiChevronLeft, FiChevronRight, FiChevronDown, FiX, FiCheck } from 'react-icons/fi';
 
 export default function DateRangePicker({ initialStart = '', initialEnd = '', onApply, activePeriod = '', fullWidth = false }) {
     const [isOpen, setIsOpen] = useState(false);
@@ -133,11 +133,18 @@ export default function DateRangePicker({ initialStart = '', initialEnd = '', on
             <button
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
+                aria-expanded={isOpen}
+                aria-label={`Pilih rentang tanggal: ${isCustomActive ? activeLabel : 'Pilih tanggal'}`}
                 className={`flex w-full min-w-0 items-center gap-2 rounded-xl border border-primary bg-primary px-3 py-2 text-xs font-bold text-white shadow-2xs transition hover:bg-primaryDark focus-visible:outline-2 focus-visible:outline-accentYellow ${fullWidth ? 'sm:w-full' : 'sm:w-auto'} sm:px-3.5`}
             >
-                <FiCalendar size={15} className="text-accentYellow" />
-                <span className="min-w-0 flex-1 truncate sm:hidden">{isCustomActive ? 'Rentang khusus' : 'Pilih tanggal'}</span>
-                <span className="hidden min-w-0 flex-1 truncate sm:inline">{activeLabel}</span>
+                <FiCalendar size={15} className="shrink-0 text-accentYellow" aria-hidden="true" />
+                <span className="min-w-0 flex-1 truncate text-left sm:hidden">{isCustomActive ? 'Rentang khusus' : 'Pilih tanggal'}</span>
+                <span className="hidden min-w-0 flex-1 truncate text-left sm:inline">{activeLabel}</span>
+                <FiChevronDown
+                    size={14}
+                    className={`shrink-0 text-white transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+                    aria-hidden="true"
+                />
             </button>
 
             {/* Popover Calendar Modal */}
