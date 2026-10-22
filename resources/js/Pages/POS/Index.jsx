@@ -865,9 +865,9 @@ return (
                                         aria-label="Centang semua barang di keranjang"
                                         className="peer sr-only"
                                     />
-                                    <span aria-hidden="true" className="flex h-4 w-4 shrink-0 items-center justify-center rounded-[4px] border border-slate-400 bg-white text-slate-800 peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-slate-500 dark:border-slate-500 dark:bg-slate-900 dark:text-slate-100">
+                                    <span aria-hidden="true" className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-[4px] border peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-slate-500 ${areAllCartItemsChecked || areSomeCartItemsChecked ? 'border-[#19231f] bg-[#19231f] text-[#FFDD00]' : 'border-slate-400 bg-white text-slate-800 dark:border-slate-500 dark:bg-slate-900 dark:text-slate-100'}`}>
                                         {areAllCartItemsChecked && <FiCheck className="h-3 w-3" strokeWidth={2.5} />}
-                                        {areSomeCartItemsChecked && <span className="h-0.5 w-2 rounded-sm bg-slate-700 dark:bg-slate-300" />}
+                                        {areSomeCartItemsChecked && <span className="h-0.5 w-2 rounded-sm bg-[#FFDD00]" />}
                                     </span>
                                     Centang semua
                                 </label>
@@ -891,7 +891,7 @@ return (
                                             title="Sudah dicek"
                                             className="peer sr-only"
                                         />
-                                        <span aria-hidden="true" className="flex h-4 w-4 items-center justify-center rounded-[4px] border border-slate-400 bg-white text-slate-800 peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-slate-500 dark:border-slate-500 dark:bg-slate-900 dark:text-slate-100">
+                                        <span aria-hidden="true" className={`flex h-4 w-4 items-center justify-center rounded-[4px] border peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-slate-500 ${item.checked ? 'border-[#19231f] bg-[#19231f] text-[#FFDD00]' : 'border-slate-400 bg-white text-slate-800 dark:border-slate-500 dark:bg-slate-900 dark:text-slate-100'}`}>
                                             {item.checked && <FiCheck className="h-3 w-3" strokeWidth={2.5} />}
                                         </span>
                                     </label>
