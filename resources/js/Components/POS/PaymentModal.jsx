@@ -32,7 +32,7 @@ export default function PaymentModal({
 }) {
     return (
         <div
-            className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900 dark:bg-slate-950 p-0 sm:p-4 animate-in fade-in duration-150"
+            className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-xs p-0 sm:p-4 animate-in fade-in duration-150"
             onClick={(e) => {
                 if (e.target === e.currentTarget && !isSubmittingOrder && !isOrderComplete) {
                     resetQrisFlow();

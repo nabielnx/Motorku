@@ -890,7 +890,7 @@ export default function MotorSaya({
 
             {/* MODAL DETAIL PRODUK (Selaras dengan Katalog Utama Menu.jsx) */}
             <Dialog open={!!selectedDetailProduct} onClose={() => setSelectedDetailProduct(null)} className="customer-storefront relative z-50">
-                <div className="fixed inset-0 bg-slate-900" aria-hidden="true" />
+                <div className="fixed inset-0 bg-black/40 backdrop-blur-2xs" aria-hidden="true" />
                 <div className="fixed inset-0 overflow-y-auto">
                     <div className="flex min-h-full items-center justify-center p-3 sm:p-6">
                         {selectedDetailProduct && (
