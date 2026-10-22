@@ -26,8 +26,21 @@ class PosController extends Controller implements HasMiddleware
             $s->group.'.'.$s->key => $s->value,
         ])->toArray();
 
+        $products = Product::with([
+            'category:id,name,parent_id',
+            'category.parent:id,name',
+            'motorcycles:id,brand,model',
+        ])
+            ->where('is_available', true)
+            ->select([
+                'id', 'category_id', 'sku', 'name', 'description',
+                'brand', 'barcode', 'unit', 'rack_location',
+                'price', 'stock', 'image_path', 'is_available',
+            ])
+            ->get();
+
         return Inertia::render('POS/Index', [
-            'initialProducts' => Product::with(['category.parent', 'motorcycles'])->where('is_available', true)->get(),
+            'initialProducts' => $products,
             'initialCategories' => Category::all(),
             'settings' => $settings,
         ]);
