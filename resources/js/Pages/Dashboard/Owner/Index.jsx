@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import DateRangePicker from '@/Components/DateRangePicker';
 import DashboardSkeleton from '@/Components/Skeletons/DashboardSkeleton';
+import MaskedCurrency from '@/Components/MaskedCurrency';
 import { Head, Link, router } from '@inertiajs/react';
 import axios from 'axios';
 import { recentOrderStatus } from './recentOrderStatus';
@@ -198,7 +199,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                         <div className="flex items-start justify-between gap-2">
                             <div>
                                 <p className="pr-8 text-[10px] sm:text-[11px] font-bold text-white uppercase tracking-wider">Penjualan bersih</p>
-                                <h3 className="text-base sm:text-[30px] font-heading font-extrabold text-white mt-2">{isRevenueVisible ? formatRp(revenueToday) : 'Rp ••••••'}</h3>
+                                <h3 className="text-base sm:text-[30px] font-heading font-extrabold text-white mt-2"><MaskedCurrency text={formatRp(revenueToday)} visible={isRevenueVisible} /></h3>
                             </div>
                             <button
                                 type="button"
