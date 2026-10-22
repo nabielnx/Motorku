@@ -42,15 +42,16 @@ class PublicLaunchReadinessTest extends TestCase
         $this->get('/')
             ->assertOk()
             ->assertSee('rel="canonical"', false)
-            ->assertDontSee('name="robots" content="noindex', false);
+            ->assertDontSee('name="robots" content="noindex', false)
+            ->assertHeaderMissing('X-Robots-Tag');
 
         $this->get('/payment')
             ->assertOk()
-            ->assertSee('name="robots" content="noindex, nofollow"', false);
+            ->assertHeader('X-Robots-Tag', 'noindex, nofollow');
 
         $this->get('/login')
             ->assertOk()
-            ->assertSee('name="robots" content="noindex, nofollow"', false);
+            ->assertHeader('X-Robots-Tag', 'noindex, nofollow');
     }
 
     public function test_unknown_motorcycle_has_branded_404_page(): void

@@ -28,9 +28,6 @@ class AddRobotsHeader
         'home',
         'motor-saya',
         'sitemap',
-        'customer.payment',
-        'customer.order.waiting',
-        'customer.order.status',
     ];
 
     public function handle(Request $request, Closure $next): Response
