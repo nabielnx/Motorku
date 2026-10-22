@@ -57,7 +57,7 @@
 
 /* A stable search row keeps cart and history reachable while typing. */
 .store-topstrip { background: var(--store-ink); color: #e7ebdd; }
-.store-header { position: sticky; top: 0; z-index: 30; background: white; border-bottom: 1px solid var(--store-line); }
+.store-header { position: sticky; top: 0; z-index: 40; background: white; border-bottom: 1px solid var(--store-line); }
 .store-header-shell { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px 12px; max-width: 1280px; margin: auto; padding: 10px 16px; }
 .store-brand { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .store-brand-name { font-size: 16px; font-weight: 750; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

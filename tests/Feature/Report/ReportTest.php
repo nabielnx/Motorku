@@ -37,7 +37,21 @@ class ReportTest extends TestCase
         $response = $this->actingAs($this->owner)->get('/reports');
 
         $response->assertStatus(200);
-        $response->assertInertia(fn ($page) => $page->component('Report/Index'));
+        $response->assertInertia(fn ($page) => $page
+            ->component('Report/Index')
+            ->where('filters.period', 'this_month'));
+    }
+
+    public function test_report_dashboard_preserves_custom_date_filter(): void
+    {
+        $this->actingAs($this->owner)
+            ->get('/reports?period=custom&start_date=2026-10-01&end_date=2026-10-05')
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('Report/Index')
+                ->where('filters.period', 'custom')
+                ->where('filters.start_date', '2026-10-01')
+                ->where('filters.end_date', '2026-10-05'));
     }
 
     public function test_cashier_cannot_view_report_dashboard(): void

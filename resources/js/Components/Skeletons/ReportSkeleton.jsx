@@ -6,9 +6,12 @@ import Skeleton from '@/Components/Skeleton';
 export default function ReportSkeleton() {
     return (
         <div className="space-y-4" aria-busy="true" aria-label="Memuat laporan keuangan">
-            {/* Toolbar: Period Dropdown + Print Button */}
+            {/* Toolbar: Period Dropdown + DateRangePicker + Print Button */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                <Skeleton className="h-9 w-36 rounded-lg" />
+                <div className="grid w-full min-w-0 grid-cols-2 gap-2 sm:w-auto sm:flex sm:flex-wrap sm:items-center">
+                    <Skeleton className="h-9 w-full sm:w-36 rounded-xl" />
+                    <Skeleton className="h-9 w-full sm:w-48 rounded-xl" />
+                </div>
                 <Skeleton className="h-9 w-32 rounded-lg" />
             </div>
 
@@ -50,14 +53,14 @@ export default function ReportSkeleton() {
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
                 {/* Top Selling — 3 cols */}
                 <div className="lg:col-span-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden transition-colors">
-                    <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
+                    <div className="admin-section-header px-4 py-3 border-b border-slate-100 dark:border-slate-800">
                         <Skeleton className="h-4 w-28" />
                         <Skeleton className="h-2.5 w-44 mt-1" />
                     </div>
                     <div className="overflow-x-auto">
                         <table className="w-full text-left text-xs">
                             <thead>
-                                <tr className="border-b border-slate-100 dark:border-slate-800 text-[10px] font-bold uppercase tracking-wider bg-slate-50/60 dark:bg-slate-800/60">
+                                <tr className="border-b border-slate-100 dark:border-slate-800 text-[10px] font-bold uppercase tracking-wider bg-slate-50 dark:bg-slate-800">
                                     <th className="py-2.5 px-4 w-8"><Skeleton className="h-3 w-4" /></th>
                                     <th className="py-2.5 px-4"><Skeleton className="h-3 w-20" /></th>
                                     <th className="py-2.5 px-4"><Skeleton className="h-3 w-16" /></th>
@@ -67,7 +70,7 @@ export default function ReportSkeleton() {
                             </thead>
                             <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
                                 {Array.from({ length: 5 }).map((_, i) => (
-                                    <tr key={i} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50">
+                                    <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-800">
                                         <td className="py-2.5 px-4"><Skeleton className="h-3.5 w-3" /></td>
                                         <td className="py-2.5 px-4"><Skeleton className="h-3.5 w-32" /></td>
                                         <td className="py-2.5 px-4"><Skeleton className="h-4 w-16 rounded" /></td>
@@ -82,7 +85,7 @@ export default function ReportSkeleton() {
 
                 {/* Category Breakdown — 2 cols */}
                 <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden transition-colors">
-                    <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
+                    <div className="admin-section-header px-4 py-3 border-b border-slate-100 dark:border-slate-800">
                         <Skeleton className="h-4 w-36" />
                         <Skeleton className="h-2.5 w-48 mt-1" />
                     </div>

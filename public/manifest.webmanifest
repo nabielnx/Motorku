@@ -1,0 +1,33 @@
+{
+    "id": "/",
+    "name": "Motorku",
+    "short_name": "Motorku",
+    "description": "Sistem kasir dan katalog toko Motorku.",
+    "lang": "id",
+    "start_url": "/",
+    "scope": "/",
+    "display": "standalone",
+    "display_override": ["standalone", "minimal-ui"],
+    "background_color": "#f4f3ed",
+    "theme_color": "#19231f",
+    "icons": [
+        {
+            "src": "/icons/motorku-v2-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/icons/motorku-v2-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/icons/motorku-maskable-v2-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ]
+}

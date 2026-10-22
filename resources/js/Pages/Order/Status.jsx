@@ -285,7 +285,7 @@ function OrderCard({ order, onCancel, isCancelling, formatRp }) {
             )}
 
             {/* ── Totals ── */}
-            <div className="px-4 py-3 bg-slate-50/80 border-t border-slate-100 space-y-1">
+            <div className="px-4 py-3 bg-slate-50 border-t border-slate-100 space-y-1">
                 {Number(order.subtotal) > 0 && Number(order.tax_amount) > 0 && (
                     <div className="flex justify-between text-[11px] text-slate-400">
                         <span>Subtotal</span>
@@ -512,7 +512,7 @@ export default function OrderStatus() {
                 </Head>
                 <div className="customer-frame w-full max-w-md bg-white flex flex-col">
                     {/* Header */}
-                    <header className="sticky top-0 z-30 bg-white border-b border-slate-200/80 shadow-xs">
+                    <header className="sticky top-0 z-30 bg-white border-b border-slate-200 shadow-xs">
                         <div className="px-4 py-3.5 flex items-center justify-between">
                             <h1 className="text-base font-black text-slate-900">Pesanan Saya</h1>
                             <Link
@@ -554,7 +554,7 @@ export default function OrderStatus() {
 
                 {historyUnavailable && <p role="status" className="p-4 text-xs text-slate-600 bg-white">Sebagian status tidak dapat diperbarui. Riwayat tersimpan tetap ditampilkan; hubungi kasir untuk memeriksa pesanan.</p>}
                 {/* ═══ STICKY HEADER ═══ */}
-                <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-xs">
+                <header className="sticky top-0 z-30 bg-white border-b border-slate-200 shadow-xs">
                     <div className="px-4 py-3.5 flex items-center justify-between">
                         <div className="flex items-center gap-2.5">
                             <h1 className="text-base font-black text-slate-900">Pesanan Saya</h1>
@@ -629,7 +629,7 @@ export default function OrderStatus() {
 
             {/* ═══ CANCEL CONFIRMATION MODAL ═══ */}
             {showCancelModal && targetOrderToCancel && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900">
                     <div className="bg-white rounded-xl p-6 max-w-xs w-full shadow-2xl space-y-4 text-center border border-slate-100 transform transition-all">
                         <div className="w-14 h-14 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
                             <FiAlertTriangle size={28} />

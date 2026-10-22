@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { FiCalendar, FiChevronLeft, FiChevronRight, FiX, FiCheck } from 'react-icons/fi';
 
-export default function DateRangePicker({ initialStart = '', initialEnd = '', onApply, activePeriod = '' }) {
+export default function DateRangePicker({ initialStart = '', initialEnd = '', onApply, activePeriod = '', fullWidth = false }) {
     const [isOpen, setIsOpen] = useState(false);
 
     const parseLocalDate = (dateStr) => {
@@ -128,22 +128,22 @@ export default function DateRangePicker({ initialStart = '', initialEnd = '', on
         : 'Rentang Tanggal...';
 
     return (
-        <div className="relative w-full text-left sm:w-auto" ref={containerRef}>
+        <div className={`relative w-full min-w-0 text-left ${fullWidth ? 'sm:w-full' : 'sm:w-auto'}`} ref={containerRef}>
             {/* Outer Button */}
             <button
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex w-full items-center gap-2 rounded-xl border border-primary bg-primary px-3 py-2 text-xs font-bold text-white shadow-2xs transition hover:bg-primaryDark focus-visible:outline-2 focus-visible:outline-accentYellow sm:w-auto sm:px-3.5"
+                className={`flex w-full min-w-0 items-center gap-2 rounded-xl border border-primary bg-primary px-3 py-2 text-xs font-bold text-white shadow-2xs transition hover:bg-primaryDark focus-visible:outline-2 focus-visible:outline-accentYellow ${fullWidth ? 'sm:w-full' : 'sm:w-auto'} sm:px-3.5`}
             >
                 <FiCalendar size={15} className="text-accentYellow" />
-                <span className="truncate sm:hidden">{isCustomActive ? 'Rentang khusus' : 'Pilih tanggal'}</span>
-                <span className="hidden sm:inline">{activeLabel}</span>
+                <span className="min-w-0 flex-1 truncate sm:hidden">{isCustomActive ? 'Rentang khusus' : 'Pilih tanggal'}</span>
+                <span className="hidden min-w-0 flex-1 truncate sm:inline">{activeLabel}</span>
             </button>
 
             {/* Popover Calendar Modal */}
             {isOpen && (
                 <>
-                <button type="button" aria-label="Tutup pemilih tanggal" onClick={() => setIsOpen(false)} className="fixed inset-0 z-40 bg-slate-950/40 sm:hidden" />
+                <button type="button" aria-label="Tutup pemilih tanggal" onClick={() => setIsOpen(false)} className="fixed inset-0 z-40 bg-slate-950 sm:hidden" />
                 <div className="fixed left-4 right-4 top-1/2 z-50 mx-auto max-h-[calc(100dvh-2rem)] max-w-sm -translate-y-1/2 overflow-y-auto rounded-2xl border border-slate-200 bg-white p-3 text-slate-800 shadow-xl dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 sm:absolute sm:left-auto sm:right-0 sm:top-auto sm:mx-0 sm:mt-2 sm:w-80 sm:translate-y-0 sm:p-4">
                     
                     {/* Popover Header */}

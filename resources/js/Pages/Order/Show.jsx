@@ -79,7 +79,7 @@ export default function OrderShow({ order: initialOrder }) {
                     Kembali ke Pesanan
                 </Link>
 
-                <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm">
+                <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
                     <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
                         <div>
                             <h3 className="break-words text-xl sm:text-2xl font-black text-primaryDark dark:text-white">{order.order_number}</h3>
@@ -104,7 +104,7 @@ export default function OrderShow({ order: initialOrder }) {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-                    <div className="min-w-0 lg:col-span-2 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+                    <div className="min-w-0 lg:col-span-2 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
                         <div className="p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800">
                             <h4 className="font-black text-primaryDark dark:text-white">Rincian Barang</h4>
                         </div>
@@ -158,7 +158,7 @@ export default function OrderShow({ order: initialOrder }) {
                                 {order.returns.map(r => <p key={r.id}>{r.product_name}: {r.quantity} × · {formatRp(r.amount)} · {r.refund_method === 'transfer' ? 'Transfer' : 'Tunai'}{r.refund_reference ? ` (${r.refund_reference})` : ''} · {r.restocked ? 'stok kembali' : 'tidak masuk stok'}</p>)}
                             </div>
                         )}
-                        <div className="p-4 sm:p-5 bg-slate-50/50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 space-y-2">
+                        <div className="p-4 sm:p-5 bg-slate-50 dark:bg-slate-800 border-t border-slate-100 dark:border-slate-800 space-y-2">
                             <div className="flex justify-between gap-2 text-sm text-slate-500 dark:text-slate-400 font-semibold"><span>Subtotal</span><span>{formatRp(order.subtotal)}</span></div>
                             {Number(order.discount_amount) > 0 && <div className="flex justify-between text-sm text-red-500 font-semibold"><span>Diskon</span><span>-{formatRp(order.discount_amount)}</span></div>}
                             {Number(order.tax_amount) > 0 && <div className="flex justify-between gap-2 text-sm text-slate-500 dark:text-slate-400 font-semibold"><span>Pajak</span><span>{formatRp(order.tax_amount)}</span></div>}
@@ -170,7 +170,7 @@ export default function OrderShow({ order: initialOrder }) {
                         </div>
                     </div>
 
-                    <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-5 border border-slate-200/80 dark:border-slate-800 shadow-sm h-fit">
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-5 border border-slate-200 dark:border-slate-800 shadow-sm h-fit">
                         <h4 className="font-black text-primaryDark dark:text-white mb-5">Status Timeline</h4>
                         <div className="space-y-0">
                             {statusTimeline.map((step, idx) => (

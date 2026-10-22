@@ -87,6 +87,22 @@ class OrderListFilterTest extends TestCase
         );
     }
 
+    public function test_custom_date_filter_includes_the_full_start_and_end_days(): void
+    {
+        $start = Order::factory()->create(['created_at' => '2026-05-10 00:00:00']);
+        $end = Order::factory()->create(['created_at' => '2026-05-12 23:59:59']);
+        Order::factory()->create(['created_at' => '2026-05-09 23:59:59']);
+        Order::factory()->create(['created_at' => '2026-05-13 00:00:00']);
+
+        $orders = app(OrderService::class)->getOrdersForWeb(
+            date: 'custom',
+            startDate: '2026-05-10',
+            endDate: '2026-05-12'
+        );
+
+        $this->assertEqualsCanonicalizing([$start->id, $end->id], $orders->pluck('real_id')->all());
+    }
+
     public function test_orders_page_combines_filters_and_preserves_them_in_props(): void
     {
         $this->seed(RoleSeeder::class);
@@ -97,15 +113,37 @@ class OrderListFilterTest extends TestCase
         Order::factory()->create(['order_status' => 'completed']);
 
         $this->actingAs($cashier)
-            ->get('/orders?status=All&date=today&search=Ban')
+            ->get('/orders?status=All&period=today&search=Ban')
             ->assertOk()
             ->assertInertia(fn ($page) => $page
                 ->component('Order/Index')
                 ->where('filters.status', 'All')
-                ->where('filters.date', 'today')
+                ->where('filters.period', 'today')
                 ->where('filters.search', 'Ban')
                 ->where('initialOrders.total', 1)
                 ->where('initialOrders.data.0.real_id', $order->id));
+    }
+
+    public function test_orders_page_applies_custom_range_and_returns_selected_dates(): void
+    {
+        $this->seed(RoleSeeder::class);
+        $cashier = User::factory()->create();
+        $cashier->assignRole('cashier');
+        Order::factory()->create(['created_at' => '2026-10-10 00:00:00']);
+        Order::factory()->create(['created_at' => '2026-10-12 23:59:59']);
+        Order::factory()->create(['created_at' => '2026-10-13 00:00:00']);
+
+        $this->actingAs($cashier)
+            ->get('/orders?status=All&period=custom&start_date=2026-10-10&end_date=2026-10-12')
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('Order/Index')
+                ->where('filters.period', 'custom')
+                ->where('filters.start_date', '2026-10-10')
+                ->where('filters.end_date', '2026-10-12')
+                ->where('summary.period_order_count', 2)
+                ->where('summary.period', 'custom')
+                ->where('initialOrders.total', 2));
     }
 
     public function test_active_orders_are_prioritized_and_pos_sales_remain_in_history(): void
@@ -141,7 +179,7 @@ class OrderListFilterTest extends TestCase
         $this->get('/orders?status=action&date=today')
             ->assertOk()
             ->assertInertia(fn ($page) => $page
-                ->where('filters.date', '')
+                ->where('filters.period', 'all')
                 ->where('initialOrders.total', 1));
 
         $online->update(['order_status' => 'completed']);

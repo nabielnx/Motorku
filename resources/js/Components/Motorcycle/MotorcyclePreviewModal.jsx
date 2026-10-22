@@ -6,7 +6,7 @@ export default function MotorcyclePreviewModal({
 }) {
     return (
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-xs p-4 animate-in fade-in duration-150"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black p-4 animate-in fade-in duration-150"
             onClick={() => setPreviewMotor(null)}
         >
             <div
@@ -39,7 +39,7 @@ export default function MotorcyclePreviewModal({
                 </div>
 
                 {/* Modal Body: Large Image Display */}
-                <div className="p-6 bg-slate-50/70 dark:bg-slate-950/50 flex items-center justify-center min-h-[260px] max-h-[60vh] overflow-hidden">
+                <div className="p-6 bg-slate-50 dark:bg-slate-950 flex items-center justify-center min-h-[260px] max-h-[60vh] overflow-hidden">
                     <img
                         src={previewMotor.image_url}
                         alt={`${previewMotor.brand} ${previewMotor.model}`}

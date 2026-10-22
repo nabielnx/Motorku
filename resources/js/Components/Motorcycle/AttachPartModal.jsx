@@ -26,7 +26,7 @@ export default function AttachPartModal({
             </div>
 
             {partFormErrors.general && (
-                <div className="p-3 bg-red-50 dark:bg-red-950/60 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-xs rounded-md font-semibold flex items-center gap-2">
+                <div className="p-3 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-xs rounded-md font-semibold flex items-center gap-2">
                     <FiAlertCircle size={15} /> {partFormErrors.general}
                 </div>
             )}

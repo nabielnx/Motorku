@@ -7,6 +7,7 @@ import { toast, Toaster } from 'sonner';
 import { getTranslation } from '@/i18n/translations';
 import DashboardSkeleton from '@/Components/Skeletons/DashboardSkeleton';
 import OrderTableSkeleton from '@/Components/Skeletons/OrderTableSkeleton';
+import OrderShowSkeleton from '@/Components/Skeletons/OrderShowSkeleton';
 import ProductTableSkeleton from '@/Components/Skeletons/ProductTableSkeleton';
 import ReportSkeleton from '@/Components/Skeletons/ReportSkeleton';
 import UserTableSkeleton from '@/Components/Skeletons/UserTableSkeleton';
@@ -42,10 +43,17 @@ function getDestinationInfo(url, locale = 'id') {
     if (!url) return null;
     const destination = new URL(url, 'http://localhost');
     const path = destination.pathname;
-    if (path.startsWith('/orders')) {
+    if (path === '/orders' || path === '/orders/') {
         return {
             title: locale === 'en' ? 'Orders List' : 'Daftar Pesanan',
             component: <OrderTableSkeleton />,
+            noPadding: false,
+        };
+    }
+    if (path.startsWith('/orders/')) {
+        return {
+            title: locale === 'en' ? 'Order Detail' : 'Detail Pesanan',
+            component: <OrderShowSkeleton />,
             noPadding: false,
         };
     }
@@ -85,6 +93,39 @@ function getDestinationInfo(url, locale = 'id') {
             noPadding: true,
         };
     }
+    if (path.startsWith('/profile')) {
+        return {
+            title: locale === 'en' ? 'My Profile' : 'Pengaturan Profil',
+            component: (
+                <div className="py-2 sm:py-6 max-w-4xl mx-auto space-y-4 sm:space-y-6">
+                    <div className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl p-5 space-y-2">
+                        <Skeleton className="h-6 w-48" />
+                        <Skeleton className="h-3.5 w-72" />
+                    </div>
+                    <div className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl p-4 sm:p-6 space-y-4">
+                        <Skeleton className="h-5 w-36" />
+                        <div className="flex items-center gap-4">
+                            <Skeleton variant="circle" className="w-16 h-16 shrink-0" />
+                            <div className="space-y-2 flex-1"><Skeleton className="h-8 w-32 rounded-lg" /><Skeleton className="h-3 w-48" /></div>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="space-y-1.5"><Skeleton className="h-3 w-20" /><Skeleton className="h-10 w-full rounded-lg" /></div>
+                            <div className="space-y-1.5"><Skeleton className="h-3 w-20" /><Skeleton className="h-10 w-full rounded-lg" /></div>
+                        </div>
+                    </div>
+                    <div className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl p-4 sm:p-6 space-y-4">
+                        <Skeleton className="h-5 w-36" />
+                        <div className="space-y-3 max-w-md">
+                            <Skeleton className="h-10 w-full rounded-lg" />
+                            <Skeleton className="h-10 w-full rounded-lg" />
+                            <Skeleton className="h-10 w-full rounded-lg" />
+                        </div>
+                    </div>
+                </div>
+            ),
+            noPadding: false,
+        };
+    }
     if (path === '/dashboard' || path === '/') {
         return {
             title: locale === 'en' ? 'Dashboard' : 'Dashboard',
@@ -93,6 +134,11 @@ function getDestinationInfo(url, locale = 'id') {
         };
     }
     if (path.startsWith('/pos')) {
+        let posMode = 'list';
+        try {
+            const saved = localStorage.getItem('pos_view_mode');
+            if (saved === 'grid' || saved === 'book') posMode = saved;
+        } catch {}
         return {
             title: 'POS Kasir',
             component: (
@@ -109,7 +155,11 @@ function getDestinationInfo(url, locale = 'id') {
                                 <Skeleton className="h-7 w-28 shrink-0 rounded-lg" />
                             </div>
                         </div>
-                        <div className="flex-1 min-h-0 overflow-y-auto p-3"><PosCardSkeleton count={8} /></div>
+                        {posMode === 'book' ? (
+                            <ProductTableSkeleton viewMode="book" rows={24} />
+                        ) : (
+                            <div className="flex-1 min-h-0 overflow-y-auto p-3"><PosCardSkeleton count={8} mode={posMode} /></div>
+                        )}
                         <Skeleton className="mx-3 mb-3 h-12 rounded-xl md:hidden" />
                     </div>
                     <div className="hidden md:flex w-96 lg:w-[410px] bg-white dark:bg-slate-900 border-l border-slate-300 dark:border-slate-800 flex-col min-h-0 shrink-0">
@@ -351,7 +401,7 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
             {/* OVERLAY MOBILE */}
             {isSidebarOpen && (
                 <div 
-                    className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 lg:hidden transition-opacity"
+                    className="fixed inset-0 bg-slate-900 z-40 lg:hidden transition-opacity"
                     onClick={() => setIsSidebarOpen(false)}
                 ></div>
             )}
@@ -454,13 +504,13 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                         href={safeRoute('logout', '/logout')}
                         method="post"
                         as="button"
-                        className="w-full flex items-center gap-3 -mx-3 px-6 py-2 text-[13px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-red-50 dark:hover:bg-red-950/50 hover:text-red-600 dark:hover:text-red-400 transition-colors text-left"
+                        className="w-full flex items-center gap-3 -mx-3 px-6 py-2 text-[13px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-red-50 dark:hover:bg-red-950 hover:text-red-600 dark:hover:text-red-400 transition-colors text-left"
                     >
                         <FiLogOut size={17} className="text-slate-400 dark:text-slate-500" />
                         <span>{getTranslation(locale, 'logout', 'Keluar')}</span>
                     </Link>
 
-                    <div className="pt-2.5 mt-1.5 border-t border-slate-100/80 dark:border-slate-800 px-3 text-[10px] text-slate-400 dark:text-slate-500 space-y-1">
+                    <div className="pt-2.5 mt-1.5 border-t border-slate-100 dark:border-slate-800 px-3 text-[10px] text-slate-400 dark:text-slate-500 space-y-1">
                         <p className="font-semibold text-slate-500 dark:text-slate-400">© 2026 Motorku</p>
                         <div className="flex items-center gap-2 font-medium text-slate-400 dark:text-slate-500">
                             <a href="#privacy" className="hover:text-slate-600 dark:hover:text-slate-300 transition">{locale === 'en' ? 'Privacy Policy' : 'Kebijakan Privasi'}</a>

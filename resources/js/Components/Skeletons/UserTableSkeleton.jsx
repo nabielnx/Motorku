@@ -8,7 +8,7 @@ export default function UserTableSkeleton({ rows = 5, fullPage = false }) {
     const tableCard = (
         <div className="admin-surface bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden transition-colors" aria-busy="true" aria-label="Memuat daftar staf">
             {/* Filter Role Bar */}
-            <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-800 flex flex-wrap items-center gap-2">
+            <div className="admin-section-header px-4 py-3 border-b border-slate-200 dark:border-slate-800 flex flex-wrap items-center gap-2">
                 <Skeleton className="h-3 w-10 mr-1" />
                 <Skeleton className="h-7 w-16 rounded-md" />
                 <Skeleton className="h-7 w-16 rounded-md" />
@@ -28,16 +28,16 @@ export default function UserTableSkeleton({ rows = 5, fullPage = false }) {
                 </div>
                 <table className="hidden md:table w-full min-w-[640px] text-left">
                     <thead>
-                        <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-400 dark:text-slate-500 font-bold text-xs uppercase sticky top-0 z-10 bg-slate-50/60 dark:bg-slate-800/90">
-                            <th className="py-3.5 px-5 bg-slate-50/60 dark:bg-slate-800/90">Pegawai</th>
-                            <th className="py-3.5 px-5 bg-slate-50/60 dark:bg-slate-800/90">Role</th>
-                            <th className="py-3.5 px-5 bg-slate-50/60 dark:bg-slate-800/90">Status Akun</th>
-                            <th className="py-3.5 px-5 text-right bg-slate-50/60 dark:bg-slate-800/90">Aksi</th>
+                        <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-400 dark:text-slate-500 font-bold text-xs uppercase sticky top-0 z-10 bg-slate-50 dark:bg-slate-800">
+                            <th className="py-3.5 px-5 bg-slate-50 dark:bg-slate-800">Pegawai</th>
+                            <th className="py-3.5 px-5 bg-slate-50 dark:bg-slate-800">Role</th>
+                            <th className="py-3.5 px-5 bg-slate-50 dark:bg-slate-800">Status Akun</th>
+                            <th className="py-3.5 px-5 text-right bg-slate-50 dark:bg-slate-800">Aksi</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                         {Array.from({ length: rows }).map((_, i) => (
-                            <tr key={i} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/50 transition-colors">
+                            <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                                 {/* Pegawai: Avatar circle + Name + Email */}
                                 <td className="py-4 px-5">
                                     <div className="flex items-center gap-3">

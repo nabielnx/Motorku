@@ -6,7 +6,7 @@ import { Head, Link, router, usePage } from '@inertiajs/react';
 import useForceLightTheme from '@/Utils/useForceLightTheme';
 import MenuSkeleton from '@/Components/Skeletons/MenuSkeleton';
 import { getProductImage } from '@/Utils/productImage';
-import { FiSearch, FiPlus, FiMinus, FiShoppingCart, FiTrash2, FiArrowRight, FiCheck, FiChevronRight, FiX, FiMapPin, FiStar } from 'react-icons/fi';
+import { FiSearch, FiPlus, FiMinus, FiShoppingCart, FiTrash2, FiArrowRight, FiCheck, FiChevronRight, FiX, FiMapPin, FiStar, FiLogIn } from 'react-icons/fi';
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 import clsx from 'clsx';
 import { StoreHeader, MotorIcon, ProductPhoto } from '@/Components/Customer/Storefront';
@@ -328,7 +328,7 @@ export default function CustomerMenu({
                             <p className="text-xs sm:text-sm font-extrabold text-[#19231f] tracking-tight transition-colors truncate">
                                 Motor Saya
                             </p>
-                            <p className="mt-0.5 text-[10px] sm:text-[11.5px] text-slate-600/80 font-normal leading-snug">
+                            <p className="mt-0.5 text-[10px] sm:text-[11.5px] text-slate-600 font-normal leading-snug">
                                 Temukan suku cadang yang sesuai dengan motor Anda.
                             </p>
                         </div>
@@ -384,7 +384,7 @@ export default function CustomerMenu({
                                 const mainCat = categories.find(c => c.name === selectedMainCategory);
                                 if (mainCat && mainCat.children && mainCat.children.length > 0) {
                                     return (
-                                        <nav aria-label="Sub Kategori" className="no-scrollbar mt-3 flex gap-1.5 overflow-x-auto py-0.5 lg:flex-col lg:gap-1.5 lg:overflow-visible pl-0 lg:pl-3 border-l-0 lg:border-l-2 lg:border-[#19231f]/20">
+                                        <nav aria-label="Sub Kategori" className="no-scrollbar mt-3 flex gap-1.5 overflow-x-auto py-0.5 lg:flex-col lg:gap-1.5 lg:overflow-visible pl-0 lg:pl-3 border-l-0 lg:border-l-2 lg:border-[#19231f]">
                                             <button type="button" onClick={() => setSelectedSubCategory(null)}
                                                 aria-pressed={selectedSubCategory === null}
                                                 className={clsx('flex h-7 shrink-0 items-center justify-between gap-2 whitespace-nowrap rounded-full px-3 text-left text-[11px] transition-all shadow-2xs lg:h-auto lg:py-1.5 lg:px-3 lg:whitespace-normal lg:rounded-lg cursor-pointer',
@@ -412,7 +412,7 @@ export default function CustomerMenu({
                                 return null;
                             })()}
                             {whatsapp && (
-                                <div className="mt-6 hidden rounded-lg border border-slate-200/80 bg-white p-4 shadow-2xs lg:block">
+                                <div className="mt-6 hidden rounded-lg border border-slate-200 bg-white p-4 shadow-2xs lg:block">
                                     <p className="text-sm font-bold text-slate-900">Perlu bantuan?</p>
                                     <p className="mt-1 text-xs leading-relaxed text-slate-500">Tanyakan stok atau kecocokan sparepart kepada tim toko.</p>
                                     <a href={whatsapp} target="_blank" rel="noopener noreferrer"
@@ -459,7 +459,7 @@ export default function CustomerMenu({
                                 <ProgressiveProducts items={filteredMenu} renderCard={renderProductCard} grid />
                             )
                         ) : (
-                            <div className="rounded-lg border border-slate-200/80 bg-white px-5 py-14 text-center shadow-2xs">
+                            <div className="rounded-lg border border-slate-200 bg-white px-5 py-14 text-center shadow-2xs">
                                 <FiSearch size={28} strokeWidth={1.5} className="mx-auto mb-3 text-slate-300" aria-hidden="true" />
                                 <h2 className="text-base font-bold text-slate-900">{menuItems.length ? 'Produk tidak ditemukan' : 'Katalog sedang disiapkan'}</h2>
                                 <p className="mx-auto mt-1 max-w-sm text-xs leading-relaxed text-slate-500">
@@ -471,17 +471,18 @@ export default function CustomerMenu({
                     </main>
                 </div>
 
-                <footer className="mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-slate-200/80 pt-5 text-xs text-slate-500">
+                <footer className="mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-slate-200 pt-5 text-xs text-slate-500">
                     <span className="flex items-center gap-2"><FiMapPin size={14} aria-hidden="true" />Pesanan diambil langsung di toko.</span>
                     {whatsapp && <a href={whatsapp} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-9 items-center gap-2 font-medium underline underline-offset-4 hover:text-slate-800"><FaWhatsapp size={15} aria-hidden="true" />Hubungi toko</a>}
+                    <Link href={route('login')} className="inline-flex min-h-9 items-center gap-2 font-medium underline underline-offset-4 hover:text-slate-800"><FiLogIn size={14} aria-hidden="true" />Login staf</Link>
                 </footer>
             </div>
 
             {cart.length > 0 && (
-                <div className="customer-cart-bar fixed inset-x-0 bottom-0 z-40 border-t border-slate-200/80 bg-white/95 backdrop-blur-md shadow-lg">
+                <div className="customer-cart-bar fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white shadow-lg">
                     <div className="mx-auto flex max-w-[1280px] items-center justify-between gap-4 px-4 py-2 sm:px-6 lg:px-8">
                         <button type="button" onClick={() => setShowCart(true)} className="flex min-h-9 sm:min-h-10 items-center gap-3 text-left cursor-pointer" aria-label="Lihat rincian keranjang">
-                            <div className="relative flex items-center justify-center text-[#19231f] bg-[#19231f]/10 p-2 rounded-xl">
+                            <div className="relative flex items-center justify-center text-[#19231f] bg-slate-100 p-2 rounded-xl">
                                 <FiShoppingCart size={18} strokeWidth={2.2} aria-hidden="true" />
                                 <span className="absolute -top-1.5 -right-1.5 bg-[#FFDD00] text-[#19231f] text-[10px] w-4 h-4 rounded-full font-bold flex items-center justify-center shadow-xs">
                                     {totalQty}
@@ -501,10 +502,10 @@ export default function CustomerMenu({
             )}
 
             <Dialog open={showCart} onClose={() => setShowCart(false)} className="customer-storefront relative z-50">
-                <div className="fixed inset-0 bg-black/40 backdrop-blur-2xs" aria-hidden="true" />
+                <div className="fixed inset-0 bg-slate-900" aria-hidden="true" />
                 <div className="fixed inset-0 flex justify-end">
                     <DialogPanel className="flex h-full w-full max-w-md flex-col bg-white text-slate-900 shadow-2xl">
-                        <div className="flex items-center justify-between border-b border-slate-200/80 px-5 py-3.5 sm:px-6">
+                        <div className="flex items-center justify-between border-b border-slate-200 px-5 py-3.5 sm:px-6">
                             <DialogTitle className="text-base sm:text-lg font-bold text-slate-900">Keranjang <span className="ml-1 text-sm font-normal text-slate-500">({totalQty})</span></DialogTitle>
                             <div className="flex items-center gap-2">
                                 {cart.length > 0 && (
@@ -553,7 +554,7 @@ export default function CustomerMenu({
                             )}
                         </div>
                         {cart.length > 0 && (
-                            <div className="customer-cart-bar border-t border-slate-200/80 bg-slate-50 p-4 sm:p-5">
+                            <div className="customer-cart-bar border-t border-slate-200 bg-slate-50 p-4 sm:p-5">
                                 <dl className="space-y-1.5 text-xs sm:text-sm">
                                     <div className="flex justify-between text-slate-500"><dt>Subtotal</dt><dd className="font-semibold text-slate-900">{formatRp(subtotal)}</dd></div>
                                     {taxEnabled && <div className="flex justify-between text-slate-500"><dt>Pajak ({Math.round(taxRate * 100)}%)</dt><dd className="font-semibold text-slate-900">{formatRp(tax)}</dd></div>}
@@ -571,13 +572,13 @@ export default function CustomerMenu({
             </Dialog>
 
             <Dialog open={!!selectedDetailProduct} onClose={() => setSelectedDetailProduct(null)} className="customer-storefront relative z-50">
-                <div className="fixed inset-0 bg-black/40 backdrop-blur-2xs" aria-hidden="true" />
+                <div className="fixed inset-0 bg-slate-900" aria-hidden="true" />
                 <div className="fixed inset-0 overflow-y-auto">
                     <div className="flex min-h-full items-center justify-center p-3 sm:p-6">
                         {selectedDetailProduct && (
                             <DialogPanel className="store-detail-panel relative w-full max-w-[760px] overflow-hidden rounded-lg bg-white text-slate-900">
                                 <button type="button" onClick={() => setSelectedDetailProduct(null)}
-                                    className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white/90 backdrop-blur-xs text-slate-600 hover:text-slate-900 transition-colors shadow-2xs cursor-pointer"
+                                    className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 hover:text-slate-900 transition-colors shadow-2xs cursor-pointer"
                                     aria-label="Tutup detail produk"><FiX size={17} /></button>
                                 <div className="grid sm:grid-cols-2">
                                     <ProductPhoto fit="contain" src={selectedDetailProduct.image} name={selectedDetailProduct.name} category={selectedDetailProduct.category}
@@ -612,7 +613,7 @@ export default function CustomerMenu({
                                         </div>
                                     </div>
                                 </div>
-                                <div className="border-t border-slate-100 px-5 py-4.5 sm:px-7 bg-slate-50/50">
+                                <div className="border-t border-slate-100 px-5 py-4.5 sm:px-7 bg-slate-50">
                                     <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">Kecocokan motor</h3>
                                     {selectedDetailProduct.motorcycles.length > 0 ? (
                                         <ul className="mt-3 grid max-h-36 gap-2 overflow-y-auto text-sm text-slate-700 sm:grid-cols-2">
@@ -629,7 +630,7 @@ export default function CustomerMenu({
                                         <p className="mt-2 text-xs leading-relaxed text-slate-400">Produk ini bersifat Universal (cocok untuk berbagai motor) atau informasi kecocokan spesifik belum tersedia di sistem.</p>
                                     )}
                                 </div>
-                                <div className="flex flex-wrap items-center gap-3 border-t border-slate-200/80 bg-slate-50 px-5 py-4 sm:px-7">
+                                <div className="flex flex-wrap items-center gap-3 border-t border-slate-200 bg-slate-50 px-5 py-4 sm:px-7">
                                     <div className="flex h-10 items-center rounded-xl border border-slate-200 bg-white">
                                         <button type="button" onClick={() => setDetailQty(q => Math.max(1, q - 1))} disabled={selectedDetailProduct.stock <= 0}
                                             className="flex h-10 w-9 items-center justify-center text-slate-600 hover:bg-slate-50 rounded-l-xl disabled:opacity-30 transition-colors cursor-pointer" aria-label="Kurangi jumlah"><FiMinus size={13} /></button>

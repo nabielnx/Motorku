@@ -19,3 +19,24 @@ export function reportPeriods(today) {
         { label: 'Bulan Lalu', start: fmt(new Date(Date.UTC(year, month - 1, 1))), end: fmt(new Date(Date.UTC(year, month, 0))) },
     ];
 }
+
+export function dashboardDateRange(period, today) {
+    const date = new Date(`${today}T12:00:00Z`);
+    const year = date.getUTCFullYear();
+    const month = date.getUTCMonth();
+    const fmt = value => value.toISOString().slice(0, 10);
+    const subtractDays = days => {
+        const value = new Date(date);
+        value.setUTCDate(value.getUTCDate() - days);
+        return fmt(value);
+    };
+
+    switch (period) {
+        case 'today': return { start: today, end: today };
+        case '7_days': return { start: subtractDays(6), end: today };
+        case '30_days': return { start: subtractDays(29), end: today };
+        case 'this_year': return { start: `${year}-01-01`, end: today };
+        case 'this_month':
+        default: return { start: `${today.slice(0, 7)}-01`, end: today };
+    }
+}

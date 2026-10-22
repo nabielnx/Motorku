@@ -6,7 +6,7 @@ const DEFAULT_BRAND = {
 
 const HONDA_BRAND = {
     ...DEFAULT_BRAND,
-    badge: "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/60 dark:text-red-300 dark:border-red-900/60 font-bold",
+    badge: "bg-red-50 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-300 dark:border-red-900 font-bold",
 };
 
 export const getBrandConfig = brand => brand === 'Honda' ? HONDA_BRAND : DEFAULT_BRAND;

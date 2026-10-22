@@ -32,7 +32,7 @@ export function ProductPhoto({ src, name, category, className = '', compact = fa
     const { Icon, label } = categoryVisual(category || name);
 
     return (
-        <div className={clsx('product-photo relative flex items-center justify-center overflow-hidden bg-slate-50/80 shrink-0', className)}>
+        <div className={clsx('product-photo relative flex items-center justify-center overflow-hidden bg-slate-50 shrink-0', className)}>
             {src && !failed ? (
                 <img src={src} alt={name} loading="lazy" decoding="async"
                     onError={() => setFailed(true)}

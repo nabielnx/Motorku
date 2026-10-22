@@ -8,6 +8,14 @@ import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createRoot } from 'react-dom/client';
 import { prepareProductVisit } from './Utils/productPagination';
 
+if ('serviceWorker' in navigator && window.location.protocol === 'https:') {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js').catch((error) => {
+            console.error('Motorku service worker registration failed:', error);
+        });
+    }, { once: true });
+}
+
 router.on('before', (event) => {
     let viewMode = 'list';
     try { viewMode = localStorage.getItem('product_view_mode_v2') || 'list'; } catch {}
@@ -41,6 +49,6 @@ createInertiaApp({
         root.render(<App {...props} />);
     },
     progress: {
-        color: '#2563eb', // blue-600
+        color: '#FFDD00', // Accent Yellow (Workshop Ledger)
     },
 });
