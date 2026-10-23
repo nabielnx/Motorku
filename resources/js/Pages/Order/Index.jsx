@@ -3,28 +3,20 @@ import MoneyInput from '@/Components/MoneyInput';
 import React, { useEffect, useState, useRef } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import OrderTableSkeleton from '@/Components/Skeletons/OrderTableSkeleton';
-import MaskedCurrency from '@/Components/MaskedCurrency';
+import OrderToolbar from '@/Components/Orders/OrderToolbar';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import { toast } from 'sonner';
-import DateRangePicker from '@/Components/DateRangePicker';
-import PeriodSelectDropdown from '@/Components/PeriodSelectDropdown';
 import { 
-    FiSearch, 
     FiEye, 
     FiEdit2, 
     FiPrinter, 
-    FiRefreshCw, 
     FiChevronLeft, 
     FiChevronRight,
     FiClock, 
     FiCheckCircle, 
     FiAlertCircle, 
     FiXCircle,
-    FiCalendar,
-    FiFilter,
-    FiEyeOff,
-    FiChevronDown
 } from 'react-icons/fi';
 
 export default function OrderIndex({ initialOrders = {}, summary = {}, filters = {} }) {
@@ -50,8 +42,6 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
     const { auth, app_settings, summary: sharedSummary } = usePage().props;
     const locale = app_settings?.locale || 'id';
     const userName = auth?.user?.name || 'Kasir';
-    // auth.roles is a flat string array (e.g. ['owner']) shared by HandleInertiaRequests
-    const userRole = (auth?.roles ?? []).includes('owner') ? 'Owner' : 'Kasir';
 
     const extractPaginator = (data) => {
         if (data && typeof data === 'object' && !Array.isArray(data) && Array.isArray(data.data)) {
@@ -71,7 +61,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
     const [searchQuery, setSearchQuery] = useState(filters.search || '');
     const [paymentOrder, setPaymentOrder] = useState(null);
     const [isRevenueVisible, setIsRevenueVisible] = useState(false);
-    const [showMobileDateFilters, setShowMobileDateFilters] = useState(false);
+    const [showDateFilters, setShowDateFilters] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState('cash');
     const [amountReceived, setAmountReceived] = useState('');
     const [isProcessingPayment, setIsProcessingPayment] = useState(false);
@@ -163,7 +153,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
     const handlePeriodChange = (newPeriod) => {
         if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
         periodFilterRef.current = newPeriod;
-        setShowMobileDateFilters(false);
+        setShowDateFilters(false);
         router.get('/orders', {
             page: 1,
             status: statusFilter,
@@ -175,7 +165,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
     const handleApplyDateRange = (start, end) => {
         if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
         periodFilterRef.current = 'custom';
-        setShowMobileDateFilters(false);
+        setShowDateFilters(false);
         startDateRef.current = start;
         endDateRef.current = end;
         setStartDate(start);
@@ -312,8 +302,6 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
         };
     };
 
-    const statuses = ['action', 'All'];
-    const statusLabel = (status) => status === 'action' ? 'Perlu Ditangani' : 'Semua Transaksi';
 
     const PENDING_BUCKET = ['pending'];
     const PROCESSING_BUCKET = ['preparing', 'processing'];
@@ -455,18 +443,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
         return null;
     };
 
-    const cleanUserName = (auth?.user?.name || 'Kasir').replace(/\s*\(.*?\)/g, '');
     const revenueText = formatRp(periodOrderValue);
-    const renderRevenueValue = () => (
-        <MaskedCurrency
-            as="strong"
-            text={revenueText}
-            visible={isRevenueVisible}
-            maskGroupingSeparators
-            className="relative text-sm text-primaryDark dark:text-white"
-        />
-    );
-
     const skeletonParam = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('skeleton') : null;
 
     return (
@@ -475,238 +452,34 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                 <meta name="description" content="Kelola dan pantau seluruh daftar pesanan pelanggan Motorku secara real-time." />
             </Head>
 
-            {(isNavigating || skeletonParam) ? (
+            {skeletonParam ? (
                 <OrderTableSkeleton />
             ) : (
-            <div className="mx-auto w-full max-w-[1440px] space-y-3 p-2 sm:space-y-4 sm:px-5 sm:pb-5 sm:pt-0">
-
-                {/* Mini Ledger KPI Summary Card */}
-                <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-3 sm:px-4 sm:py-3.5 shadow-2xs">
-                    {/* Mobile View (< sm) */}
-                    <div className="sm:hidden space-y-2.5">
-                        <div className="flex items-center justify-between gap-3">
-                            <div className="min-w-0">
-                                <span className="block truncate text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                                    {summaryPeriodLabel}
-                                </span>
-                                <div className="text-base font-heading font-extrabold text-primaryDark dark:text-white">
-                                    {periodOrderCount} <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">pesanan</span>
-                                </div>
-                            </div>
-                            <div className="text-right shrink-0">
-                                <div className="flex items-center justify-end gap-1">
-                                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                                        Pendapatan
-                                    </span>
-                                    <button
-                                        type="button"
-                                        onClick={() => setIsRevenueVisible((visible) => !visible)}
-                                        aria-label={isRevenueVisible ? 'Sembunyikan pendapatan' : 'Tampilkan pendapatan'}
-                                        title={isRevenueVisible ? 'Sembunyikan pendapatan' : 'Tampilkan pendapatan'}
-                                        className="flex h-5 w-5 items-center justify-center rounded text-slate-500 hover:text-primaryDark hover:bg-slate-100 dark:text-accentYellow dark:hover:bg-slate-800 transition-colors"
-                                    >
-                                        {isRevenueVisible ? <FiEye size={13} /> : <FiEyeOff size={13} />}
-                                    </button>
-                                </div>
-                                <div className="font-heading font-extrabold text-primaryDark dark:text-white text-right">
-                                    {renderRevenueValue()}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-2 text-xs">
-                            <span className="text-slate-500 dark:text-slate-400 font-medium">Antrean Perlu Ditangani</span>
-                            {activeCount > 0 ? (
-                                <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 dark:bg-amber-950 px-2.5 py-0.5 text-xs font-bold text-amber-900 dark:text-amber-300 border border-amber-300 dark:border-amber-800">
-                                    <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
-                                    {activeCount} pesanan
-                                </span>
-                            ) : (
-                                <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 text-xs font-semibold text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700">
-                                    0 pesanan
-                                </span>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Desktop View (>= sm) */}
-                    <div className="hidden sm:grid sm:grid-cols-3 sm:divide-x sm:divide-slate-200 dark:sm:divide-slate-800">
-                        {/* Col 1: Periode & Total Pesanan */}
-                        <div className="pr-4">
-                            <span className="block truncate text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                                {summaryPeriodLabel}
-                            </span>
-                            <div className="mt-1 text-lg font-heading font-extrabold text-primaryDark dark:text-white">
-                                {periodOrderCount} <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">pesanan</span>
-                            </div>
-                        </div>
-
-                        {/* Col 2: Total Pendapatan + Toggle */}
-                        <div className="px-4">
-                            <div className="flex items-center justify-between gap-1">
-                                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                                    Total Pendapatan
-                                </span>
-                                <button
-                                    type="button"
-                                    onClick={() => setIsRevenueVisible((visible) => !visible)}
-                                    aria-label={isRevenueVisible ? 'Sembunyikan pendapatan' : 'Tampilkan pendapatan'}
-                                    title={isRevenueVisible ? 'Sembunyikan pendapatan' : 'Tampilkan pendapatan'}
-                                    className="flex h-6 w-6 items-center justify-center rounded text-slate-500 hover:text-primaryDark hover:bg-slate-100 dark:text-accentYellow dark:hover:bg-slate-800 transition-colors"
-                                >
-                                    {isRevenueVisible ? <FiEye size={14} /> : <FiEyeOff size={14} />}
-                                </button>
-                            </div>
-                            <div className="mt-1 font-heading font-extrabold text-primaryDark dark:text-white">
-                                {renderRevenueValue()}
-                            </div>
-                        </div>
-
-                        {/* Col 3: Status Penanganan */}
-                        <div className="pl-4">
-                            <span className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                                Status Penanganan
-                            </span>
-                            <div className="mt-1 flex items-center gap-2">
-                                <span className="text-lg font-heading font-extrabold text-primaryDark dark:text-white">
-                                    {activeCount}
-                                </span>
-                                {activeCount > 0 ? (
-                                    <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 dark:bg-amber-950 px-2.5 py-0.5 text-xs font-bold text-amber-900 dark:text-amber-300 border border-amber-300 dark:border-amber-800">
-                                        <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
-                                        Perlu ditangani
-                                    </span>
-                                ) : (
-                                    <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 text-xs font-semibold text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700">
-                                        Semua selesai
-                                    </span>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Main Transaction Panel */}
-                <div className="bg-white dark:bg-slate-900 rounded-xl shadow-2xs border border-slate-200 dark:border-slate-800 overflow-hidden transition-colors">
-
-                    {/* Unified Control Bar */}
-                    <div className="p-3 sm:p-4 border-b border-slate-200 dark:border-slate-800 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-2 sm:gap-3 sm:bg-slate-50 dark:sm:bg-slate-800">
-                        <div className="flex w-full items-center justify-between gap-2 lg:w-auto">
-                            <h3 className="text-sm sm:text-base font-black text-primaryDark dark:text-white shrink-0">Pesanan</h3>
-                            <button type="button" onClick={refreshOrders} aria-label="Muat ulang pesanan" title="Muat ulang pesanan" className="rounded-md p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white">
-                                <FiRefreshCw size={15} />
-                            </button>
-                        </div>
-
-                        <div className="flex w-full flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2 lg:w-auto">
-                            {/* Filter Tabs (Desktop) */}
-                            <div className="hidden sm:flex min-w-0 max-w-full items-center gap-1 overflow-x-auto no-scrollbar">
-                                {statuses.map(s => {
-                                    const isActive = statusFilter === s;
-                                    const label = statusLabel(s);
-                                    return (
-                                        <button
-                                            key={s}
-                                            onClick={() => handleFilterChange(s)}
-                                            className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap ${
-                                                isActive 
-                                                    ? 'bg-primary text-white shadow-2xs'
-                                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-                                            }`}
-                                        >
-                                            {label}
-                                        </button>
-                                    );
-                                })}
-                            </div>
-
-                            {/* Search Input */}
-                            <div className="relative order-first w-full min-w-0 sm:order-none sm:w-64 lg:w-72">
-                                <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" size={15} />
-                                <input
-                                    id="order-search-input"
-                                    type="text"
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    placeholder="Cari nomor, pelanggan, atau barang..."
-                                    className="w-full h-9 min-w-0 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl pl-9 pr-3 text-xs text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-slate-400 dark:focus:border-slate-500 transition-all"
-                                />
-                            </div>
-
-                            {/* Mobile Filters Row */}
-                            <div className="flex w-full items-center gap-2 sm:hidden">
-                                <div className="relative flex-1 min-w-0">
-                                    <FiFilter className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-accentYellow" size={13} />
-                                    <select
-                                        value={statusFilter}
-                                        onChange={(e) => handleFilterChange(e.target.value)}
-                                        aria-label="Filter status pesanan"
-                                        className="w-full h-9 appearance-none rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 pl-8 pr-7 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:border-slate-400 dark:focus:border-slate-500 transition-colors"
-                                    >
-                                        {statuses.map(s => <option key={s} value={s}>{statusLabel(s)}</option>)}
-                                    </select>
-                                    <FiChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
-                                </div>
-
-                                {statusFilter === 'All' && (
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowMobileDateFilters((visible) => !visible)}
-                                        aria-expanded={showMobileDateFilters}
-                                        aria-label={showMobileDateFilters ? 'Tutup filter tanggal' : 'Tampilkan filter tanggal'}
-                                        className="flex-1 min-w-0 h-9 flex items-center justify-between gap-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 transition-colors"
-                                    >
-                                        <span className="flex min-w-0 items-center gap-1.5 truncate">
-                                            <FiCalendar className="shrink-0 text-accentYellow" size={13} />
-                                            <span className="truncate">{periodFilter === 'custom' ? 'Rentang khusus' : summaryPeriodLabel}</span>
-                                        </span>
-                                        <FiChevronDown className={`shrink-0 text-slate-400 transition-transform ${showMobileDateFilters ? 'rotate-180' : ''}`} size={14} />
-                                    </button>
-                                )}
-                            </div>
-
-                            {statusFilter === 'All' && (
-                                <>
-                                    {showMobileDateFilters && (
-                                        <div className="grid w-full grid-cols-2 gap-2 sm:hidden pt-0.5">
-                                            <PeriodSelectDropdown
-                                                value={periodFilter === 'custom' ? '' : periodFilter}
-                                                onChange={handlePeriodChange}
-                                                includeAll
-                                                fullWidth
-                                            />
-                                            <DateRangePicker
-                                                initialStart={startDate}
-                                                initialEnd={endDate}
-                                                activePeriod={periodFilter}
-                                                fullWidth
-                                                onApply={handleApplyDateRange}
-                                            />
-                                        </div>
-                                    )}
-
-                                    <div className="hidden min-w-0 sm:grid sm:w-[26rem] sm:max-w-full sm:grid-cols-2 sm:items-center sm:gap-2">
-                                        <PeriodSelectDropdown
-                                            value={periodFilter === 'custom' ? '' : periodFilter}
-                                            onChange={handlePeriodChange}
-                                            includeAll
-                                            fullWidth
-                                        />
-                                        <DateRangePicker
-                                            initialStart={startDate}
-                                            initialEnd={endDate}
-                                            activePeriod={periodFilter}
-                                            fullWidth
-                                            onApply={handleApplyDateRange}
-                                        />
-                                    </div>
-                                </>
-                            )}
-                        </div>
-                    </div>
-
+            <div className="mx-auto w-full max-w-[1440px] space-y-4">
+                <OrderToolbar
+                    periodLabel={summaryPeriodLabel}
+                    orderCount={periodOrderCount}
+                    revenueText={revenueText}
+                    revenueVisible={isRevenueVisible}
+                    onToggleRevenue={() => setIsRevenueVisible(visible => !visible)}
+                    activeCount={activeCount}
+                    status={statusFilter}
+                    onStatusChange={handleFilterChange}
+                    search={searchQuery}
+                    onSearchChange={setSearchQuery}
+                    onRefresh={refreshOrders}
+                    refreshing={isNavigating}
+                    period={periodFilter}
+                    startDate={startDate}
+                    endDate={endDate}
+                    datesOpen={showDateFilters}
+                    onToggleDates={() => setShowDateFilters(visible => !visible)}
+                    onPeriodChange={handlePeriodChange}
+                    onDateRangeApply={handleApplyDateRange}
+                />
+                <div aria-busy={isNavigating} className="order-results xl:overflow-hidden xl:rounded-xl xl:border xl:border-slate-200 dark:xl:border-slate-800">
                     {/* Mobile order list */}
-                    <div className="sm:hidden divide-y divide-slate-100 dark:divide-slate-800">
+                    <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:hidden">
                         {pageOrders.map(order => {
                             if (!order) return null;
                             const display = getStatusDisplay(order.status, order.payment_status, Number(order.returned_amount || 0));
@@ -715,8 +488,8 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                             const orderId = order.real_id || order.id;
 
                             return (
-                                <article key={orderId} className="relative px-3 py-3 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800">
-                                    <Link href={`/orders/${orderId}`} aria-label={`Lihat detail pesanan ${order.id}`} className="absolute inset-0 z-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-blue-600" />
+                                <article key={orderId} className="order-card relative min-w-0 rounded-xl border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
+                                    <Link href={`/orders/${orderId}`} aria-label={`Lihat detail pesanan ${order.id}`} className="absolute inset-0 z-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] rounded-xl focus-visible:outline-primary" />
                                     <div className="flex items-start justify-between gap-3">
                                         <div className="min-w-0">
                                             <p className="truncate font-mono text-xs font-bold text-primaryDark dark:text-blue-300">{order.id}</p>
@@ -739,16 +512,16 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                                         </span>
                                         {display.secondary && <span className={`rounded-md px-1.5 py-0.5 text-[10px] font-bold ${display.secondary.color}`}>{display.secondary.label}</span>}
                                     </div>
-                                    <div className="mt-2 flex items-center justify-end gap-2 border-t border-slate-100 dark:border-slate-800 pt-2 text-xs font-bold">
+                                    <div className="mt-3 flex flex-wrap items-center justify-end gap-2 border-t border-slate-100 dark:border-slate-800 pt-2 text-xs font-bold">
                                         <span className="mr-auto text-slate-600 dark:text-slate-300">Metode: {paymentMethodLabel(order.payment_method)}</span>
                                         <div className="relative z-20 flex items-center gap-2">
                                             {order.payment_status === 'unpaid' && order.status !== 'cancelled' && (
-                                                <button type="button" onClick={() => openPayment(order)} className="rounded-md bg-accentYellow px-2.5 py-1.5 text-primaryDark font-bold">Konfirmasi Bayar</button>
+                                                <button type="button" onClick={() => openPayment(order)} className="min-h-10 rounded-md bg-accentYellow px-2.5 py-2 text-primaryDark font-bold">Konfirmasi Bayar</button>
                                             )}
                                             {order.payment_status === 'paid' && nextAction && (
-                                                <button type="button" onClick={() => handleUpdateStatus(order, nextAction.nextStatus)} disabled={updatingStatusId === orderId} className="rounded-md bg-primary px-2.5 py-1.5 text-white disabled:opacity-50">{nextAction.label}</button>
+                                                <button type="button" onClick={() => handleUpdateStatus(order, nextAction.nextStatus)} disabled={updatingStatusId === orderId} className="min-h-10 rounded-md bg-primary px-2.5 py-2 text-white disabled:bg-slate-600">{nextAction.label}</button>
                                             )}
-                                            <button type="button" onClick={() => handlePrintOrder(order)} disabled={isPrintingId === orderId} aria-label={`Cetak struk ${order.id}`} className="p-1.5 text-slate-500 dark:text-slate-400 disabled:opacity-50">
+                                            <button type="button" onClick={() => handlePrintOrder(order)} disabled={isPrintingId === orderId} aria-label={`Cetak struk ${order.id}`} className="flex h-10 w-10 items-center justify-center rounded-md text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 disabled:text-slate-400">
                                                 <FiPrinter size={16} />
                                             </button>
                                         </div>
@@ -756,11 +529,11 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                                 </article>
                             );
                         })}
-                        {pageOrders.length === 0 && <p className="px-3 py-10 text-center text-sm text-slate-500 dark:text-slate-400">{statusFilter === 'action' ? 'Belum ada pesanan yang perlu ditangani.' : 'Tidak ada transaksi yang sesuai.'}</p>}
+                        {pageOrders.length === 0 && <p className="col-span-full rounded-xl border border-slate-200 bg-white px-3 py-10 text-center text-sm text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">{statusFilter === 'action' ? 'Belum ada pesanan yang perlu ditangani.' : 'Tidak ada transaksi yang sesuai.'}</p>}
                     </div>
 
                     {/* Desktop data table */}
-                    <div className="hidden sm:block overflow-x-auto overflow-y-auto max-h-[calc(100vh-380px)] no-scrollbar">
+                    <div className="hidden max-h-[calc(100dvh-340px)] overflow-auto xl:block">
                         <table className="w-full min-w-[840px] table-fixed text-left border-collapse">
                             <colgroup>
                                 <col className="w-[21%]" />
@@ -773,13 +546,13 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                             </colgroup>
                             <thead>
                                 <tr className="bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-800 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider sticky top-0 z-10">
-                                    <th className="px-3.5 py-2.5">PESANAN</th>
-                                    <th className="px-3.5 py-2.5">PELANGGAN</th>
-                                    <th className="px-3.5 py-2.5 text-center">ITEM</th>
-                                    <th className="px-3.5 py-2.5 text-right">TOTAL</th>
-                                    <th className="px-3.5 py-2.5 text-center">STATUS</th>
-                                    <th className="px-3.5 py-2.5 text-center">METODE PEMBAYARAN</th>
-                                    <th className="px-3.5 py-2.5 text-center">AKSI</th>
+                                    <th className="px-3.5 py-3.5">PESANAN</th>
+                                    <th className="px-3.5 py-3.5">PELANGGAN</th>
+                                    <th className="px-3.5 py-3.5 text-center">ITEM</th>
+                                    <th className="px-3.5 py-3.5 text-right">TOTAL</th>
+                                    <th className="px-3.5 py-3.5 text-center">STATUS</th>
+                                    <th className="px-3.5 py-3.5 text-center">METODE PEMBAYARAN</th>
+                                    <th className="px-3.5 py-3.5 text-center">AKSI</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-200 dark:divide-slate-800 border-b border-slate-200 dark:border-slate-800">
@@ -790,27 +563,27 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                                     return (
                                         <tr key={order.id} className="hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                                             {/* ID and time */}
-                                            <td className="px-3.5 py-2.5">
+                                            <td className="px-3.5 py-3.5">
                                                 <span className="block whitespace-nowrap font-mono text-xs font-bold text-slate-700 dark:text-slate-300">{order.id}</span>
                                                 <span className="mt-0.5 block whitespace-nowrap text-[11px] text-slate-500 dark:text-slate-400">{order.channel} · {order.date} · {order.time}</span>
                                             </td>
 
                                             {/* PELANGGAN */}
-                                            <td className="break-words px-3.5 py-2.5 text-xs font-bold text-slate-800 dark:text-slate-200">
+                                            <td className="break-words px-3.5 py-3.5 text-xs font-bold text-slate-800 dark:text-slate-200">
                                                 {order.customer}
                                                 {order.matching_item && <span className="mt-0.5 block truncate text-[11px] font-medium text-blue-700 dark:text-blue-300">Barang: {order.matching_item}</span>}
                                             </td>
 
                                             {/* JUMLAH ITEM */}
-                                            <td className="whitespace-nowrap px-3.5 py-2.5 text-center text-xs font-bold text-slate-700 dark:text-slate-300">{order.items} item</td>
+                                            <td className="whitespace-nowrap px-3.5 py-3.5 text-center text-xs font-bold text-slate-700 dark:text-slate-300">{order.items} item</td>
 
                                             {/* TOTAL TAGIHAN */}
-                                            <td className="whitespace-nowrap px-3.5 py-2.5 text-right font-black text-slate-900 dark:text-white text-xs">
+                                            <td className="whitespace-nowrap px-3.5 py-3.5 text-right font-black text-slate-900 dark:text-white text-xs">
                                                 {formatRp(order.total)}
                                             </td>
 
                                              {/* STATUS PESANAN */}
-                                             <td className="px-3.5 py-2.5">
+                                             <td className="px-3.5 py-3.5">
                                                  {(() => {
                                                      const display = getStatusDisplay(order.status, order.payment_status, Number(order.returned_amount || 0));
                                                      const PrimaryIcon = display.primary.icon;
@@ -831,11 +604,11 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                                              </td>
 
                                             {/* METODE PEMBAYARAN */}
-                                            <td className="px-3.5 py-2.5 text-center text-xs font-bold text-slate-700 dark:text-slate-300">
+                                            <td className="px-3.5 py-3.5 text-center text-xs font-bold text-slate-700 dark:text-slate-300">
                                                 {paymentMethodLabel(order.payment_method)}
                                             </td>
                                             {/* AKSI */}
-                                            <td className="px-3.5 py-2.5">
+                                            <td className="px-3.5 py-3.5">
                                                 <div className="flex flex-wrap items-center justify-center gap-1">
                                                     {/* Highlighted Konfirmasi Pembayaran Button for Unpaid Orders */}
                                                     {order.payment_status === 'unpaid' && order.status !== 'cancelled' && (
@@ -895,7 +668,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                     </div>
 
                     {/* Standardized Table Pagination Footer */}
-                    <div className="p-2.5 sm:p-4 bg-slate-50 dark:bg-slate-800 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2 text-xs font-semibold text-slate-600 dark:text-slate-400">
+                    <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white p-3 text-xs font-semibold text-slate-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400 xl:mt-0 xl:rounded-none xl:border-0 xl:border-t">
                         <span className="min-w-0">
                             <span className="sm:hidden">{totalItems > 0 ? `${(currentPage - 1) * perPage + 1}–${Math.min(currentPage * perPage, totalItems)}` : '0'} / {totalItems}</span>
                             <span className="hidden sm:inline">{totalItems > 0 ? `${(currentPage - 1) * perPage + 1}–${Math.min(currentPage * perPage, totalItems)}` : '0'} dari {totalItems} pesanan</span>
@@ -906,7 +679,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                                 onClick={() => changePage(currentPage - 1)}
                                 disabled={currentPage <= 1}
                                 aria-label="Halaman sebelumnya"
-                                className="p-1.5 sm:px-3.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 disabled:hover:bg-white border border-slate-300 dark:border-slate-700 rounded-lg font-bold text-slate-700 dark:text-slate-200 transition flex items-center gap-1 sm:shadow-2xs text-xs"
+                                className="flex min-h-10 min-w-10 justify-center p-2 sm:px-3.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:bg-slate-100 disabled:text-slate-400 border border-slate-300 dark:border-slate-700 rounded-lg font-bold text-slate-700 dark:text-slate-200 transition-colors items-center gap-1 text-xs"
                             >
                                 <FiChevronLeft size={14} strokeWidth={2.5} />
                                 <span className="hidden sm:inline">Sebelumnya</span>
@@ -920,7 +693,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                                 onClick={() => changePage(currentPage + 1)}
                                 disabled={currentPage >= totalPages}
                                 aria-label="Halaman selanjutnya"
-                                className="p-1.5 sm:px-3.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 disabled:hover:bg-white border border-slate-300 dark:border-slate-700 rounded-lg font-bold text-slate-700 dark:text-slate-200 transition flex items-center gap-1 sm:shadow-2xs text-xs"
+                                className="flex min-h-10 min-w-10 justify-center p-2 sm:px-3.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:bg-slate-100 disabled:text-slate-400 border border-slate-300 dark:border-slate-700 rounded-lg font-bold text-slate-700 dark:text-slate-200 transition-colors items-center gap-1 text-xs"
                             >
                                 <span className="hidden sm:inline">Selanjutnya</span>
                                 <FiChevronRight size={14} strokeWidth={2.5} />
