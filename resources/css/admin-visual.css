@@ -151,7 +151,7 @@
 :is(.admin-workspace, .admin-icons .admin-dialog) .admin-filter-trigger { min-height: 36px; padding: 5px 6px; border: 1px solid var(--admin-edge); border-radius: 7px; }
 :is(.admin-workspace, .admin-icons .admin-dialog) .admin-filter-trigger[aria-expanded="true"] { background: var(--admin-selected); color: var(--admin-ink); border-color: var(--admin-muted); }
 :is(.admin-workspace, .admin-icons .admin-dialog) .admin-filter-trigger span { background: var(--admin-yellow); color: #17221e; border-radius: 3px; padding: 1px 4px; }
-:is(.admin-workspace, .admin-icons .admin-dialog) .order-date-controls > div > button { min-height: 40px; border-radius: 8px; }
+:is(.admin-workspace, .admin-icons .admin-dialog) .order-date-controls > div > button { min-height: 40px; border-radius: 7px; }
 :is(.admin-workspace, .admin-icons .admin-dialog) .order-results table { background: var(--admin-surface); }
 :is(.admin-workspace, .admin-icons .admin-dialog) .admin-cart-count { background: #17221e; color: var(--admin-yellow); }
 .admin-icons .admin-notifications > div:first-child { background: #17221e; color: #fff; }

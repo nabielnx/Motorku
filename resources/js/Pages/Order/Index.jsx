@@ -477,7 +477,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                     onPeriodChange={handlePeriodChange}
                     onDateRangeApply={handleApplyDateRange}
                 />
-                <div aria-busy={isNavigating} className="order-results xl:overflow-hidden xl:rounded-xl xl:border xl:border-slate-200 dark:xl:border-slate-800">
+                <div aria-busy={isNavigating} className="order-results xl:overflow-hidden xl:rounded-[12px] xl:border xl:border-slate-200 dark:xl:border-slate-800">
                     {/* Mobile order list */}
                     <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:hidden">
                         {pageOrders.map(order => {
@@ -488,8 +488,8 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                             const orderId = order.real_id || order.id;
 
                             return (
-                                <article key={orderId} className="order-card relative min-w-0 rounded-xl border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
-                                    <Link href={`/orders/${orderId}`} aria-label={`Lihat detail pesanan ${order.id}`} className="absolute inset-0 z-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] rounded-xl focus-visible:outline-primary" />
+                                <article key={orderId} className="admin-surface order-card relative min-w-0 border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
+                                    <Link href={`/orders/${orderId}`} aria-label={`Lihat detail pesanan ${order.id}`} className="absolute inset-0 z-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] rounded-[inherit] focus-visible:outline-primary" />
                                     <div className="flex items-start justify-between gap-3">
                                         <div className="min-w-0">
                                             <p className="truncate font-mono text-xs font-bold text-primaryDark dark:text-blue-300">{order.id}</p>
@@ -516,12 +516,12 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                                         <span className="mr-auto text-slate-600 dark:text-slate-300">Metode: {paymentMethodLabel(order.payment_method)}</span>
                                         <div className="relative z-20 flex items-center gap-2">
                                             {order.payment_status === 'unpaid' && order.status !== 'cancelled' && (
-                                                <button type="button" onClick={() => openPayment(order)} className="min-h-10 rounded-md bg-accentYellow px-2.5 py-2 text-primaryDark font-bold">Konfirmasi Bayar</button>
+                                                <button type="button" onClick={() => openPayment(order)} className="admin-button min-h-10 bg-accentYellow px-2.5 py-2 text-primaryDark font-bold">Konfirmasi Bayar</button>
                                             )}
                                             {order.payment_status === 'paid' && nextAction && (
-                                                <button type="button" onClick={() => handleUpdateStatus(order, nextAction.nextStatus)} disabled={updatingStatusId === orderId} className="min-h-10 rounded-md bg-primary px-2.5 py-2 text-white disabled:bg-slate-600">{nextAction.label}</button>
+                                                <button type="button" onClick={() => handleUpdateStatus(order, nextAction.nextStatus)} disabled={updatingStatusId === orderId} className="admin-button min-h-10 bg-primary px-2.5 py-2 text-white disabled:bg-slate-600">{nextAction.label}</button>
                                             )}
-                                            <button type="button" onClick={() => handlePrintOrder(order)} disabled={isPrintingId === orderId} aria-label={`Cetak struk ${order.id}`} className="flex h-10 w-10 items-center justify-center rounded-md text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 disabled:text-slate-400">
+                                            <button type="button" onClick={() => handlePrintOrder(order)} disabled={isPrintingId === orderId} aria-label={`Cetak struk ${order.id}`} className="flex h-10 w-10 items-center justify-center admin-button text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 disabled:text-slate-400">
                                                 <FiPrinter size={16} />
                                             </button>
                                         </div>
@@ -529,7 +529,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                                 </article>
                             );
                         })}
-                        {pageOrders.length === 0 && <p className="col-span-full rounded-xl border border-slate-200 bg-white px-3 py-10 text-center text-sm text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">{statusFilter === 'action' ? 'Belum ada pesanan yang perlu ditangani.' : 'Tidak ada transaksi yang sesuai.'}</p>}
+                        {pageOrders.length === 0 && <p className="admin-surface col-span-full border border-slate-200 bg-white px-3 py-10 text-center text-sm text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">{statusFilter === 'action' ? 'Belum ada pesanan yang perlu ditangani.' : 'Tidak ada transaksi yang sesuai.'}</p>}
                     </div>
 
                     {/* Desktop data table */}
@@ -668,7 +668,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                     </div>
 
                     {/* Standardized Table Pagination Footer */}
-                    <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white p-3 text-xs font-semibold text-slate-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400 xl:mt-0 xl:rounded-none xl:border-0 xl:border-t">
+                    <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-[12px] border border-slate-200 bg-white p-3 text-xs font-semibold text-slate-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400 xl:mt-0 xl:rounded-none xl:border-0 xl:border-t">
                         <span className="min-w-0">
                             <span className="sm:hidden">{totalItems > 0 ? `${(currentPage - 1) * perPage + 1}–${Math.min(currentPage * perPage, totalItems)}` : '0'} / {totalItems}</span>
                             <span className="hidden sm:inline">{totalItems > 0 ? `${(currentPage - 1) * perPage + 1}–${Math.min(currentPage * perPage, totalItems)}` : '0'} dari {totalItems} pesanan</span>
@@ -679,7 +679,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                                 onClick={() => changePage(currentPage - 1)}
                                 disabled={currentPage <= 1}
                                 aria-label="Halaman sebelumnya"
-                                className="flex min-h-10 min-w-10 justify-center p-2 sm:px-3.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:bg-slate-100 disabled:text-slate-400 border border-slate-300 dark:border-slate-700 rounded-lg font-bold text-slate-700 dark:text-slate-200 transition-colors items-center gap-1 text-xs"
+                                className="flex min-h-10 min-w-10 justify-center p-2 sm:px-3.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:bg-slate-100 disabled:text-slate-400 border border-slate-300 dark:border-slate-700 admin-button font-bold text-slate-700 dark:text-slate-200 transition-colors items-center gap-1 text-xs"
                             >
                                 <FiChevronLeft size={14} strokeWidth={2.5} />
                                 <span className="hidden sm:inline">Sebelumnya</span>
@@ -693,7 +693,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                                 onClick={() => changePage(currentPage + 1)}
                                 disabled={currentPage >= totalPages}
                                 aria-label="Halaman selanjutnya"
-                                className="flex min-h-10 min-w-10 justify-center p-2 sm:px-3.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:bg-slate-100 disabled:text-slate-400 border border-slate-300 dark:border-slate-700 rounded-lg font-bold text-slate-700 dark:text-slate-200 transition-colors items-center gap-1 text-xs"
+                                className="flex min-h-10 min-w-10 justify-center p-2 sm:px-3.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:bg-slate-100 disabled:text-slate-400 border border-slate-300 dark:border-slate-700 admin-button font-bold text-slate-700 dark:text-slate-200 transition-colors items-center gap-1 text-xs"
                             >
                                 <span className="hidden sm:inline">Selanjutnya</span>
                                 <FiChevronRight size={14} strokeWidth={2.5} />
@@ -707,7 +707,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
             {/* Payment Confirmation Modal */}
             {paymentOrder && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950 p-4">
-                    <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-slate-900 p-6 shadow-2xl border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white">
+                    <div className="admin-surface w-full max-w-sm bg-white dark:bg-slate-900 p-6 shadow-2xl border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white">
                         <h3 className="text-lg font-black text-slate-900 dark:text-white">Konfirmasi Pembayaran</h3>
                         <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{paymentOrder.id} · {paymentOrder.customer}</p>
                         <p className="mt-4 text-2xl font-black text-emerald-600 dark:text-emerald-400">{formatRp(paymentOrder.total)}</p>

@@ -28,7 +28,7 @@ export default function OrderToolbar({
                             onClick={onToggleRevenue}
                             aria-label={revenueVisible ? 'Sembunyikan pendapatan' : 'Tampilkan pendapatan'}
                             aria-pressed={revenueVisible}
-                            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 dark:text-accentYellow dark:hover:bg-slate-800"
+                            className="flex h-10 w-10 shrink-0 items-center justify-center admin-button text-slate-600 hover:bg-slate-100 dark:text-accentYellow dark:hover:bg-slate-800"
                         >
                             {revenueVisible ? <FiEye size={17} /> : <FiEyeOff size={17} />}
                         </button>
@@ -37,9 +37,9 @@ export default function OrderToolbar({
                 </div>
             </header>
 
-            <section aria-label="Pencarian dan filter pesanan" className="order-toolbar rounded-xl border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900 sm:p-4 xl:grid xl:grid-cols-2 xl:items-center xl:gap-x-6">
+            <section aria-label="Pencarian dan filter pesanan" className="admin-surface order-toolbar border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900 sm:p-4 xl:grid xl:grid-cols-2 xl:items-center xl:gap-x-6">
                 <div className="flex items-center gap-2">
-                    <nav aria-label="Tampilan pesanan" className="grid min-w-0 flex-1 grid-cols-2 gap-1 rounded-lg bg-slate-100 p-1 dark:bg-slate-800 sm:flex sm:flex-none">
+                    <nav aria-label="Tampilan pesanan" className="grid min-w-0 flex-1 grid-cols-2 gap-1 rounded-[8px] bg-slate-100 p-1 dark:bg-slate-800 sm:flex sm:flex-none">
                         {[
                             { value: 'action', label: 'Perlu ditangani' },
                             { value: 'All', label: 'Semua pesanan' },
@@ -49,14 +49,14 @@ export default function OrderToolbar({
                                 type="button"
                                 aria-pressed={status === view.value}
                                 onClick={() => onStatusChange(view.value)}
-                                className={`flex min-h-10 min-w-0 flex-wrap items-center justify-center gap-x-1.5 gap-y-0.5 rounded-md px-2 py-2 text-xs font-semibold sm:px-4 ${status === view.value ? 'bg-accentYellow text-primaryDark' : 'text-slate-600 hover:bg-white dark:text-slate-300 dark:hover:bg-slate-700'}`}
+                                className={`flex min-h-10 min-w-0 flex-wrap items-center justify-center gap-x-1.5 gap-y-0.5 rounded-[5px] px-2 py-2 text-xs font-semibold sm:px-4 ${status === view.value ? 'bg-accentYellow text-primaryDark' : 'text-slate-600 hover:bg-white dark:text-slate-300 dark:hover:bg-slate-700'}`}
                             >
                                 <span>{view.label}</span>
                                 {view.value === 'action' && <span className="tabular-nums">({activeCount})</span>}
                             </button>
                         ))}
                     </nav>
-                    <button type="button" onClick={onRefresh} disabled={refreshing} aria-label={refreshing ? 'Memuat pesanan' : 'Muat ulang pesanan'} title="Muat ulang pesanan" className="ml-auto flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white disabled:text-slate-400">
+                    <button type="button" onClick={onRefresh} disabled={refreshing} aria-label={refreshing ? 'Memuat pesanan' : 'Muat ulang pesanan'} title="Muat ulang pesanan" className="ml-auto flex h-10 w-10 shrink-0 items-center justify-center admin-button text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white disabled:text-slate-400">
                         <FiRefreshCw size={16} className={refreshing ? 'animate-spin motion-reduce:animate-none' : ''} />
                     </button>
                 </div>
@@ -65,10 +65,10 @@ export default function OrderToolbar({
                     <div className="relative min-w-0 flex-1">
                         <label htmlFor="order-search-input" className="sr-only">Cari pesanan berdasarkan nomor, pelanggan, atau barang</label>
                         <FiSearch className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} aria-hidden="true" />
-                        <input id="order-search-input" type="search" value={search} onChange={event => onSearchChange(event.target.value)} placeholder="Cari pesanan…" title="Cari nomor, pelanggan, atau barang" className="h-10 w-full min-w-0 rounded-lg border border-slate-300 bg-white pl-9 pr-3 text-xs text-slate-800 placeholder-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200" />
+                        <input id="order-search-input" type="search" value={search} onChange={event => onSearchChange(event.target.value)} placeholder="Cari pesanan…" title="Cari nomor, pelanggan, atau barang" className="h-10 w-full min-w-0 admin-control border border-slate-300 bg-white pl-9 pr-3 text-xs text-slate-800 placeholder-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200" />
                     </div>
                     {status === 'All' && (
-                        <button type="button" onClick={onToggleDates} aria-expanded={datesOpen} aria-controls="order-date-filters" className={`flex h-10 shrink-0 items-center gap-1.5 rounded-lg border px-2.5 text-xs font-semibold ${datesOpen || filteredDates ? 'border-primary bg-primary text-white' : 'border-slate-300 bg-white text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200'}`}>
+                        <button type="button" onClick={onToggleDates} aria-expanded={datesOpen} aria-controls="order-date-filters" className={`flex h-10 shrink-0 items-center gap-1.5 admin-button border px-2.5 text-xs font-semibold ${datesOpen || filteredDates ? 'border-primary bg-primary text-white' : 'border-slate-300 bg-white text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200'}`}>
                             <FiCalendar size={15} className={datesOpen || filteredDates ? 'text-accentYellow' : ''} aria-hidden="true" />
                             Tanggal{filteredDates && <span className="sr-only">, filter aktif</span>}
                             <FiChevronDown size={13} className={datesOpen ? 'rotate-180' : ''} aria-hidden="true" />
