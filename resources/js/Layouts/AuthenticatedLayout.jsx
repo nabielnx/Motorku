@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import ApplicationLogo from '@/Components/ApplicationLogo';
+import SidebarMenuGroup from '@/Components/Admin/SidebarMenuGroup';
 import Dropdown from '@/Components/Dropdown';
 import NotificationCenter from '@/Components/NotificationCenter';
 import { Link, usePage, router } from '@inertiajs/react';
@@ -15,9 +16,9 @@ import SettingSkeleton from '@/Components/Skeletons/SettingSkeleton';
 import MotorcyclePageSkeleton from '@/Components/Skeletons/MotorcyclePageSkeleton';
 import PosCardSkeleton from '@/Components/Skeletons/PosCardSkeleton';
 import Skeleton from '@/Components/Skeleton';
-import MotorIcon from '@/Components/MotorIcon';
 import { getNavigationDestination } from '@/Utils/navigation';
 import { catalogGroupLabels } from '@/Utils/catalogGroupLabels';
+import { referenceModules } from '@/Navigation/referenceModules';
 import { 
     FiGrid, 
     FiCoffee, 
@@ -34,6 +35,7 @@ import {
     FiX,
     FiSun,
     FiMoon,
+    FiBookOpen,
     FiChevronDown
 } from 'react-icons/fi';
 
@@ -88,7 +90,7 @@ function getDestinationInfo(url, locale = 'id') {
     }
     if (path.startsWith('/motorcycles')) {
         return {
-            title: 'Data Motor',
+            title: 'Motor',
             component: <MotorcyclePageSkeleton />,
             noPadding: true,
         };
@@ -273,11 +275,6 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
     const activePath = activeUrl.pathname;
     const activeCatalogGroup = activeUrl.searchParams.get('group');
     const catalogMenuIsActive = activePath.startsWith('/products') || activePath.startsWith('/categories');
-    const [isProductsMenuOpen, setIsProductsMenuOpen] = useState(catalogMenuIsActive);
-
-    useEffect(() => {
-        if (catalogMenuIsActive) setIsProductsMenuOpen(true);
-    }, [catalogMenuIsActive, activePath, activeCatalogGroup]);
 
     const isItemActive = (itemHref) => {
         if (!itemHref) return false;
@@ -338,11 +335,16 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                     ],
                 },
                 {
-                    name: 'Data Motor',
-                    icon: MotorIcon,
-                    href: safeRoute('motorcycles.index', '/motorcycles'),
-                    active: isItemActive('/motorcycles'),
-                    roles: ['owner']
+                    name: locale === 'en' ? 'Reference Data' : 'Data Referensi',
+                    icon: FiBookOpen,
+                    href: safeRoute(referenceModules[0].routeName, referenceModules[0].path),
+                    active: referenceModules.some(module => isItemActive(module.path)),
+                    roles: ['owner'],
+                    children: referenceModules.map(module => ({
+                        name: module.name,
+                        href: safeRoute(module.routeName, module.path),
+                        active: isItemActive(module.path),
+                    })),
                 },
             ]
         },
@@ -446,33 +448,11 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                                     const Icon = item.icon;
                                     if (item.children) {
                                         return (
-                                            <div key={item.href}>
-                                                <button
-                                                    type="button"
-                                                    aria-expanded={isProductsMenuOpen}
-                                                    aria-controls="admin-product-submenu"
-                                                    onClick={() => setIsProductsMenuOpen(open => !open)}
-                                                    className={`admin-nav-link admin-nav-parent flex w-full items-center gap-3 text-left ${item.active ? 'admin-nav-link--active' : ''}`}
-                                                >
-                                                    <Icon size={17} aria-hidden="true" />
-                                                    <span className="flex-1">{item.name}</span>
-                                                    <FiChevronDown size={15} className={isProductsMenuOpen ? 'rotate-180' : ''} aria-hidden="true" />
-                                                </button>
-                                                <ul id="admin-product-submenu" className="admin-nav-submenu" hidden={!isProductsMenuOpen}>
-                                                    {item.children.map(child => (
-                                                        <li key={child.href}>
-                                                            <Link
-                                                                href={child.href}
-                                                                aria-current={child.active ? 'page' : undefined}
-                                                                onClick={() => setIsSidebarOpen(false)}
-                                                                className={`admin-nav-child ${child.active ? 'admin-nav-child--active' : ''}`}
-                                                            >
-                                                                {child.name}
-                                                            </Link>
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            </div>
+                                            <SidebarMenuGroup
+                                                key={item.href}
+                                                item={item}
+                                                onNavigate={() => setIsSidebarOpen(false)}
+                                            />
                                         );
                                     }
                                     return (
