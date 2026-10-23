@@ -30,6 +30,7 @@ class ProductSheetRequest extends FormRequest
                 'mode' => ['required', Rule::in(['add', 'upsert', 'update'])],
                 'default_group' => ['required', Rule::in(['automotive', 'bicycle', 'electronics', 'hardware'])],
                 'use_estimated_cost' => ['required', 'boolean'],
+                'update_stock' => ['sometimes', 'boolean'],
             ],
             'commit' => [
                 'token' => ['required', 'uuid'],

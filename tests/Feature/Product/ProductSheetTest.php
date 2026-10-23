@@ -1,10 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature\Product;
 
+use App\Enums\InventoryLogType;
 use App\Models\Category;
+use App\Models\InventoryLog;
 use App\Models\Product;
 use App\Models\User;
+use App\Services\InventoryService;
 use App\Services\ProductSheetService;
 use Database\Seeders\CategorySeeder;
 use Database\Seeders\RoleSeeder;
@@ -208,6 +213,141 @@ class ProductSheetTest extends TestCase
         $this->assertSame('Nama di sistem', $product->name);
         $this->assertSame('products/oli.webp', $product->image_path);
         $this->assertSame($category->id, $product->category_id);
+    }
+
+    public function test_reimporting_xlsx_can_set_previously_empty_stock_without_duplicating_products_or_logs(): void
+    {
+        $files = [];
+        foreach ([null, 12, 12] as $stock) {
+            $path = tempnam(sys_get_temp_dir(), 'sheet-stock');
+            $this->temporary[] = $path;
+            $writer = new Writer;
+            $writer->openToFile($path);
+            $writer->addRow(Row::fromValues(['Grup Barang', 'Kategori', 'Merek', 'Nama Barang', 'Harga Jual (Rp)', 'Stok', 'Satuan']));
+            $writer->addRow(Row::fromValues(['Otomotif', 'V-Belt & Roller', 'Honda (AHM)', 'Vanbelt Set K0J', 150000, $stock, 'set']));
+            $writer->close();
+            $files[] = new UploadedFile($path, 'penggerak.xlsx', test: true);
+        }
+
+        $draft = $this->inspect($files[0]);
+        $preview = $this->preview($draft);
+        $this->postJson('/api/products/sheets/commit', $this->commitInput($draft, $preview))->assertOk();
+        $product = Product::sole();
+        $this->assertSame(0, $product->stock);
+
+        $draft = $this->inspect($files[1]);
+        $preview = $this->preview($draft, ['mode' => 'upsert', 'update_stock' => true]);
+        $this->assertSame($product->id, $preview['rows'][0]['product_id']);
+        $this->assertSame(0, $preview['rows'][0]['old_stock']);
+        $this->assertTrue($preview['rows'][0]['update_stock']);
+        $this->assertSame(12, $preview['rows'][0]['data']['stock']);
+        $input = $this->commitInput($draft, $preview);
+        $this->postJson('/api/products/sheets/commit', $input)->assertOk()->assertJson(['created' => 0, 'updated' => 1]);
+        $this->postJson('/api/products/sheets/commit', $input)->assertOk();
+        $this->assertSame(1, Product::count());
+        $this->assertSame(12, $product->fresh()->stock);
+        $this->assertSame(1, InventoryLog::count());
+        $this->assertDatabaseHas('inventory_logs', [
+            'product_id' => $product->id, 'user_id' => $this->owner->id,
+            'type' => 'adjustment', 'quantity' => 12, 'previous_stock' => 0, 'new_stock' => 12,
+        ]);
+
+        $draft = $this->inspect($files[2]);
+        $preview = $this->preview($draft, ['mode' => 'update', 'update_stock' => true]);
+        $this->postJson('/api/products/sheets/commit', $this->commitInput($draft, $preview))->assertOk();
+        $this->assertSame(12, $product->fresh()->stock);
+        $this->assertSame(1, InventoryLog::count());
+    }
+
+    public function test_stock_update_can_reduce_stock_and_explicitly_set_zero_while_preserving_product_details(): void
+    {
+        $category = Category::factory()->create();
+        $product = Product::factory()->create([
+            'category_id' => $category->id, 'sku' => 'STOCK-001', 'stock' => 17,
+            'name' => 'Nama asli', 'unit' => 'set', 'image_path' => 'products/belt.webp',
+        ]);
+        foreach ([5, 0] as $stock) {
+            $previousStock = $product->fresh()->stock;
+            $previousVersion = $product->fresh()->sync_version;
+            $draft = $this->inspect($this->csv("Kategori,Nama Barang,Harga Jual,Stok,Satuan,Kode Barang\nKategori lain,Nama file,75000,{$stock},pcs,STOCK-001\n"));
+            $preview = $this->preview($draft, ['mode' => 'update', 'update_stock' => true]);
+            $this->assertTrue($preview['rows'][0]['update_stock']);
+            $this->postJson('/api/products/sheets/commit', $this->commitInput($draft, $preview))->assertOk();
+            $product->refresh();
+            $this->assertSame($stock, $product->stock);
+            $this->assertSame($previousVersion + 1, $product->sync_version);
+            $this->assertSame('Nama asli', $product->name);
+            $this->assertSame('set', $product->unit);
+            $this->assertSame('products/belt.webp', $product->image_path);
+            $this->assertSame($category->id, $product->category_id);
+            $this->assertDatabaseHas('inventory_logs', ['product_id' => $product->id, 'previous_stock' => $previousStock, 'new_stock' => $stock]);
+        }
+        $this->assertSame(2, InventoryLog::count());
+    }
+
+    public function test_blank_and_unmapped_stock_preserve_existing_stock_even_when_updates_are_enabled(): void
+    {
+        $product = Product::factory()->create(['sku' => 'STOCK-001', 'stock' => 17]);
+        foreach ([true, false] as $mapped) {
+            $draft = $this->inspect($this->csv("Kategori,Nama Barang,Harga Jual,Stok,Kode Barang\nOli,Barang,75000,".($mapped ? '' : '99').",STOCK-001\n"));
+            $input = $this->input($draft, ['mode' => 'update', 'update_stock' => true]);
+            if (! $mapped) {
+                $input['sheets'][0]['mapping']['stock'] = null;
+            }
+            $preview = $this->postJson('/api/products/sheets/preview', $input)->assertOk()->json();
+            $this->assertNull($preview['rows'][0]['data']['stock']);
+            $this->assertFalse($preview['rows'][0]['update_stock']);
+            $this->postJson('/api/products/sheets/commit', $this->commitInput($draft, $preview))->assertOk();
+            $this->assertSame(17, $product->fresh()->stock);
+        }
+        $this->assertSame(0, InventoryLog::count());
+    }
+
+    public function test_stock_option_cannot_be_enabled_after_preview_or_override_add_only_mode(): void
+    {
+        $product = Product::factory()->create(['sku' => 'STOCK-001', 'stock' => 17]);
+        $draft = $this->inspect($this->csv("Kategori,Nama Barang,Harga Jual,Stok,Kode Barang\nOli,Barang,75000,99,STOCK-001\n"));
+        $preview = $this->preview($draft, ['mode' => 'update']);
+        $this->assertFalse($preview['rows'][0]['update_stock']);
+        $this->postJson('/api/products/sheets/commit', [...$this->commitInput($draft, $preview), 'update_stock' => true])->assertOk();
+        $this->assertSame(17, $product->fresh()->stock);
+
+        $preview = $this->preview($this->inspect($this->csv("Kategori,Nama Barang,Harga Jual,Stok,Kode Barang\nOli,Barang,75000,99,STOCK-001\n")), ['mode' => 'add', 'update_stock' => true]);
+        $this->assertSame('skip', $preview['rows'][0]['action']);
+        $this->assertFalse($preview['rows'][0]['update_stock']);
+        $this->assertSame(0, InventoryLog::count());
+    }
+
+    public function test_stock_changes_after_preview_in_the_same_second_roll_back_the_entire_import(): void
+    {
+        $this->freezeTime();
+        $first = Product::factory()->create(['sku' => 'FIRST', 'stock' => 5, 'price' => 10000]);
+        $second = Product::factory()->create(['sku' => 'SECOND', 'stock' => 10, 'price' => 10000]);
+        $draft = $this->inspect($this->csv("Kategori,Nama Barang,Harga Jual,Stok,Kode Barang\nOli,Barang A,20000,50,FIRST\nOli,Barang B,20000,50,SECOND\n"));
+        $preview = $this->preview($draft, ['mode' => 'update', 'update_stock' => true]);
+        app(InventoryService::class)->adjustStock(['product_id' => $second->id, 'type' => InventoryLogType::StockOut, 'quantity' => 1]);
+
+        $this->postJson('/api/products/sheets/commit', $this->commitInput($draft, $preview))->assertUnprocessable()->assertJsonValidationErrors('sheet');
+        $this->assertSame(5, $first->fresh()->stock);
+        $this->assertEquals(10000, $first->fresh()->price);
+        $this->assertSame(9, $second->fresh()->stock);
+        $this->assertEquals(10000, $second->fresh()->price);
+        $this->assertSame(1, InventoryLog::count());
+        $this->assertNull(DB::table('product_sheet_imports')->where('id', $draft['token'])->value('result'));
+    }
+
+    public function test_invalid_stock_and_invalid_update_option_cannot_be_saved(): void
+    {
+        $product = Product::factory()->create(['sku' => 'STOCK-001', 'stock' => 17]);
+        foreach (['-1', '1.5', '100000000'] as $stock) {
+            $draft = $this->inspect($this->csv("Kategori,Nama Barang,Harga Jual,Stok,Kode Barang\nOli,Barang,75000,{$stock},STOCK-001\n"));
+            $preview = $this->preview($draft, ['mode' => 'update', 'update_stock' => true]);
+            $this->assertNotEmpty($preview['rows'][0]['errors']);
+            $this->postJson('/api/products/sheets/commit', ['token' => $draft['token'], 'revision' => $preview['revision'], 'rows' => ['0:2']])->assertUnprocessable();
+        }
+        $this->postJson('/api/products/sheets/preview', $this->input($draft, ['update_stock' => 'yes']))->assertUnprocessable()->assertJsonValidationErrors('update_stock');
+        $this->assertSame(17, $product->fresh()->stock);
+        $this->assertSame(0, InventoryLog::count());
     }
 
     public function test_retries_are_idempotent_and_cannot_change_selection(): void

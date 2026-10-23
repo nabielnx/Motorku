@@ -9,6 +9,7 @@ export const sheetPreviewSchema = z.object({
     mode: z.enum(['add', 'upsert', 'update']),
     default_group: z.enum(['automotive', 'electronics', 'hardware', 'bicycle']),
     use_estimated_cost: z.boolean(),
+    update_stock: z.boolean().default(false),
     sheets: z.array(z.object({
         id: z.number().int().nonnegative(),
         mapping: z.record(z.string(), z.number().int().min(0).max(39).nullable()),
