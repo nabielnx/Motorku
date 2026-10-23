@@ -538,8 +538,8 @@ export default function MotorcycleIndex({
     const motorToIndex = Math.min(page * perPage, totalMotorItems);
 
     return (
-        <AuthenticatedLayout pageTitle="Data Motor" noPadding={true}>
-            <Head title="Data Motor & Compatible Spareparts" />
+        <AuthenticatedLayout pageTitle="Motor" noPadding={true}>
+            <Head title="Motor | Data Referensi" />
 
             {/* Floating Global Notification Alert */}
             {notification && (
