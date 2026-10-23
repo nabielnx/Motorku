@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Enums\InventoryLogType;
 use App\Models\Category;
 use App\Models\Product;
 use App\Services\ProductSheet\ProductSheetExporter;
@@ -91,11 +92,14 @@ class ProductSheetService
                     $row['version'] = $product?->sync_version;
                     $row['fingerprint'] = $product ? $this->fingerprint($product) : null;
                     $row['old_price'] = $product?->price;
+                    $row['old_stock'] = $product?->stock;
                     $row['matched_name'] = $product?->name;
                     $row['action'] = $product ? 'update' : 'create';
                     if (($product && $input['mode'] === 'add') || (! $product && $input['mode'] === 'update')) {
                         $row['action'] = 'skip';
                     }
+                    $row['update_stock'] = $product !== null && $row['action'] === 'update'
+                        && (bool) ($input['update_stock'] ?? false) && $row['data']['stock'] !== null;
                     if ($product && $this->group($product->category) !== $row['group']) {
                         $row['errors'][] = 'Kode Barang berada di grup berbeda.';
                     }
@@ -116,7 +120,12 @@ class ProductSheetService
                         }
                     }
                     if ($product) {
-                        $row['warnings'][] = 'Hanya harga jual dan modal terpilih diperbarui. Stok, gambar, nama, dan kategori tetap.';
+                        $row['warnings'][] = 'Harga jual dan modal terpilih diperbarui. Gambar, nama, kategori, dan satuan tetap.';
+                        $row['warnings'][] = $row['update_stock']
+                            ? 'Stok disetel sesuai file, bukan ditambahkan.'
+                            : 'Stok tetap. Pembaruan stok harus dicentang dan kolom Stok harus terisi.';
+                    } elseif ($row['data']['stock'] === null) {
+                        $row['warnings'][] = 'Stok kosong: barang baru mulai dari 0.';
                     }
                     $rows[] = $row;
                 }
@@ -197,6 +206,13 @@ class ProductSheetService
                             $changes['cost_price'] = $data['cost_price'];
                         }
                         $product->update($changes);
+                        if (($row['update_stock'] ?? false) && $data['stock'] !== $product->stock) {
+                            app(InventoryService::class)->adjustStock([
+                                'product_id' => $product->id,
+                                'type' => InventoryLogType::Adjustment,
+                                'quantity' => $data['stock'],
+                            ], $userId, 'Penyesuaian stok dari impor: '.$row['sheet'].' baris '.$row['number']);
+                        }
                         $counts['updated']++;
                     } else {
                         $existing = isset($catalog['skus'][mb_strtolower($data['sku'])]) || $this->nameMatches($data, $row['group'], $catalog)->isNotEmpty();
@@ -218,7 +234,7 @@ class ProductSheetService
                             $category = Category::create(['name' => $row['category'], 'catalog_group' => $row['group']]);
                         }
                         $data['sku'] = $data['sku'] ?: 'IMP-'.strtoupper(substr(hash('sha256', $draft->id.':'.$row['id']), 0, 16));
-                        $created = app(ProductService::class)->createProduct([...$data, 'category_id' => $category->id, 'minimum_stock' => 0, 'is_available' => true]);
+                        $created = app(ProductService::class)->createProduct([...$data, 'stock' => $data['stock'] ?? 0, 'category_id' => $category->id, 'minimum_stock' => 0, 'is_available' => true]);
                         $this->indexProduct($created->load('category.parent'), $catalog);
                         $counts['created']++;
                     }
@@ -279,10 +295,7 @@ class ProductSheetService
             $cost = $read('estimated_cost');
         }
         $data['cost_price'] = $this->number($cost, 'Harga Beli / Modal', $errors);
-        $data['stock'] = $this->number($read('stock'), 'Stok', $errors, max: 99999999) ?? 0;
-        if ($read('stock') === null || $read('stock') === '') {
-            $warnings[] = 'Stok kosong: barang baru mulai dari 0.';
-        }
+        $data['stock'] = $this->number($read('stock'), 'Stok', $errors, max: 99999999);
         if ($data['unit'] === '') {
             $data['unit'] = 'pcs';
             $warnings[] = 'Satuan kosong: barang baru memakai pcs.';
@@ -399,7 +412,7 @@ class ProductSheetService
 
     private function fingerprint(Product $product): string
     {
-        return hash('sha256', json_encode([$product->sku, $product->name, $product->category_id, $product->price, $product->cost_price, $product->sync_version, $product->updated_at?->format('Y-m-d H:i:s.u')]));
+        return hash('sha256', json_encode([$product->sku, $product->name, $product->category_id, $product->price, $product->cost_price, $product->stock, $product->sync_version, $product->updated_at?->format('Y-m-d H:i:s.u')]));
     }
 
     private function fail(string $message): never

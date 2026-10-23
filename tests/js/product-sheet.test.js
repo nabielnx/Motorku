@@ -24,3 +24,11 @@ test('default selection only contains valid rows with an action', () => {
         { id: '0:4', action: 'skip', errors: [] }, { id: '0:5', action: 'create', errors: ['Missing price'] },
     ]), ['0:2', '0:3']);
 });
+
+test('stock updates require an explicit boolean choice and default to preserving stock', () => {
+    const input = { token: '00000000-0000-4000-8000-000000000001', mode: 'update', default_group: 'automotive', use_estimated_cost: false,
+        sheets: [{ id: 0, mapping: { name: 0, category: 1, price: 2, stock: 3 } }] };
+    assert.equal(sheetPreviewSchema.parse(input).update_stock, false);
+    assert.equal(sheetPreviewSchema.parse({ ...input, update_stock: true }).update_stock, true);
+    assert.equal(sheetPreviewSchema.safeParse({ ...input, update_stock: 'true' }).success, false);
+});
