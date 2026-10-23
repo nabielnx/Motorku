@@ -1,5 +1,6 @@
+import Pagination from '@/Components/Pagination';
 import React, { useEffect } from 'react';
-import { FiChevronLeft, FiChevronRight, FiPlus, FiEdit2, FiTrash2 } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2 } from 'react-icons/fi';
 import { formatProductBookName } from '@/Utils/productBookFormatter';
 
 /**
@@ -276,59 +277,9 @@ export default function ProductBookView({
                 </div>
             </div>
 
-            {/* ── NAVIGASI HALAMAN (TOMBOL SOLID, JELAS, BEBAS DARI OVERRIDE CSS) ── */}
-            <div
-                role="group"
-                aria-label="Navigasi halaman daftar produk"
-                className="shrink-0 flex items-center justify-center py-1"
-            >
-                {/* Tombol Sebelumnya */}
-                <button
-                    type="button"
-                    onClick={() => onPageChange(currentPage - 1)}
-                    disabled={currentPage <= 1}
-                    aria-label="Balik halaman sebelumnya"
-                    style={{
-                        backgroundColor: currentPage <= 1 ? '#f3f3ed' : '#ffffff',
-                        color: currentPage <= 1 ? '#94a3b8' : '#19231f',
-                    }}
-                    className="flex min-h-11 items-center justify-center gap-1.5 rounded-l-xl border border-slate-300 px-3 py-2 text-xs font-bold transition active:scale-95 focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFDD00] focus-visible:ring-offset-2 disabled:cursor-not-allowed cursor-pointer sm:px-4 sm:text-sm"
-                >
-                    <FiChevronLeft size={18} strokeWidth={2.5} />
-                    <span className="hidden sm:inline">Sebelumnya</span>
-                </button>
-
-                {/* Indikator Halaman */}
-                <div
-                    aria-live="polite"
-                    aria-atomic="true"
-                    style={{
-                        backgroundColor: '#ffffff',
-                        color: '#19231f',
-                    }}
-                    className="flex min-h-11 min-w-[4.5rem] items-center justify-center gap-1.5 border-y border-slate-300 px-2 py-2 text-xs font-mono font-bold tabular-nums sm:min-w-[7rem] sm:px-4 sm:text-sm"
-                >
-                    <span className="hidden sm:inline">Hal.</span>
-                    <span style={{ color: '#eab308' }} className="font-black text-sm">{currentPage}</span>
-                    <span style={{ color: '#94a3b8' }}>/</span>
-                    <span>{totalPages}</span>
-                </div>
-
-                {/* Tombol Selanjutnya */}
-                <button
-                    type="button"
-                    onClick={() => onPageChange(currentPage + 1)}
-                    disabled={currentPage >= totalPages}
-                    aria-label="Buka halaman selanjutnya"
-                    style={{
-                        backgroundColor: currentPage >= totalPages ? '#f3f3ed' : '#19231f',
-                        color: currentPage >= totalPages ? '#94a3b8' : '#ffffff',
-                    }}
-                    className="flex min-h-11 items-center justify-center gap-1.5 rounded-r-xl border border-slate-300 px-3 py-2 text-xs font-bold transition active:scale-95 focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFDD00] focus-visible:ring-offset-2 disabled:cursor-not-allowed cursor-pointer sm:px-4 sm:text-sm"
-                >
-                    <span className="hidden sm:inline">Selanjutnya</span>
-                    <FiChevronRight size={18} strokeWidth={2.5} />
-                </button>
+            {/* Navigasi halaman mengikuti komponen bersama. */}
+            <div className="flex shrink-0 justify-center py-1">
+                <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={onPageChange} label="Halaman buku produk" />
             </div>
         </div>
     );

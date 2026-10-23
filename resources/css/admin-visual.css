@@ -155,6 +155,12 @@
 :is(.admin-workspace, .admin-icons .admin-dialog) .order-toolbar :is(.admin-button, .admin-control) { min-height: 32px; height: 32px; padding-block: 4px; font-size: 11px; line-height: 16px; }
 :is(.admin-workspace, .admin-icons .admin-dialog) .order-toolbar .admin-button { padding-inline: 8px; }
 :is(.admin-workspace, .admin-icons .admin-dialog) .order-results table { background: var(--admin-surface); }
+:is(.admin-workspace, .admin-icons .admin-dialog) .app-pagination { display: inline-flex; flex-shrink: 0; align-items: center; gap: 8px; }
+:is(.admin-workspace, .admin-icons .admin-dialog) .app-pagination .app-pagination-arrow { display: inline-flex; width: 32px; height: 32px; min-width: 32px; min-height: 32px; align-items: center; justify-content: center; padding: 0; border: 1px solid var(--admin-edge); border-radius: 7px; background: var(--admin-selected); color: var(--admin-ink); box-shadow: none; }
+:is(.admin-workspace, .admin-icons .admin-dialog) .app-pagination button:enabled:hover { background: var(--admin-edge); }
+:is(.admin-workspace, .admin-icons .admin-dialog) .app-pagination button:disabled { background: var(--admin-selected); color: var(--admin-muted); cursor: not-allowed; opacity: 1; }
+:is(.admin-workspace, .admin-icons .admin-dialog) .app-pagination button svg { flex-shrink: 0; color: currentColor; }
+:is(.admin-workspace, .admin-icons .admin-dialog) .app-pagination-count { min-width: 40px; text-align: center; white-space: nowrap; font-size: 11px; line-height: 16px; font-weight: 500; font-variant-numeric: tabular-nums; color: var(--admin-ink); }
 :is(.admin-workspace, .admin-icons .admin-dialog) .admin-cart-count { background: #17221e; color: var(--admin-yellow); }
 .admin-icons .admin-notifications > div:first-child { background: #17221e; color: #fff; }
 .admin-icons .admin-notifications > div:first-child :is(p, svg) { color: #fff; }

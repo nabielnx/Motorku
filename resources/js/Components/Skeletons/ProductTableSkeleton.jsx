@@ -1,3 +1,4 @@
+import { PaginationSkeleton } from '@/Components/Pagination';
 import Skeleton, { SkeletonWrapper } from '@/Components/Skeleton';
 
 /**
@@ -161,10 +162,8 @@ export default function ProductTableSkeleton({ rows = 16, fullPage = false, view
             </div>
 
             {/* Navigation Pager Skeleton */}
-            <div className="shrink-0 flex items-center justify-center gap-3 sm:gap-6 py-1">
-                <Skeleton className="h-9 w-28 rounded-xl" />
-                <Skeleton className="h-9 w-20 rounded-xl" />
-                <Skeleton className="h-9 w-28 rounded-xl" />
+            <div className="shrink-0 flex items-center justify-center py-1">
+                <PaginationSkeleton />
             </div>
         </div>
     );
@@ -181,11 +180,7 @@ export default function ProductTableSkeleton({ rows = 16, fullPage = false, view
             {/* Pinned Pagination Footer */}
             <div className="px-4 py-2.5 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-2.5 bg-white dark:bg-slate-900 shrink-0 z-10">
                 <Skeleton className="h-3.5 w-44 rounded" />
-                <div className="flex items-center space-x-2">
-                    <Skeleton className="h-8 w-20 rounded-lg" />
-                    <Skeleton className="h-8 w-14 rounded-lg" />
-                    <Skeleton className="h-8 w-20 rounded-lg" />
-                </div>
+                <PaginationSkeleton />
             </div>
         </div>
     );
@@ -286,11 +281,7 @@ export default function ProductTableSkeleton({ rows = 16, fullPage = false, view
             {/* Pagination Footer */}
             <div className="px-4 py-2.5 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-2.5 bg-white dark:bg-slate-900 shrink-0 z-10">
                 <Skeleton className="h-3.5 w-44 rounded" />
-                <div className="flex items-center space-x-2">
-                    <Skeleton className="h-8 w-20 rounded-lg" />
-                    <Skeleton className="h-8 w-14 rounded-lg" />
-                    <Skeleton className="h-8 w-20 rounded-lg" />
-                </div>
+                <PaginationSkeleton />
             </div>
         </div>
     );

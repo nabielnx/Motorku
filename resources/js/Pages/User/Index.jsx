@@ -1,3 +1,4 @@
+import Pagination from '@/Components/Pagination';
 import AdminDialog, { DialogTitle } from '@/Components/Admin/Dialog';
 import AdminButton from '@/Components/Admin/Button';
 import { useState, useEffect, useRef } from 'react';
@@ -6,7 +7,7 @@ import UserTableSkeleton from '@/Components/Skeletons/UserTableSkeleton';
 import { Head, usePage, router } from '@inertiajs/react';
 import axios from 'axios';
 import { toast } from 'sonner';
-import { FiPlus, FiEdit2, FiTrash2, FiSearch, FiShield, FiUserCheck, FiUserX, FiX, FiAlertCircle, FiMail, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2, FiSearch, FiShield, FiUserCheck, FiUserX, FiX, FiAlertCircle, FiMail, } from 'react-icons/fi';
 
 const ROLE_BADGES = {
     owner: { label: 'Owner', color: 'bg-primary text-white border-primary' },
@@ -367,27 +368,7 @@ export default function UserIndex({ initialUsers = {}, activeOwnersCount = 0, ma
                             <span>
                                 <span className="hidden sm:inline">Menampilkan </span>{((currentPage - 1) * perPage) + 1}–{Math.min(currentPage * perPage, totalUsers)} / {totalUsers} staf
                             </span>
-                            <div className="flex items-center space-x-2">
-                                <button
-                                    onClick={() => changeUserPage(currentPage - 1)}
-                                    disabled={currentPage <= 1}
-                                    aria-label="Halaman staf sebelumnya"
-                                    className="px-3 py-1.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 rounded-lg border border-slate-300 dark:border-slate-700 font-bold transition text-slate-700 dark:text-slate-200 cursor-pointer"
-                                >
-                                    <FiChevronLeft className="sm:hidden" /><span className="hidden sm:inline">Sebelumnya</span>
-                                </button>
-                                <span className="whitespace-nowrap px-3 py-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg text-slate-800 dark:text-slate-200 font-bold">
-                                    {currentPage} / {totalPages}
-                                </span>
-                                <button
-                                    onClick={() => changeUserPage(currentPage + 1)}
-                                    disabled={currentPage >= totalPages}
-                                    aria-label="Halaman staf berikutnya"
-                                    className="px-3 py-1.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 rounded-lg border border-slate-300 dark:border-slate-700 font-bold transition text-slate-700 dark:text-slate-200 cursor-pointer"
-                                >
-                                    <FiChevronRight className="sm:hidden" /><span className="hidden sm:inline">Selanjutnya</span>
-                                </button>
-                            </div>
+                            <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={changeUserPage} label="Halaman staf" />
                         </div>
                     )}
                 </div>

@@ -1,3 +1,4 @@
+import Pagination from '@/Components/Pagination';
 import { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import axios from 'axios';
@@ -34,7 +35,7 @@ export default function ReferenceIndex({ type, entries, filters = {} }) {
                 <div className="flex justify-end gap-2 border-t border-slate-100 pt-3"><Button variant="secondary" aria-label={`Edit ${entry.name}`} onClick={() => setEditing(entry)}><FiEdit2 />Edit</Button><Button variant="secondary" aria-label={`Hapus ${entry.name}`} onClick={() => { setError(''); setDeleting(entry); }}><FiTrash2 /></Button></div>
             </article>)}</div>
             {!entries.data.length && <div className="rounded-xl border border-slate-200 bg-white p-6 text-sm">{filters.search ? 'Data tidak ditemukan. Coba nama lain.' : 'Belum ada data. Klik Tambah Data untuk mulai mengisi.'}</div>}
-            <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500"><p>{entries.from ?? 0}–{entries.to ?? 0} dari {entries.total} data</p><div className="flex items-center gap-2"><Button variant="secondary" disabled={!entries.prev_page_url} onClick={() => router.visit(entries.prev_page_url)}>Sebelumnya</Button><span>{entries.current_page} / {entries.last_page}</span><Button variant="secondary" disabled={!entries.next_page_url} onClick={() => router.visit(entries.next_page_url)}>Selanjutnya</Button></div></div>
+            <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500"><p>{entries.from ?? 0}–{entries.to ?? 0} dari {entries.total} data</p><Pagination currentPage={entries.current_page} totalPages={entries.last_page} previousDisabled={!entries.prev_page_url} nextDisabled={!entries.next_page_url} onPageChange={page => router.visit(page < entries.current_page ? entries.prev_page_url : entries.next_page_url)} label="Halaman data referensi" /></div>
         </section>
         {editing && <EntryFormModal key={editing.id ?? 'new'} type={type} entry={editing.id ? editing : null} onClose={() => setEditing(null)} onSaved={() => { setEditing(null); router.reload(); toast.success('Data tersimpan.'); }} />}
         <Dialog show={deleting !== null} onClose={() => !busy && setDeleting(null)} closeable={!busy} className="max-w-sm rounded-xl p-5"><DialogTitle className="font-heading text-lg">Hapus Data</DialogTitle><p className="my-3 break-words text-sm">Hapus {deleting?.name} beserta foto dan hubungannya dengan produk?</p>{error && <p role="alert" className="mb-3 text-xs text-red-600">{error}</p>}<div className="flex justify-end gap-2"><Button variant="secondary" disabled={busy} onClick={() => setDeleting(null)}>Batal</Button><Button disabled={busy} onClick={remove}>Hapus</Button></div></Dialog>

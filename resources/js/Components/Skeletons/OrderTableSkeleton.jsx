@@ -1,3 +1,4 @@
+import { PaginationSkeleton } from '@/Components/Pagination';
 import Skeleton, { SkeletonWrapper } from '@/Components/Skeleton';
 
 export default function OrderTableSkeleton({ rows = 6 }) {
@@ -36,7 +37,7 @@ export default function OrderTableSkeleton({ rows = 6 }) {
                     </table>
                 </div>
             </div>
-            <div className="flex shrink-0 justify-between admin-surface gap-2 border border-slate-200 bg-white px-2.5 py-1.5 dark:border-slate-800 dark:bg-slate-900"><Skeleton className="h-3 w-28" /><div className="flex gap-2"><Skeleton className="h-8 w-8 rounded-[7px] sm:w-24" /><Skeleton className="h-8 w-10" /><Skeleton className="h-8 w-8 rounded-[7px] sm:w-24" /></div></div>
+            <div className="flex shrink-0 justify-between admin-surface gap-2 border border-slate-200 bg-white px-2.5 py-1.5 dark:border-slate-800 dark:bg-slate-900"><Skeleton className="h-3 w-28" /><PaginationSkeleton /></div>
         </SkeletonWrapper>
     );
 }

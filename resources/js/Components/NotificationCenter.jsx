@@ -1,7 +1,8 @@
+import Pagination from '@/Components/Pagination';
 import { useEffect, useRef, useState } from 'react';
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 import { Link, router } from '@inertiajs/react';
-import { FiBell, FiCheck, FiCheckCircle, FiChevronLeft, FiChevronRight, FiClipboard, FiDollarSign, FiPackage, FiRefreshCw, FiRotateCcw, FiUsers, FiX } from 'react-icons/fi';
+import { FiBell, FiCheck, FiCheckCircle, FiChevronRight, FiClipboard, FiDollarSign, FiPackage, FiRefreshCw, FiRotateCcw, FiUsers, FiX } from 'react-icons/fi';
 
 const icons = { order: FiClipboard, payment: FiDollarSign, stock: FiPackage, return: FiRotateCcw, staff: FiUsers, cash: FiDollarSign };
 let cachedSummary = null;
@@ -133,7 +134,7 @@ export default function NotificationCenter({ user, roles, onActiveOrderCountChan
                             })}
                         </div>
                         <div className="shrink-0 space-y-3 border-t border-slate-200 p-4 dark:border-slate-800">
-                            <div className="flex items-center justify-between text-xs text-slate-500"><span>{items ? items.total + " notifikasi · " + items.current_page + "/" + items.last_page : 'Riwayat belum dimuat'}</span><div className="flex gap-2"><button type="button" aria-label="Notifikasi sebelumnya" disabled={page <= 1 || loading || busy} onClick={() => setPage(value => value - 1)} className="rounded-lg border border-slate-200 p-2 disabled:opacity-30 dark:border-slate-700"><FiChevronLeft /></button><button type="button" aria-label="Notifikasi berikutnya" disabled={!items || page >= items.last_page || loading || busy} onClick={() => setPage(value => value + 1)} className="rounded-lg border border-slate-200 p-2 disabled:opacity-30 dark:border-slate-700"><FiChevronRight /></button></div></div>
+                            <div className="flex items-center justify-between text-xs text-slate-500"><span>{items ? items.total + " notifikasi" : 'Riwayat belum dimuat'}</span><Pagination currentPage={page} totalPages={items?.last_page || 1} onPageChange={setPage} disabled={!items || loading || busy} label="Halaman notifikasi" /></div>
                             <button type="button" onClick={() => read()} disabled={!count || loading || busy || Boolean(error)} className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm font-bold text-white disabled:opacity-40"><FiCheck />Tandai semua dibaca</button>
                         </div>
                     </DialogPanel>
