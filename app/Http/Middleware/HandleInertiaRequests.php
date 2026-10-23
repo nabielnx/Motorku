@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Middleware;
 
+use App\Models\DataType;
 use App\Models\Setting;
 use App\Services\CacheService;
 use Illuminate\Http\Request;
@@ -33,6 +36,8 @@ class HandleInertiaRequests extends Middleware
 
         return [
             ...parent::share($request),
+            'catalog_groups' => fn () => DataType::productGroups(),
+            'reference_modules' => fn () => $user?->hasRole('owner') ? DataType::referenceModules() : [],
 
             'auth' => [
                 'user' => $user ? [

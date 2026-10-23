@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use App\Models\Product;
@@ -15,6 +17,9 @@ class CheckoutConcurrencyTest extends TestCase
 {
     // Workers need committed fixtures, rather than RefreshDatabase's transaction.
     use DatabaseTruncation;
+
+    // These rows are application configuration seeded by migrations, not checkout fixtures.
+    protected array $exceptTables = ['data_types'];
 
     protected function tearDown(): void
     {

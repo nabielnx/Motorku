@@ -39,12 +39,16 @@ import {
     FiChevronDown
 } from 'react-icons/fi';
 
-const catalogGroups = Object.entries(catalogGroupLabels);
-
-function getDestinationInfo(url, locale = 'id') {
+function getDestinationInfo(url, locale = 'id', catalogGroups = [], references = []) {
     if (!url) return null;
     const destination = new URL(url, 'http://localhost');
     const path = destination.pathname;
+    if (path === '/data-types') {
+        return { title: 'Kelola Jenis', component: <div className="p-4 space-y-3"><Skeleton className="h-8 w-48" /><Skeleton className="h-48 w-full rounded-xl" /></div>, noPadding: false };
+    }
+    if (path.startsWith('/references/')) {
+        return { title: references.find(module => module.path === path)?.name || 'Data Referensi', component: <MotorcyclePageSkeleton />, noPadding: false };
+    }
     if (path === '/orders' || path === '/orders/') {
         return {
             title: locale === 'en' ? 'Orders List' : 'Daftar Pesanan',
@@ -90,7 +94,7 @@ function getDestinationInfo(url, locale = 'id') {
     }
     if (path.startsWith('/motorcycles')) {
         return {
-            title: 'Motor',
+            title: references.find(module => module.path === '/motorcycles')?.name || 'Motor',
             component: <MotorcyclePageSkeleton />,
             noPadding: true,
         };
@@ -186,6 +190,8 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
     const [navigatingDestination, setNavigatingDestination] = useState(null);
     const { url, props } = usePage(); 
     const locale = props.app_settings?.locale || 'id';
+    const catalogGroups = Object.entries(props.catalog_groups ?? catalogGroupLabels);
+    const availableReferences = props.reference_modules ?? referenceModules;
 
     useEffect(() => {
         // Dialog portals also need the admin icon styling.
@@ -270,11 +276,13 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
     };
 
     const homeHref = hasRole('cashier') ? '/pos' : '/dashboard';
-    const destInfo = getDestinationInfo(navigatingDestination, locale);
+    const destInfo = getDestinationInfo(navigatingDestination, locale, catalogGroups, availableReferences);
     const activeUrl = new URL(navigatingDestination || url, 'http://localhost');
     const activePath = activeUrl.pathname;
     const activeCatalogGroup = activeUrl.searchParams.get('group');
-    const catalogMenuIsActive = activePath.startsWith('/products') || activePath.startsWith('/categories');
+    const managingProducts = activePath === '/data-types' && activeUrl.searchParams.get('kind') !== 'reference';
+    const managingReferences = activePath === '/data-types' && activeUrl.searchParams.get('kind') === 'reference';
+    const catalogMenuIsActive = activePath.startsWith('/products') || activePath.startsWith('/categories') || managingProducts;
 
     const isItemActive = (itemHref) => {
         if (!itemHref) return false;
@@ -318,7 +326,9 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                 {
                     name: getTranslation(locale, 'menu_produk', 'Produk'),
                     icon: FiPackage,
-                    href: safeRoute('products.index', '/products'),
+                    href: '/data-types?kind=product',
+                    quickHref: safeRoute('products.index', '/products'),
+                    current: managingProducts,
                     active: catalogMenuIsActive,
                     roles: ['owner'],
                     children: [
@@ -337,12 +347,13 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                 {
                     name: locale === 'en' ? 'Reference Data' : 'Data Referensi',
                     icon: FiBookOpen,
-                    href: safeRoute(referenceModules[0].routeName, referenceModules[0].path),
-                    active: referenceModules.some(module => isItemActive(module.path)),
+                    href: '/data-types?kind=reference',
+                    current: managingReferences,
+                    active: availableReferences.some(module => isItemActive(module.path)) || managingReferences,
                     roles: ['owner'],
-                    children: referenceModules.map(module => ({
+                    children: availableReferences.map(module => ({
                         name: module.name,
-                        href: safeRoute(module.routeName, module.path),
+                        href: module.path,
                         active: isItemActive(module.path),
                     })),
                 },
@@ -392,6 +403,7 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
     const quickNavPaths = ['/dashboard', '/pos', '/products', '/orders'];
     const quickNavItems = quickNavPaths.flatMap(path => visibleSections
         .flatMap(section => section.items)
+        .map(item => item.quickHref ? { ...item, href: item.quickHref, active: activePath.startsWith('/products') || activePath.startsWith('/categories') } : item)
         .filter(item => {
             const destination = new URL(item.href, 'http://localhost');
             return destination.pathname === path && !destination.search;

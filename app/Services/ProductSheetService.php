@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Enums\InventoryLogType;
 use App\Models\Category;
+use App\Models\DataType;
 use App\Models\Product;
 use App\Services\ProductSheet\ProductSheetExporter;
 use App\Services\ProductSheet\ProductSheetReader;
@@ -62,6 +63,7 @@ class ProductSheetService
             $sheets = json_decode($draft->payload, true, flags: JSON_THROW_ON_ERROR);
             $catalog = $this->catalogIndex();
             $categories = Category::with('parent')->get();
+            $input['catalog_groups'] = Category::catalogGroups();
             $rows = [];
             foreach ($input['sheets'] as $selection) {
                 $sheet = collect($sheets)->firstWhere('id', $selection['id']);
@@ -193,6 +195,10 @@ class ProductSheetService
                     $this->fail('Pilih hanya baris yang valid dan tidak dilewati.');
                 }
                 $counts = ['created' => 0, 'updated' => 0];
+                $groups = $rows->pluck('group')->unique()->values();
+                if (DataType::where('kind', 'product')->whereIn('key', $groups)->orderBy('key')->lockForUpdate()->get()->count() !== $groups->count()) {
+                    $this->fail('Jenis produk berubah. Buat pratinjau ulang.');
+                }
                 $catalog = $this->catalogIndex();
                 foreach ($rows as $row) {
                     $data = $row['data'];
@@ -271,16 +277,21 @@ class ProductSheetService
             return trim((string) $value);
         };
         $groupText = $text('group');
-        $group = $groupText === '' ? $options['default_group'] : array_search($this->key($groupText), array_map(fn ($label) => $this->key($label), Category::CATALOG_GROUPS), true);
-        if ($group === false && array_key_exists($groupText, Category::CATALOG_GROUPS)) {
+        $catalogGroups = $options['catalog_groups'];
+        $group = $groupText === '' ? $options['default_group'] : array_search($this->key($groupText), array_map(fn ($label) => $this->key($label), $catalogGroups), true);
+        if ($group === false) {
+            $legacy = array_search($this->key($groupText), array_map(fn ($label) => $this->key($label), Category::CATALOG_GROUPS), true);
+            $group = $legacy !== false && isset($catalogGroups[$legacy]) ? $legacy : false;
+        }
+        if ($group === false && array_key_exists($groupText, $catalogGroups)) {
             $group = $groupText;
         }
         if ($group === false) {
-            $errors[] = 'Grup harus Otomotif, Sepeda, Elektronik, atau Alat Bangunan.';
+            $errors[] = 'Grup tidak ditemukan. Tambahkan jenis produk di Kelola Jenis terlebih dahulu.';
             $group = $options['default_group'];
         }
         if ($groupText === '') {
-            $warnings[] = 'Grup kosong: memakai '.Category::CATALOG_GROUPS[$group].'.';
+            $warnings[] = 'Grup kosong: memakai '.$catalogGroups[$group].'.';
         }
         $data = ['name' => $text('name'), 'brand' => $text('brand'), 'sku' => $text('sku'), 'description' => $text('description', 2000), 'unit' => $text('unit', 50)];
         $category = $text('category');

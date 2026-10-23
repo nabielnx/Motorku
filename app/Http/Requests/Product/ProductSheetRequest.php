@@ -28,7 +28,7 @@ class ProductSheetRequest extends FormRequest
                 'sheets.*.mapping' => ['required', 'array:'.implode(',', array_keys(ProductSheetService::FIELDS))],
                 'sheets.*.mapping.*' => ['nullable', 'integer', 'min:0', 'max:39'],
                 'mode' => ['required', Rule::in(['add', 'upsert', 'update'])],
-                'default_group' => ['required', Rule::in(['automotive', 'bicycle', 'electronics', 'hardware'])],
+                'default_group' => ['required', Rule::exists('data_types', 'key')->where('kind', 'product')],
                 'use_estimated_cost' => ['required', 'boolean'],
                 'update_stock' => ['sometimes', 'boolean'],
             ],
@@ -40,7 +40,7 @@ class ProductSheetRequest extends FormRequest
             ],
             default => [
                 'format' => ['sometimes', Rule::in(['xlsx', 'csv', 'pdf'])],
-                'group' => ['nullable', Rule::in(['automotive', 'bicycle', 'electronics', 'hardware'])],
+                'group' => ['nullable', Rule::exists('data_types', 'key')->where('kind', 'product')],
             ],
         };
     }

@@ -91,6 +91,7 @@
     font-weight: 500;
     border: 0;
 }
+:is(.admin-workspace, .admin-icons .admin-dialog) .admin-nav-parent { padding: 0; }
 :is(.admin-workspace, .admin-icons .admin-dialog) .admin-nav-link svg { color: var(--admin-yellow); flex-shrink: 0; width: 21px; height: 21px; padding: 2px; border-radius: 4px; }
 :is(.admin-workspace, .admin-icons .admin-dialog) .admin-nav-link:hover { background: #2b3931; color: #fff; }
 :is(.admin-workspace, .admin-icons .admin-dialog) .admin-nav-link--active,

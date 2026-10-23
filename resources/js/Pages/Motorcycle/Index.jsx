@@ -14,7 +14,7 @@ import DeleteMappingModal from '@/Components/Motorcycle/DeleteMappingModal';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import MotorcycleSkeleton from '@/Components/Skeletons/MotorcycleSkeleton';
-import { Head, router } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import { getProductImage } from '@/Utils/productImage';
 import { POS_CART_KEY, formatPosProduct, readPosCart, addToPosCart } from '@/Utils/posCart';
 import { ProductPhoto } from '@/Components/Customer/Storefront';
@@ -53,6 +53,7 @@ export default function MotorcycleIndex({
     partCategories = {},
     categoryGroups = {}
 }) {
+    const referenceName = usePage().props.reference_modules?.find(module => module.path === '/motorcycles')?.name || 'Motor';
     // Motorcycle Modals & State
     const [showAddModal, setShowAddModal] = useState(false);
     const [editMotorcycle, setEditMotorcycle] = useState(null);
@@ -538,8 +539,8 @@ export default function MotorcycleIndex({
     const motorToIndex = Math.min(page * perPage, totalMotorItems);
 
     return (
-        <AuthenticatedLayout pageTitle="Motor" noPadding={true}>
-            <Head title="Motor | Data Referensi" />
+        <AuthenticatedLayout pageTitle={referenceName} noPadding={true}>
+            <Head title={`${referenceName} | Data Referensi`} />
 
             {/* Floating Global Notification Alert */}
             {notification && (

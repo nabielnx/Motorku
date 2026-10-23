@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\Category;
+use App\Models\DataType;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -18,6 +19,7 @@ class CategoryService
     public function createCategory(array $data)
     {
         $category = DB::transaction(function () use ($data) {
+            DataType::where('kind', 'product')->where('key', $data['catalog_group'] ?? 'automotive')->lockForUpdate()->firstOrFail();
             $subCategories = $data['sub_categories'] ?? null;
             unset($data['sub_categories']);
 
@@ -53,6 +55,7 @@ class CategoryService
     {
         $category = DB::transaction(function () use ($id, $data) {
             $category = Category::whereKey($id)->lockForUpdate()->firstOrFail();
+            DataType::where('kind', 'product')->where('key', $data['catalog_group'] ?? $category->catalog_group)->lockForUpdate()->firstOrFail();
 
             $subCategories = $data['sub_categories'] ?? null;
             unset($data['sub_categories']);

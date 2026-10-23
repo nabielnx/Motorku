@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -18,6 +20,11 @@ class Category extends Model
     ];
 
     use HasFactory, HasUuids;
+
+    public static function catalogGroups(): array
+    {
+        return DataType::productGroups();
+    }
 
     protected $attributes = ['catalog_group' => 'automotive'];
 

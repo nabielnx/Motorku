@@ -17,6 +17,8 @@ Excel `.xlsx` membaca semua tab yang terlihat; CSV UTF-8 membaca satu tab. Forma
 
 ## Kolom bahasa Indonesia
 
+Jenis produk dapat ditambahkan melalui **Produk → Kelola Jenis**. Impor dan ekspor memakai daftar jenis dari database; tambahkan jenis terlebih dahulu jika belum tersedia. Label lama seperti Otomotif dan Alat Bangunan tetap dikenali sebagai alias jenis bawaan.
+
 | Kolom | Penggunaan |
 |---|---|
 | Grup Barang | Otomotif, Sepeda, Elektronik, Alat Bangunan. Jika kosong menggunakan grup pilihan saat impor. |

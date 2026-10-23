@@ -1,4 +1,4 @@
-// Each reference module keeps its own pages, validation, services and data model.
+// Loading fallback only. Live navigation comes from the server's reference_modules.
 export const referenceModules = [
     {
         key: 'motorcycles',

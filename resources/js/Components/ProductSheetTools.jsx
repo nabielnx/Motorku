@@ -1,13 +1,12 @@
 import { useState } from 'react';
 import { catalogGroupLabels } from '@/Utils/catalogGroupLabels';
 import AdminDialog, { DialogTitle } from '@/Components/Admin/Dialog';
-import { router } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { FiDownload, FiUpload, FiX } from 'react-icons/fi';
 import { sheetError, sheetFileSchema, sheetPreviewSchema, selectableSheetRows } from '@/Utils/productSheet';
 
-const groups = catalogGroupLabels;
 const money = value => value == null ? '—' : new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(value);
 const quantity = value => new Intl.NumberFormat('id-ID').format(value);
 const control = 'admin-control w-full';
@@ -15,6 +14,7 @@ const secondary = 'admin-button admin-button-secondary';
 const primary = 'admin-button admin-button-primary';
 
 export default function ProductSheetTools({ selectedGroup, compact = false }) {
+    const groups = usePage().props.catalog_groups ?? catalogGroupLabels;
     const [dialog, setDialog] = useState(null);
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState('');

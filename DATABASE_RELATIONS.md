@@ -870,7 +870,19 @@ Tidak mempunyai foreign key database.
 
 Tidak mempunyai foreign key database.
 
-## 7. Sumber verifikasi
+## 7. Jenis data dan referensi fleksibel
+
+Ditambahkan oleh migration `2026_10_23_000001` dan `2026_10_23_000002`; struktur baru diverifikasi memakai MySQL uji terisolasi, bukan database operasional pada inventaris awal dokumen ini.
+
+- `data_types`: UUID PK, `kind` (product/reference), key tetap, nama yang dapat diganti, definisi kolom JSON, `driver` untuk modul bawaan, posisi navigasi, penanda bawaan, dan `sync_version`. Unik pada `(kind, key)` serta `(kind, name)`.
+- `categories.catalog_group` tetap memakai key jenis produk. Alur create/update kategori dan impor mengunci baris jenis terkait agar tidak terhapus bersamaan dengan penambahan kategori. Nama jenis berasal dari `data_types`, sementara alias lama tetap diterima oleh impor.
+- `reference_entries`: UUID PK, FK `data_type_id → data_types.id` dengan `restrictOnDelete`, nama, deskripsi, path foto, nilai kolom JSON, dan `sync_version`. Index `(data_type_id, name)` untuk pencarian/pagination.
+- `reference_entry_product`: UUID PK dan relasi banyak-ke-banyak antara `reference_entries` dan `products`; unik per pasangan, `cascadeOnDelete` pada kedua FK. Penghapusan entri/produk melepas mapping ini tanpa mengubah stok atau transaksi.
+- `motorcycles` dan `motorcycle_parts` tetap terpisah. Jenis referensi bawaan Motor mengarahkan navigasi ke modul tersebut; data lama tidak disalin ke entri generik.
+
+Panduan pengelolaan kolom dan deployment ada di [docs/REFERENCE_DATA.md](D:/Project/Webs/Motorku/docs/REFERENCE_DATA.md).
+
+## 8. Sumber verifikasi
 
 - Metadata `information_schema.TABLES`, `COLUMNS`, `STATISTICS`, `KEY_COLUMN_USAGE`, dan `REFERENTIAL_CONSTRAINTS` pada database lokal `sparepart`.
 - Model: [app/Models](D:/Project/Webs/Motorku/app/Models). Alur penjualan: [OrderService.php](D:/Project/Webs/Motorku/app/Services/OrderService.php), [PaymentService.php](D:/Project/Webs/Motorku/app/Services/PaymentService.php), [OrderReturnService.php](D:/Project/Webs/Motorku/app/Services/OrderReturnService.php), [CashClosingService.php](D:/Project/Webs/Motorku/app/Services/CashClosingService.php), [DocumentNumberService.php](D:/Project/Webs/Motorku/app/Services/DocumentNumberService.php).
