@@ -1,3 +1,4 @@
+import Pagination from '@/Components/Pagination';
 import ThermalReceipt from '@/Components/ThermalReceipt';
 import MoneyInput from '@/Components/MoneyInput';
 import React, { useEffect, useState, useRef } from 'react';
@@ -11,8 +12,6 @@ import {
     FiEye,
     FiEdit2,
     FiPrinter,
-    FiChevronLeft,
-    FiChevronRight,
     FiClock,
     FiCheckCircle,
     FiAlertCircle,
@@ -681,31 +680,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                             <span className="hidden sm:inline">{totalItems > 0 ? `${(currentPage - 1) * perPage + 1}–${Math.min(currentPage * perPage, totalItems)}` : '0'} dari {totalItems} pesanan</span>
                         </span>
 
-                        <div className="flex shrink-0 items-center gap-1 sm:gap-2">
-                            <button
-                                onClick={() => changePage(currentPage - 1)}
-                                disabled={currentPage <= 1}
-                                aria-label="Halaman sebelumnya"
-                                className="flex min-h-8 min-w-8 items-center justify-center gap-1 rounded-[7px] px-2 py-1 text-[11px] font-medium text-slate-700 hover:bg-slate-100 disabled:text-slate-400 dark:text-slate-200 dark:hover:bg-slate-800"
-                            >
-                                <FiChevronLeft size={13} strokeWidth={2} />
-                                <span className="hidden sm:inline">Sebelumnya</span>
-                            </button>
-
-                            <span className="px-1.5 py-1 text-[11px] font-medium tabular-nums text-slate-700 dark:text-slate-300">
-                                {currentPage} / {totalPages}
-                            </span>
-
-                            <button
-                                onClick={() => changePage(currentPage + 1)}
-                                disabled={currentPage >= totalPages}
-                                aria-label="Halaman selanjutnya"
-                                className="flex min-h-8 min-w-8 items-center justify-center gap-1 rounded-[7px] px-2 py-1 text-[11px] font-medium text-slate-700 hover:bg-slate-100 disabled:text-slate-400 dark:text-slate-200 dark:hover:bg-slate-800"
-                            >
-                                <span className="hidden sm:inline">Selanjutnya</span>
-                                <FiChevronRight size={13} strokeWidth={2} />
-                            </button>
-                        </div>
+                        <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={changePage} label="Halaman pesanan" />
                     </div>
                 </div>
             </div>

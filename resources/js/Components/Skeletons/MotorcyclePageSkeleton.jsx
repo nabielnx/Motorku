@@ -1,3 +1,4 @@
+import { PaginationSkeleton } from '@/Components/Pagination';
 import Skeleton from '@/Components/Skeleton';
 
 /**
@@ -66,11 +67,7 @@ export default function MotorcyclePageSkeleton({ rows = 5 }) {
                 {/* Footer Pagination */}
                 <div className="p-3 bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs font-semibold text-slate-600 dark:text-slate-400 shrink-0">
                     <Skeleton className="h-3.5 w-44" />
-                    <div className="flex items-center space-x-2">
-                        <Skeleton className="h-8 w-20 rounded-lg" />
-                        <Skeleton className="h-8 w-14 rounded-lg" />
-                        <Skeleton className="h-8 w-20 rounded-lg" />
-                    </div>
+                    <PaginationSkeleton />
                 </div>
             </div>
         </div>

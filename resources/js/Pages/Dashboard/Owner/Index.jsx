@@ -1,3 +1,4 @@
+import Pagination from '@/Components/Pagination';
 import React, { useState, useEffect, useRef } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import DateRangePicker from '@/Components/DateRangePicker';
@@ -17,8 +18,6 @@ import {
     FiCheckCircle, 
     FiArrowRight,
     FiChevronDown,
-    FiChevronLeft,
-    FiChevronRight,
     FiCalendar
 } from 'react-icons/fi';
 
@@ -453,15 +452,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                     {totalOrdersCount > 0 && (
                         <div className="flex shrink-0 items-center justify-between gap-2 border-t border-slate-200 bg-slate-50 px-3 py-3 text-xs font-semibold text-slate-600 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-400">
                             <span>{(currentPage - 1) * 15 + 1}–{Math.min(currentPage * 15, totalOrdersCount)} dari {totalOrdersCount}</span>
-                            <div className="flex items-center gap-1.5">
-                                <button type="button" onClick={() => fetchOrdersPage(currentPage - 1)} disabled={currentPage === 1 || isFetchingOrders} aria-label="Halaman pesanan sebelumnya" className="flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-2 py-1 font-bold text-slate-700 disabled:opacity-40 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 sm:px-3">
-                                    <FiChevronLeft size={14} /><span className="hidden sm:inline">Sebelumnya</span>
-                                </button>
-                                <span className="rounded-lg border border-slate-300 bg-slate-200 px-2 py-1 font-bold text-slate-800 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 sm:px-3">{currentPage} / {totalPages}</span>
-                                <button type="button" onClick={() => fetchOrdersPage(currentPage + 1)} disabled={currentPage === totalPages || isFetchingOrders} aria-label="Halaman pesanan berikutnya" className="flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-2 py-1 font-bold text-slate-700 disabled:opacity-40 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 sm:px-3">
-                                    <span className="hidden sm:inline">Selanjutnya</span><FiChevronRight size={14} />
-                                </button>
-                            </div>
+                            <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={fetchOrdersPage} disabled={isFetchingOrders} label="Halaman pesanan terbaru" />
                         </div>
                     )}
 

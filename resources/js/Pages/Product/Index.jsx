@@ -1,3 +1,4 @@
+import Pagination from '@/Components/Pagination';
 import AdminButton from '@/Components/Admin/Button';
 import useProductNavigation from '@/Hooks/useProductNavigation';
 import ProductFormModal from '@/Components/Product/ProductFormModal';
@@ -20,7 +21,7 @@ import { ProductPhoto } from '@/Components/Customer/Storefront';
 import ProductBookView from '@/Components/Product/ProductBookView';
 import axios from 'axios';
 import { toast } from 'sonner';
-import { FiPlus, FiEdit2, FiTrash2, FiChevronDown, FiChevronLeft, FiChevronRight, FiX, FiPackage, FiSearch, FiAlertTriangle, FiGrid, FiList, FiBookOpen, FiFilter, FiFolder } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2, FiChevronDown, FiChevronRight, FiX, FiPackage, FiSearch, FiAlertTriangle, FiGrid, FiList, FiBookOpen, FiFilter, FiFolder } from 'react-icons/fi';
 
 
 
@@ -1214,29 +1215,7 @@ export default function MenuManagement({
                                         <span className="sm:hidden">{((currentPage - 1) * perPage) + 1}–{Math.min(currentPage * perPage, totalProducts)} / {totalProducts}</span>
                                         <span className="hidden sm:inline">Menampilkan {((currentPage - 1) * perPage) + 1} - {Math.min(currentPage * perPage, totalProducts)} dari {totalProducts} produk · {perPage} per halaman</span>
                                     </span>
-                                    <div className="flex items-center gap-2">
-                                        <button
-                                            type="button"
-                                            onClick={() => changeProductPage(currentPage - 1)}
-                                            disabled={currentPage <= 1}
-                                            aria-label="Halaman sebelumnya"
-                                            className="p-1 sm:px-3.5 sm:py-1.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-200 transition sm:border border-slate-300 dark:border-slate-700 sm:shadow-2xs cursor-pointer"
-                                        >
-                                            <FiChevronLeft size={16} className="sm:hidden" /><span className="hidden sm:inline">Sebelumnya</span>
-                                        </button>
-                                        <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
-                                            {currentPage} / {totalPages}
-                                        </span>
-                                        <button
-                                            type="button"
-                                            onClick={() => changeProductPage(currentPage + 1)}
-                                            disabled={currentPage >= totalPages}
-                                            aria-label="Halaman berikutnya"
-                                            className="p-1 sm:px-3.5 sm:py-1.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-200 transition sm:border border-slate-300 dark:border-slate-700 sm:shadow-2xs cursor-pointer"
-                                        >
-                                            <FiChevronRight size={16} className="sm:hidden" /><span className="hidden sm:inline">Selanjutnya</span>
-                                        </button>
-                                    </div>
+                                    <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={changeProductPage} label="Halaman produk" />
                                 </div>
                             )}
                         </>

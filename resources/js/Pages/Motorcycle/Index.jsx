@@ -1,3 +1,4 @@
+import Pagination from '@/Components/Pagination';
 import { fuzzyFilterProducts } from '@/Utils/fuzzySearch';
 import AdminButton from '@/Components/Admin/Button';
 
@@ -20,7 +21,7 @@ import { POS_CART_KEY, formatPosProduct, readPosCart, addToPosCart } from '@/Uti
 import { ProductPhoto } from '@/Components/Customer/Storefront';
 import MotorIcon from '@/Components/MotorIcon';
 import { toast } from 'sonner';
-import { FiPlus, FiEdit2, FiTrash2, FiX, FiSearch, FiStar, FiChevronDown, FiChevronUp, FiFilter, FiAlertCircle, FiCheckCircle, FiLayers, FiMaximize2, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2, FiX, FiSearch, FiStar, FiChevronDown, FiChevronUp, FiFilter, FiAlertCircle, FiCheckCircle, FiLayers, FiMaximize2 } from 'react-icons/fi';
 
 // Engine Type Badges & Segmented Buttons
 const ENGINE_CONFIG = {
@@ -1163,29 +1164,12 @@ export default function MotorcycleIndex({
                                                             </select>
                                                         </div>
 
-                                                        <div className="flex items-center gap-1 sm:gap-2">
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => fetchParts(m.id, { page: Math.max((currentMotorParts.current_page || 1) - 1, 1) })}
-                                                                disabled={(currentMotorParts.current_page || 1) <= 1}
-                                                                className="p-2 sm:px-3.5 sm:py-1.5 bg-transparent sm:bg-white dark:sm:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 rounded-md sm:rounded-lg text-xs font-bold text-slate-600 dark:text-slate-200 transition border-0 sm:border border-slate-300 dark:border-slate-700 sm:shadow-2xs cursor-pointer"
-                                                                aria-label="Halaman sparepart sebelumnya"
-                                                            >
-                                                                <FiChevronLeft className="sm:hidden" size={15} /><span className="hidden sm:inline">Sebelumnya</span>
-                                                            </button>
-                                                            <span className="px-1 sm:px-3 py-1 bg-transparent sm:bg-slate-100 dark:sm:bg-slate-800 border-0 sm:border border-slate-300 dark:border-slate-700 rounded-none sm:rounded-lg text-xs font-bold text-slate-700 dark:text-slate-200 whitespace-nowrap">
-                                                                {currentMotorParts.current_page || 1} / {currentMotorParts.last_page || 1}
-                                                            </span>
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => fetchParts(m.id, { page: Math.min((currentMotorParts.current_page || 1) + 1, currentMotorParts.last_page || 1) })}
-                                                                disabled={(currentMotorParts.current_page || 1) >= (currentMotorParts.last_page || 1)}
-                                                                className="p-2 sm:px-3.5 sm:py-1.5 bg-transparent sm:bg-white dark:sm:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 rounded-md sm:rounded-lg text-xs font-bold text-slate-600 dark:text-slate-200 transition border-0 sm:border border-slate-300 dark:border-slate-700 sm:shadow-2xs cursor-pointer"
-                                                                aria-label="Halaman sparepart berikutnya"
-                                                            >
-                                                                <FiChevronRight className="sm:hidden" size={15} /><span className="hidden sm:inline">Selanjutnya</span>
-                                                            </button>
-                                                        </div>
+                                                        <Pagination
+                                                            currentPage={currentMotorParts.current_page || 1}
+                                                            totalPages={currentMotorParts.last_page || 1}
+                                                            onPageChange={page => fetchParts(m.id, { page })}
+                                                            label={`Halaman sparepart ${m.brand} ${m.model}`}
+                                                        />
                                                     </div>
                                                 )}
                                             </div>
@@ -1202,27 +1186,7 @@ export default function MotorcycleIndex({
                                     <span className="sm:hidden">{motorFromIndex}–{motorToIndex} / {totalMotorItems}</span>
                                     <span className="hidden sm:inline">Menampilkan {motorFromIndex} - {motorToIndex} dari {totalMotorItems} model motor</span>
                                 </span>
-                                <div className="flex items-center gap-1 sm:gap-2">
-                                    <button
-                                        onClick={() => setPage(prev => Math.max(prev - 1, 1))}
-                                        disabled={page <= 1}
-                                        className="p-2 sm:px-3.5 sm:py-1.5 bg-transparent sm:bg-white dark:sm:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 rounded-md sm:rounded-lg text-xs font-bold text-slate-600 dark:text-slate-200 transition border-0 sm:border border-slate-300 dark:border-slate-700 sm:shadow-2xs cursor-pointer"
-                                        aria-label="Halaman motor sebelumnya"
-                                    >
-                                        <FiChevronLeft className="sm:hidden" size={15} /><span className="hidden sm:inline">Sebelumnya</span>
-                                    </button>
-                                    <span className="px-1 sm:px-3 py-1 bg-transparent sm:bg-slate-100 dark:sm:bg-slate-800 border-0 sm:border border-slate-300 dark:border-slate-700 rounded-none sm:rounded-lg text-xs font-bold text-slate-700 dark:text-slate-200 whitespace-nowrap">
-                                        {page} / {totalMotorPages}
-                                    </span>
-                                    <button
-                                        onClick={() => setPage(prev => Math.min(prev + 1, totalMotorPages))}
-                                        disabled={page >= totalMotorPages}
-                                        className="p-2 sm:px-3.5 sm:py-1.5 bg-transparent sm:bg-white dark:sm:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 rounded-md sm:rounded-lg text-xs font-bold text-slate-600 dark:text-slate-200 transition border-0 sm:border border-slate-300 dark:border-slate-700 sm:shadow-2xs cursor-pointer"
-                                        aria-label="Halaman motor berikutnya"
-                                    >
-                                        <FiChevronRight className="sm:hidden" size={15} /><span className="hidden sm:inline">Selanjutnya</span>
-                                    </button>
-                                </div>
+                                <Pagination currentPage={page} totalPages={totalMotorPages} onPageChange={setPage} label="Halaman motor" />
                             </div>
                         )}
                         </>
