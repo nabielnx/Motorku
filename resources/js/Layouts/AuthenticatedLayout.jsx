@@ -53,7 +53,7 @@ function getDestinationInfo(url, locale = 'id', catalogGroups = [], references =
         return {
             title: locale === 'en' ? 'Orders List' : 'Daftar Pesanan',
             component: <OrderTableSkeleton />,
-            noPadding: false,
+            noPadding: true,
         };
     }
     if (path.startsWith('/orders/')) {
