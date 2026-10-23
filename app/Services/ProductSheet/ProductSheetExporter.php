@@ -23,6 +23,7 @@ class ProductSheetExporter
         $headers = ['Grup Barang', 'Kategori', 'Merek', 'Nama Barang', 'Spesifikasi / Keterangan', 'Harga Beli (Rp)', 'Harga Jual (Rp)', 'Stok', 'Satuan', 'Margin (Rp)', 'Kode Barang'];
         $path = tempnam(sys_get_temp_dir(), 'motorku-sheet-');
         $name = ($template ? 'template-barang' : 'daftar-barang-'.now()->format('Ymd')).'.'.$format;
+        $catalogGroups = Category::catalogGroups();
         try {
             if ($format === 'xlsx') {
                 $options = new WriterOptions;
@@ -41,7 +42,7 @@ class ProductSheetExporter
 
                 if (! $template) {
                     foreach (Product::with('category.parent')->inCatalogGroup($group)->orderBy('name')->lazy(200) as $product) {
-                        $values = [Category::CATALOG_GROUPS[$this->group($product->category)], $product->category->name, $product->brand ?? '', $product->name, $product->description ?? '', $product->cost_price === null ? null : (float) $product->cost_price, (float) $product->price, (int) $product->stock, $product->unit, $product->cost_price === null ? null : (float) $product->price - (float) $product->cost_price, $product->sku];
+                        $values = [$catalogGroups[$this->group($product->category)], $product->category->name, $product->brand ?? '', $product->name, $product->description ?? '', $product->cost_price === null ? null : (float) $product->cost_price, (float) $product->price, (int) $product->stock, $product->unit, $product->cost_price === null ? null : (float) $product->price - (float) $product->cost_price, $product->sku];
                         $writer->addRow($this->exportRow($values));
                     }
                 }
@@ -53,7 +54,7 @@ class ProductSheetExporter
 
                 if (! $template) {
                     foreach (Product::with('category.parent')->inCatalogGroup($group)->orderBy('name')->lazy(200) as $product) {
-                        $values = [Category::CATALOG_GROUPS[$this->group($product->category)], $product->category->name, $product->brand ?? '', $product->name, $product->description ?? '', $product->cost_price === null ? null : (float) $product->cost_price, (float) $product->price, (int) $product->stock, $product->unit, $product->cost_price === null ? null : (float) $product->price - (float) $product->cost_price, $product->sku];
+                        $values = [$catalogGroups[$this->group($product->category)], $product->category->name, $product->brand ?? '', $product->name, $product->description ?? '', $product->cost_price === null ? null : (float) $product->cost_price, (float) $product->price, (int) $product->stock, $product->unit, $product->cost_price === null ? null : (float) $product->price - (float) $product->cost_price, $product->sku];
                         fputcsv($stream, array_map(fn ($v) => is_string($v) && preg_match('/^[\s]*[=+\-@]/u', $v) ? "'".$v : $v, $values), ',', '"', '');
                     }
                 }
@@ -65,7 +66,7 @@ class ProductSheetExporter
                     ->inCatalogGroup($group)
                     ->orderBy('name')
                     ->get();
-                $groupLabel = $group ? (Category::CATALOG_GROUPS[$group] ?? $group) : 'Seluruh Katalog';
+                $groupLabel = $group ? ($catalogGroups[$group] ?? $group) : 'Seluruh Katalog';
                 $pdf = Pdf::loadView('pdf.products', [
                     'products' => $products,
                     'group' => $group,

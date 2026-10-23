@@ -46,7 +46,8 @@ class ProductController extends Controller implements HasMiddleware
         $availability = $request->string('availability')->value();
         $sort = $request->string('sort')->value();
         $group = $request->string('group')->value();
-        abort_if($group && ! array_key_exists($group, Category::CATALOG_GROUPS), 422, 'Kelompok produk tidak valid.');
+        $catalogGroups = Category::catalogGroups();
+        abort_if($group && ! array_key_exists($group, $catalogGroups), 422, 'Kelompok produk tidak valid.');
 
         $products = $this->productService->getProductsForWeb($search, $category, $stockStatus, $availability, $sort, $group ?: null, $request->integer('per_page', 16));
 
@@ -58,7 +59,7 @@ class ProductController extends Controller implements HasMiddleware
         $outOfStockCount = Product::inCatalogGroup($group ?: null)->where('stock', '<=', 0)->count();
 
         return Inertia::render('Product/Index', [
-            'catalogGroups' => Category::CATALOG_GROUPS,
+            'catalogGroups' => $catalogGroups,
             'initialProducts' => $products,
             'initialCategories' => Category::with(['children' => function ($q) {
                 $q->withCount('products');

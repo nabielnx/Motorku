@@ -35,7 +35,7 @@ export default function MenuManagement({
     const { props } = usePage();
     const locale = props.app_settings?.locale || 'id';
     const selectedGroup = filters.group || '';
-    const displayCatalogGroups = { ...catalogGroups, ...catalogGroupLabels };
+    const displayCatalogGroups = props.catalog_groups ?? (Object.keys(catalogGroups).length ? catalogGroups : catalogGroupLabels);
     const groupName = displayCatalogGroups[selectedGroup];
     const hasProductFilters = Boolean(
         filters.search?.trim()

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Http\Controllers\Dashboard\DashboardController;
 use App\Http\Controllers\Dashboard\PosController;
 use App\Http\Controllers\Inventory\InventoryController;
@@ -33,6 +35,7 @@ Route::get('/api/motor-saya/{motorcycleId}/parts', [MotorSayaController::class, 
 
 // Protected Web App
 Route::middleware(['auth', 'verified'])->group(function () {
+    require __DIR__.'/reference.php';
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::prefix('products')->group(function () {

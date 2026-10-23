@@ -1,8 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests\Category;
 
-use App\Models\Category;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -27,7 +28,7 @@ class UpdateCategoryRequest extends FormRequest
         $id = $this->route('id');
 
         return [
-            'catalog_group' => ['sometimes', Rule::in(array_keys(Category::CATALOG_GROUPS))],
+            'catalog_group' => ['sometimes', Rule::exists('data_types', 'key')->where('kind', 'product')],
             'name' => [
                 'required',
                 'string',
