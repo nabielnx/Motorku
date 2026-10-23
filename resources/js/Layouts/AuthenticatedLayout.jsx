@@ -196,7 +196,12 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
     useEffect(() => {
         // Dialog portals also need the admin icon styling.
         document.body.classList.add('admin-icons');
-        return () => document.body.classList.remove('admin-icons');
+        document.documentElement.classList.add('admin-viewport');
+        window.scrollTo(0, 0);
+        return () => {
+            document.body.classList.remove('admin-icons');
+            document.documentElement.classList.remove('admin-viewport');
+        };
     }, []);
 
     useEffect(() => {
