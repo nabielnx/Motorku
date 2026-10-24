@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { qrisErrorMessage, qrisQuoteSchema, renderQrisImage } from './qris';
+import { requestQrisQuote } from '../Api/qris.js';
+import { qrisErrorMessage, renderQrisImage } from './qris';
 
 export default function useQrisPayment({ open, active, items, amount }) {
     const [config, setConfig] = useState(null);
@@ -29,11 +30,8 @@ export default function useQrisPayment({ open, active, items, amount }) {
         setResult(null);
         if (!open || !active || configLoading || !config?.dynamic_available) return;
         const controller = new AbortController();
-        axios.post('/api/payments/qris/quote', { items: JSON.parse(itemsKey), expected_amount: amount }, { signal: controller.signal })
-            .then(async ({ data }) => {
-                const parsed = qrisQuoteSchema.safeParse(data.data);
-                if (!parsed.success) throw new Error('Respons QRIS tidak lengkap. Coba lagi.');
-                const quote = parsed.data;
+        requestQrisQuote({ items: JSON.parse(itemsKey), expected_amount: amount }, { signal: controller.signal })
+            .then(async quote => {
                 const imageUrl = await renderQrisImage(quote.payload);
                 if (!controller.signal.aborted) setResult({ key, quote, imageUrl });
             })
