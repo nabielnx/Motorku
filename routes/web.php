@@ -36,6 +36,7 @@ Route::get('/api/motor-saya/{motorcycleId}/parts', [MotorSayaController::class, 
 // Protected Web App
 Route::middleware(['auth', 'verified'])->group(function () {
     require __DIR__.'/reference.php';
+    require __DIR__.'/suppliers.php';
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::prefix('products')->group(function () {

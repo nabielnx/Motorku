@@ -27,6 +27,7 @@ import {
     FiSun,
     FiMoon,
     FiBookOpen,
+    FiTruck,
     FiChevronDown
 } from 'react-icons/fi';
 
@@ -165,6 +166,13 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                     active: isItemActive('/dashboard'),
                     roles: ['owner']
                 },
+                {
+                    name: getTranslation(locale, 'laporan_keuangan', 'Laporan Keuangan'),
+                    icon: FiBarChart2,
+                    href: safeRoute('reports.index', '/reports'),
+                    active: isItemActive('/reports'),
+                    roles: ['owner']
+                },
                 { 
                     name: getTranslation(locale, 'pos_kasir', 'POS Kasir'), 
                     icon: FiShoppingCart, 
@@ -221,16 +229,16 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
             ]
         },
         {
-            label: getTranslation(locale, 'section_laporan', 'LAPORAN'),
+            label: 'SUPPLIER',
             items: [
-                { 
-                    name: getTranslation(locale, 'laporan_keuangan', 'Laporan Keuangan'), 
-                    icon: FiBarChart2, 
-                    href: safeRoute('reports.index', '/reports'), 
-                    active: isItemActive('/reports'),
-                    roles: ['owner']
+                {
+                    name: 'Supplier',
+                    icon: FiTruck,
+                    href: safeRoute('suppliers.index', '/suppliers'),
+                    active: isItemActive('/suppliers'),
+                    roles: ['owner'],
                 },
-            ]
+            ],
         },
         {
             label: getTranslation(locale, 'section_administrasi', 'ADMINISTRASI'),

@@ -61,7 +61,7 @@ class LoadingSkeletonService
         return str_starts_with($component, 'Dashboard/') || in_array($component, [
             'POS/Index', 'Product/Index', 'Order/Index', 'Order/Show', 'User/Index',
             'Report/Index', 'Setting/Index', 'Motorcycle/Index', 'Profile/Edit',
-            'DataType/Index', 'Reference/Index',
+            'DataType/Index', 'Reference/Index', 'Supplier/Index',
         ], true);
     }
 }

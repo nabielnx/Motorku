@@ -4,7 +4,7 @@ Reload browser dan navigasi Inertia memakai definisi di `resources/js/Loading/pa
 
 ## Build dan development
 
-- `npm run build` menghasilkan aset Vite, lalu merender 16 variasi skeleton menjadi HTML statis dan manifest di `public/build/skeletons`.
+- `npm run build` menghasilkan aset Vite, lalu merender semua variasi skeleton terdaftar menjadi HTML statis dan manifest di `public/build/skeletons`.
 - `npm run dev` menghasilkan file yang sama saat server dimulai. Plugin Vite meregenerasi file ketika komponen skeleton, registry, atau pagination berubah.
 - `npm run skeletons` dapat dipakai untuk regenerasi manual.
 
