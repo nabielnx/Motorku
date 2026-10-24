@@ -10,7 +10,7 @@ import { getProductImage } from '@/Utils/productImage';
 import { FiSearch, FiPlus, FiMinus, FiShoppingCart, FiTrash2, FiArrowRight, FiCheck, FiChevronRight, FiX, FiMapPin, FiStar } from 'react-icons/fi';
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 import clsx from 'clsx';
-import { StoreHeader, MotorIcon, ProductPhoto } from '@/Components/Customer/Storefront';
+import { StoreHeader, ProductPhoto } from '@/Components/Customer/Storefront';
 import MotoQuickPromoSection from '@/Components/Customer/MotoQuickPromoSection';
 import { FaWhatsapp } from 'react-icons/fa';
 import { fuzzyFilterProducts } from '@/Utils/fuzzySearch';
@@ -317,27 +317,6 @@ export default function CustomerMenu({
                 setSearchQuery={setSearchQuery}
                 searchInputRef={searchInputRef}
             />
-
-            {/* Motor Saya Banner (Full-Width Pojok Sampai Pojok di Atas, Rounded di Bawah) */}
-            <section className="store-motor-banner">
-                <Link
-                    href={storeUrl('/motor-saya')}
-                    className="block mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8 py-3 sm:py-3.5 group active:scale-[0.99] transition-all"
-                >
-                    <div className="flex items-center gap-3 sm:gap-4 pl-3 sm:pl-4 md:pl-5 pr-3.5 sm:pr-5 md:pr-6">
-                        <MotorIcon size={26} className="shrink-0 text-[#19231f] transition-transform group-hover:scale-105" />
-                        <div className="min-w-0 flex-1">
-                            <p className="text-xs sm:text-sm font-extrabold text-[#19231f] tracking-tight transition-colors truncate">
-                                Motor Saya
-                            </p>
-                            <p className="mt-0.5 text-[10px] sm:text-[11.5px] text-slate-600 font-normal leading-snug">
-                                Temukan suku cadang yang sesuai dengan motor Anda.
-                            </p>
-                        </div>
-                        <FiChevronRight size={20} strokeWidth={2.5} className="shrink-0 text-[#19231f] group-hover:translate-x-0.5 transition-transform" aria-hidden="true" />
-                    </div>
-                </Link>
-            </section>
 
             <div className={clsx('store-catalog mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8', cart.length ? 'pb-32' : 'pb-12')}>
 

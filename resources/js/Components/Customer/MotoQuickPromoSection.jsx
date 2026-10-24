@@ -136,7 +136,7 @@ export default function MotoQuickPromoSection({
                     }}
                     className="relative z-10 flex items-stretch gap-2 sm:gap-2.5 overflow-x-auto no-scrollbar scroll-smooth snap-x snap-mandatory py-2.5 sm:py-3 cursor-grab active:cursor-grabbing"
                     style={{
-                        backgroundColor: '#19231f',
+                        backgroundColor: '#FFDD00',
                     }}
                 >
                     {bannerUrl && (
