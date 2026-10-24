@@ -5,6 +5,7 @@ import PartPreviewModal from '@/Components/Motorcycle/PartPreviewModal';
 import ThermalReceipt from '@/Components/ThermalReceipt';
 
 import { checkoutRequestId } from '@/Utils/checkout';
+import useQrisPayment from '@/Utils/useQrisPayment';
 import { POS_CART_KEY, MAX_POS_QTY as MAX_QTY, formatPosProduct, readPosCart, addToPosCart } from '@/Utils/posCart';
 import React, { useState, useEffect, useRef } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
@@ -137,8 +138,6 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
 
     const [validationError, setValidationError] = useState('');
 
-    const [qrisImageUrl, setQrisImageUrl] = useState(null);
-    const [qrisImageLoading, setQrisImageLoading] = useState(false);
     const [qrisVerified, setQrisVerified] = useState(false);
     const [qrisReference, setQrisReference] = useState('');
 
@@ -146,17 +145,6 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
         setQrisVerified(false);
         setQrisReference('');
     };
-
-    useEffect(() => {
-        if (!isPaymentModalOpen || isOrderComplete) return;
-        let active = true;
-        setQrisImageLoading(true);
-        axios.get('/api/settings/qris-image')
-            .then(({ data }) => { if (active) setQrisImageUrl(data?.url || null); })
-            .catch(() => { if (active) setQrisImageUrl(null); })
-            .finally(() => { if (active) setQrisImageLoading(false); });
-        return () => { active = false; };
-    }, [isPaymentModalOpen, isOrderComplete]);
 
     // Centralized Validation Function before Payment
     const validateBeforePayment = () => {
@@ -191,6 +179,16 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
     const taxRate = parseFloat(settings['tax.percentage'] || '0') / 100;
     const tax = taxEnabled ? Math.round(subtotal * taxRate) : 0;
     const total = subtotal + tax;
+    const qris = useQrisPayment({
+        open: isPaymentModalOpen && !isOrderComplete,
+        active: paymentMethod === 'qris_manual',
+        items: cart.map(item => ({ product_id: item.id, quantity: item.qty })),
+        amount: total,
+    });
+    const qrisImageUrl = qris.imageUrl;
+    const qrisImageLoading = qris.loading;
+    const qrisCartKey = JSON.stringify(cart.map(item => [item.id, item.qty]));
+    useEffect(() => { setQrisVerified(false); }, [qrisCartKey, total, paymentMethod, isPaymentModalOpen, qris.loading]);
 
     const changeAmount = Number(cashReceived) >= total ? Number(cashReceived) - total : 0;
     const cashShortfall = Number(cashReceived) < total ? total - Number(cashReceived) : 0;
@@ -347,8 +345,8 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
             return;
         }
 
-        if (paymentMethod === 'qris_manual' && (!qrisImageUrl || !qrisVerified)) {
-            toast.error(!qrisImageUrl ? 'Gambar QRIS toko belum tersedia.' : 'Pastikan dana sudah masuk sebelum mengonfirmasi.');
+        if (paymentMethod === 'qris_manual' && (qrisImageLoading || qris.error || !qrisImageUrl || !qrisVerified)) {
+            toast.error(qris.error || (qrisImageLoading ? 'Tunggu QRIS selesai disiapkan.' : !qrisImageUrl ? 'Gambar QRIS toko belum tersedia.' : 'Pastikan dana sudah masuk sebelum mengonfirmasi.'));
             return;
         }
 
@@ -362,7 +360,7 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
                 payment_method: paymentMethod,
                 ...(paymentMethod === 'cash'
                     ? { amount_received: Number(cashReceived) }
-                    : { reference_number: qrisReference.trim() || null }),
+                    : { reference_number: qrisReference.trim() || null, qris_quote: qris.quote?.quote_token || null }),
             };
             const requestId = checkoutRequestId(localStorage, `pos_checkout:${auth.user.id}`, payload);
             const sale = await createPosSale({ ...payload, request_id: requestId });
@@ -1059,6 +1057,11 @@ return (
                 paymentMethod={paymentMethod}
                 qrisImageLoading={qrisImageLoading}
                 qrisImageUrl={qrisImageUrl}
+                qrisAvailable={qris.available}
+                qrisDynamic={qris.dynamic}
+                qrisMerchant={qris.merchant}
+                qrisError={qris.error}
+                retryQris={qris.retry}
                 settings={settings}
                 cashShortfall={cashShortfall}
                 cashReceived={cashReceived}

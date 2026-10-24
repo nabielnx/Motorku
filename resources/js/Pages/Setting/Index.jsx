@@ -1,7 +1,8 @@
 import AdminButton from '@/Components/Admin/Button';
 import ImagePicker from '@/Components/ImagePicker';
 import { IMAGE_HELP, validImage } from '@/Utils/imageUpload';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { readQrisPayload, qrisErrorMessage } from '@/Utils/qris';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import AdminDialog, { DialogTitle } from '@/Components/Admin/Dialog';
 import { Head, usePage } from '@inertiajs/react';
@@ -99,7 +100,9 @@ export default function SettingIndex() {
   const [qrisFile, setQrisFile] = useState(null);
   const [qrisPreview, setQrisPreview] = useState(null);
   const [qrisUrl, setQrisUrl] = useState(props.qrisUrl || null);
+  const [qrisConfig, setQrisConfig] = useState(props.qrisConfig || null);
   const [uploadingQris, setUploadingQris] = useState(false);
+  useEffect(() => () => { if (qrisPreview) URL.revokeObjectURL(qrisPreview); }, [qrisPreview]);
   const [loginImageFile, setLoginImageFile] = useState(null);
   const [loginImagePreview, setLoginImagePreview] = useState(null);
   const [loginImageUrl, setLoginImageUrl] = useState(props.loginImageUrl || null);
@@ -139,6 +142,7 @@ export default function SettingIndex() {
         setQrisUrl(null);
         setQrisFile(null);
         setQrisPreview(null);
+        setQrisConfig(null);
         toast.success('Gambar QRIS toko berhasil dihapus.');
       } catch (err) {
         toast.error('Gagal menghapus gambar QRIS: ' + (err.response?.data?.message || err.message));
@@ -220,13 +224,30 @@ export default function SettingIndex() {
     try {
       const data = new FormData();
       data.append('qris_image', qrisFile);
+      data.append('qris_payload', await readQrisPayload(qrisFile));
       const response = await axios.post('/api/settings/qris-image', data);
       setQrisUrl(response.data?.url || null);
+      setQrisConfig(response.data);
       setQrisFile(null);
       setQrisPreview(null);
       toast.success('Gambar QRIS toko berhasil disimpan.');
     } catch (err) {
-      toast.error('Gagal upload gambar QRIS: ' + (err.response?.data?.message || err.message));
+      toast.error(qrisErrorMessage(err));
+    } finally {
+      setUploadingQris(false);
+    }
+  };
+
+  const handleActivateQris = async () => {
+    if (!qrisUrl || !qrisConfig?.image_revision) return;
+    setUploadingQris(true);
+    try {
+      const payload = await readQrisPayload(qrisUrl);
+      const { data } = await axios.post('/api/settings/qris-payload', { qris_payload: payload, image_revision: qrisConfig.image_revision });
+      setQrisConfig(data);
+      toast.success(`Nominal otomatis aktif untuk ${data.merchant.name}.`);
+    } catch (error) {
+      toast.error(qrisErrorMessage(error));
     } finally {
       setUploadingQris(false);
     }
@@ -429,7 +450,8 @@ export default function SettingIndex() {
             <FiUpload className="text-primary dark:text-yellow-400" size={20} />
             <h3 className="font-extrabold text-base text-slate-900 dark:text-white">Gambar QRIS Toko</h3>
           </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400">Kasir menampilkan QR ini saat pembayaran. Pelanggan memasukkan nominal sesuai total pesanan.</p>
+          <p className="text-xs text-slate-600 dark:text-slate-300">Unggah QRIS statis toko. Nominal pembayaran di POS akan terisi otomatis; kasir tetap memeriksa dana masuk sebelum mengonfirmasi lunas.</p>
+          {qrisConfig?.dynamic_available && <p role="status" className="flex items-center gap-2 text-xs font-semibold text-slate-800 dark:text-slate-100"><FiCheck aria-hidden="true" /> Nominal otomatis aktif · {qrisConfig.merchant.name} · {qrisConfig.merchant.city}</p>}
           <div className="flex flex-wrap items-start gap-4">
             <div className="w-32 h-32 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex items-center justify-center overflow-hidden">
               {qrisPreview || qrisUrl ? <img src={qrisPreview || qrisUrl} alt="QRIS toko" className="w-full h-full object-contain" /> : <span className="text-xs text-slate-400">Belum ada QRIS</span>}
@@ -441,6 +463,7 @@ export default function SettingIndex() {
               <p className="admin-help">{IMAGE_HELP}</p>
               <div className="flex flex-wrap gap-2">
                 {qrisFile && <AdminButton type="button" onClick={handleUploadQris} disabled={uploadingQris} variant="primary">{uploadingQris ? 'Menyimpan...' : 'Simpan QRIS'}</AdminButton>}
+                {qrisUrl && !qrisFile && !qrisConfig?.dynamic_available && <AdminButton type="button" onClick={handleActivateQris} disabled={uploadingQris} variant="primary">{uploadingQris ? 'Membaca QRIS...' : 'Aktifkan nominal otomatis'}</AdminButton>}
                 {qrisUrl && <button type="button" onClick={() => setDeleteConfirm({ type: 'qris' })} disabled={uploadingQris} className="px-4 py-2 rounded-lg border border-red-200 text-red-600 text-xs font-bold disabled:opacity-50">Hapus QRIS</button>}
               </div>
             </div>
