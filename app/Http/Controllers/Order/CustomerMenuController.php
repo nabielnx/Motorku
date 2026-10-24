@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Order;
 
 use App\Enums\OrderStatus;
@@ -9,9 +11,11 @@ use App\Models\Category;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\Setting;
+use App\Services\BusinessContext;
 use App\Services\CacheService;
 use App\Services\OrderCancellationService;
 use App\Services\OrderService;
+use App\Services\SettingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -30,14 +34,8 @@ class CustomerMenuController extends Controller
      */
     private function settingsAndBanners(): array
     {
-        return Cache::remember(CacheService::SETTINGS_STORE, CacheService::TTL_SETTINGS, function () {
-            $rows = Setting::query()
-                ->whereIn('group', ['store', 'tax', 'catalog', 'promo_banner', 'qr_order'])
-                ->get(['group', 'key', 'value']);
-
-            $settings = $rows->mapWithKeys(fn ($s) => [
-                $s->group.'.'.$s->key => $s->value,
-            ])->toArray();
+        return Cache::remember(CacheService::key(CacheService::SETTINGS_STORE), CacheService::TTL_SETTINGS, function () {
+            $settings = app(SettingService::class)->publicValues();
 
             $promoBanners = collect(range(1, 3))->mapWithKeys(function (int $slot) use ($settings) {
                 $path = $settings['store.promo_banner_'.$slot] ?? null;
@@ -56,7 +54,7 @@ class CustomerMenuController extends Controller
             return Inertia::render('Order/Menu', ['initialProducts' => [], 'initialCategories' => [], 'settings' => $settingsData['settings'], 'bestSellerProductIds' => [], 'promoBanners' => []]);
         }
         // Single query for both totalSoldMap AND bestSellerProductIds (was 2 separate queries)
-        $salesData = DB::table('order_items')
+        $salesData = app(BusinessContext::class)->table('order_items')
             ->join('orders', 'order_items.order_id', '=', 'orders.id')
             ->where('orders.order_status', '!=', 'cancelled')
             ->whereExists(function ($query) {
@@ -73,7 +71,7 @@ class CustomerMenuController extends Controller
         $totalSoldMap = $salesData->pluck('total_sold', 'product_id')->toArray();
         $bestSellerProductIds = $salesData->take(5)->pluck('product_id')->toArray();
 
-        $recommendedProductIds = DB::table('motorcycle_parts')
+        $recommendedProductIds = app(BusinessContext::class)->table('motorcycle_parts')
             ->where('is_recommended', true)
             ->pluck('product_id')
             ->unique()

@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests\Inventory;
 
 use App\Enums\InventoryLogType;
+use App\Support\BusinessRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -16,8 +19,8 @@ class StoreInventoryRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'product_id' => ['required', 'uuid', 'exists:products,id'],
-            'user_id' => ['sometimes', 'nullable', 'uuid', 'exists:users,id'],
+            'product_id' => ['required', 'uuid', BusinessRule::exists('products', 'id')],
+            'user_id' => ['sometimes', 'nullable', 'uuid', BusinessRule::exists('users', 'id')],
             'type' => ['required', Rule::in([
                 InventoryLogType::StockIn->value,
                 InventoryLogType::StockOut->value,

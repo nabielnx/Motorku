@@ -1,6 +1,7 @@
+import useStorefront from '@/Hooks/useStorefront';
 import React, { useEffect, useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
-import { FiTool, FiShoppingBag, FiShoppingCart, FiSearch, FiX, FiDisc, FiDroplet, FiZap, FiShield, FiLayers, FiSun, FiSliders, FiCpu } from 'react-icons/fi';
+import { FiTool, FiShoppingBag, FiShoppingCart, FiSearch, FiX, FiDisc, FiDroplet, FiZap, FiShield, FiLayers, FiSun, FiSliders, FiCpu, FiLogIn } from 'react-icons/fi';
 import clsx from 'clsx';
 import { getProductImage } from '@/Utils/productImage';
 import { RiMotorbikeFill } from 'react-icons/ri';
@@ -61,6 +62,7 @@ export function StoreHeader({
     setSearchQuery,
     searchInputRef,
 }) {
+    const { storeUrl } = useStorefront();
     const { props } = usePage();
     const storeName = settings['store.name'] || settings['name'] || props?.app_settings?.store_name || 'Motorku';
     const rawLogo = settings['store.logo'] || settings['logo'] || props?.logo_url;
@@ -81,7 +83,7 @@ export function StoreHeader({
             <header className="store-header">
 
                 <div className="store-header-shell">
-                    <Link href="/" aria-label={storeName + ' — beranda'} className="store-brand">
+                    <Link href={storeUrl('/')} aria-label={storeName + ' — beranda'} className="store-brand">
                         {rawLogo && !logoFailed ? (
                             <img
                                 src={getProductImage(rawLogo)}
@@ -98,7 +100,7 @@ export function StoreHeader({
                     </Link>
                     <nav aria-label="Navigasi toko" className="store-nav">
                         <Link
-                            href="/"
+                            href={storeUrl('/')}
                             aria-current={activePage === 'catalog' ? 'page' : undefined}
                             className={clsx(
                                 'py-4 transition-colors font-bold',
@@ -110,7 +112,7 @@ export function StoreHeader({
                             Katalog
                         </Link>
                         <Link
-                            href="/motor-saya"
+                            href={storeUrl('/motor-saya')}
                             aria-current={activePage === 'motor' ? 'page' : undefined}
                             className={clsx(
                                 'py-4 transition-colors font-bold',
@@ -186,7 +188,15 @@ export function StoreHeader({
 
                         <div className="store-actions">
                             <Link
-                                href={orderHref}
+                                href={storeUrl('/login')}
+                                title="Masuk ke akun"
+                                className="store-action store-login-action"
+                            >
+                                <FiLogIn size={17} strokeWidth={2} aria-hidden="true" />
+                                <span>Masuk</span>
+                            </Link>
+                            <Link
+                                href={storeUrl(orderHref)}
                                 title="Pesanan saya"
                                 className="store-action"
                                 aria-label="Pesanan saya"
@@ -216,7 +226,7 @@ export function StoreHeader({
                                 </button>
                             ) : (
                                 <Link
-                                    href="/"
+                                    href={storeUrl('/')}
                                     title="Keranjang belanja"
                                     className="store-action"
                                     aria-label={'Buka keranjang, ' + totalQty + ' item'}

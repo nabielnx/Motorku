@@ -1,9 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
+use App\Models\Concerns\BelongsToBusiness;
 use App\Services\DocumentNumberService;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
@@ -15,6 +18,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Order extends Model
 {
+    use BelongsToBusiness;
     use HasFactory, HasUuids;
 
     protected static function booted(): void

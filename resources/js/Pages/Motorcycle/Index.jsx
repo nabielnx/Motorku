@@ -1,3 +1,4 @@
+import useStorefront from '@/Hooks/useStorefront';
 import DeleteButton from '@/Components/Admin/DeleteButton';
 import Pagination from '@/Components/Pagination';
 import { fuzzyFilterProducts } from '@/Utils/fuzzySearch';
@@ -55,6 +56,7 @@ export default function MotorcycleIndex({
     partCategories = {},
     categoryGroups = {}
 }) {
+    const { storage } = useStorefront({ admin: true });
     const referenceName = usePage().props.reference_modules?.find(module => module.path === '/motorcycles')?.name || 'Motor';
     // Motorcycle Modals & State
     const [showAddModal, setShowAddModal] = useState(false);
@@ -281,13 +283,13 @@ export default function MotorcycleIndex({
     const addPartToPosCart = product => {
         let nextCart;
         try {
-            nextCart = addToPosCart(readPosCart(localStorage), formatPosProduct(product));
+            nextCart = addToPosCart(readPosCart(storage), formatPosProduct(product));
         } catch (error) {
             toast.error(error.message);
             return;
         }
         try {
-            localStorage.setItem(POS_CART_KEY, JSON.stringify(nextCart));
+            storage.setItem(POS_CART_KEY, JSON.stringify(nextCart));
         } catch {
             toast.error('Keranjang POS tidak dapat disimpan. Periksa penyimpanan browser lalu coba lagi.');
             return;

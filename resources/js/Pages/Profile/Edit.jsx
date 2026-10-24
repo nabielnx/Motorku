@@ -3,6 +3,7 @@ import { Head, usePage } from '@inertiajs/react';
 import DeleteUserForm from './Partials/DeleteUserForm';
 import UpdatePasswordForm from './Partials/UpdatePasswordForm';
 import UpdateProfileInformationForm from './Partials/UpdateProfileInformationForm';
+import GoogleAccountForm from './Partials/GoogleAccountForm';
 
 export default function Edit({ mustVerifyEmail, status }) {
     const { props } = usePage();
@@ -34,6 +35,7 @@ export default function Edit({ mustVerifyEmail, status }) {
                 </div>
 
                 {/* Password Update Card */}
+                <GoogleAccountForm />
                 <div className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl p-4 sm:p-6 shadow-xs transition-colors">
                     <UpdatePasswordForm />
                 </div>

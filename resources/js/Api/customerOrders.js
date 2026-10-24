@@ -1,18 +1,19 @@
+import { storefrontUrl, currentShopSlug } from '../Utils/storefrontContext.js';
 import axios from 'axios';
 import { entityPayload } from './entityPayload.js';
 
 export async function createCustomerOrder(payload) {
-    return entityPayload(await axios.post('/api/customer/order', payload));
+    return entityPayload(await axios.post(storefrontUrl('/api/customer/order', currentShopSlug()), payload));
 }
 
 export async function cancelCustomerOrder(orderId, customerToken) {
-    return entityPayload(await axios.post(`/api/customer/order/${orderId}/cancel`, {
+    return entityPayload(await axios.post(storefrontUrl(`/api/customer/order/${orderId}/cancel`, currentShopSlug()), {
         customer_token: customerToken,
     }));
 }
 
 export async function customerOrderStatus(orderId, customerToken, signal) {
-    return entityPayload(await axios.get(`/api/customer/order/${orderId}/status`, {
+    return entityPayload(await axios.get(storefrontUrl(`/api/customer/order/${orderId}/status`, currentShopSlug()), {
         params: { customer_token: customerToken }, signal,
     }));
 }

@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests\Order;
 
+use App\Support\BusinessRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreOrderReturnRequest extends FormRequest
@@ -23,7 +26,7 @@ class StoreOrderReturnRequest extends FormRequest
     {
         return [
             'request_id' => ['required', 'uuid'],
-            'order_item_id' => ['required', 'uuid', 'exists:order_items,id'],
+            'order_item_id' => ['required', 'uuid', BusinessRule::exists('order_items', 'id')],
             'quantity' => ['required', 'integer', 'min:1'],
             'restock' => ['required', 'boolean'],
             'refund_method' => ['required', 'in:cash,transfer'],

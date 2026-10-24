@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToBusiness;
+use App\Services\BusinessContext;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class ReferenceEntry extends Model
 {
+    use BelongsToBusiness;
     use HasUuids;
 
     protected $fillable = ['name', 'description', 'values', 'image_path'];
@@ -26,6 +29,7 @@ class ReferenceEntry extends Model
 
     public function products(): BelongsToMany
     {
-        return $this->belongsToMany(Product::class, 'reference_entry_product')->withTimestamps();
+        return $this->belongsToMany(Product::class, 'reference_entry_product')->withPivotValue('business_id', app(BusinessContext::class)->id())
+            ->withTimestamps();
     }
 }

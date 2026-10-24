@@ -15,6 +15,7 @@ use App\Services\CacheService;
 use App\Services\ImageUploadService;
 use App\Services\QrisService;
 use App\Services\SettingService;
+use App\Support\BusinessFiles;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
@@ -135,7 +136,7 @@ class SettingController extends Controller implements HasMiddleware
             $old = $setting->value;
             $setting->update(['value' => null]);
             if ($old) {
-                Storage::disk('public')->delete($old);
+                BusinessFiles::delete($old);
             }
         }
 
@@ -195,7 +196,7 @@ class SettingController extends Controller implements HasMiddleware
             $old = $setting->value;
             $setting->update(['value' => null]);
             if ($old) {
-                Storage::disk('public')->delete($old);
+                BusinessFiles::delete($old);
             }
         }
         CacheService::flushSettings();
@@ -244,7 +245,7 @@ class SettingController extends Controller implements HasMiddleware
             $old = $setting->value;
             $setting->update(['value' => null]);
             if ($old) {
-                Storage::disk('public')->delete($old);
+                BusinessFiles::delete($old);
             }
         }
 

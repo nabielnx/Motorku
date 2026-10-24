@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests\Motorcycle;
 
 use App\Models\MotorcyclePart;
+use App\Support\BusinessRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -20,9 +23,9 @@ class BulkAttachMotorcyclePartsRequest extends FormRequest
 
         return [
             'motorcycle_ids' => ['required', 'array', 'min:1'],
-            'motorcycle_ids.*' => ['required', 'uuid', 'exists:motorcycles,id'],
+            'motorcycle_ids.*' => ['required', 'uuid', BusinessRule::exists('motorcycles', 'id')],
             'product_ids' => ['required', 'array', 'min:1'],
-            'product_ids.*' => ['required', 'uuid', 'exists:products,id'],
+            'product_ids.*' => ['required', 'uuid', BusinessRule::exists('products', 'id')],
             'part_category' => ['required', 'string', Rule::in($validCategories)],
             'part_categories' => ['nullable', 'array'],
             'part_categories.*' => ['nullable', 'string', Rule::in(array_keys(MotorcyclePart::categoryLabels()))],

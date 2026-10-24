@@ -19,6 +19,7 @@ use Inertia\Inertia;
 
 // Public QR Customer Menu (katalog sparepart)
 Route::get('/', [CustomerMenuController::class, 'index'])->name('home');
+Route::get('/s/{businessSlug}', [CustomerMenuController::class, 'index'])->name('shop.home');
 Route::get('/sitemap.xml', fn () => response()
     ->view('sitemap', ['motorcycleSlugs' => Motorcycle::whereNotNull('slug')->pluck('slug')])
     ->header('Content-Type', 'application/xml; charset=UTF-8'))->name('sitemap');

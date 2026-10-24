@@ -1,3 +1,4 @@
+import useStorefront from '@/Hooks/useStorefront';
 import '../../../css/customer-storefront.css';
 import { createCustomerOrder } from '@/Api/customerOrders';
 import { useState, useEffect, useRef } from 'react';
@@ -15,6 +16,7 @@ const CURRENT_ORDER_KEY = 'motorku_current_order';
 const HISTORY_KEY = 'motorku_orders_history';
 
 export default function Payment() {
+    const { storage, storeUrl } = useStorefront();
     useForceLightTheme();
     const [loaded, setLoaded] = useState(false);
     const [orderData, setOrderData] = useState(null);
@@ -25,17 +27,17 @@ export default function Payment() {
     const customerNameInputRef = useRef(null);
 
     const handleClearAndReturn = () => {
-        localStorage.removeItem(ORDER_KEY);
-        localStorage.removeItem(CART_KEY);
-        localStorage.removeItem('motorku_cart_time');
-        router.visit('/');
+        storage.removeItem(ORDER_KEY);
+        storage.removeItem(CART_KEY);
+        storage.removeItem('motorku_cart_time');
+        router.visit(storeUrl('/'));
     };
 
     useEffect(() => {
         try {
-            const raw = localStorage.getItem(ORDER_KEY);
+            const raw = storage.getItem(ORDER_KEY);
             if (!raw) {
-                router.visit('/');
+                router.visit(storeUrl('/'));
                 return;
             }
             const data = JSON.parse(raw);
@@ -51,7 +53,7 @@ export default function Payment() {
 
     const formatRp = (val) => `Rp ${val.toLocaleString('id-ID')}`;
 
-    if (loaded && !orderData) return <div className="p-6 text-center">Data pesanan tidak tersedia. <Link href="/" className="text-stone-700 underline">Kembali ke katalog</Link></div>;
+    if (loaded && !orderData) return <div className="p-6 text-center">Data pesanan tidak tersedia. <Link href={storeUrl('/')} className="text-stone-700 underline">Kembali ke katalog</Link></div>;
 
     if (!orderData) {
         return <PaymentSkeleton />;
@@ -79,15 +81,15 @@ export default function Payment() {
         };
 
         try {
-            const requestId = checkoutRequestId(localStorage, 'customer_checkout', payload);
+            const requestId = checkoutRequestId(storage, 'customer_checkout', payload);
             const order = await createCustomerOrder({ ...payload, request_id: requestId });
             if (!order?.id || !order?.customer_token) throw new Error('Respons pesanan tidak lengkap.');
             submittedRef.current = true;
-            localStorage.removeItem('customer_checkout');
+            storage.removeItem('customer_checkout');
 
-            localStorage.removeItem(ORDER_KEY);
-            localStorage.removeItem(CART_KEY);
-            localStorage.removeItem('motorku_cart_time');
+            storage.removeItem(ORDER_KEY);
+            storage.removeItem(CART_KEY);
+            storage.removeItem('motorku_cart_time');
 
             const paymentData = {
                 order_id: order.id,
@@ -104,21 +106,21 @@ export default function Payment() {
                 items: order.items,
             };
 
-            localStorage.setItem(PAYMENT_KEY, JSON.stringify(paymentData));
-            localStorage.setItem(CURRENT_ORDER_KEY, JSON.stringify(paymentData));
+            storage.setItem(PAYMENT_KEY, JSON.stringify(paymentData));
+            storage.setItem(CURRENT_ORDER_KEY, JSON.stringify(paymentData));
 
-            // Append to order history list in localStorage
+            // Append to order history list in storage
             try {
-                const rawHistory = localStorage.getItem(HISTORY_KEY);
+                const rawHistory = storage.getItem(HISTORY_KEY);
                 let history = rawHistory ? JSON.parse(rawHistory) : [];
                 if (!Array.isArray(history)) history = [];
                 // Prevent duplicate order_id
                 history = history.filter(o => o.order_id !== order.id);
                 history.push(paymentData);
-                localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+                storage.setItem(HISTORY_KEY, JSON.stringify(history));
             } catch {}
 
-            router.visit('/order/waiting');
+            router.visit(storeUrl('/order/waiting'));
         } catch (err) {
             setError(submittedRef.current ? 'Pesanan sudah dibuat, tetapi penyimpanan browser gagal. Jangan kirim ulang; hubungi kasir untuk memeriksa pesanan.' : (err.response?.data?.message || 'Terjadi kesalahan saat memproses pesanan.'));
         } finally {
@@ -135,7 +137,7 @@ export default function Payment() {
             <div className="customer-frame w-full max-w-md bg-white min-h-full shadow-2xl flex flex-col pb-24">
                 {/* HEADER */}
                 <header className="sticky top-0 bg-white border-b border-slate-100 p-4 flex items-center justify-between z-10">
-                    <Link href="/" aria-label="Kembali ke katalog" className="text-slate-600 hover:text-slate-800 p-1">
+                    <Link href={storeUrl('/')} aria-label="Kembali ke katalog" className="text-slate-600 hover:text-slate-800 p-1">
                         <FiArrowLeft size={20} />
                     </Link>
                     <h1 className="font-black text-slate-900 text-sm">Pembayaran</h1>

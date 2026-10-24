@@ -1,3 +1,4 @@
+import useStorefront from '@/Hooks/useStorefront';
 import React, { useState, useEffect, useRef } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
@@ -57,15 +58,15 @@ function ProductImage({ src, alt, className = 'w-full h-full object-contain p-1'
 
 const CART_KEY = 'motorku_cart';
 
-function loadCart() {
+function loadCart(storage) {
     try {
-        const raw = localStorage.getItem(CART_KEY);
-        const cartTime = localStorage.getItem(CART_KEY + '_time');
+        const raw = storage.getItem(CART_KEY);
+        const cartTime = storage.getItem(CART_KEY + '_time');
         if (raw && cartTime) {
             const timeDiff = Date.now() - parseInt(cartTime, 10);
             if (timeDiff > 4 * 60 * 60 * 1000) {
-                localStorage.removeItem(CART_KEY);
-                localStorage.removeItem(CART_KEY + '_time');
+                storage.removeItem(CART_KEY);
+                storage.removeItem(CART_KEY + '_time');
                 return [];
             }
         }
@@ -88,10 +89,10 @@ function loadCart() {
     }
 };
 
-function saveCart(cart) {
+function saveCart(cart, storage) {
     try {
-        localStorage.setItem(CART_KEY, JSON.stringify(cart));
-        localStorage.setItem(CART_KEY + '_time', Date.now().toString());
+        storage.setItem(CART_KEY, JSON.stringify(cart));
+        storage.setItem(CART_KEY + '_time', Date.now().toString());
     } catch {}
 }
 
@@ -107,6 +108,7 @@ export default function MotorSaya({
     partCategories = {},
     initialPartsData = null,
 }) {
+    const { storage, storeUrl } = useStorefront();
     useForceLightTheme();
 
     const brands = Object.keys(motorcyclesByBrand);
@@ -128,7 +130,7 @@ export default function MotorSaya({
     const [searchPart, setSearchPart] = useState('');
     const [selectedDetailProduct, setSelectedDetailProduct] = useState(null);
     const [detailQty, setDetailQty] = useState(1);
-    const [cart, setCart] = useState(loadCart);
+    const [cart, setCart] = useState(() => loadCart(storage));
     const [addedId, setAddedId] = useState(null);
 
     // Sinkronisasi tombol Back / Forward browser dengan URL slug
@@ -154,7 +156,7 @@ export default function MotorSaya({
     }, [motorcyclesByBrand]);
 
     useEffect(() => {
-        saveCart(cart);
+        saveCart(cart, storage);
     }, [cart]);
 
     const formatRp = (val) => `Rp ${Math.round(Number(val || 0)).toLocaleString('id-ID')}`;
@@ -177,7 +179,7 @@ export default function MotorSaya({
 
     useEffect(() => {
         try {
-            const rawHistory = localStorage.getItem('motorku_orders_history');
+            const rawHistory = storage.getItem('motorku_orders_history');
             const history = rawHistory ? JSON.parse(rawHistory) : [];
             if (Array.isArray(history) && history.length > 0) {
                 const activeOrders = history.filter(o => ['pending', 'preparing', 'ready'].includes(o.order_status));
@@ -197,14 +199,14 @@ export default function MotorSaya({
 
         if (pushUrl && typeof window !== 'undefined') {
             const targetSlug = motor.slug || motor.id;
-            window.history.pushState({ motorId: motor.id }, '', `/motor-saya/${targetSlug}`);
+            window.history.pushState({ motorId: motor.id }, '', storeUrl(`/motor-saya/${targetSlug}`));
         }
 
         setActiveCategoryPart('semua');
         setSearchPart('');
         setLoading(true);
         try {
-            const res = await axios.get(`/api/motor-saya/${motor.id}/parts`, { signal: controller.signal });
+            const res = await axios.get(storeUrl(`/api/motor-saya/${motor.id}/parts`), { signal: controller.signal });
             if (!controller.signal.aborted) setPartsData(res.data);
         } catch {
             if (!controller.signal.aborted) setPartsData({ motorcycle: motor, parts: [] });
@@ -220,7 +222,7 @@ export default function MotorSaya({
         setSearchPart('');
         setActiveCategoryPart('semua');
         if (typeof window !== 'undefined') {
-            window.history.pushState({}, '', '/motor-saya');
+            window.history.pushState({}, '', storeUrl('/motor-saya'));
         }
     };
 
@@ -283,14 +285,14 @@ export default function MotorSaya({
                             <div className="relative z-10 flex items-center justify-between min-h-[52px] sm:min-h-[58px] px-3.5 sm:px-5 gap-3">
                                 <div className="flex items-center gap-2.5 min-w-0">
                                     <Link
-                                        href="/"
+                                        href={storeUrl('/')}
                                         className="p-1 -ml-1 text-[#FFDD00] hover:text-[#FFE838] transition-colors flex items-center justify-center shrink-0 active:scale-90"
                                         aria-label="Kembali ke Katalog"
                                         title="Kembali ke Katalog"
                                     >
                                         <FiArrowLeft size={22} strokeWidth={2.5} />
                                     </Link>
-                                    <Link href="/" className="flex items-center gap-2 min-w-0 group" aria-label="Kembali ke Beranda" title="Kembali ke Beranda">
+                                    <Link href={storeUrl('/')} className="flex items-center gap-2 min-w-0 group" aria-label="Kembali ke Beranda" title="Kembali ke Beranda">
                                         {formattedLogoSrc ? (
                                             <img
                                                 src={formattedLogoSrc}
@@ -309,7 +311,7 @@ export default function MotorSaya({
                                 </div>
                                 <div className="flex items-center justify-end gap-1.5 sm:gap-2 shrink-0">
                                     <Link
-                                        href={orderHref}
+                                        href={storeUrl(orderHref)}
                                         title="Pesanan saya"
                                         className="relative flex h-9 w-9 sm:h-9 sm:w-auto items-center justify-center gap-1.5 rounded-full sm:rounded-lg sm:px-2.5 text-stone-800 hover:bg-stone-100 text-xs sm:text-sm font-bold transition-colors shrink-0"
                                         aria-label="Pesanan saya"
@@ -321,7 +323,7 @@ export default function MotorSaya({
                                         )}
                                     </Link>
                                     <Link
-                                        href="/?openCart=1"
+                                        href={storeUrl('/?openCart=1')}
                                         title="Keranjang belanja"
                                         className="relative flex h-9 w-9 sm:h-9 sm:w-auto items-center justify-center gap-1.5 rounded-full sm:rounded-lg sm:px-2.5 text-stone-800 hover:bg-stone-100 text-xs sm:text-sm font-bold transition-colors shrink-0"
                                         aria-label={'Buka keranjang, ' + totalQty + ' item'}
@@ -505,7 +507,7 @@ export default function MotorSaya({
                         <div className="customer-cart-bar fixed bottom-0 inset-x-0 z-40 border-t border-slate-200 bg-white shadow-lg py-2 px-3 flex justify-center">
                             <div className="customer-frame w-full max-w-md md:max-w-2xl lg:max-w-4xl flex items-center justify-between gap-3">
                                 <Link
-                                    href="/"
+                                    href={storeUrl('/')}
                                     className="flex items-center gap-2.5 text-left group min-w-0"
                                     aria-label="Lihat rincian keranjang di katalog"
                                 >
@@ -521,7 +523,7 @@ export default function MotorSaya({
                                     </div>
                                 </Link>
                                 <Link
-                                    href="/"
+                                    href={storeUrl('/')}
                                     className="flex min-h-10 items-center justify-center gap-1.5 rounded-xl bg-[#FFDD00] hover:bg-[#FFE838] px-4 sm:px-5 py-2 text-xs sm:text-sm font-bold text-[#19231f] transition-all shadow-xs shrink-0 active:scale-95"
                                 >
                                     <span>Lanjut bayar</span>
@@ -571,7 +573,7 @@ export default function MotorSaya({
                                     <FiArrowLeft size={22} strokeWidth={2.5} />
                                 </button>
                                 <Link
-                                    href="/"
+                                    href={storeUrl('/')}
                                     className="flex items-center shrink-0 group"
                                     aria-label="Kembali ke Beranda Motorku"
                                     title="Kembali ke Beranda"
@@ -603,7 +605,7 @@ export default function MotorSaya({
                             </div>
                             <div className="flex items-center justify-end gap-1.5 sm:gap-2 shrink-0">
                                 <Link
-                                    href={orderHref}
+                                    href={storeUrl(orderHref)}
                                     title="Pesanan saya"
                                     className="relative flex h-9 w-9 sm:h-9 sm:w-auto items-center justify-center gap-1.5 rounded-full sm:rounded-lg sm:px-2.5 text-stone-800 hover:bg-stone-100 text-xs sm:text-sm font-bold transition-colors shrink-0"
                                     aria-label="Pesanan saya"
@@ -615,7 +617,7 @@ export default function MotorSaya({
                                     )}
                                 </Link>
                                 <Link
-                                    href="/?openCart=1"
+                                    href={storeUrl('/?openCart=1')}
                                     title="Keranjang belanja"
                                     className="relative flex h-9 w-9 sm:h-9 sm:w-auto items-center justify-center gap-1.5 rounded-full sm:rounded-lg sm:px-2.5 text-stone-800 hover:bg-stone-100 text-xs sm:text-sm font-bold transition-colors shrink-0"
                                     aria-label={'Buka keranjang, ' + totalQty + ' item'}
@@ -861,7 +863,7 @@ export default function MotorSaya({
                     <div className="customer-cart-bar fixed bottom-0 inset-x-0 z-40 border-t border-slate-200 bg-white shadow-lg py-2 px-3 flex justify-center">
                         <div className="customer-frame w-full max-w-md md:max-w-2xl lg:max-w-4xl flex items-center justify-between gap-3">
                             <Link
-                                href="/"
+                                href={storeUrl('/')}
                                 className="flex items-center gap-2.5 text-left group min-w-0"
                                 aria-label="Lihat rincian keranjang di katalog"
                             >
@@ -877,7 +879,7 @@ export default function MotorSaya({
                                 </div>
                             </Link>
                             <Link
-                                href="/"
+                                href={storeUrl('/')}
                                 className="flex min-h-10 items-center justify-center gap-1.5 rounded-xl bg-[#FFDD00] hover:bg-[#FFE838] px-4 sm:px-5 py-2 text-xs sm:text-sm font-bold text-[#19231f] transition-all shadow-xs shrink-0 active:scale-95"
                             >
                                 <span>Lanjut bayar</span>

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\Setting;
+use App\Support\BusinessFiles;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -88,7 +89,7 @@ class QrisService
         });
         CacheService::flushSettings();
         if ($path && str_starts_with($path, 'qris/')) {
-            Storage::disk('public')->delete($path);
+            BusinessFiles::delete($path);
         }
     }
 
@@ -159,7 +160,7 @@ class QrisService
     private function token(string $payload, array $items, float $amount, string $userId): string
     {
         $quantities = collect($items)->groupBy('product_id')->map(fn ($rows) => $rows->sum('quantity'))->sortKeys()->all();
-        $message = json_encode(['qris-v1', $userId, hash('sha256', $payload), number_format($amount, 2, '.', ''), $quantities], JSON_THROW_ON_ERROR);
+        $message = json_encode(['qris-v1', app(BusinessContext::class)->id(), $userId, hash('sha256', $payload), number_format($amount, 2, '.', ''), $quantities], JSON_THROW_ON_ERROR);
 
         return hash_hmac('sha256', $message, config('app.key'));
     }

@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Requests\Reference;
 
 use App\Services\ImageUploadService;
+use App\Support\BusinessRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class ReferenceEntryRequest extends FormRequest
 {
@@ -40,7 +40,7 @@ class ReferenceEntryRequest extends FormRequest
             'version' => [$this->route('entry') ? 'required' : 'sometimes', 'integer', 'min:1'],
             'values' => ['sometimes', 'array', 'max:20'],
             'product_ids' => ['sometimes', 'array', 'max:50'],
-            'product_ids.*' => ['required', 'uuid', 'distinct', Rule::exists('products', 'id')],
+            'product_ids.*' => ['required', 'uuid', 'distinct', BusinessRule::exists('products', 'id')],
             'image' => ImageUploadService::rules('nullable'),
             'remove_image' => ['sometimes', 'boolean'],
         ];

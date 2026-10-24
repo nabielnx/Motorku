@@ -288,7 +288,8 @@ class FullAuditRemediationTest extends TestCase
         $orderId = $response->json('data.id');
         $this->assertStringContainsString('ORD-20261007-', $response->json('data.order_number'));
         $this->actingAs($this->owner)->postJson('/api/payments', ['order_id' => $orderId, 'payment_method' => 'cash', 'amount_received' => 10000])->assertCreated();
-        $this->assertSame('Asia/Jayapura', config('app.timezone'));
+        // Store time applies within the request and must not leak into another business request.
+        $this->assertSame('Asia/Jakarta', config('app.timezone'));
         $this->assertSame('2026-10-07 01:30:00', DB::table('payments')->where('order_id', $orderId)->value('paid_at'));
         $this->assertSame('2026-10-07 01:30:00', DB::table('orders')->where('id', $orderId)->value('created_at'));
     }

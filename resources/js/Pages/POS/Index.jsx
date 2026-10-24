@@ -1,3 +1,4 @@
+import useStorefront from '@/Hooks/useStorefront';
 import { createPosSale } from '@/Api/posSales';
 import PaymentModal from '@/Components/POS/PaymentModal';
 import ShortcutModal from '@/Components/POS/ShortcutModal';
@@ -26,6 +27,7 @@ import ProductBookView from '@/Components/Product/ProductBookView';
 
 export default function POSIndex({ initialProducts = [], initialCategories = [], settings = {} }) {
     const { auth } = usePage().props;
+    const { storage } = useStorefront({ admin: true });
     // Format Products from Database or Fallback
     const formatProducts = (rawProducts) => {
         if (!rawProducts || rawProducts.length === 0) return [];
@@ -82,7 +84,7 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
     const viewMenuRef = useRef(null);
     const [bookPage, setBookPage] = useState(1);
     const BOOK_PER_PAGE = 24;
-    const [customerName, setCustomerName] = useState(() => localStorage.getItem('pos_customer_name') || '');
+    const [customerName, setCustomerName] = useState(() => storage.getItem('pos_customer_name') || '');
 
     useEffect(() => {
         localStorage.setItem('pos_view_mode', viewMode);
@@ -107,12 +109,12 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
     }, [viewMenuOpen]);
 
     // Cart State
-    const [cart, setCart] = useState(() => readPosCart(localStorage));
+    const [cart, setCart] = useState(() => readPosCart(storage));
 
     useEffect(() => {
         const syncCart = event => {
-            if (event.storageArea === localStorage && (event.key === POS_CART_KEY || event.key === null)) {
-                setCart(readPosCart(localStorage));
+            if (event.storageArea === localStorage && (event.key === storage.key(POS_CART_KEY) || event.key === null)) {
+                setCart(readPosCart(storage));
             }
         };
         window.addEventListener('storage', syncCart);
@@ -121,8 +123,8 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
 
     // Sync State to LocalStorage
     useEffect(() => {
-        localStorage.setItem(POS_CART_KEY, JSON.stringify(cart));
-        localStorage.setItem('pos_customer_name', customerName);
+        storage.setItem(POS_CART_KEY, JSON.stringify(cart));
+        storage.setItem('pos_customer_name', customerName);
     }, [cart, customerName]);
 
     // Payment Modal State

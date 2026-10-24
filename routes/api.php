@@ -1,23 +1,26 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Http\Controllers\Order\CustomerMenuController;
 use App\Http\Controllers\Setting\SettingController;
 use App\Http\Middleware\EnsureUserIsActive;
+use App\Http\Middleware\ResolveBusiness;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/user', fn (Request $request) => $request->user())
-    ->middleware(['auth:sanctum', EnsureUserIsActive::class, 'verified']);
+    ->middleware(['web', 'auth:sanctum', EnsureUserIsActive::class, 'verified'])->name('api.user');
 
 // ─── PUBLIC: Customer QR Self-Order (no auth, no CSRF) ───
 Route::post('/customer/order', [CustomerMenuController::class, 'storeOrder'])
-    ->middleware('throttle:3,1')
+    ->middleware([ResolveBusiness::class, 'throttle:3,1'])
     ->name('api.customer.order');
 Route::get('/customer/order/{orderId}/status', [CustomerMenuController::class, 'orderStatus'])
-    ->middleware('throttle:240,1')
+    ->middleware([ResolveBusiness::class, 'throttle:240,1'])
     ->name('api.customer.order.status');
 Route::post('/customer/order/{orderId}/cancel', [CustomerMenuController::class, 'cancelOrder'])
-    ->middleware('throttle:60,1')
+    ->middleware([ResolveBusiness::class, 'throttle:60,1'])
     ->name('api.customer.order.cancel');
 
 $base = ['web', 'auth', 'verified'];

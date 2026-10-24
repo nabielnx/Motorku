@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services;
 
 use App\Enums\InventoryLogType;
@@ -55,7 +57,7 @@ class InventoryService
             return InventoryLog::create([
                 'product_id' => $data['product_id'],
                 'product_name' => $product->name,
-                'user_id' => $userId ?? auth()->id(),
+                'user_id' => $userId ?? (! request()->attributes->get('public_store') && auth()->user()?->business_id === app(BusinessContext::class)->id() ? auth()->id() : null),
                 'type' => $type,
                 'quantity' => $quantity,
                 'note' => $note ?? $data['note'] ?? 'Penyesuaian stok manual',
