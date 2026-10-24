@@ -1,6 +1,6 @@
 # Supplier
 
-Menu Supplier tersedia untuk owner di bagian Manajemen. Laporan Keuangan berada tepat di bawah Dashboard di bagian Utama.
+Menu Supplier tersedia untuk owner di bagian Supplier tersendiri, setelah Manajemen dan sebelum Administrasi. Laporan Keuangan berada tepat di bawah Dashboard di bagian Utama.
 
 Modul ini mengelola nama supplier (wajib), nama kontak, telepon/WhatsApp, email, alamat, catatan, serta link toko/website. Satu supplier dapat memiliki maksimal 10 link dengan nama platform masing-masing, misalnya Shopee, Tokopedia, atau website sendiri. URL harus lengkap dengan `http://` atau `https://`, dan dibuka pada tab baru. Tidak ada pengambilan data otomatis dari platform tersebut.
 

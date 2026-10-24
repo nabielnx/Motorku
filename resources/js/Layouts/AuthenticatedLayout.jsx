@@ -214,13 +214,6 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                     ],
                 },
                 {
-                    name: 'Supplier',
-                    icon: FiTruck,
-                    href: safeRoute('suppliers.index', '/suppliers'),
-                    active: isItemActive('/suppliers'),
-                    roles: ['owner'],
-                },
-                {
                     name: locale === 'en' ? 'Reference Data' : 'Data Referensi',
                     icon: FiBookOpen,
                     href: '/data-types?kind=reference',
@@ -234,6 +227,18 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                     })),
                 },
             ]
+        },
+        {
+            label: 'SUPPLIER',
+            items: [
+                {
+                    name: 'Supplier',
+                    icon: FiTruck,
+                    href: safeRoute('suppliers.index', '/suppliers'),
+                    active: isItemActive('/suppliers'),
+                    roles: ['owner'],
+                },
+            ],
         },
         {
             label: getTranslation(locale, 'section_administrasi', 'ADMINISTRASI'),
