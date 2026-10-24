@@ -316,6 +316,7 @@ export default function CustomerMenu({
     const promoSlots = React.useMemo(() => [1, 2, 3].map(slot => promoBanners?.[slot]).filter(Boolean), [promoBanners]);
 
     const storeName = settings['store.name'] || 'Motorku';
+    const storeAddress = String(settings['store.address'] ?? props.app_settings?.store_address ?? '').trim();
     const phone = settings['store.phone'] || settings['phone'] || '';
     const whatsapp = phone ? 'https://wa.me/' + phone.replace(/[^0-9]/g, '').replace(/^0/, '62') : null;
     const orderHref = '/order/status';
@@ -510,7 +511,13 @@ export default function CustomerMenu({
                 </div>
 
                 <footer className="mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-slate-200 pt-5 text-xs text-slate-500">
-                    <span className="flex items-center gap-2"><FiMapPin size={14} aria-hidden="true" />Pesanan diambil langsung di toko.</span>
+                    <div className="flex min-w-0 flex-1 items-start gap-2">
+                        <FiMapPin size={14} className="mt-0.5 shrink-0" aria-hidden="true" />
+                        <div className="min-w-0">
+                            <p>Pesanan diambil langsung di toko.</p>
+                            {storeAddress && <address aria-label="Alamat toko" className="mt-1 max-w-2xl whitespace-pre-line break-words not-italic leading-relaxed text-slate-700">{storeAddress}</address>}
+                        </div>
+                    </div>
                     {whatsapp && <a href={whatsapp} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-9 items-center gap-2 font-medium underline underline-offset-4 hover:text-slate-800"><FaWhatsapp size={15} aria-hidden="true" />Hubungi toko</a>}
                 </footer>
             </div>
