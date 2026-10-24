@@ -62,46 +62,25 @@
             @if ($comp === 'Order/Menu')
                 <!-- Motorku Customer Storefront Catalog Shell (1:1 Exact Monochromatic Parity) -->
                 <div class="customer-storefront min-h-screen bg-[#f3f3ed] text-slate-900" aria-busy="true" aria-label="Memuat katalog sparepart">
-                    <!-- Store Header -->
-                    <header class="sticky top-0 z-40 border-b border-slate-200 bg-white shadow-2xs overflow-hidden relative">
-                        <div class="mx-auto flex min-h-[54px] max-w-[1280px] items-center justify-between gap-2 px-3.5 sm:min-h-[62px] sm:gap-4 sm:px-6 lg:px-8 relative z-10">
-                            <div class="flex shrink-0 items-center gap-2.5">
-                                <div class="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-slate-200 animate-pulse"></div>
-                                <div class="h-5 w-20 sm:w-24 rounded bg-slate-200 animate-pulse"></div>
+                    <!-- Store actions above a full-width search field -->
+                    <header class="store-header">
+                        <div class="store-header-shell">
+                            <div class="store-brand">
+                                <div class="h-7 w-7 shrink-0 rounded-lg bg-slate-200 animate-pulse"></div>
+                                <div class="store-brand-name h-5 w-20 rounded bg-slate-200 animate-pulse"></div>
                             </div>
-                            <div class="hidden md:flex items-center gap-6">
-                                <div class="h-4 w-14 rounded bg-slate-200 animate-pulse"></div>
-                                <div class="h-4 w-20 rounded bg-slate-200 animate-pulse"></div>
+                            <div class="store-actions">
+                                <div class="h-10 w-10 rounded-md bg-slate-200 animate-pulse"></div>
+                                <div class="h-10 w-24 rounded-md bg-slate-200 animate-pulse"></div>
+                                <div class="h-10 w-10 rounded-md bg-slate-200 animate-pulse"></div>
+                                <div class="h-10 w-10 rounded-md bg-slate-200 animate-pulse"></div>
                             </div>
-                            <div class="flex-1 max-w-md px-1">
-                                <div class="h-8.5 sm:h-9 w-full rounded-full bg-slate-100 border border-slate-200 flex items-center px-3.5 gap-2">
-                                    <div class="w-3.5 h-3.5 rounded-full bg-slate-200 animate-pulse shrink-0"></div>
-                                    <div class="h-3 w-32 rounded bg-slate-200 animate-pulse"></div>
-                                </div>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-200 animate-pulse"></div>
-                                <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-200 animate-pulse"></div>
-                            </div>
+                            <div class="store-tools h-10 rounded-md bg-slate-100 animate-pulse"></div>
                         </div>
                     </header>
 
-                    <!-- Motor Saya Banner (Exact Curved Bottom) -->
-                    <section class="w-full bg-slate-100 border-b border-slate-200 rounded-b-[36px] sm:rounded-b-[48px] shadow-2xs mb-3.5 sm:mb-4.5 overflow-hidden">
-                        <div class="mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8 py-3 sm:py-3.5">
-                            <div class="flex items-center gap-3 sm:gap-4 pl-3 sm:pl-4 md:pl-5 pr-3.5 sm:pr-5 md:pr-6">
-                                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-200 animate-pulse shrink-0"></div>
-                                <div class="min-w-0 flex-1 space-y-1.5">
-                                    <div class="h-3.5 sm:h-4 w-24 rounded bg-slate-200 animate-pulse"></div>
-                                    <div class="h-2.5 sm:h-3 w-56 sm:w-72 rounded bg-slate-200 animate-pulse"></div>
-                                </div>
-                                <div class="w-4 h-4 rounded bg-slate-200 animate-pulse shrink-0"></div>
-                            </div>
-                        </div>
-                    </section>
-
                     <!-- Main Storefront Content -->
-                    <div class="mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8 pb-12">
+                    <div class="store-catalog mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8 pb-12">
                         <!-- Promo Banner Section -->
                         <section class="pb-3">
                             <div class="rounded-2xl sm:rounded-3xl bg-slate-100 border border-slate-200 overflow-hidden p-2.5 sm:p-3 shadow-2xs">
