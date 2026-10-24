@@ -344,6 +344,9 @@
                                         <div class="h-2.5 w-52 rounded bg-slate-100 animate-pulse"></div>
                                     </div>
                                 </div>
+                                @if (data_get($page, 'props.app_settings.customer_qris_enabled'))
+                                    <div class="h-20 w-full rounded-lg bg-slate-100 animate-pulse"></div>
+                                @endif
                             </div>
                         </div>
                         <div class="p-4 bg-white border-t border-slate-100">

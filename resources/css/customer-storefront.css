@@ -64,6 +64,7 @@
 .store-tools { grid-column: 1 / -1; min-width: 0; }
 .store-search { position: relative; display: flex; align-items: center; flex: 1; min-width: 0; }
 .store-search-input { width: 100%; height: 40px; padding: 8px 40px 8px 32px; font-size: 14px; color: var(--store-ink); background: var(--store-bg); border: 1px solid var(--store-line); box-shadow: none; }
+.customer-storefront input[type='radio'] { border-radius: 50%; }
 .store-search-input::placeholder { color: var(--store-muted); }
 .store-search-clear { position: absolute; right: 1px; top: 1px; display: flex; width: 38px; height: 38px; align-items: center; justify-content: center; padding: 0; border: 0; background: transparent; box-shadow: none; color: var(--store-muted); }
 .store-actions { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }

@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Order;
 use App\Enums\OrderStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Order\StoreCustomerOrderRequest;
+use App\Http\Requests\Payment\CustomerQrisRequest;
 use App\Models\Category;
 use App\Models\Order;
 use App\Models\Product;
@@ -15,6 +16,7 @@ use App\Services\BusinessContext;
 use App\Services\CacheService;
 use App\Services\OrderCancellationService;
 use App\Services\OrderService;
+use App\Services\QrisService;
 use App\Services\SettingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -135,6 +137,12 @@ class CustomerMenuController extends Controller
         ], 201);
     }
 
+    public function customerQris(CustomerQrisRequest $request, string $orderId, QrisService $qris): JsonResponse
+    {
+        return response()->json(['data' => $qris->forCustomerOrder($orderId, $request->validated('customer_token'))])
+            ->header('Cache-Control', 'no-store, private');
+    }
+
     /**
      * Public endpoint for customer to check order status (polling).
      */
@@ -165,6 +173,7 @@ class CustomerMenuController extends Controller
                 'tax_amount' => (float) $order->tax_amount,
                 'total' => (float) $order->total,
                 'ordered_at' => $order->created_at?->format('d M Y, H:i'),
+                'expires_at' => $order->expires_at?->toIso8601String(),
                 'items' => $order->items->map(fn ($item) => [
                     'id' => $item->id,
                     'product_name' => $item->product_name ?? $item->product?->name ?? 'Produk',

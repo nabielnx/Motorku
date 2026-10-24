@@ -23,6 +23,11 @@ Route::post('/customer/order/{orderId}/cancel', [CustomerMenuController::class, 
     ->middleware([ResolveBusiness::class, 'throttle:60,1'])
     ->name('api.customer.order.cancel');
 
+Route::post('/customer/order/{orderId}/qris', [CustomerMenuController::class, 'customerQris'])
+    ->whereUuid('orderId')
+    ->middleware([ResolveBusiness::class, 'throttle:30,1'])
+    ->name('api.customer.order.qris');
+
 $base = ['web', 'auth', 'verified'];
 
 Route::middleware([...$base, 'role:owner|cashier'])

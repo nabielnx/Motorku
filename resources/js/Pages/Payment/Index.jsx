@@ -2,7 +2,8 @@ import useStorefront from '@/Hooks/useStorefront';
 import '../../../css/customer-storefront.css';
 import { createCustomerOrder } from '@/Api/customerOrders';
 import { useState, useEffect, useRef } from 'react';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
+import { RiQrCodeLine } from 'react-icons/ri';
 
 import { checkoutRequestId } from '@/Utils/checkout';
 import useForceLightTheme from '@/Utils/useForceLightTheme';
@@ -21,6 +22,8 @@ export default function Payment() {
     const [loaded, setLoaded] = useState(false);
     const [orderData, setOrderData] = useState(null);
     const [customerName, setCustomerName] = useState('');
+    const [paymentMethod, setPaymentMethod] = useState('kasir');
+    const qrisEnabled = usePage().props.app_settings?.customer_qris_enabled === true;
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState(null);
     const submittedRef = useRef(false);
@@ -56,7 +59,7 @@ export default function Payment() {
     if (loaded && !orderData) return <div className="p-6 text-center">Data pesanan tidak tersedia. <Link href={storeUrl('/')} className="text-stone-700 underline">Kembali ke katalog</Link></div>;
 
     if (!orderData) {
-        return <PaymentSkeleton />;
+        return <PaymentSkeleton qrisEnabled={qrisEnabled} />;
     }
 
     const handleSubmitOrder = async () => {
@@ -72,7 +75,7 @@ export default function Payment() {
 
         const payload = {
             customer_name: customerName,
-            notes: 'Pre-order Web | Pembayaran: Bayar di Kasir',
+            notes: `Pre-order Web | Pembayaran: ${paymentMethod === 'qris' ? 'QRIS' : 'Bayar di Kasir'}`,
             items: orderData.cart.map(i => ({
                 product_id: i.id,
                 quantity: i.qty,
@@ -100,7 +103,9 @@ export default function Payment() {
                 tax_amount: order.tax_amount,
                 pickup_label: 'Ambil di Toko',
                 customer_name: customerName,
-                payment_method: 'kasir',
+                payment_method: paymentMethod,
+                payment_status: order.payment_status,
+                expires_at: order.expires_at,
                 order_status: order.order_status,
                 created_at: order.created_at,
                 items: order.items,
@@ -131,7 +136,7 @@ export default function Payment() {
     return (
         <div className="customer-storefront customer-flow h-full w-full bg-slate-100 font-sans text-slate-800 flex justify-center overflow-y-auto">
             <Head title="Konfirmasi Pembayaran - Toko Sparepart">
-                <meta name="description" content="Selesaikan pesanan dan bayar di kasir toko." />
+                <meta name="description" content="Selesaikan pesanan dan pilih pembayaran di kasir atau QRIS toko." />
             </Head>
 
             <div className="customer-frame w-full max-w-md bg-white min-h-full shadow-2xl flex flex-col pb-24">
@@ -234,17 +239,22 @@ export default function Payment() {
                         />
                     </div>
 
-                    {/* PAYMENT METHOD */}
-                    <div className="space-y-2">
-                        <label className="text-xs font-bold text-slate-800 block">Metode Pembayaran</label>
-                        <div className="flex items-center gap-3 rounded-xl bg-stone-50 px-4 py-3 text-stone-800">
-                            <FiDollarSign size={20} />
-                            <div>
-                                <p className="font-bold text-xs">Bayar di Kasir</p>
-                                <p className="text-[10px]">Tunjukkan pesanan ini saat datang ke toko.</p>
-                            </div>
-                        </div>
-                    </div>
+                    <fieldset className="space-y-2" disabled={isSubmitting}>
+                        <legend className="mb-2 text-xs font-bold text-slate-800">Metode Pembayaran</legend>
+                        {[
+                            { value: 'kasir', title: 'Bayar di Kasir', description: 'Tunjukkan nomor pesanan saat datang ke toko.', Icon: FiDollarSign },
+                            ...(qrisEnabled ? [{ value: 'qris', title: 'QRIS', description: 'Scan QRIS setelah pesanan dibuat. Pembayaran diverifikasi kasir.', Icon: RiQrCodeLine }] : []),
+                        ].map(({ value, title, description, Icon }) => (
+                            <label key={value} className={`flex cursor-pointer items-center gap-3 rounded-lg border p-4 ${paymentMethod === value ? 'border-[#19231f] bg-stone-50' : 'border-slate-200 bg-white'}`}>
+                                <input type="radio" name="payment_method" value={value} checked={paymentMethod === value} onChange={() => setPaymentMethod(value)} className="h-4 w-4 shrink-0 text-[#19231f] focus:ring-[#19231f]" />
+                                <Icon size={20} className="shrink-0" aria-hidden="true" />
+                                <span>
+                                    <span className="block text-xs font-bold text-slate-900">{title}</span>
+                                    <span className="mt-1 block text-xs leading-relaxed text-slate-500">{description}</span>
+                                </span>
+                            </label>
+                        ))}
+                    </fieldset>
                 </div>
 
                 {/* SUBMIT */}
@@ -274,7 +284,7 @@ export default function Payment() {
                         className="store-primary w-full py-3 bg-[#FFDD00] hover:bg-[#FFE838] disabled:bg-slate-300 disabled:cursor-not-allowed text-[#19231f] font-bold rounded-lg text-sm transition-colors flex items-center justify-center gap-2 cursor-pointer"
                     >
                         <FiCheck size={16} />
-                        {isSubmitting ? 'Mengirim Pesanan...' : 'Kirim Pesanan'}
+                        {isSubmitting ? 'Mengirim Pesanan...' : paymentMethod === 'qris' ? 'Buat Pesanan & Tampilkan QRIS' : 'Kirim Pesanan'}
                     </button>
                 </div>
             </div>

@@ -1,9 +1,9 @@
 import Skeleton, { SkeletonWrapper } from '@/Components/Skeleton';
 
 /**
- * Payment confirmation layout with a single cashier payment method.
+ * Payment confirmation layout with configured customer payment methods.
  */
-export default function PaymentSkeleton() {
+export default function PaymentSkeleton({ qrisEnabled = false }) {
     return (
         <SkeletonWrapper className="customer-storefront customer-flow h-full w-full bg-slate-100 font-sans text-slate-800 flex justify-center overflow-y-auto min-h-screen">
             <div className="customer-frame w-full max-w-md bg-white min-h-full shadow-2xl flex flex-col pb-24">
@@ -76,6 +76,7 @@ export default function PaymentSkeleton() {
                     <div className="space-y-2">
                         <Skeleton className="h-3 w-40" />
                         <div className="flex items-center gap-3 rounded-xl bg-stone-50 px-4 py-3"><Skeleton className="h-5 w-5" /><div className="space-y-1"><Skeleton className="h-3 w-28" /><Skeleton className="h-2.5 w-52" /></div></div>
+                        {qrisEnabled && <Skeleton className="h-20 w-full rounded-lg" />}
                     </div>
                 </div>
 

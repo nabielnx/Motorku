@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import useForceLightTheme from '@/Utils/useForceLightTheme';
 import OrderStatusSkeleton from '@/Components/Skeletons/OrderStatusSkeleton';
+import CustomerQrisPayment from '@/Components/Customer/CustomerQrisPayment';
 
 import { mergeOrderUpdates } from '@/Utils/orderHistory';
 import { FiCheck, FiClock, FiTool, FiPackage, FiCheckCircle, FiXCircle, FiMapPin, FiUser, FiShoppingBag, FiFileText, FiAlertCircle, FiAlertTriangle, FiCopy, FiChevronDown, FiChevronUp, FiRefreshCw, FiShoppingCart } from 'react-icons/fi';
@@ -312,6 +313,8 @@ function OrderCard({ order, onCancel, isCancelling, formatRp }) {
                     </span>
                 </div>
             </div>
+
+            <div className="bg-white px-4"><CustomerQrisPayment order={order} initiallyOpen={order.payment_method === 'qris'} /></div>
 
             {/* ── Status Message Banner ── */}
             {status === 'ready' && (

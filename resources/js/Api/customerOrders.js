@@ -17,3 +17,9 @@ export async function customerOrderStatus(orderId, customerToken, signal) {
         params: { customer_token: customerToken }, signal,
     }));
 }
+
+export async function customerOrderQris(orderId, customerToken, signal) {
+    return entityPayload(await axios.post(storefrontUrl(`/api/customer/order/${orderId}/qris`, currentShopSlug()), {
+        customer_token: customerToken,
+    }, { signal }));
+}

@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Enums\OrderStatus;
+use App\Enums\PaymentStatus;
+use App\Models\Order;
 use App\Models\Setting;
 use App\Support\BusinessFiles;
 use Illuminate\Http\UploadedFile;
@@ -106,6 +109,37 @@ class QrisService
             'amount' => $amount,
             'merchant' => $this->validatePayload($payload),
             'quote_token' => $this->token($payload, $items, $amount, $userId),
+        ];
+    }
+
+    public function forCustomerOrder(string $orderId, string $customerToken): array
+    {
+        $order = Order::whereKey($orderId)->first();
+        abort_unless($order && $order->customer_access_token && hash_equals($order->customer_access_token, $customerToken), 401, 'Pesanan atau token tidak valid.');
+
+        if ($order->payment_status !== PaymentStatus::Unpaid
+            || in_array($order->order_status, [OrderStatus::Cancelled, OrderStatus::Completed], true)
+            || $order->expires_at?->isPast()) {
+            throw ValidationException::withMessages(['order' => 'Pesanan ini tidak dapat dibayar dengan QRIS. Periksa status pesanan atau hubungi toko.']);
+        }
+
+        $configuration = $this->configuration();
+        $enabled = Setting::where('group', 'payment')->where('key', 'qris_enabled')->value('value') !== 'false';
+        if (! $enabled || ! $configuration['url']) {
+            throw ValidationException::withMessages(['qris' => 'QRIS toko sedang tidak tersedia. Silakan bayar di kasir.']);
+        }
+        $amount = (float) $order->total;
+        if ($amount <= 0 || $amount > 10000000) {
+            throw ValidationException::withMessages(['amount' => 'Nominal pesanan tidak dapat dibayar dengan QRIS. Silakan hubungi kasir.']);
+        }
+
+        return [
+            'order_id' => $order->id,
+            'amount' => $amount,
+            'payload' => $configuration['dynamic_available'] ? $this->withAmount($this->sourcePayload(), $amount) : null,
+            'url' => $configuration['dynamic_available'] ? null : $configuration['url'],
+            'merchant' => $configuration['merchant'],
+            'expires_at' => $order->expires_at?->toIso8601String(),
         ];
     }
 

@@ -6,6 +6,7 @@ import { Head, Link, router } from '@inertiajs/react';
 
 import useForceLightTheme from '@/Utils/useForceLightTheme';
 import WaitingSkeleton from '@/Components/Skeletons/WaitingSkeleton';
+import CustomerQrisPayment from '@/Components/Customer/CustomerQrisPayment';
 
 import { FiCheck, FiClock, FiMapPin, FiShoppingBag, FiUser, FiArrowRight, FiAlertCircle, FiFileText, FiXCircle, FiAlertTriangle } from 'react-icons/fi';
 
@@ -68,6 +69,8 @@ export default function WaitingConfirmation() {
             const parsed = JSON.parse(raw);
             if (!parsed?.order_id || !parsed?.customer_token) { router.visit(storeUrl('/order/status')); return; }
             setOrderInfo(parsed);
+            setOrderStatus(parsed.order_status || 'pending');
+            setPaymentStatus(parsed.payment_status || 'unpaid');
         } catch { router.visit(storeUrl('/')); } finally { setLoaded(true); }
     }, []);
 
@@ -94,6 +97,7 @@ export default function WaitingConfirmation() {
                     customer_name: d.customer_name || orderInfo.customer_name,
                     pickup_label: d.pickup_label || orderInfo.pickup_label || 'Ambil di Toko',
                     ordered_at: d.ordered_at,
+                    expires_at: d.expires_at,
                 };
                 setOrderInfo(info);
                 storage.setItem(CURRENT_ORDER_KEY, JSON.stringify(info));
@@ -240,6 +244,8 @@ export default function WaitingConfirmation() {
                     </div>
                 )}
 
+                <CustomerQrisPayment order={{ ...orderInfo, order_status: orderStatus, payment_status: paymentStatus }} initiallyOpen={orderInfo.payment_method === 'qris'} />
+
                 {/* PAYMENT STATUS */}
                 {paymentStatus === 'paid' ? (
                     <div className="w-full bg-emerald-50 border border-emerald-200 rounded-lg p-4 flex items-center gap-3">
@@ -260,7 +266,7 @@ export default function WaitingConfirmation() {
                         <div>
                             <p className="text-xs font-bold text-yellow-800">Menunggu Konfirmasi Kasir</p>
                             <p className="text-[11px] text-yellow-600 leading-tight">
-                                Tunjukkan nomor pesanan di atas ke kasir toko untuk pembayaran.
+                                Tunjukkan nomor pesanan kepada kasir. Pembayaran QRIS diverifikasi setelah dana masuk.
                             </p>
                         </div>
                     </div>

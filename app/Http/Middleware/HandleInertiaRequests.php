@@ -75,6 +75,7 @@ class HandleInertiaRequests extends Middleware
             'app_settings' => [
                 'deletion_enabled' => ! array_key_exists('system.deletion_enabled', $s) || $s['system.deletion_enabled'] === 'true',
                 'cash_enabled' => ($s['payment.cash_enabled'] ?? 'true') !== 'false',
+                'customer_qris_enabled' => ($s['payment.qris_enabled'] ?? 'true') !== 'false' && ! empty($s['store.qris_image']),
                 'timezone' => $timezone,
                 'locale' => $s['system.locale'] ?? 'id',
                 'store_tagline' => $s['store.tagline'] ?? 'POS & ORDER',
