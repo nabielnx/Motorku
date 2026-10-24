@@ -14,6 +14,7 @@ import { StoreHeader, MotorIcon, ProductPhoto } from '@/Components/Customer/Stor
 import MotoQuickPromoSection from '@/Components/Customer/MotoQuickPromoSection';
 import { FaWhatsapp } from 'react-icons/fa';
 import { fuzzyFilterProducts } from '@/Utils/fuzzySearch';
+import { customerCartTotals, loadCustomerCatalog, reconcileCustomerCart } from '@/Utils/customerCart';
 
 const CART_KEY = 'motorku_cart';
 const ORDER_KEY = 'motorku_pending_order';
@@ -74,6 +75,7 @@ export default function CustomerMenu({
 
     useEffect(() => {
         const removeStart = router.on('start', (event) => {
+            if (event.detail.visit.async) return;
             const rawUrl = event?.detail?.visit?.url;
             let targetPath = '';
             if (typeof rawUrl === 'string') {
@@ -85,7 +87,9 @@ export default function CustomerMenu({
                 setIsNavigating(true);
             }
         });
-        const removeFinish = router.on('finish', () => setIsNavigating(false));
+        const removeFinish = router.on('finish', event => {
+            if (!event.detail.visit.async) setIsNavigating(false);
+        });
         return () => { removeStart(); removeFinish(); };
     }, []);
 
@@ -119,6 +123,12 @@ export default function CustomerMenu({
     const [menuItems, setMenuItems] = useState(() => formatProducts(initialProducts));
     const [categories, setCategories] = useState(formatCategories(initialCategories));
     const [cart, setCart] = useState(() => loadCart(storage));
+    const cartRef = useRef(cart);
+    cartRef.current = cart;
+    const [checkingCart, setCheckingCart] = useState(false);
+    const [cartMessage, setCartMessage] = useState('');
+    const catalogRequest = useRef(null);
+    const active = useRef(true);
     const [searchQuery, setSearchQuery] = useState('');
     const deferredSearch = useDeferredValue(searchQuery);
     const catalogProps = useRef({ initialProducts, initialCategories });
@@ -137,21 +147,48 @@ export default function CustomerMenu({
             catalogProps.current = { initialProducts, initialCategories };
         }
 
-        // Bersihkan otomatis item keranjang jika ID produk tidak ada lagi di database
-        if (initialProducts && initialProducts.length > 0) {
-            const validIds = new Set(initialProducts.map(p => p.id));
-            setCart(prev => {
-                const filtered = prev.filter(item => validIds.has(item.id));
-                if (filtered.length !== prev.length) {
-                    saveCart(filtered, storage);
-                }
-                return filtered;
-            });
-        }
+        // Saved cart lines retain quantities/notes, but catalog values come from the server.
+        const reconciled = reconcileCustomerCart(cartRef.current, formatProducts(initialProducts));
+        cartRef.current = reconciled.cart;
+        setCart(reconciled.cart);
+        if (reconciled.needsReview) setCartMessage('Harga atau ketersediaan barang diperbarui. Periksa kembali keranjang Anda.');
     }, [initialProducts, initialCategories]);
+
+    const refreshCatalog = React.useCallback(() => {
+        if (catalogRequest.current) return catalogRequest.current;
+        setCheckingCart(true);
+        catalogRequest.current = loadCustomerCatalog(router).finally(() => {
+            catalogRequest.current = null;
+            if (active.current) setCheckingCart(false);
+        });
+        return catalogRequest.current;
+    }, []);
+
+    useEffect(() => {
+        active.current = true;
+        const refreshOnReturn = () => {
+            if (document.visibilityState === 'visible' && cartRef.current.length) void refreshCatalog();
+        };
+        // Also refresh restored Inertia/browser history, which may contain an old catalog.
+        refreshOnReturn();
+        window.addEventListener('focus', refreshOnReturn);
+        window.addEventListener('pageshow', refreshOnReturn);
+        document.addEventListener('visibilitychange', refreshOnReturn);
+        return () => {
+            active.current = false;
+            window.removeEventListener('focus', refreshOnReturn);
+            window.removeEventListener('pageshow', refreshOnReturn);
+            document.removeEventListener('visibilitychange', refreshOnReturn);
+        };
+    }, [refreshCatalog]);
+
+    useEffect(() => {
+        if (showCart && cartRef.current.length) void refreshCatalog();
+    }, [showCart, refreshCatalog]);
 
     const clearCart = () => {
         setCart([]);
+        setCartMessage('');
         storage.removeItem(CART_KEY);
         storage.removeItem(CART_KEY + '_time');
         storage.removeItem(ORDER_KEY);
@@ -159,7 +196,7 @@ export default function CustomerMenu({
 
     useEffect(() => {
         saveCart(cart, storage);
-    }, [cart]);
+    }, [cart, storage]);
 
     // Cek riwayat order di storage & bersihkan riwayat motor jika ada
     useEffect(() => {
@@ -184,11 +221,9 @@ export default function CustomerMenu({
     }, []);
 
     // ── Perhitungan ──
-    const subtotal = cart.reduce((s, i) => s + (i.price * i.qty), 0);
+    const { subtotal, tax, total } = customerCartTotals(cart, settings);
     const taxEnabled = settings['tax.enabled'] !== 'false';
     const taxRate = parseFloat(settings['tax.percentage'] || '0') / 100;
-    const tax = taxEnabled ? Math.round(subtotal * taxRate) : 0;
-    const total = subtotal + tax;
     const totalQty = cart.reduce((s, i) => s + i.qty, 0);
 
     const formatRp = (val) => `Rp ${Number(val || 0).toLocaleString('id-ID')}`;
@@ -230,12 +265,34 @@ export default function CustomerMenu({
         setCart(prev => prev.filter(i => i.cartItemId !== cartItemId));
     };
 
-    const goToPayment = () => {
-        if (cart.length === 0) return;
+    const goToPayment = async () => {
+        if (checkingCart || cartRef.current.length === 0) return;
+        const previous = cartRef.current;
+        const latest = await refreshCatalog();
+        if (!active.current) return;
+        if (!latest) {
+            setCartMessage('Harga terbaru belum dapat diperiksa. Periksa koneksi lalu coba lagi.');
+            setShowCart(true);
+            return;
+        }
+        const products = formatProducts(latest.initialProducts);
+        const reconciled = reconcileCustomerCart(cartRef.current, products);
+        const totals = customerCartTotals(reconciled.cart, latest.settings);
+        cartRef.current = reconciled.cart;
+        setCart(reconciled.cart);
+        saveCart(reconciled.cart, storage);
+        const previousTotals = customerCartTotals(previous, settings);
+        const refreshedTotals = customerCartTotals(previous, latest.settings);
+        if (reconcileCustomerCart(previous, products).needsReview || previousTotals.tax !== refreshedTotals.tax) {
+            setCartMessage('Harga atau ketersediaan barang diperbarui. Periksa total terbaru, lalu lanjutkan kembali.');
+            setShowCart(true);
+            return;
+        }
+        if (!reconciled.cart.length) return;
         const orderData = {
-            cart: [...cart],
+            cart: reconciled.cart,
             pickup_label: 'Ambil di Toko',
-            subtotal, tax, total
+            ...totals,
         };
         storage.setItem(ORDER_KEY, JSON.stringify(orderData));
         router.visit(storeUrl('/payment'));
@@ -494,8 +551,8 @@ export default function CustomerMenu({
                                 <span className="block text-sm sm:text-base font-extrabold text-slate-900 tabular-nums">{formatRp(total)}</span>
                             </span>
                         </button>
-                        <button type="button" onClick={goToPayment} className="flex min-h-10 sm:min-h-11 items-center justify-center gap-2 rounded-xl bg-[#FFDD00] hover:bg-[#FFE838] px-4 sm:px-6 py-2 text-xs sm:text-sm font-bold text-[#19231f] transition-all shadow-xs sm:min-w-[180px] cursor-pointer active:scale-95">
-                            <span>Lanjut bayar</span>
+                        <button type="button" onClick={goToPayment} disabled={checkingCart} className="flex min-h-10 sm:min-h-11 items-center justify-center gap-2 rounded-xl bg-[#FFDD00] hover:bg-[#FFE838] px-4 sm:px-6 py-2 text-xs sm:text-sm font-bold text-[#19231f] transition-all shadow-xs sm:min-w-[180px] cursor-pointer active:scale-95 disabled:cursor-wait">
+                            <span>{checkingCart ? 'Memeriksa harga…' : 'Lanjut bayar'}</span>
                             <FiArrowRight size={15} strokeWidth={2.5} aria-hidden="true" />
                         </button>
                     </div>
@@ -524,6 +581,7 @@ export default function CustomerMenu({
                             </div>
                         </div>
                         <div className="min-h-0 flex-1 overflow-y-auto px-5 sm:px-6">
+                            {cartMessage && <p role="status" className="mt-3 rounded-lg border border-[#dedfd7] bg-[#f3f3ed] p-3 text-xs text-[#19231f]">{cartMessage}</p>}
                             {cart.length ? cart.map(item => (
                                 <div key={item.cartItemId} className="flex gap-4 border-b border-slate-100 py-4">
                                     <ProductPhoto src={item.image} name={item.name} category={item.category} compact className="h-16 w-16 sm:h-[70px] sm:w-[70px] shrink-0 rounded-xl border border-slate-100 bg-slate-50 overflow-hidden" />
@@ -561,8 +619,8 @@ export default function CustomerMenu({
                                     {taxEnabled && <div className="flex justify-between text-slate-500"><dt>Pajak ({Math.round(taxRate * 100)}%)</dt><dd className="font-semibold text-slate-900">{formatRp(tax)}</dd></div>}
                                     <div className="flex justify-between border-t border-slate-200 pt-2 text-sm sm:text-base font-extrabold text-slate-900"><dt>Total estimasi</dt><dd className="text-slate-950 tabular-nums">{formatRp(total)}</dd></div>
                                 </dl>
-                                <button type="button" onClick={goToPayment} className="mt-3.5 flex min-h-11 w-full items-center justify-between rounded-xl bg-[#FFDD00] hover:bg-[#FFE838] px-4 py-2.5 text-xs sm:text-sm font-bold text-[#19231f] shadow-xs hover:shadow transition-all cursor-pointer">
-                                    <span>Lanjut ke pembayaran</span>
+                                <button type="button" onClick={goToPayment} disabled={checkingCart} className="mt-3.5 flex min-h-11 w-full items-center justify-between rounded-xl bg-[#FFDD00] hover:bg-[#FFE838] px-4 py-2.5 text-xs sm:text-sm font-bold text-[#19231f] shadow-xs hover:shadow transition-all cursor-pointer disabled:cursor-wait">
+                                    <span>{checkingCart ? 'Memeriksa harga…' : 'Lanjut ke pembayaran'}</span>
                                     <FiArrowRight size={16} />
                                 </button>
                                 <p className="mt-2 text-center text-[10px] text-slate-400">Pesanan diambil langsung di toko.</p>
