@@ -1,3 +1,4 @@
+import { readCustomerOrders } from '@/Utils/customerOrderStore';
 import useStorefront from '@/Hooks/useStorefront';
 import React, { useState, useEffect, useRef } from 'react';
 import { Head, Link } from '@inertiajs/react';
@@ -179,8 +180,7 @@ export default function MotorSaya({
 
     useEffect(() => {
         try {
-            const rawHistory = storage.getItem('motorku_orders_history');
-            const history = rawHistory ? JSON.parse(rawHistory) : [];
+            const history = readCustomerOrders(storage);
             if (Array.isArray(history) && history.length > 0) {
                 const activeOrders = history.filter(o => ['pending', 'preparing', 'ready'].includes(o.order_status));
                 setHasAnyOrders(activeOrders.length > 0);

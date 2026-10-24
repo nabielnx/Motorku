@@ -4,17 +4,20 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Order;
 
-use App\Enums\OrderStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Order\StoreCustomerOrderRequest;
+use App\Http\Requests\Payment\CustomerQrisRequest;
+use App\Http\Requests\Payment\ReportCustomerPaymentRequest;
 use App\Models\Category;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\Setting;
 use App\Services\BusinessContext;
 use App\Services\CacheService;
+use App\Services\CustomerOrderService;
 use App\Services\OrderCancellationService;
 use App\Services\OrderService;
+use App\Services\QrisService;
 use App\Services\SettingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -128,53 +131,38 @@ class CustomerMenuController extends Controller
 
         return response()->json([
             'message' => 'Pesanan berhasil diterima. Silakan ambil di toko!',
-            'data' => array_merge($order->toArray(), [
+            'data' => array_merge(app(CustomerOrderService::class)->snapshot($order), [
                 'customer_token' => $order->getAttribute('customer_access_token'),
                 'pickup' => true, // Semua order toko sparepart = ambil di toko
             ]),
-        ], 201);
+        ], 201)->header('Cache-Control', 'no-store, private');
+    }
+
+    public function customerQris(CustomerQrisRequest $request, string $orderId, QrisService $qris): JsonResponse
+    {
+        return response()->json(['data' => $qris->forCustomerOrder($orderId, $request->validated('customer_token'))])
+            ->header('Cache-Control', 'no-store, private');
     }
 
     /**
      * Public endpoint for customer to check order status (polling).
      */
-    public function orderStatus(Request $request, string $orderId): JsonResponse
+    public function orderStatus(Request $request, string $orderId, CustomerOrderService $customers): JsonResponse
     {
-        $token = $request->validate(['customer_token' => ['nullable', 'string', 'size:64']])['customer_token'] ?? null;
+        // Legacy query tokens remain readable for existing receipts. New clients use a header.
+        $token = $request->header('X-Customer-Token') ?? $request->query('customer_token');
+        abort_unless($token, 401, 'Akses ditolak. Token tidak ditemukan.');
+        abort_unless(is_string($token) && strlen($token) === 64, 401, 'Pesanan atau token tidak valid.');
+        $order = $customers->authorizedOrder($orderId, $token);
 
-        if (! $token) {
-            return response()->json(['message' => 'Akses ditolak. Token tidak ditemukan.'], 401);
-        }
+        return response()->json(['data' => $customers->snapshot($order)])->header('Cache-Control', 'no-store, private');
+    }
 
-        $order = Order::with(['items'])->whereKey($orderId)->first();
+    public function reportPayment(ReportCustomerPaymentRequest $request, string $orderId, CustomerOrderService $customers): JsonResponse
+    {
+        $order = $customers->reportPayment($orderId, $request->validated('customer_token'), $request->validated('reference'));
 
-        if (! $order || $order->customer_access_token !== $token) {
-            return response()->json(['message' => 'Token tidak valid.'], 401);
-        }
-
-        return response()->json([
-            'data' => [
-                'id' => $order->id,
-                'order_number' => $order->order_number,
-                'order_status' => $order->order_status,
-                'payment_status' => $order->payment_status,
-                'customer_name' => $order->customer_name,
-                'pickup_label' => 'Ambil di Toko',
-                'subtotal' => (float) $order->subtotal,
-                'discount_amount' => (float) $order->discount_amount,
-                'tax_amount' => (float) $order->tax_amount,
-                'total' => (float) $order->total,
-                'ordered_at' => $order->created_at?->format('d M Y, H:i'),
-                'items' => $order->items->map(fn ($item) => [
-                    'id' => $item->id,
-                    'product_name' => $item->product_name ?? $item->product?->name ?? 'Produk',
-                    'unit_price' => (float) $item->unit_price,
-                    'quantity' => (int) $item->quantity,
-                    'subtotal' => (float) $item->subtotal,
-                    'notes' => $item->notes,
-                ]),
-            ],
-        ])->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+        return response()->json(['data' => $customers->snapshot($order)])->header('Cache-Control', 'no-store, private');
     }
 
     /**
@@ -194,6 +182,7 @@ class CustomerMenuController extends Controller
         $failure = match ($result['outcome']) {
             'invalid_token' => ['Token tidak valid.', 401],
             'already_cancelled' => ['Pesanan sudah dibatalkan sebelumnya.', 400],
+            'under_review' => ['Pembayaran sedang diperiksa kasir. Hubungi toko untuk bantuan.', 422],
             'not_pending' => ['Pesanan yang sudah dibayar atau sedang disiapkan tidak dapat dibatalkan.', 422],
             default => null,
         };
@@ -203,10 +192,7 @@ class CustomerMenuController extends Controller
 
         return response()->json([
             'message' => 'Pesanan berhasil dibatalkan.',
-            'data' => [
-                'id' => $result['order']->id,
-                'order_status' => OrderStatus::Cancelled->value,
-            ],
+            'data' => app(CustomerOrderService::class)->snapshot($result['order']),
         ]);
     }
 }

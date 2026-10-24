@@ -21,6 +21,8 @@ export function businessStorage(businessId, storage, userId = null) {
     const prefix = userId ? `business:${businessId}:user:${userId}:` : businessId && businessId !== LEGACY_BUSINESS_ID ? `business:${businessId}:` : '';
     return {
         key: key => prefix + key,
+        keys: () => Array.from({ length: storage.length }, (_, index) => storage.key(index))
+            .filter(key => key?.startsWith(prefix)).map(key => key.slice(prefix.length)),
         getItem: key => storage.getItem(prefix + key),
         setItem: (key, value) => storage.setItem(prefix + key, value),
         removeItem: key => storage.removeItem(prefix + key),

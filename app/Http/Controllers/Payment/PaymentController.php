@@ -1,10 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Payment;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Payment\RejectCustomerPaymentRequest;
 use App\Http\Requests\Payment\StorePaymentRequest;
 use App\Models\Payment;
+use App\Services\CustomerOrderService;
 use App\Services\PaymentService;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
@@ -24,7 +28,7 @@ class PaymentController extends Controller implements HasMiddleware
     {
         return [
             new Middleware('permission:payment.view', only: ['index', 'show']),
-            new Middleware('permission:payment.create', only: ['store']),
+            new Middleware('permission:payment.create', only: ['store', 'rejectReview']),
             new Middleware('permission:payment.refund', only: ['updateStatus']),
         ];
     }
@@ -63,6 +67,14 @@ class PaymentController extends Controller implements HasMiddleware
             'message' => 'Pembayaran berhasil diproses!',
             'data' => $payment,
         ], 201);
+    }
+
+    public function rejectReview(RejectCustomerPaymentRequest $request, string $orderId, CustomerOrderService $customers)
+    {
+        Gate::authorize('create', Payment::class);
+        $customers->rejectPayment($orderId, $request->validated('reason'));
+
+        return response()->json(['message' => 'Laporan dikembalikan ke pelanggan. Batas pembayaran diperpanjang.']);
     }
 
     public function updateStatus(Request $request, $id)

@@ -25,7 +25,7 @@ test('entity adapters preserve payloads, authentication tokens and abort signals
             assert.equal(order.customer_token, 'token');
             const status = await customerOrderStatus('order-1', 'secret-token', signal);
             assert.equal(status.order_status, 'pending');
-            assert.equal(calls.at(-1).params.customer_token, 'secret-token');
+            assert.equal(calls.at(-1).headers['X-Customer-Token'], 'secret-token');
             assert.equal(calls.at(-1).signal, signal);
             await cancelCustomerOrder('order-1', 'secret-token');
             assert.equal(JSON.parse(calls.at(-1).data).customer_token, 'secret-token');

@@ -62,46 +62,25 @@
             @if ($comp === 'Order/Menu')
                 <!-- Motorku Customer Storefront Catalog Shell (1:1 Exact Monochromatic Parity) -->
                 <div class="customer-storefront min-h-screen bg-[#f3f3ed] text-slate-900" aria-busy="true" aria-label="Memuat katalog sparepart">
-                    <!-- Store Header -->
-                    <header class="sticky top-0 z-40 border-b border-slate-200 bg-white shadow-2xs overflow-hidden relative">
-                        <div class="mx-auto flex min-h-[54px] max-w-[1280px] items-center justify-between gap-2 px-3.5 sm:min-h-[62px] sm:gap-4 sm:px-6 lg:px-8 relative z-10">
-                            <div class="flex shrink-0 items-center gap-2.5">
-                                <div class="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-slate-200 animate-pulse"></div>
-                                <div class="h-5 w-20 sm:w-24 rounded bg-slate-200 animate-pulse"></div>
+                    <!-- Store actions above a full-width search field -->
+                    <header class="store-header">
+                        <div class="store-header-shell">
+                            <div class="store-brand">
+                                <div class="h-7 w-7 shrink-0 rounded-lg bg-slate-200 animate-pulse"></div>
+                                <div class="store-brand-name h-5 w-20 rounded bg-slate-200 animate-pulse"></div>
                             </div>
-                            <div class="hidden md:flex items-center gap-6">
-                                <div class="h-4 w-14 rounded bg-slate-200 animate-pulse"></div>
-                                <div class="h-4 w-20 rounded bg-slate-200 animate-pulse"></div>
+                            <div class="store-actions">
+                                <div class="h-10 w-10 rounded-md bg-slate-200 animate-pulse"></div>
+                                <div class="h-10 w-24 rounded-md bg-slate-200 animate-pulse"></div>
+                                <div class="h-10 w-10 rounded-md bg-slate-200 animate-pulse"></div>
+                                <div class="h-10 w-10 rounded-md bg-slate-200 animate-pulse"></div>
                             </div>
-                            <div class="flex-1 max-w-md px-1">
-                                <div class="h-8.5 sm:h-9 w-full rounded-full bg-slate-100 border border-slate-200 flex items-center px-3.5 gap-2">
-                                    <div class="w-3.5 h-3.5 rounded-full bg-slate-200 animate-pulse shrink-0"></div>
-                                    <div class="h-3 w-32 rounded bg-slate-200 animate-pulse"></div>
-                                </div>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-200 animate-pulse"></div>
-                                <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-200 animate-pulse"></div>
-                            </div>
+                            <div class="store-tools h-10 rounded-md bg-slate-100 animate-pulse"></div>
                         </div>
                     </header>
 
-                    <!-- Motor Saya Banner (Exact Curved Bottom) -->
-                    <section class="w-full bg-slate-100 border-b border-slate-200 rounded-b-[36px] sm:rounded-b-[48px] shadow-2xs mb-3.5 sm:mb-4.5 overflow-hidden">
-                        <div class="mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8 py-3 sm:py-3.5">
-                            <div class="flex items-center gap-3 sm:gap-4 pl-3 sm:pl-4 md:pl-5 pr-3.5 sm:pr-5 md:pr-6">
-                                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-200 animate-pulse shrink-0"></div>
-                                <div class="min-w-0 flex-1 space-y-1.5">
-                                    <div class="h-3.5 sm:h-4 w-24 rounded bg-slate-200 animate-pulse"></div>
-                                    <div class="h-2.5 sm:h-3 w-56 sm:w-72 rounded bg-slate-200 animate-pulse"></div>
-                                </div>
-                                <div class="w-4 h-4 rounded bg-slate-200 animate-pulse shrink-0"></div>
-                            </div>
-                        </div>
-                    </section>
-
                     <!-- Main Storefront Content -->
-                    <div class="mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8 pb-12">
+                    <div class="store-catalog mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8 pb-12">
                         <!-- Promo Banner Section -->
                         <section class="pb-3">
                             <div class="rounded-2xl sm:rounded-3xl bg-slate-100 border border-slate-200 overflow-hidden p-2.5 sm:p-3 shadow-2xs">
@@ -308,191 +287,8 @@
                         </div>
                     </div>
                 @endif
-            @elseif ($comp === 'Payment/Index')
-                <!-- Payment Shell (Matches PaymentSkeleton.jsx) -->
-                <div class="customer-storefront customer-flow h-full w-full bg-slate-100 font-sans text-slate-800 flex justify-center overflow-y-auto min-h-screen">
-                    <div class="customer-frame w-full max-w-md bg-white min-h-full shadow-2xl flex flex-col pb-24">
-                        <header class="sticky top-0 bg-white border-b border-slate-100 p-4 flex items-center justify-between z-10">
-                            <div class="w-5 h-5 rounded bg-slate-200 animate-pulse"></div>
-                            <div class="h-4 w-28 rounded bg-slate-200 animate-pulse"></div>
-                        </header>
-                        <div class="flex-1 p-4 space-y-4">
-                            <div class="bg-stone-50 border border-stone-200 rounded-lg p-4 space-y-2">
-                                <div class="flex items-center gap-2">
-                                    <div class="w-4 h-4 rounded bg-slate-200 animate-pulse"></div>
-                                    <div class="h-3.5 w-28 rounded bg-slate-200 animate-pulse"></div>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <div class="w-4 h-4 rounded bg-slate-200 animate-pulse"></div>
-                                    <div class="h-3 w-16 rounded bg-slate-200 animate-pulse"></div>
-                                </div>
-                            </div>
-                            <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-3">
-                                <div class="flex items-center justify-between border-b border-slate-200 pb-2">
-                                    <div class="h-3.5 w-32 rounded bg-slate-200 animate-pulse"></div>
-                                    <div class="h-3 w-14 rounded bg-slate-200 animate-pulse"></div>
-                                </div>
-                                <div class="space-y-2.5">
-                                    <div class="flex items-center justify-between border-b border-slate-100 pb-2">
-                                        <div class="space-y-1 flex-1">
-                                            <div class="h-3.5 w-4/5 rounded bg-slate-200 animate-pulse"></div>
-                                            <div class="h-2.5 w-1/2 rounded bg-slate-100 animate-pulse"></div>
-                                        </div>
-                                        <div class="h-3.5 w-16 rounded bg-slate-200 animate-pulse"></div>
-                                    </div>
-                                    <div class="flex items-center justify-between">
-                                        <div class="space-y-1 flex-1">
-                                            <div class="h-3.5 w-3/4 rounded bg-slate-200 animate-pulse"></div>
-                                        </div>
-                                        <div class="h-3.5 w-16 rounded bg-slate-200 animate-pulse"></div>
-                                    </div>
-                                </div>
-                                <div class="border-t border-slate-200 pt-2 space-y-2">
-                                    <div class="flex justify-between"><div class="h-3 w-16 rounded bg-slate-200 animate-pulse"></div><div class="h-3 w-20 rounded bg-slate-200 animate-pulse"></div></div>
-                                    <div class="flex justify-between border-t border-slate-200 pt-2"><div class="h-4 w-24 rounded bg-slate-200 animate-pulse"></div><div class="h-5 w-24 rounded bg-slate-200 animate-pulse"></div></div>
-                                </div>
-                            </div>
-                            <div class="space-y-1.5">
-                                <div class="h-3 w-28 rounded bg-slate-200 animate-pulse"></div>
-                                <div class="h-11 w-full rounded-xl bg-slate-100 border border-slate-200 animate-pulse"></div>
-                            </div>
-                            <div class="space-y-2">
-                                <div class="h-3 w-40 rounded bg-slate-200 animate-pulse"></div>
-                                <div class="flex items-center gap-3 rounded-xl bg-stone-50 px-4 py-3 border border-stone-200">
-                                    <div class="h-5 w-5 rounded bg-slate-200 animate-pulse"></div>
-                                    <div class="space-y-1">
-                                        <div class="h-3 w-28 rounded bg-slate-200 animate-pulse"></div>
-                                        <div class="h-2.5 w-52 rounded bg-slate-100 animate-pulse"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="p-4 bg-white border-t border-slate-100">
-                            <div class="h-12 w-full rounded-xl bg-[#19231f] text-white animate-pulse"></div>
-                        </div>
-                    </div>
-                </div>
-            @elseif ($comp === 'Order/Waiting')
-                <!-- Waiting Shell (Matches WaitingSkeleton.jsx) -->
-                <div class="customer-storefront customer-flow h-full w-full bg-slate-100 font-sans text-slate-800 flex justify-center overflow-y-auto min-h-screen">
-                    <div class="customer-frame w-full max-w-md bg-white min-h-full shadow-2xl flex flex-col items-center p-6 space-y-6">
-                        <div class="text-center space-y-2 pt-6 flex flex-col items-center w-full">
-                            <div class="w-16 h-16 rounded-full bg-slate-200 animate-pulse"></div>
-                            <div class="h-6 w-52 rounded-md bg-slate-200 animate-pulse"></div>
-                            <div class="h-3.5 w-64 rounded bg-slate-100 animate-pulse"></div>
-                        </div>
-                        <div class="w-full bg-slate-50 rounded-lg p-5 space-y-3 border border-slate-100">
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center gap-2">
-                                    <div class="w-3.5 h-3.5 rounded bg-slate-200 animate-pulse"></div>
-                                    <div class="h-3 w-16 rounded bg-slate-200 animate-pulse"></div>
-                                </div>
-                                <div class="h-3 w-28 rounded bg-slate-200 animate-pulse"></div>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center gap-2">
-                                    <div class="w-3.5 h-3.5 rounded bg-slate-200 animate-pulse"></div>
-                                    <div class="h-3 w-20 rounded bg-slate-200 animate-pulse"></div>
-                                </div>
-                                <div class="h-3 w-24 rounded bg-slate-200 animate-pulse"></div>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center gap-2">
-                                    <div class="w-3.5 h-3.5 rounded bg-slate-200 animate-pulse"></div>
-                                    <div class="h-3 w-16 rounded bg-slate-200 animate-pulse"></div>
-                                </div>
-                                <div class="h-3 w-20 rounded bg-slate-200 animate-pulse"></div>
-                            </div>
-                            <div class="border-t border-slate-200 pt-3 flex items-center justify-between">
-                                <div class="h-3.5 w-12 rounded bg-slate-200 animate-pulse"></div>
-                                <div class="h-5 w-28 rounded bg-slate-200 animate-pulse"></div>
-                            </div>
-                        </div>
-
-                        <!-- Rincian Pesanan (Invoice) Card -->
-                        <div class="w-full bg-slate-50 border border-slate-200 rounded-lg p-4 space-y-3">
-                            <div class="flex items-center justify-between border-b border-slate-200 pb-2">
-                                <div class="flex items-center gap-1.5">
-                                    <div class="w-3.5 h-3.5 rounded bg-slate-200 animate-pulse"></div>
-                                    <div class="h-3.5 w-24 rounded bg-slate-200 animate-pulse"></div>
-                                </div>
-                                <div class="h-2.5 w-16 rounded bg-slate-200 animate-pulse"></div>
-                            </div>
-                            <div class="space-y-2.5">
-                                <div class="flex justify-between items-start">
-                                    <div class="flex items-center gap-1.5 flex-1">
-                                        <div class="h-3.5 w-3/5 rounded bg-slate-200 animate-pulse"></div>
-                                        <div class="h-4 w-6 rounded bg-slate-200 animate-pulse"></div>
-                                    </div>
-                                    <div class="h-3.5 w-16 rounded bg-slate-200 animate-pulse"></div>
-                                </div>
-                                <div class="flex justify-between items-start">
-                                    <div class="flex items-center gap-1.5 flex-1">
-                                        <div class="h-3.5 w-1/2 rounded bg-slate-200 animate-pulse"></div>
-                                        <div class="h-4 w-6 rounded bg-slate-200 animate-pulse"></div>
-                                    </div>
-                                    <div class="h-3.5 w-16 rounded bg-slate-200 animate-pulse"></div>
-                                </div>
-                            </div>
-                            <div class="border-t border-dashed border-slate-300 pt-2.5 space-y-2">
-                                <div class="flex justify-between">
-                                    <div class="h-3 w-14 rounded bg-slate-200 animate-pulse"></div>
-                                    <div class="h-3 w-18 rounded bg-slate-200 animate-pulse"></div>
-                                </div>
-                                <div class="flex justify-between pt-2 border-t border-slate-200">
-                                    <div class="h-4 w-28 rounded bg-slate-200 animate-pulse"></div>
-                                    <div class="h-4 w-24 rounded bg-slate-200 animate-pulse"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="w-full bg-yellow-50 border border-yellow-200 rounded-lg p-4 flex items-center gap-3">
-                            <div class="w-5 h-5 rounded-full bg-yellow-200 animate-pulse shrink-0"></div>
-                            <div class="space-y-1 flex-1">
-                                <div class="h-3.5 w-40 rounded bg-yellow-200 animate-pulse"></div>
-                                <div class="h-2.5 w-full rounded bg-yellow-100 animate-pulse"></div>
-                            </div>
-                        </div>
-                        <div class="h-10 w-full rounded-xl bg-slate-100 border border-slate-200 animate-pulse"></div>
-                        <div class="h-11 w-full rounded-xl bg-slate-200 animate-pulse"></div>
-                        <div class="h-3 w-28 rounded bg-slate-200 animate-pulse"></div>
-                    </div>
-                </div>
-            @elseif ($comp === 'Order/Status')
-                <!-- Order Status Shell (Matches OrderStatusSkeleton.jsx) -->
-                <div class="customer-storefront customer-flow h-full w-full min-h-screen bg-slate-100 flex justify-center overflow-y-auto">
-                    <div class="customer-frame w-full max-w-md min-h-full bg-white shadow-2xl flex flex-col">
-                        <header class="sticky top-0 z-30 border-b border-slate-200 bg-white px-4 py-3.5 flex items-center justify-between">
-                            <div class="h-5 w-28 rounded bg-slate-200 animate-pulse"></div>
-                            <div class="h-8 w-28 rounded-xl bg-slate-100 animate-pulse"></div>
-                        </header>
-                        <div class="flex-1 p-4 space-y-4">
-                            <div class="h-3 w-20 rounded bg-slate-200 animate-pulse"></div>
-                            @for ($i = 0; $i < 2; $i++)
-                                <div class="overflow-hidden rounded-lg border border-slate-200">
-                                    <div class="flex items-center justify-between bg-slate-50 px-4 py-3">
-                                        <div class="flex items-center gap-2">
-                                            <div class="h-2 w-2 rounded-full bg-slate-200 animate-pulse"></div>
-                                            <div class="h-5 w-20 rounded-md bg-slate-200 animate-pulse"></div>
-                                        </div>
-                                        <div class="space-y-1">
-                                            <div class="h-3 w-16 rounded bg-slate-200 animate-pulse"></div>
-                                            <div class="ml-auto h-2.5 w-10 rounded bg-slate-100 animate-pulse"></div>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center gap-3 bg-white px-4 py-3">
-                                        <div class="min-w-0 flex-1 space-y-1.5">
-                                            <div class="h-3.5 w-3/4 rounded bg-slate-200 animate-pulse"></div>
-                                            <div class="h-3 w-1/3 rounded bg-slate-200 animate-pulse"></div>
-                                        </div>
-                                        <div class="h-4 w-20 rounded bg-slate-200 animate-pulse shrink-0"></div>
-                                        <div class="h-4 w-4 rounded bg-slate-200 animate-pulse shrink-0"></div>
-                                    </div>
-                                </div>
-                            @endfor
-                        </div>
-                    </div>
-                </div>
+            @elseif (in_array($comp, ['Payment/Index', 'Order/Waiting', 'Order/Status']))
+                @include('partials.customer-order-loading')
             @elseif (str_starts_with($comp, 'Auth/'))
                 <!-- Auth Pages Shell -->
                 <div class="min-h-screen bg-[#f3f3ed] flex flex-col justify-center items-center p-4">

@@ -28,7 +28,10 @@ class OrderResource extends JsonResource
             'total' => (float) $this->total,
             'order_status' => $this->order_status instanceof \BackedEnum ? $this->order_status->value : $this->order_status,
             'payment_status' => $this->payment_status instanceof \BackedEnum ? $this->payment_status->value : $this->payment_status,
-            'payment_method' => $paymentMethod ?? 'cash',
+            'payment_method' => $paymentMethod,
+            'payment_preference' => $this->payment_preference,
+            'payment_review_requested_at' => $this->payment_review_requested_at?->toIso8601String(),
+            'payment_reference' => $this->payment_reference,
             'payments' => $this->whenLoaded('payments', fn () => $this->payments->sortByDesc('paid_at')->values()->map(fn ($payment) => [
                 'id' => $payment->id,
                 'invoice_number' => $payment->invoice_number,

@@ -42,6 +42,11 @@ class Order extends Model
         'sync_version',
         'ordered_at',
         'expires_at',
+        'payment_preference',
+        'payment_review_requested_at',
+        'payment_reference',
+        'payment_review_note',
+        'cancel_reason',
     ];
 
     protected $hidden = [
@@ -57,6 +62,7 @@ class Order extends Model
         'payment_status' => PaymentStatus::class,
         'ordered_at' => 'datetime',
         'expires_at' => 'datetime',
+        'payment_review_requested_at' => 'datetime',
         'created_at' => 'datetime',
     ];
 
@@ -130,6 +136,7 @@ class Order extends Model
     {
         return $query->where('order_status', OrderStatus::Pending)
             ->where('payment_status', PaymentStatus::Unpaid)
+            ->whereNull('payment_review_requested_at')
             ->whereNotNull('expires_at')
             ->where('expires_at', '<=', now());
     }

@@ -25,11 +25,14 @@ class OrderCancellationService
             if ($order->order_status === OrderStatus::Cancelled) {
                 return ['outcome' => 'already_cancelled'];
             }
+            if ($order->payment_review_requested_at) {
+                return ['outcome' => 'under_review'];
+            }
             if ($order->payment_status === PaymentStatus::Paid || $order->order_status !== OrderStatus::Pending) {
                 return ['outcome' => 'not_pending'];
             }
 
-            $this->markCancelled($order);
+            $this->markCancelled($order, 'customer');
             $this->releaseReservation($order, null,
                 'Stok dikembalikan — order '.$order->order_number.' dibatalkan oleh customer');
 
@@ -47,7 +50,7 @@ class OrderCancellationService
 
             $this->restoreReservedStock($order, null,
                 'Stok dikembalikan — order '.$order->order_number.' kadaluarsa otomatis');
-            $this->markCancelled($order);
+            $this->markCancelled($order, 'expired');
             $order->payments()->where('status', 'pending')->update(['status' => 'expired']);
 
             return true;
@@ -79,10 +82,11 @@ class OrderCancellationService
         }
     }
 
-    private function markCancelled(Order $order): void
+    private function markCancelled(Order $order, string $reason): void
     {
         $order->update([
             'order_status' => OrderStatus::Cancelled,
+            'cancel_reason' => $reason,
             'sync_version' => $order->sync_version + 1,
         ]);
     }

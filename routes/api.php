@@ -14,14 +14,24 @@ Route::get('/user', fn (Request $request) => $request->user())
 
 // ─── PUBLIC: Customer QR Self-Order (no auth, no CSRF) ───
 Route::post('/customer/order', [CustomerMenuController::class, 'storeOrder'])
-    ->middleware([ResolveBusiness::class, 'throttle:3,1'])
+    ->middleware([ResolveBusiness::class, 'throttle:3,1,customer-checkout:'])
     ->name('api.customer.order');
 Route::get('/customer/order/{orderId}/status', [CustomerMenuController::class, 'orderStatus'])
-    ->middleware([ResolveBusiness::class, 'throttle:240,1'])
+    ->middleware([ResolveBusiness::class, 'throttle:240,1,customer-status:'])
     ->name('api.customer.order.status');
 Route::post('/customer/order/{orderId}/cancel', [CustomerMenuController::class, 'cancelOrder'])
-    ->middleware([ResolveBusiness::class, 'throttle:60,1'])
+    ->middleware([ResolveBusiness::class, 'throttle:60,1,customer-cancel:'])
     ->name('api.customer.order.cancel');
+
+Route::post('/customer/order/{orderId}/qris', [CustomerMenuController::class, 'customerQris'])
+    ->whereUuid('orderId')
+    ->middleware([ResolveBusiness::class, 'throttle:30,1,customer-qris:'])
+    ->name('api.customer.order.qris');
+
+Route::post('/customer/order/{orderId}/payment-review', [CustomerMenuController::class, 'reportPayment'])
+    ->whereUuid('orderId')
+    ->middleware([ResolveBusiness::class, 'throttle:10,1,customer-review:'])
+    ->name('api.customer.order.payment-review');
 
 $base = ['web', 'auth', 'verified'];
 

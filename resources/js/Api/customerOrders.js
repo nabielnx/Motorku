@@ -14,6 +14,18 @@ export async function cancelCustomerOrder(orderId, customerToken) {
 
 export async function customerOrderStatus(orderId, customerToken, signal) {
     return entityPayload(await axios.get(storefrontUrl(`/api/customer/order/${orderId}/status`, currentShopSlug()), {
-        params: { customer_token: customerToken }, signal,
+        headers: { 'X-Customer-Token': customerToken }, signal,
     }));
+}
+
+export async function reportCustomerPayment(orderId, customerToken, reference) {
+    return entityPayload(await axios.post(storefrontUrl(`/api/customer/order/${orderId}/payment-review`, currentShopSlug()), {
+        customer_token: customerToken, reference: reference || null,
+    }));
+}
+
+export async function customerOrderQris(orderId, customerToken, signal) {
+    return entityPayload(await axios.post(storefrontUrl(`/api/customer/order/${orderId}/qris`, currentShopSlug()), {
+        customer_token: customerToken,
+    }, { signal }));
 }

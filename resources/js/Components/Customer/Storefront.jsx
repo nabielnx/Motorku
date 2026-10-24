@@ -1,7 +1,7 @@
 import useStorefront from '@/Hooks/useStorefront';
 import React, { useEffect, useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
-import { FiTool, FiShoppingBag, FiShoppingCart, FiSearch, FiX, FiDisc, FiDroplet, FiZap, FiShield, FiLayers, FiSun, FiSliders, FiCpu, FiLogIn } from 'react-icons/fi';
+import { FiTool, FiShoppingBag, FiShoppingCart, FiSearch, FiX, FiDisc, FiDroplet, FiZap, FiShield, FiLayers, FiSun, FiSliders, FiCpu, FiUser } from 'react-icons/fi';
 import clsx from 'clsx';
 import { getProductImage } from '@/Utils/productImage';
 import { RiMotorbikeFill } from 'react-icons/ri';
@@ -68,8 +68,8 @@ export function StoreHeader({
     const rawLogo = settings['store.logo'] || settings['logo'] || props?.logo_url;
     const [logoFailed, setLogoFailed] = useState(false);
     const [isSearchFocused, setIsSearchFocused] = useState(false);
-    const phone = settings['store.phone'] || settings['phone'] || props?.app_settings?.store_phone || '';
-    const whatsapp = phone ? 'https://wa.me/' + phone.replace(/[^0-9]/g, '').replace(/^0/, '62') : null;
+    const [showMotorHint, setShowMotorHint] = useState(true);
+    const accountLabel = props?.auth?.user ? 'Akun saya' : 'Masuk ke akun';
 
     return (
         <>
@@ -98,44 +98,87 @@ export function StoreHeader({
                         )}
                         <span className="store-brand-name">{storeName}</span>
                     </Link>
-                    <nav aria-label="Navigasi toko" className="store-nav">
-                        <Link
-                            href={storeUrl('/')}
-                            aria-current={activePage === 'catalog' ? 'page' : undefined}
-                            className={clsx(
-                                'py-4 transition-colors font-bold',
-                                activePage === 'catalog'
-                                    ? 'store-nav-active'
-                                    : 'store-nav-link'
-                            )}
-                        >
-                            Katalog
-                        </Link>
-                        <Link
-                            href={storeUrl('/motor-saya')}
-                            aria-current={activePage === 'motor' ? 'page' : undefined}
-                            className={clsx(
-                                'py-4 transition-colors font-bold',
-                                activePage === 'motor'
-                                    ? 'store-nav-active'
-                                    : 'store-nav-link'
-                            )}
-                        >
-                            Motor Saya
-                        </Link>
-                        {whatsapp && (
-                            <a
-                                href={whatsapp}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="store-nav-help"
+                    <nav aria-label="Navigasi toko" className="store-actions">
+                        <div className="store-motor-entry" onKeyDown={e => { if (e.key === 'Escape') setShowMotorHint(false); }}>
+                            <Link
+                                href={storeUrl('/motor-saya')}
+                                title="Cari sparepart sesuai motor saya"
+                                aria-current={activePage === 'motor' ? 'page' : undefined}
+                                aria-describedby={showMotorHint ? 'store-motor-hint-message' : undefined}
+                                className="store-action store-motor-action"
+                                onMouseEnter={() => setShowMotorHint(true)}
+                                onFocus={() => setShowMotorHint(true)}
+                                onClick={() => setShowMotorHint(false)}
                             >
-                                Bantuan
-                            </a>
+                                <RiMotorbikeFill size={20} aria-hidden="true" />
+                                <span>Motor Saya</span>
+                            </Link>
+                            {showMotorHint && (
+                                <div id="store-motor-hint" role="status" className="store-motor-hint">
+                                    <p id="store-motor-hint-message">Cari sparepart sesuai motor saya</p>
+                                    <button type="button" onClick={() => setShowMotorHint(false)} aria-label="Tutup petunjuk Motor Saya">
+                                        <FiX size={16} aria-hidden="true" />
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                        {onCart ? (
+                            <button
+                                type="button"
+                                onClick={() => { setShowMotorHint(false); onCart(); }}
+                                className="store-action"
+                                aria-label={'Buka keranjang, ' + totalQty + ' item'}
+                            >
+                                <div className="relative flex items-center justify-center">
+                                    <FiShoppingCart size={19} strokeWidth={2} aria-hidden="true" />
+                                    {totalQty > 0 && (
+                                        <span className="absolute -top-2 -right-2 flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-[#FFDD00] px-1 text-[10px] font-extrabold text-[#19231f] tabular-nums shadow-xs">
+                                            {totalQty}
+                                        </span>
+                                    )}
+                                </div>
+                                <span className="store-action-label">Keranjang</span>
+                            </button>
+                        ) : (
+                            <Link
+                                href={storeUrl('/?openCart=1')}
+                                title="Keranjang belanja"
+                                className="store-action"
+                                aria-label={'Buka keranjang, ' + totalQty + ' item'}
+                            >
+                                <div className="relative flex items-center justify-center">
+                                    <FiShoppingCart size={19} strokeWidth={2} aria-hidden="true" />
+                                    {totalQty > 0 && (
+                                        <span className="absolute -top-2 -right-2 flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-[#FFDD00] px-1 text-[10px] font-extrabold text-[#19231f] tabular-nums shadow-xs">
+                                            {totalQty}
+                                        </span>
+                                    )}
+                                </div>
+                                <span className="store-action-label">Keranjang</span>
+                            </Link>
                         )}
+                        <Link
+                            href={storeUrl(orderHref)}
+                            title="Pesanan saya"
+                            className="store-action"
+                            aria-label="Pesanan saya"
+                        >
+                            <FiShoppingBag size={19} strokeWidth={2} aria-hidden="true" />
+                            <span className="store-action-label">Pesanan saya</span>
+                            {hasAnyOrders && (
+                                <span className="absolute top-1.5 right-1.5 xl:static xl:top-auto xl:right-auto h-2 w-2 rounded-full bg-[#FFDD00]" aria-label="Ada riwayat pesanan" />
+                            )}
+                        </Link>
+                        <Link
+                            href={storeUrl(props?.auth?.user ? '/profile' : '/login')}
+                            title={accountLabel}
+                            aria-label={accountLabel}
+                            className="store-action store-account-action"
+                        >
+                            <FiUser size={20} strokeWidth={2} aria-hidden="true" />
+                        </Link>
                     </nav>
                     <div className="store-tools">
-                        {/* Search and cart keep their own space while typing. */}
                         {setSearchQuery && (
                             <div
                                 className={clsx(
@@ -153,7 +196,7 @@ export function StoreHeader({
                                     type="search"
                                     value={searchQuery}
                                     onChange={e => setSearchQuery(e.target.value)}
-                                    onFocus={() => setIsSearchFocused(true)}
+                                    onFocus={() => { setIsSearchFocused(true); setShowMotorHint(false); }}
                                     onBlur={() => setIsSearchFocused(false)}
                                     onKeyDown={e => {
                                         if (e.key === 'Escape') {
@@ -185,64 +228,6 @@ export function StoreHeader({
                                 )}
                             </div>
                         )}
-
-                        <div className="store-actions">
-                            <Link
-                                href={storeUrl('/login')}
-                                title="Masuk ke akun"
-                                className="store-action store-login-action"
-                            >
-                                <FiLogIn size={17} strokeWidth={2} aria-hidden="true" />
-                                <span>Masuk</span>
-                            </Link>
-                            <Link
-                                href={storeUrl(orderHref)}
-                                title="Pesanan saya"
-                                className="store-action"
-                                aria-label="Pesanan saya"
-                            >
-                                <FiShoppingBag size={19} strokeWidth={2} aria-hidden="true" />
-                                <span className="hidden xl:inline">Pesanan saya</span>
-                                {hasAnyOrders && (
-                                    <span className="absolute top-1.5 right-1.5 xl:static xl:top-auto xl:right-auto h-2 w-2 rounded-full bg-[#FFDD00]" aria-label="Ada riwayat pesanan" />
-                                )}
-                            </Link>
-                            {onCart ? (
-                                <button
-                                    type="button"
-                                    onClick={onCart}
-                                    className="store-action"
-                                    aria-label={'Buka keranjang, ' + totalQty + ' item'}
-                                >
-                                    <div className="relative flex items-center justify-center">
-                                        <FiShoppingCart size={19} strokeWidth={2} aria-hidden="true" />
-                                        {totalQty > 0 && (
-                                            <span className="absolute -top-2 -right-2 flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-[#FFDD00] px-1 text-[10px] font-extrabold text-[#19231f] tabular-nums shadow-xs">
-                                                {totalQty}
-                                            </span>
-                                        )}
-                                    </div>
-                                    <span className="hidden xl:inline">Keranjang</span>
-                                </button>
-                            ) : (
-                                <Link
-                                    href={storeUrl('/')}
-                                    title="Keranjang belanja"
-                                    className="store-action"
-                                    aria-label={'Buka keranjang, ' + totalQty + ' item'}
-                                >
-                                    <div className="relative flex items-center justify-center">
-                                        <FiShoppingCart size={19} strokeWidth={2} aria-hidden="true" />
-                                        {totalQty > 0 && (
-                                            <span className="absolute -top-2 -right-2 flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-[#FFDD00] px-1 text-[10px] font-extrabold text-[#19231f] tabular-nums shadow-xs">
-                                                {totalQty}
-                                            </span>
-                                        )}
-                                    </div>
-                                    <span className="hidden xl:inline">Keranjang</span>
-                                </Link>
-                            )}
-                        </div>
                     </div>
                 </div>
             </header>
