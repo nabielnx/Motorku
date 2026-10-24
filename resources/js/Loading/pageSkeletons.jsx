@@ -8,6 +8,7 @@ import SettingSkeleton from '@/Components/Skeletons/SettingSkeleton';
 import MotorcyclePageSkeleton from '@/Components/Skeletons/MotorcyclePageSkeleton';
 import ProfileSkeleton from '@/Components/Skeletons/ProfileSkeleton';
 import PosPageSkeleton from '@/Components/Skeletons/PosPageSkeleton';
+import SupplierSkeleton from '@/Components/Skeletons/SupplierSkeleton';
 import Skeleton, { SkeletonWrapper } from '@/Components/Skeleton';
 
 function DataTypeSkeleton() {
@@ -19,6 +20,7 @@ function ReferenceSkeleton() {
 }
 
 export const loadingPages = [
+    { key: 'suppliers', pages: ['Supplier/Index'], path: '/suppliers', title: ['Supplier', 'Suppliers'], noPadding: true, component: SupplierSkeleton },
     { key: 'data-types', pages: ['DataType/Index'], path: '/data-types', title: ['Kelola Jenis', 'Manage Types'], component: DataTypeSkeleton },
     { key: 'references', pages: ['Reference/Index'], path: '/references/', prefix: true, title: ['Data Referensi', 'Reference Data'], component: ReferenceSkeleton },
     { key: 'orders', pages: ['Order/Index'], path: '/orders', title: ['Daftar Pesanan', 'Orders List'], noPadding: true, component: OrderTableSkeleton },

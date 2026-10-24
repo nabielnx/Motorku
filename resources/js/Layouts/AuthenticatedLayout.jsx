@@ -27,6 +27,7 @@ import {
     FiSun,
     FiMoon,
     FiBookOpen,
+    FiTruck,
     FiChevronDown
 } from 'react-icons/fi';
 
@@ -165,6 +166,13 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                     active: isItemActive('/dashboard'),
                     roles: ['owner']
                 },
+                {
+                    name: getTranslation(locale, 'laporan_keuangan', 'Laporan Keuangan'),
+                    icon: FiBarChart2,
+                    href: safeRoute('reports.index', '/reports'),
+                    active: isItemActive('/reports'),
+                    roles: ['owner']
+                },
                 { 
                     name: getTranslation(locale, 'pos_kasir', 'POS Kasir'), 
                     icon: FiShoppingCart, 
@@ -206,6 +214,13 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                     ],
                 },
                 {
+                    name: 'Supplier',
+                    icon: FiTruck,
+                    href: safeRoute('suppliers.index', '/suppliers'),
+                    active: isItemActive('/suppliers'),
+                    roles: ['owner'],
+                },
+                {
                     name: locale === 'en' ? 'Reference Data' : 'Data Referensi',
                     icon: FiBookOpen,
                     href: '/data-types?kind=reference',
@@ -217,18 +232,6 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                         href: module.path,
                         active: isItemActive(module.path),
                     })),
-                },
-            ]
-        },
-        {
-            label: getTranslation(locale, 'section_laporan', 'LAPORAN'),
-            items: [
-                { 
-                    name: getTranslation(locale, 'laporan_keuangan', 'Laporan Keuangan'), 
-                    icon: FiBarChart2, 
-                    href: safeRoute('reports.index', '/reports'), 
-                    active: isItemActive('/reports'),
-                    roles: ['owner']
                 },
             ]
         },
