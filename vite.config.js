@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
 import react from '@vitejs/plugin-react';
+import loadingSkeletonsPlugin from './scripts/loading-skeletons-plugin.mjs';
 
 export default defineConfig({
     server: {
@@ -21,6 +22,7 @@ export default defineConfig({
         },
     },
     plugins: [
+        loadingSkeletonsPlugin(),
         laravel({
             input: 'resources/js/app.jsx',
             refresh: true,

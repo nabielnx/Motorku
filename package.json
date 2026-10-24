@@ -3,9 +3,10 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "build": "node -e \"try{require('fs').unlinkSync('public/hot')}catch(e){}\" && vite build && node -e \"try{require('fs').unlinkSync('public/hot')}catch(e){}\"",
+        "build": "node -e \"try{require('fs').unlinkSync('public/hot')}catch(e){}\" && vite build && node -e \"try{require('fs').unlinkSync('public/hot')}catch(e){}\" && node scripts/build-loading-skeletons.mjs",
         "dev": "vite",
-        "test": "node --test tests/js/*.test.js"
+        "test": "node --test tests/js/*.test.js",
+        "skeletons": "node scripts/build-loading-skeletons.mjs"
     },
     "devDependencies": {
         "@tailwindcss/forms": "^0.5.3",
