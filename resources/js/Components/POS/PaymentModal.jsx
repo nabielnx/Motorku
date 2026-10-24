@@ -14,6 +14,11 @@ export default function PaymentModal({
     paymentMethod,
     qrisImageLoading,
     qrisImageUrl,
+    qrisAvailable,
+    qrisDynamic,
+    qrisMerchant,
+    qrisError,
+    retryQris,
     settings,
     cashShortfall,
     cashReceived,
@@ -102,7 +107,7 @@ export default function PaymentModal({
                                     <button
                                         type="button"
                                         onClick={() => { resetQrisFlow(); setPaymentMethod('qris_manual'); }}
-                                        disabled={qrisImageLoading || !qrisImageUrl || settings['payment.qris_enabled'] === 'false'}
+                                        disabled={!qrisAvailable || settings['payment.qris_enabled'] === 'false'}
                                         className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border text-xs font-bold transition cursor-pointer ${
                                             paymentMethod === 'qris_manual'
                                                 ? 'border-primary bg-primary text-white shadow-2xs'
@@ -110,12 +115,13 @@ export default function PaymentModal({
                                         }`}
                                     >
                                         <FiSmartphone className="w-4 h-4" />
-                                        <span>QRIS Manual</span>
+                                        <span>QRIS</span>
                                     </button>
                                 </div>
-                                {!qrisImageLoading && (!qrisImageUrl || settings['payment.qris_enabled'] === 'false') && (
+                                {!qrisImageLoading && (!qrisAvailable || settings['payment.qris_enabled'] === 'false') && (
                                     <p className="text-[11px] text-slate-500 dark:text-slate-400">QRIS belum tersedia. Owner perlu mengunggah gambar QRIS di Pengaturan.</p>
                                 )}
+                                {qrisError && paymentMethod !== 'qris_manual' && <div role="alert" className="flex items-center justify-between gap-2 text-xs text-red-600 dark:text-red-400"><span>{qrisError}</span><button type="button" onClick={retryQris} disabled={qrisImageLoading} className="shrink-0 rounded-lg border border-slate-300 px-2 py-1.5 text-slate-800 dark:border-slate-600 dark:text-white">Coba lagi</button></div>}
                             </div>
 
                             {/* Cash Section */}
@@ -205,10 +211,10 @@ export default function PaymentModal({
 
                             {paymentMethod === 'qris_manual' && (
                                 <div className="space-y-3">
-                                    <div className="flex justify-center rounded-xl bg-white p-3 border border-slate-200">
-                                        <img src={qrisImageUrl} alt="QRIS toko untuk pembayaran" className="h-48 w-48 object-contain" />
+                                    <div className="flex min-h-60 items-center justify-center rounded-xl bg-white p-3 border border-slate-200">
+                                        {qrisImageLoading ? <p role="status" className="text-xs text-slate-600">Menyiapkan QRIS...</p> : qrisImageUrl ? <img src={qrisImageUrl} alt={qrisDynamic ? `QRIS ${qrisMerchant?.name || 'toko'} untuk ${formatRp(total)}` : 'QRIS toko untuk pembayaran'} className="aspect-square w-60 max-w-full object-contain" /> : <p role="status" className="text-xs text-slate-600">QRIS belum siap ditampilkan.</p>}
                                     </div>
-                                    <p className="text-xs text-slate-600 dark:text-slate-300">Minta pelanggan scan QRIS dan isi nominal <strong>{formatRp(total)}</strong>.</p>
+                                    {qrisError ? <div role="alert" className="space-y-2 text-xs text-red-600 dark:text-red-400"><p>{qrisError}</p><button type="button" onClick={retryQris} disabled={qrisImageLoading} className="rounded-lg border border-slate-300 bg-white px-3 py-2 font-semibold text-slate-800 dark:border-slate-600 dark:bg-slate-800 dark:text-white">Coba lagi</button></div> : <p className="text-xs text-slate-600 dark:text-slate-300">{qrisDynamic ? <>Scan QRIS. Nominal <strong>{formatRp(total)}</strong> sudah terisi otomatis.{qrisMerchant && <> Pastikan penerima <strong>{qrisMerchant.name}</strong>.</>}</> : <>Minta pelanggan scan QRIS dan isi nominal <strong>{formatRp(total)}</strong>. Owner dapat mengaktifkan nominal otomatis di Pengaturan.</>}</p>}
                                     <input
                                         type="text"
                                         maxLength={100}
@@ -222,6 +228,7 @@ export default function PaymentModal({
                                             <input
                                                 type="checkbox"
                                                 checked={qrisVerified}
+                                                disabled={qrisImageLoading || Boolean(qrisError) || !qrisImageUrl}
                                                 onChange={(event) => setQrisVerified(event.target.checked)}
                                                 className="peer sr-only"
                                             />
@@ -251,7 +258,7 @@ export default function PaymentModal({
                                 disabled={
                                     isSubmittingOrder ||
                                     (paymentMethod === 'cash' && (settings['payment.cash_enabled'] === 'false' || !cashReceived || cashShortfall > 0)) ||
-                                    (paymentMethod === 'qris_manual' && (settings['payment.qris_enabled'] === 'false' || !qrisImageUrl || !qrisVerified))
+                                    (paymentMethod === 'qris_manual' && (settings['payment.qris_enabled'] === 'false' || qrisImageLoading || Boolean(qrisError) || !qrisImageUrl || !qrisVerified))
                                 }
                                 className="w-full py-3.5 px-4 bg-primary hover:bg-primaryDark disabled:bg-slate-200 dark:disabled:bg-slate-800 disabled:text-slate-400 dark:disabled:text-slate-600 text-white font-bold rounded-xl text-xs sm:text-sm shadow-sm transition flex items-center justify-center gap-2 group cursor-pointer disabled:cursor-not-allowed"
                             >

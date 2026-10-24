@@ -24,7 +24,9 @@ class OrderService
         protected InventoryService $inventoryService,
         protected PaymentService $paymentService,
         protected DocumentNumberService $documentNumbers,
-        protected OrderCancellationService $cancellation
+        protected OrderCancellationService $cancellation,
+        protected OrderPricingService $pricing,
+        protected QrisService $qris
     ) {}
 
     public function createPosSale(array $data): array
@@ -32,6 +34,9 @@ class OrderService
         $order = $this->checkoutOnce($data, 'pos', function () use ($data) {
             unset($data['request_id']);
             $order = $this->createOrder($data);
+            if (($data['payment_method'] ?? 'cash') === 'qris_manual') {
+                $this->qris->assertSaleQuote($data['qris_quote'] ?? null, $data['items'], (float) $order->total, (string) auth()->id());
+            }
             $order->update([
                 'order_status' => OrderStatus::Completed,
                 'expires_at' => null,
@@ -255,12 +260,8 @@ class OrderService
                 ];
             }
 
-            $taxEnabled = filter_var($this->setting('tax', 'enabled', 'true'), FILTER_VALIDATE_BOOLEAN);
-            $taxRate = (float) $this->setting('tax', 'percentage', 0) / 100;
-
-            $taxAmount = $taxEnabled ? round($subtotal * $taxRate) : 0;
             $discountAmount = (float) ($data['discount_amount'] ?? 0);
-            $total = max(0, $subtotal - $discountAmount + $taxAmount);
+            ['tax_amount' => $taxAmount, 'total' => $total] = $this->pricing->totals($subtotal, $discountAmount);
             $orderNumber = $this->nextOrderNumber();
 
             $order = Order::create([

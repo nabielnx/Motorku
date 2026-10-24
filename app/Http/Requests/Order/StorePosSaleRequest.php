@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests\Order;
 
 class StorePosSaleRequest extends StoreOrderRequest
@@ -20,6 +22,7 @@ class StorePosSaleRequest extends StoreOrderRequest
             'payment_method' => ['sometimes', 'in:cash,qris_manual'],
             'amount_received' => ['required_unless:payment_method,qris_manual', 'nullable', 'numeric', 'gt:0'],
             'reference_number' => ['nullable', 'string', 'max:100'],
+            'qris_quote' => ['nullable', 'string', 'regex:/\A[a-f0-9]{64}\z/'],
         ];
     }
 }
