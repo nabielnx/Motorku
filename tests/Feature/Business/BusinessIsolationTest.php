@@ -57,6 +57,7 @@ class BusinessIsolationTest extends TestCase
             'name' => 'Owner B', 'email' => 'business-b@example.test', 'business_name' => 'Usaha B', 'business_slug' => 'usaha-b', 'password' => 'Strong@1234',
         ], ['id' => 'owner-b-google', 'email' => 'business-b@example.test', 'trusted_email' => true]);
         $this->inB(function (): void {
+            DataType::create(['kind' => 'product', 'key' => 'automotive', 'name' => 'Motor', 'fields' => []]);
             $this->categoryB = Category::factory()->create(['name' => 'Kategori B']);
             $this->productB = Product::factory()->create(['category_id' => $this->categoryB->id, 'name' => 'Barang Toko B', 'sku' => 'SHARED-001', 'stock' => 20, 'price' => 2000]);
             Supplier::create(['name' => 'Supplier rahasia B']);
