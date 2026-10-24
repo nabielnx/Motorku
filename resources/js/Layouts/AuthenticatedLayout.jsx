@@ -1,3 +1,4 @@
+import PageSkeleton, { resolvePageSkeleton } from '@/Loading/pageSkeletons';
 import { useEffect, useState } from 'react';
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import SidebarMenuGroup from '@/Components/Admin/SidebarMenuGroup';
@@ -6,16 +7,6 @@ import NotificationCenter from '@/Components/NotificationCenter';
 import { Link, usePage, router } from '@inertiajs/react';
 import { toast, Toaster } from 'sonner';
 import { getTranslation } from '@/i18n/translations';
-import DashboardSkeleton from '@/Components/Skeletons/DashboardSkeleton';
-import OrderTableSkeleton from '@/Components/Skeletons/OrderTableSkeleton';
-import OrderShowSkeleton from '@/Components/Skeletons/OrderShowSkeleton';
-import ProductTableSkeleton from '@/Components/Skeletons/ProductTableSkeleton';
-import ReportSkeleton from '@/Components/Skeletons/ReportSkeleton';
-import UserTableSkeleton from '@/Components/Skeletons/UserTableSkeleton';
-import SettingSkeleton from '@/Components/Skeletons/SettingSkeleton';
-import MotorcyclePageSkeleton from '@/Components/Skeletons/MotorcyclePageSkeleton';
-import PosCardSkeleton from '@/Components/Skeletons/PosCardSkeleton';
-import Skeleton from '@/Components/Skeleton';
 import { getNavigationDestination } from '@/Utils/navigation';
 import { catalogGroupLabels } from '@/Utils/catalogGroupLabels';
 import { referenceModules } from '@/Navigation/referenceModules';
@@ -42,147 +33,12 @@ import {
 function getDestinationInfo(url, locale = 'id', catalogGroups = [], references = []) {
     if (!url) return null;
     const destination = new URL(url, 'http://localhost');
-    const path = destination.pathname;
-    if (path === '/data-types') {
-        return { title: 'Kelola Jenis', component: <div className="p-4 space-y-3"><Skeleton className="h-8 w-48" /><Skeleton className="h-48 w-full rounded-xl" /></div>, noPadding: false };
-    }
-    if (path.startsWith('/references/')) {
-        return { title: references.find(module => module.path === path)?.name || 'Data Referensi', component: <MotorcyclePageSkeleton />, noPadding: false };
-    }
-    if (path === '/orders' || path === '/orders/') {
-        return {
-            title: locale === 'en' ? 'Orders List' : 'Daftar Pesanan',
-            component: <OrderTableSkeleton />,
-            noPadding: true,
-        };
-    }
-    if (path.startsWith('/orders/')) {
-        return {
-            title: locale === 'en' ? 'Order Detail' : 'Detail Pesanan',
-            component: <OrderShowSkeleton />,
-            noPadding: false,
-        };
-    }
-    if (path.startsWith('/users')) {
-        return {
-            title: locale === 'en' ? 'Staff Management' : 'Kelola Staff & Pegawai',
-            component: <UserTableSkeleton fullPage={true} />,
-            noPadding: false,
-        };
-    }
-    if (path.startsWith('/products') || path.startsWith('/categories')) {
-        const groupName = catalogGroups.find(([group]) => group === destination.searchParams.get('group'))?.[1];
-        return {
-            title: groupName || (locale === 'en' ? 'Products' : 'Produk'),
-            component: <ProductTableSkeleton fullPage={true} />,
-            noPadding: true,
-        };
-    }
-    if (path.startsWith('/reports')) {
-        return {
-            title: locale === 'en' ? 'Financial Reports' : 'Laporan Keuangan',
-            component: <ReportSkeleton />,
-            noPadding: false,
-        };
-    }
-    if (path.startsWith('/settings')) {
-        return {
-            title: locale === 'en' ? 'Settings' : 'Pengaturan',
-            component: <SettingSkeleton />,
-            noPadding: false,
-        };
-    }
-    if (path.startsWith('/motorcycles')) {
-        return {
-            title: references.find(module => module.path === '/motorcycles')?.name || 'Motor',
-            component: <MotorcyclePageSkeleton />,
-            noPadding: true,
-        };
-    }
-    if (path.startsWith('/profile')) {
-        return {
-            title: locale === 'en' ? 'My Profile' : 'Pengaturan Profil',
-            component: (
-                <div className="py-2 sm:py-6 max-w-4xl mx-auto space-y-4 sm:space-y-6">
-                    <div className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl p-5 space-y-2">
-                        <Skeleton className="h-6 w-48" />
-                        <Skeleton className="h-3.5 w-72" />
-                    </div>
-                    <div className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl p-4 sm:p-6 space-y-4">
-                        <Skeleton className="h-5 w-36" />
-                        <div className="flex items-center gap-4">
-                            <Skeleton variant="circle" className="w-16 h-16 shrink-0" />
-                            <div className="space-y-2 flex-1"><Skeleton className="h-8 w-32 rounded-lg" /><Skeleton className="h-3 w-48" /></div>
-                        </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div className="space-y-1.5"><Skeleton className="h-3 w-20" /><Skeleton className="h-10 w-full rounded-lg" /></div>
-                            <div className="space-y-1.5"><Skeleton className="h-3 w-20" /><Skeleton className="h-10 w-full rounded-lg" /></div>
-                        </div>
-                    </div>
-                    <div className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl p-4 sm:p-6 space-y-4">
-                        <Skeleton className="h-5 w-36" />
-                        <div className="space-y-3 max-w-md">
-                            <Skeleton className="h-10 w-full rounded-lg" />
-                            <Skeleton className="h-10 w-full rounded-lg" />
-                            <Skeleton className="h-10 w-full rounded-lg" />
-                        </div>
-                    </div>
-                </div>
-            ),
-            noPadding: false,
-        };
-    }
-    if (path === '/dashboard' || path === '/') {
-        return {
-            title: locale === 'en' ? 'Dashboard' : 'Dashboard',
-            component: <DashboardSkeleton />,
-            noPadding: false,
-        };
-    }
-    if (path.startsWith('/pos')) {
-        let posMode = 'list';
-        try {
-            const saved = localStorage.getItem('pos_view_mode');
-            if (saved === 'grid' || saved === 'book') posMode = saved;
-        } catch {}
-        return {
-            title: 'POS Kasir',
-            component: (
-                <div className="flex min-h-0 flex-1 flex-col md:flex-row w-full overflow-hidden bg-slate-100 dark:bg-slate-950">
-                    <div className="flex flex-1 flex-col min-w-0 min-h-0 overflow-hidden">
-                        <div className="bg-white dark:bg-slate-900 p-3 sm:p-4 border-b border-slate-300 dark:border-slate-800 space-y-3">
-                            <Skeleton className="h-10 w-full rounded-xl" />
-                            <div className="flex items-center justify-between gap-2 border-t border-slate-200 pt-3 dark:border-slate-800">
-                                <div className="flex gap-2 overflow-hidden">
-                                    {Array.from({ length: 5 }).map((_, i) => (
-                                        <Skeleton key={i} className="h-7 w-20 rounded-lg shrink-0" />
-                                    ))}
-                                </div>
-                                <Skeleton className="h-7 w-28 shrink-0 rounded-lg" />
-                            </div>
-                        </div>
-                        {posMode === 'book' ? (
-                            <ProductTableSkeleton viewMode="book" rows={24} />
-                        ) : (
-                            <div className="flex-1 min-h-0 overflow-y-auto p-3"><PosCardSkeleton count={8} mode={posMode} /></div>
-                        )}
-                        <Skeleton className="mx-3 mb-3 h-12 rounded-xl md:hidden" />
-                    </div>
-                    <div className="hidden md:flex w-96 lg:w-[410px] bg-white dark:bg-slate-900 border-l border-slate-300 dark:border-slate-800 flex-col min-h-0 shrink-0">
-                        <div className="p-3.5 border-b border-slate-300 dark:border-slate-800 space-y-2"><Skeleton className="h-4 w-32" /><Skeleton className="h-9 w-full rounded-lg" /></div>
-                        <div className="flex-1 p-4 space-y-3">
-                            {Array.from({ length: 3 }).map((_, i) => (
-                                <Skeleton key={i} className="h-16 w-full rounded-xl" />
-                            ))}
-                        </div>
-                        <div className="border-t border-slate-300 dark:border-slate-800 p-4 space-y-3"><Skeleton className="h-4 w-full" /><Skeleton className="h-6 w-2/3" /><Skeleton className="h-12 w-full rounded-xl" /></div>
-                    </div>
-                </div>
-            ),
-            noPadding: true,
-        };
-    }
-    return null;
+    const definition = resolvePageSkeleton(destination.pathname);
+    if (!definition) return null;
+    let title = definition.title[locale === 'en' ? 1 : 0];
+    if (definition.key === 'products') title = catalogGroups.find(([group]) => group === destination.searchParams.get('group'))?.[1] || title;
+    if (definition.key === 'motorcycles' || definition.key === 'references') title = references.find(module => module.path === destination.pathname)?.name || title;
+    return { title, component: <PageSkeleton name={definition.key} />, noPadding: Boolean(definition.noPadding) };
 }
 
 export default function AuthenticatedLayout({ header, pageTitle, noPadding = false, children }) {
