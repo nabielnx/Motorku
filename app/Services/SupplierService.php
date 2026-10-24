@@ -12,7 +12,7 @@ class SupplierService
 {
     public function listing(array $filters): LengthAwarePaginator
     {
-        $query = Supplier::query()->select(['id', 'name', 'contact_person', 'phone', 'email', 'address', 'notes'])->orderBy('name')->orderBy('id');
+        $query = Supplier::query()->select(['id', 'name', 'contact_person', 'phone', 'email', 'address', 'notes', 'links'])->orderBy('name')->orderBy('id');
         $search = trim($filters['search'] ?? '');
         if ($search !== '') {
             $pattern = '%'.addcslashes($search, '\\%_').'%';

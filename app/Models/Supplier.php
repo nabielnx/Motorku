@@ -11,5 +11,7 @@ class Supplier extends Model
 {
     use HasUuids;
 
-    protected $fillable = ['name', 'contact_person', 'phone', 'email', 'address', 'notes'];
+    protected $fillable = ['name', 'contact_person', 'phone', 'email', 'address', 'notes', 'links'];
+
+    protected $casts = ['links' => 'array'];
 }

@@ -24,7 +24,7 @@ Database: **MySQL `sparepart`**. Struktur dibaca langsung dari database lokal pa
 
 ### Penjualan, stok dan kas
 
-Tambahan modul master: `suppliers` menyimpan UUID, nama, nama kontak, telepon, email, alamat, catatan, serta timestamps. Tabel ini berdiri sendiri dan belum memiliki FK ke produk atau transaksi. Detail penerapannya ada di `docs/SUPPLIERS.md`.
+Tambahan modul master: `suppliers` menyimpan UUID, nama, nama kontak, telepon, email, alamat, catatan, JSON `links` (nama platform dan URL), serta timestamps. Tabel ini berdiri sendiri dan belum memiliki FK ke produk atau transaksi. Detail penerapannya ada di `docs/SUPPLIERS.md`.
 
 | Tabel | Kegunaan |
 |---|---|

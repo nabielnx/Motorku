@@ -137,4 +137,57 @@ class SupplierTest extends TestCase
         $this->deleteJson('/suppliers/'.fake()->uuid())->assertNotFound();
         $this->putJson('/suppliers/not-a-uuid', $this->input())->assertNotFound();
     }
+
+    public function test_owner_can_store_edit_and_clear_multiple_platform_links(): void
+    {
+        $links = [
+            ['label' => 'Shopee', 'url' => 'https://shopee.co.id/toko-uji'],
+            ['label' => 'Tokopedia', 'url' => 'https://www.tokopedia.com/toko-uji?source=supplier'],
+            ['label' => 'Website', 'url' => 'http://supplier.example.test/katalog'],
+        ];
+        $this->from('/suppliers')->post('/suppliers', $this->input(['links' => $links]))->assertRedirect('/suppliers');
+        $supplier = Supplier::sole();
+        $this->assertEquals($links, $supplier->links);
+        $this->get('/suppliers')->assertInertia(fn (Assert $page) => $page->has('suppliers.data.0.links', 3)
+            ->where('suppliers.data.0.links.0.label', 'Shopee')->where('suppliers.data.0.links.0.url', $links[0]['url'])
+            ->where('suppliers.data.0.links.1.label', 'Tokopedia')->where('suppliers.data.0.links.1.url', $links[1]['url']));
+        $this->put('/suppliers/'.$supplier->id, $this->input(['name' => 'Supplier Diperbarui']))->assertRedirect();
+        $this->assertEquals($links, $supplier->fresh()->links); // Older forms that omit links must preserve them.
+        $links = [['label' => 'Tokopedia Baru', 'url' => 'https://www.tokopedia.com/toko-baru']];
+        $this->put('/suppliers/'.$supplier->id, $this->input(['links' => $links]))->assertRedirect();
+        $this->assertEquals($links, $supplier->fresh()->links);
+        $this->put('/suppliers/'.$supplier->id, $this->input(['links' => []]))->assertRedirect();
+        $this->assertSame([], $supplier->fresh()->links);
+        $this->assertSame('PT Suku Cadang', $supplier->fresh()->name);
+    }
+
+    public function test_links_are_optional_for_existing_and_new_suppliers(): void
+    {
+        $supplier = Supplier::create($this->input());
+        $this->assertNull($supplier->links);
+        $this->get('/suppliers')->assertInertia(fn (Assert $page) => $page->where('suppliers.data.0.links', null));
+        $this->post('/suppliers', $this->input(['name' => 'Supplier Tanpa Link', 'links' => []]))->assertRedirect();
+        $this->assertSame([], Supplier::where('name', 'Supplier Tanpa Link')->sole()->links);
+    }
+
+    public function test_store_links_reject_unsafe_urls_invalid_shapes_and_excessive_entries(): void
+    {
+        foreach (['javascript:alert(1)', 'data:text/html,<script>alert(1)</script>', 'file:///etc/passwd', 'ftp://example.test/shop', '//shopee.co.id/shop', 'shopee.co.id/shop', 'https://'.str_repeat('a', 2050).'.com'] as $url) {
+            $this->postJson('/suppliers', $this->input(['links' => [['label' => 'Toko', 'url' => $url]]]))
+                ->assertUnprocessable()->assertJsonValidationErrors('links.0.url');
+        }
+        $this->postJson('/suppliers', $this->input(['links' => [['label' => ' ', 'url' => 'https://example.test']]]))
+            ->assertUnprocessable()->assertJsonValidationErrors('links.0.label');
+        $this->postJson('/suppliers', $this->input(['links' => array_fill(0, 11, ['label' => 'Toko', 'url' => 'https://example.test'])]))
+            ->assertUnprocessable()->assertJsonValidationErrors('links');
+        $this->postJson('/suppliers', $this->input(['links' => [['label' => 'Toko', 'url' => 'https://example.test', 'extra' => 'not allowed']]]))
+            ->assertUnprocessable()->assertJsonValidationErrors('links.0');
+        $this->postJson('/suppliers', $this->input(['links' => 'https://example.test']))->assertUnprocessable();
+        $this->postJson('/suppliers', $this->input(['links' => ['shop' => ['label' => 'Toko', 'url' => 'https://example.test']]]))
+            ->assertUnprocessable()->assertJsonValidationErrors('links');
+        $this->assertDatabaseCount('suppliers', 0);
+        $supplier = Supplier::create($this->input(['links' => [['label' => 'Toko', 'url' => 'https://example.test']]]));
+        $this->putJson('/suppliers/'.$supplier->id, $this->input(['links' => [['label' => 'Toko', 'url' => 'javascript:alert(1)']]]))->assertUnprocessable();
+        $this->assertSame('https://example.test', $supplier->fresh()->links[0]['url']);
+    }
 }

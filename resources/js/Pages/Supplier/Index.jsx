@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Head, router, useForm } from '@inertiajs/react';
-import { FiEdit2, FiPlus, FiSearch, FiTrash2, FiTruck, FiX } from 'react-icons/fi';
+import { FiEdit2, FiExternalLink, FiPlus, FiSearch, FiTrash2, FiTruck, FiX } from 'react-icons/fi';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import Button from '@/Components/Admin/Button';
 import Dialog, { DialogTitle } from '@/Components/Admin/Dialog';
 import Pagination from '@/Components/Pagination';
-import { supplierFormValues, supplierSchema } from '@/Utils/suppliers';
+import { safeSupplierLinks, supplierFormValues, supplierSchema } from '@/Utils/suppliers';
 
 const fields = [
     { key: 'name', label: 'Nama supplier', max: 150, required: true, autoComplete: 'organization' },
@@ -18,14 +18,15 @@ const fields = [
 
 function SupplierForm({ supplier, onClose }) {
     const form = useForm(supplierFormValues(supplier));
+    const updateLink = (index, key, value) => form.setData('links', form.data.links.map((link, position) => position === index ? { ...link, [key]: value } : link));
     const submit = event => {
         event.preventDefault();
         if (form.processing) return;
         form.clearErrors();
         const parsed = supplierSchema.safeParse(form.data);
         if (!parsed.success) {
-            form.setError(Object.fromEntries(parsed.error.issues.map(issue => [issue.path[0], issue.message])));
-            document.getElementById(`supplier-${parsed.error.issues[0].path[0]}`)?.focus();
+            form.setError(Object.fromEntries(parsed.error.issues.map(issue => [issue.path.join('.'), issue.message])));
+            document.getElementById(`supplier-${parsed.error.issues[0].path.join('-')}`)?.focus();
             return;
         }
         form.transform(() => parsed.data);
@@ -47,6 +48,27 @@ function SupplierForm({ supplier, onClose }) {
                         : <input id={`supplier-${field.key}`} className="admin-control w-full" type={field.type ?? 'text'} maxLength={field.max} required={field.required} autoFocus={field.key === 'name'} autoComplete={field.autoComplete} value={form.data[field.key]} onChange={event => form.setData(field.key, event.target.value)} aria-invalid={Boolean(form.errors[field.key])} aria-describedby={form.errors[field.key] ? `supplier-error-${field.key}` : undefined} />}
                     {form.errors[field.key] && <p id={`supplier-error-${field.key}`} role="alert" className="mt-1 text-xs text-red-600 dark:text-red-400">{form.errors[field.key]}</p>}
                 </div>)}
+                <div className="min-w-0 space-y-3 border-t border-slate-200 pt-3 dark:border-slate-700 sm:col-span-2">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div><h3 className="text-xs font-semibold">Link toko / website</h3><p className="mt-1 text-[11px] text-slate-500">Opsional · maksimal 10 link per supplier.</p></div>
+                        <Button variant="secondary" disabled={form.data.links.length >= 10} onClick={() => { form.clearErrors('links'); form.setData('links', [...form.data.links, { label: '', url: '' }]); }}><FiPlus aria-hidden="true" />Tambah Link</Button>
+                    </div>
+                    {form.errors.links && <p role="alert" className="text-xs text-red-600 dark:text-red-400">{form.errors.links}</p>}
+                    {form.data.links.map((link, index) => <div key={index} className="flex min-w-0 items-start gap-2 rounded-lg border border-slate-200 p-3 dark:border-slate-700">
+                        <div className="grid min-w-0 flex-1 gap-2 sm:grid-cols-2">
+                            {['label', 'url'].map(key => {
+                                const error = form.errors[`links.${index}.${key}`];
+                                const id = `supplier-links-${index}-${key}`;
+                                return <div key={key} className="min-w-0">
+                                    <label htmlFor={id} className="mb-1 block text-xs font-semibold">{key === 'label' ? 'Nama platform' : 'Link toko'} {index + 1} *</label>
+                                    <input id={id} type={key === 'url' ? 'url' : 'text'} required maxLength={key === 'url' ? 2048 : 60} className="admin-control w-full" placeholder={key === 'label' ? 'Shopee, Tokopedia, Website…' : 'https://…'} value={link[key]} onChange={event => updateLink(index, key, event.target.value)} aria-invalid={Boolean(error)} aria-describedby={error ? `${id}-error` : undefined} />
+                                    {error && <p id={`${id}-error`} role="alert" className="mt-1 text-xs text-red-600 dark:text-red-400">{error}</p>}
+                                </div>;
+                            })}
+                        </div>
+                        <button type="button" className="admin-icon-button mt-5 p-2 text-red-600 dark:text-red-400" aria-label={`Hapus link ${index + 1}`} onClick={() => { form.clearErrors(); form.setData('links', form.data.links.filter((_, position) => position !== index)); }}><FiTrash2 size={15} /></button>
+                    </div>)}
+                </div>
             </fieldset>
             <div className="flex justify-end gap-2 border-t border-slate-200 px-4 py-3 dark:border-slate-700">
                 <Button variant="secondary" disabled={form.processing} onClick={onClose}>Batal</Button>
@@ -68,11 +90,13 @@ function SupplierDetails({ supplier }) {
 }
 
 function SupplierContact({ supplier }) {
+    const links = safeSupplierLinks(supplier.links);
     return <div className="space-y-1 break-words text-xs">
         {supplier.contact_person && <p>{supplier.contact_person}</p>}
         {supplier.phone && <a className="block hover:underline" href={`tel:${supplier.phone.replace(/[^0-9+]/g, '')}`}>{supplier.phone}</a>}
         {supplier.email && <a className="block break-all hover:underline" href={`mailto:${supplier.email}`}>{supplier.email}</a>}
-        {!supplier.contact_person && !supplier.phone && !supplier.email && <span className="text-slate-500">Belum ada kontak.</span>}
+        {!supplier.contact_person && !supplier.phone && !supplier.email && !links.length && <span className="text-slate-500">Belum ada kontak.</span>}
+        {links.length > 0 && <div className="flex flex-wrap gap-x-3 gap-y-2 pt-1">{links.map((link, index) => <a key={index} className="inline-flex min-w-0 max-w-full items-start gap-1 font-semibold hover:underline" href={link.url} target="_blank" rel="noopener noreferrer" title={link.url} aria-label={`Buka ${link.label} — ${supplier.name} (tab baru)`}><span className="min-w-0 break-words">{link.label}</span><FiExternalLink className="mt-0.5 shrink-0" size={12} aria-hidden="true" /></a>)}</div>}
     </div>;
 }
 
