@@ -1,3 +1,4 @@
+import useStorefront from '@/Hooks/useStorefront';
 import '../../../css/customer-storefront.css';
 import { cancelCustomerOrder, customerOrderStatus } from '@/Api/customerOrders';
 import { useState, useEffect, useRef } from 'react';
@@ -13,6 +14,7 @@ const CURRENT_ORDER_KEY = 'motorku_current_order';
 const POLL_INTERVAL = 6000;
 
 export default function WaitingConfirmation() {
+    const { storage, storeUrl } = useStorefront();
     useForceLightTheme();
     const [loaded, setLoaded] = useState(false);
     const [orderInfo, setOrderInfo] = useState(null);
@@ -44,12 +46,12 @@ export default function WaitingConfirmation() {
 
             try {
                 const historyKey = 'motorku_orders_history';
-                const rawHistory = localStorage.getItem(historyKey);
+                const rawHistory = storage.getItem(historyKey);
                 let history = rawHistory ? JSON.parse(rawHistory) : [];
                 if (Array.isArray(history)) {
                     const idx = history.findIndex(o => o.order_id === orderInfo.order_id);
                     if (idx > -1) history[idx] = updatedInfo;
-                    localStorage.setItem(historyKey, JSON.stringify(history));
+                    storage.setItem(historyKey, JSON.stringify(history));
                 }
             } catch {}
         } catch (err) {
@@ -61,12 +63,12 @@ export default function WaitingConfirmation() {
 
     useEffect(() => {
         try {
-            const raw = localStorage.getItem(PAYMENT_KEY);
-            if (!raw) { router.visit('/'); return; }
+            const raw = storage.getItem(PAYMENT_KEY);
+            if (!raw) { router.visit(storeUrl('/')); return; }
             const parsed = JSON.parse(raw);
-            if (!parsed?.order_id || !parsed?.customer_token) { router.visit('/order/status'); return; }
+            if (!parsed?.order_id || !parsed?.customer_token) { router.visit(storeUrl('/order/status')); return; }
             setOrderInfo(parsed);
-        } catch { router.visit('/'); } finally { setLoaded(true); }
+        } catch { router.visit(storeUrl('/')); } finally { setLoaded(true); }
     }, []);
 
     useEffect(() => {
@@ -94,10 +96,10 @@ export default function WaitingConfirmation() {
                     ordered_at: d.ordered_at,
                 };
                 setOrderInfo(info);
-                localStorage.setItem(CURRENT_ORDER_KEY, JSON.stringify(info));
+                storage.setItem(CURRENT_ORDER_KEY, JSON.stringify(info));
                 try {
                     const historyKey = 'motorku_orders_history';
-                    const rawHistory = localStorage.getItem(historyKey);
+                    const rawHistory = storage.getItem(historyKey);
                     let history = rawHistory ? JSON.parse(rawHistory) : [];
                     if (Array.isArray(history)) {
                         const idx = history.findIndex(o => o.order_id === info.order_id);
@@ -106,7 +108,7 @@ export default function WaitingConfirmation() {
                         } else {
                             history.push(info);
                         }
-                        localStorage.setItem(historyKey, JSON.stringify(history));
+                        storage.setItem(historyKey, JSON.stringify(history));
                     }
                 } catch {}
                 setOrderStatus(d.order_status);
@@ -115,10 +117,10 @@ export default function WaitingConfirmation() {
             } catch (err) {
                 if (!controller.signal.aborted && err.response?.status === 404) {
                     try {
-                        localStorage.removeItem(PAYMENT_KEY);
-                        localStorage.removeItem(CURRENT_ORDER_KEY);
+                        storage.removeItem(PAYMENT_KEY);
+                        storage.removeItem(CURRENT_ORDER_KEY);
                     } catch {}
-                    router.visit('/');
+                    router.visit(storeUrl('/'));
                 }
             } finally { busy = false; }
         };
@@ -135,7 +137,7 @@ export default function WaitingConfirmation() {
 
     const formatRp = (val) => `Rp ${Number(val).toLocaleString('id-ID')}`;
 
-    if (loaded && !orderInfo) return <div className="p-6 text-center">Data pesanan tidak tersedia. <Link href="/" className="text-stone-700 underline">Kembali ke katalog</Link></div>;
+    if (loaded && !orderInfo) return <div className="p-6 text-center">Data pesanan tidak tersedia. <Link href={storeUrl('/')} className="text-stone-700 underline">Kembali ke katalog</Link></div>;
 
     if (!orderInfo) {
         return <WaitingSkeleton />;
@@ -304,9 +306,9 @@ export default function WaitingConfirmation() {
 
                 {/* PROCEED BUTTON */}
                 <Link
-                    href="/order/status"
+                    href={storeUrl('/order/status')}
                     onClick={() => {
-                        localStorage.setItem(CURRENT_ORDER_KEY, JSON.stringify(orderInfo));
+                        storage.setItem(CURRENT_ORDER_KEY, JSON.stringify(orderInfo));
                     }}
                     className="w-full py-3.5 bg-[#19231f] hover:bg-[#19231f] text-white font-bold rounded-xl text-xs shadow-md transition-all flex items-center justify-center gap-2 active:scale-98"
                 >
@@ -316,7 +318,7 @@ export default function WaitingConfirmation() {
 
                 {/* BACK TO MENU */}
                 <Link
-                    href="/"
+                    href={storeUrl('/')}
                     className="text-xs text-slate-400 hover:text-slate-600 font-medium"
                 >
                     Kembali ke Menu

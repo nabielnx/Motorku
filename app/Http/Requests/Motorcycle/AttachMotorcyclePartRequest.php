@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests\Motorcycle;
 
 use App\Models\MotorcyclePart;
+use App\Support\BusinessRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -18,7 +21,7 @@ class AttachMotorcyclePartRequest extends FormRequest
         $validCategories = array_keys(MotorcyclePart::categoryLabels());
 
         return [
-            'product_id' => ['required', 'uuid', 'exists:products,id'],
+            'product_id' => ['required', 'uuid', BusinessRule::exists('products', 'id')],
             'part_category' => ['required', 'string', Rule::in($validCategories)],
             'notes' => ['nullable', 'string', 'max:255'],
             'is_recommended' => ['nullable', 'boolean'],

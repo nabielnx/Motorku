@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Category;
 
+use App\Support\BusinessRule;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class StoreCategoryRequest extends FormRequest
 {
@@ -26,16 +26,16 @@ class StoreCategoryRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'catalog_group' => ['sometimes', Rule::exists('data_types', 'key')->where('kind', 'product')],
+            'catalog_group' => ['sometimes', BusinessRule::exists('data_types', 'key')->where('kind', 'product')],
             'name' => [
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('categories', 'name'),
+                BusinessRule::unique('categories', 'name'),
             ],
             'description' => ['nullable', 'string'],
             'sub_categories' => ['nullable', 'array'],
-            'sub_categories.*.name' => ['required', 'string', 'max:255', 'distinct:ignore_case', Rule::unique('categories', 'name'), function ($attribute, $value, $fail) {
+            'sub_categories.*.name' => ['required', 'string', 'max:255', 'distinct:ignore_case', BusinessRule::unique('categories', 'name'), function ($attribute, $value, $fail) {
                 if (is_string($value) && is_string($this->input('name')) && strcasecmp(trim($value), trim($this->input('name'))) === 0) {
                     $fail('Nama subkategori harus berbeda dari kategori induk.');
                 }

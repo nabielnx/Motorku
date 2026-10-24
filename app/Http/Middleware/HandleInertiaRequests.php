@@ -7,6 +7,7 @@ namespace App\Http\Middleware;
 use App\Models\DataType;
 use App\Models\Setting;
 use App\Services\CacheService;
+use App\Services\GoogleLoginService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Middleware;
@@ -23,9 +24,13 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
         $user = $request->user();
+        $business = $request->attributes->get('business');
+        if ($request->attributes->get('public_store') && $user?->business_id !== $business?->id) {
+            $user = null;
+        }
 
         // 1 query untuk semua settings — cached for 60 min, flushed on save
-        $s = Cache::remember(CacheService::SETTINGS_SHARED, CacheService::TTL_SETTINGS, function () {
+        $s = Cache::remember(CacheService::key(CacheService::SETTINGS_SHARED), CacheService::TTL_SETTINGS, function () {
             return Setting::whereIn('group', ['store', 'system', 'printer', 'catalog', 'payment'])
                 ->get()
                 ->mapWithKeys(fn ($row) => ["{$row->group}.{$row->key}" => $row->value])
@@ -36,8 +41,11 @@ class HandleInertiaRequests extends Middleware
 
         return [
             ...parent::share($request),
-            'catalog_groups' => fn () => DataType::productGroups(),
-            'reference_modules' => fn () => $user?->hasRole('owner') ? DataType::referenceModules() : [],
+            'google_login_enabled' => app(GoogleLoginService::class)->enabled(),
+            'business' => $business ? ['id' => $business->id, 'name' => $business->name, 'slug' => $business->slug, 'public_url' => $business->publicUrl()] : null,
+            'shop_slug' => $request->attributes->get('shop_slug'),
+            'catalog_groups' => fn () => DataType::productGroups($user?->business_id ?? $business?->id),
+            'reference_modules' => fn () => $user?->hasRole('owner') ? DataType::referenceModules($user->business_id) : [],
 
             'auth' => [
                 'user' => $user ? [

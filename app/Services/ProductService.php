@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\Product;
+use App\Support\BusinessFiles;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 
 class ProductService
 {
@@ -106,7 +106,7 @@ class ProductService
             if ($oldPath && str_starts_with($oldPath, 'products/') && ! str_contains($oldPath, '..')) {
                 DB::afterCommit(function () use ($oldPath) {
                     if (! Product::where('image_path', $oldPath)->exists()) {
-                        Storage::disk('public')->delete($oldPath);
+                        BusinessFiles::delete($oldPath);
                     }
                 });
             }
@@ -126,7 +126,7 @@ class ProductService
             if ($path && str_starts_with($path, 'products/') && ! str_contains($path, '..')) {
                 DB::afterCommit(function () use ($path) {
                     if (! Product::where('image_path', $path)->exists()) {
-                        Storage::disk('public')->delete($path);
+                        BusinessFiles::delete($path);
                     }
                 });
             }

@@ -1,3 +1,4 @@
+import useStorefront from '@/Hooks/useStorefront';
 import CustomerProductCard from '@/Components/Customer/CustomerProductCard';
 import ProgressiveProducts from '@/Components/Customer/ProgressiveProducts';
 import React, { useState, useEffect, useRef, useDeferredValue } from 'react';
@@ -6,7 +7,7 @@ import { Head, Link, router, usePage } from '@inertiajs/react';
 import useForceLightTheme from '@/Utils/useForceLightTheme';
 import MenuSkeleton from '@/Components/Skeletons/MenuSkeleton';
 import { getProductImage } from '@/Utils/productImage';
-import { FiSearch, FiPlus, FiMinus, FiShoppingCart, FiTrash2, FiArrowRight, FiCheck, FiChevronRight, FiX, FiMapPin, FiStar, FiLogIn } from 'react-icons/fi';
+import { FiSearch, FiPlus, FiMinus, FiShoppingCart, FiTrash2, FiArrowRight, FiCheck, FiChevronRight, FiX, FiMapPin, FiStar } from 'react-icons/fi';
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 import clsx from 'clsx';
 import { StoreHeader, MotorIcon, ProductPhoto } from '@/Components/Customer/Storefront';
@@ -18,15 +19,15 @@ const CART_KEY = 'motorku_cart';
 const ORDER_KEY = 'motorku_pending_order';
 const HISTORY_KEY = 'motorku_orders_history';
 
-function loadCart() {
+function loadCart(storage) {
     try {
-        const raw = localStorage.getItem(CART_KEY);
-        const cartTime = localStorage.getItem(CART_KEY + '_time');
+        const raw = storage.getItem(CART_KEY);
+        const cartTime = storage.getItem(CART_KEY + '_time');
         if (raw && cartTime) {
             const timeDiff = Date.now() - parseInt(cartTime, 10);
             if (timeDiff > 4 * 60 * 60 * 1000) {
-                localStorage.removeItem(CART_KEY);
-                localStorage.removeItem(CART_KEY + '_time');
+                storage.removeItem(CART_KEY);
+                storage.removeItem(CART_KEY + '_time');
                 return [];
             }
         }
@@ -49,10 +50,10 @@ function loadCart() {
     }
 }
 
-function saveCart(cart) {
+function saveCart(cart, storage) {
     try {
-        localStorage.setItem(CART_KEY, JSON.stringify(cart));
-        localStorage.setItem(CART_KEY + '_time', Date.now().toString());
+        storage.setItem(CART_KEY, JSON.stringify(cart));
+        storage.setItem(CART_KEY + '_time', Date.now().toString());
     } catch {}
 }
 
@@ -63,6 +64,7 @@ export default function CustomerMenu({
     bestSellerProductIds = [],
     promoBanners = {},
 }) {
+    const { storage, storeUrl } = useStorefront();
     useForceLightTheme();
     const { props } = usePage();
     const showTotalSold = (props.app_settings?.show_total_sold !== false) && (settings['catalog.show_total_sold'] !== 'false');
@@ -116,7 +118,7 @@ export default function CustomerMenu({
 
     const [menuItems, setMenuItems] = useState(() => formatProducts(initialProducts));
     const [categories, setCategories] = useState(formatCategories(initialCategories));
-    const [cart, setCart] = useState(loadCart);
+    const [cart, setCart] = useState(() => loadCart(storage));
     const [searchQuery, setSearchQuery] = useState('');
     const deferredSearch = useDeferredValue(searchQuery);
     const catalogProps = useRef({ initialProducts, initialCategories });
@@ -141,7 +143,7 @@ export default function CustomerMenu({
             setCart(prev => {
                 const filtered = prev.filter(item => validIds.has(item.id));
                 if (filtered.length !== prev.length) {
-                    saveCart(filtered);
+                    saveCart(filtered, storage);
                 }
                 return filtered;
             });
@@ -150,16 +152,16 @@ export default function CustomerMenu({
 
     const clearCart = () => {
         setCart([]);
-        localStorage.removeItem(CART_KEY);
-        localStorage.removeItem(CART_KEY + '_time');
-        localStorage.removeItem(ORDER_KEY);
+        storage.removeItem(CART_KEY);
+        storage.removeItem(CART_KEY + '_time');
+        storage.removeItem(ORDER_KEY);
     };
 
     useEffect(() => {
-        saveCart(cart);
+        saveCart(cart, storage);
     }, [cart]);
 
-    // Cek riwayat order di localStorage & bersihkan riwayat motor jika ada
+    // Cek riwayat order di storage & bersihkan riwayat motor jika ada
     useEffect(() => {
         try {
             if (typeof window !== 'undefined') {
@@ -168,8 +170,8 @@ export default function CustomerMenu({
                     setShowCart(true);
                 }
             }
-            localStorage.removeItem('motorku_active_motorcycle');
-            const rawHistory = localStorage.getItem(HISTORY_KEY);
+            storage.removeItem('motorku_active_motorcycle');
+            const rawHistory = storage.getItem(HISTORY_KEY);
             const history = rawHistory ? JSON.parse(rawHistory) : [];
             if (Array.isArray(history) && history.length > 0) {
                 const activeOrders = history.filter(o => ['pending', 'preparing', 'ready'].includes(o.order_status));
@@ -235,8 +237,8 @@ export default function CustomerMenu({
             pickup_label: 'Ambil di Toko',
             subtotal, tax, total
         };
-        localStorage.setItem(ORDER_KEY, JSON.stringify(orderData));
-        router.visit('/payment');
+        storage.setItem(ORDER_KEY, JSON.stringify(orderData));
+        router.visit(storeUrl('/payment'));
     };
 
     // ── Filter & Grouping ──
@@ -319,7 +321,7 @@ export default function CustomerMenu({
             {/* Motor Saya Banner (Full-Width Pojok Sampai Pojok di Atas, Rounded di Bawah) */}
             <section className="store-motor-banner">
                 <Link
-                    href="/motor-saya"
+                    href={storeUrl('/motor-saya')}
                     className="block mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8 py-3 sm:py-3.5 group active:scale-[0.99] transition-all"
                 >
                     <div className="flex items-center gap-3 sm:gap-4 pl-3 sm:pl-4 md:pl-5 pr-3.5 sm:pr-5 md:pr-6">
@@ -474,7 +476,6 @@ export default function CustomerMenu({
                 <footer className="mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-slate-200 pt-5 text-xs text-slate-500">
                     <span className="flex items-center gap-2"><FiMapPin size={14} aria-hidden="true" />Pesanan diambil langsung di toko.</span>
                     {whatsapp && <a href={whatsapp} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-9 items-center gap-2 font-medium underline underline-offset-4 hover:text-slate-800"><FaWhatsapp size={15} aria-hidden="true" />Hubungi toko</a>}
-                    <Link href={route('login')} className="inline-flex min-h-9 items-center gap-2 font-medium underline underline-offset-4 hover:text-slate-800"><FiLogIn size={14} aria-hidden="true" />Login staf</Link>
                 </footer>
             </div>
 

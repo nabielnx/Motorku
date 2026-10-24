@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Migrations;
 
+use App\Services\BusinessContext;
 use App\Services\CacheService;
 use Illuminate\Support\Facades\DB;
 
@@ -21,30 +22,30 @@ final class ReconcileImportedBrakeCategories20261012
     {
         $result = DB::transaction(function () {
             $counts = ['products_moved' => 0, 'categories_removed' => 0];
-            $parents = DB::table('categories')->where('name', 'Pengereman')->where('catalog_group', 'automotive')->whereNull('parent_id')->lockForUpdate()->get();
+            $parents = app(BusinessContext::class)->table('categories')->where('name', 'Pengereman')->where('catalog_group', 'automotive')->whereNull('parent_id')->lockForUpdate()->get();
             if ($parents->count() !== 1) {
                 return $counts;
             }
             foreach (self::BRAKE_ALIASES as $alias => $canonical) {
-                $targets = DB::table('categories')->where('name', $canonical)->where('parent_id', $parents->first()->id)->where('catalog_group', 'automotive')->lockForUpdate()->get();
+                $targets = app(BusinessContext::class)->table('categories')->where('name', $canonical)->where('parent_id', $parents->first()->id)->where('catalog_group', 'automotive')->lockForUpdate()->get();
                 if ($targets->count() !== 1) {
                     continue;
                 }
-                $sources = DB::table('categories')->where('name', $alias)->whereNull('parent_id')->where('catalog_group', 'automotive')->lockForUpdate()->get();
+                $sources = app(BusinessContext::class)->table('categories')->where('name', $alias)->whereNull('parent_id')->where('catalog_group', 'automotive')->lockForUpdate()->get();
                 foreach ($sources as $source) {
                     // Restrict cleanup to generated import products and leaf roots.
                     // Categories with custom/manual products or children stay intact.
-                    if (DB::table('categories')->where('parent_id', $source->id)->exists()
-                        || DB::table('products')->where('category_id', $source->id)->where('sku', 'not like', 'IMP-%')->exists()) {
+                    if (app(BusinessContext::class)->table('categories')->where('parent_id', $source->id)->exists()
+                        || app(BusinessContext::class)->table('products')->where('category_id', $source->id)->where('sku', 'not like', 'IMP-%')->exists()) {
                         continue;
                     }
-                    $counts['products_moved'] += DB::table('products')->where('category_id', $source->id)->where('sku', 'like', 'IMP-%')->update([
+                    $counts['products_moved'] += app(BusinessContext::class)->table('products')->where('category_id', $source->id)->where('sku', 'like', 'IMP-%')->update([
                         'category_id' => $targets->first()->id,
                         'sync_version' => DB::raw('sync_version + 1'),
                         'updated_at' => now(),
                     ]);
-                    if (! DB::table('products')->where('category_id', $source->id)->exists()) {
-                        $counts['categories_removed'] += DB::table('categories')->where('id', $source->id)->delete();
+                    if (! app(BusinessContext::class)->table('products')->where('category_id', $source->id)->exists()) {
+                        $counts['categories_removed'] += app(BusinessContext::class)->table('categories')->where('id', $source->id)->delete();
                     }
                 }
             }

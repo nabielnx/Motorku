@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests\Order;
 
+use App\Support\BusinessRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreCustomerOrderRequest extends FormRequest
@@ -31,7 +34,7 @@ class StoreCustomerOrderRequest extends FormRequest
             'notes' => ['nullable', 'string', 'max:500'],
 
             'items' => ['required', 'array', 'min:1', 'max:20'],
-            'items.*.product_id' => ['required', 'exists:products,id'],
+            'items.*.product_id' => ['required', BusinessRule::exists('products', 'id')],
             'items.*.quantity' => ['required', 'integer', 'min:1', 'max:'.config('order.public_max_quantity_per_item', 10)],
             'items.*.notes' => ['nullable', 'string', 'max:500'],
         ];

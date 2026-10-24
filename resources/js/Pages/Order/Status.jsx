@@ -1,3 +1,4 @@
+import useStorefront from '@/Hooks/useStorefront';
 import '../../../css/customer-storefront.css';
 import { cancelCustomerOrder, customerOrderStatus } from '@/Api/customerOrders';
 import { useState, useEffect, useRef } from 'react';
@@ -375,6 +376,7 @@ function OrderCard({ order, onCancel, isCancelling, formatRp }) {
 // Main Page Component
 // ═══════════════════════════════════════════
 export default function OrderStatus() {
+    const { storage, storeUrl } = useStorefront();
     useForceLightTheme();
     const [ordersList, setOrdersList] = useState([]);
     const ordersRef = useRef(ordersList);
@@ -407,7 +409,7 @@ export default function OrderStatus() {
             ordersRef.current = updatedList;
             setOrdersList(updatedList);
             try {
-                localStorage.setItem(HISTORY_KEY, JSON.stringify(updatedList));
+                storage.setItem(HISTORY_KEY, JSON.stringify(updatedList));
             } catch {}
 
             setShowCancelModal(false);
@@ -423,7 +425,7 @@ export default function OrderStatus() {
     useEffect(() => {
         let list = [];
         try {
-            const rawHistory = localStorage.getItem(HISTORY_KEY);
+            const rawHistory = storage.getItem(HISTORY_KEY);
             if (rawHistory) {
                 const parsed = JSON.parse(rawHistory);
                 if (Array.isArray(parsed) && parsed.length > 0) list = parsed;
@@ -432,7 +434,7 @@ export default function OrderStatus() {
 
         if (list.length === 0) {
             try {
-                const rawSingle = localStorage.getItem(ORDER_KEY) || localStorage.getItem(PAYMENT_KEY);
+                const rawSingle = storage.getItem(ORDER_KEY) || storage.getItem(PAYMENT_KEY);
                 if (rawSingle) {
                     const single = JSON.parse(rawSingle);
                     if (single && single.order_id) list = [single];
@@ -470,7 +472,7 @@ export default function OrderStatus() {
                 const updated = mergeOrderUpdates(ordersRef.current, updates);
                 setOrdersList(updated);
                 ordersRef.current = updated;
-                try { localStorage.setItem(HISTORY_KEY, JSON.stringify(updated)); } catch {}
+                try { storage.setItem(HISTORY_KEY, JSON.stringify(updated)); } catch {}
             } finally {
                 busy = false;
                 if (!controller.signal.aborted) setIsPolling(false);
@@ -516,7 +518,7 @@ export default function OrderStatus() {
                         <div className="px-4 py-3.5 flex items-center justify-between">
                             <h1 className="text-base font-black text-slate-900">Pesanan Saya</h1>
                             <Link
-                                href="/"
+                                href={storeUrl('/')}
                                 className="text-[11px] bg-[#19231f] hover:bg-slate-800 text-white px-3.5 py-2 rounded-xl font-bold transition-all flex items-center gap-1.5 shadow-xs active:scale-[0.97]"
                             >
                                 <FiShoppingBag size={13} />
@@ -532,7 +534,7 @@ export default function OrderStatus() {
                             Pesanan Anda akan muncul di sini setelah checkout.
                         </p>
                         <Link
-                            href="/"
+                            href={storeUrl('/')}
                             className="mt-6 min-h-10 rounded-xl bg-[#19231f] hover:bg-slate-800 px-6 py-2.5 text-xs font-bold text-white transition-colors flex items-center gap-2"
                         >
                             <FiShoppingBag size={14} />
@@ -568,7 +570,7 @@ export default function OrderStatus() {
                             )}
                         </div>
                         <Link
-                            href="/"
+                            href={storeUrl('/')}
                             className="text-[11px] bg-[#19231f] hover:bg-slate-800 text-white px-3.5 py-2 rounded-xl font-bold transition-all flex items-center gap-1.5 shadow-xs active:scale-[0.97]"
                         >
                             <FiShoppingBag size={13} />

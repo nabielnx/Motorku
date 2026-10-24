@@ -8,10 +8,10 @@ use App\Models\DataType;
 use App\Models\Motorcycle;
 use App\Models\MotorcyclePart;
 use App\Models\Product;
+use App\Support\BusinessFiles;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class MotorcycleService
@@ -131,7 +131,7 @@ class MotorcycleService
             if ($imageWasRemoved && ! str_contains($old, '..')) {
                 DB::afterCommit(function () use ($old) {
                     if (! Motorcycle::where('image_url', '/storage/'.$old)->exists()) {
-                        Storage::disk('public')->delete($old);
+                        BusinessFiles::delete($old);
                     }
                 });
             }
@@ -154,7 +154,7 @@ class MotorcycleService
             if ($deleted && $path && ! str_contains($path, '..')) {
                 DB::afterCommit(function () use ($path, $url) {
                     if (! Motorcycle::where('image_url', $url)->exists()) {
-                        Storage::disk('public')->delete($path);
+                        BusinessFiles::delete($path);
                     }
                 });
             }

@@ -40,10 +40,10 @@ class ProductSheetService
     {
         $sheets = $this->reader->read($file);
         // Expired drafts contain private prices and are discarded, including when cron is not running.
-        DB::table('product_sheet_imports')->where('expires_at', '<', now())->delete();
+        app(BusinessContext::class)->table('product_sheet_imports')->where('expires_at', '<', now())->delete();
         $token = (string) Str::uuid();
-        DB::table('product_sheet_imports')->insert([
-            'id' => $token, 'user_id' => $userId, 'payload' => json_encode($sheets, JSON_THROW_ON_ERROR),
+        app(BusinessContext::class)->table('product_sheet_imports')->insert([
+            ...app(BusinessContext::class)->attributes([]), 'id' => $token, 'user_id' => $userId, 'payload' => json_encode($sheets, JSON_THROW_ON_ERROR),
             'expires_at' => now()->addMinutes(30),
         ]);
 
@@ -165,7 +165,7 @@ class ProductSheetService
             }
             unset($row);
             $preview = ['revision' => (string) Str::uuid(), 'rows' => $rows];
-            DB::table('product_sheet_imports')->where('id', $draft->id)->update(['preview' => json_encode($preview, JSON_THROW_ON_ERROR)]);
+            app(BusinessContext::class)->table('product_sheet_imports')->where('id', $draft->id)->update(['preview' => json_encode($preview, JSON_THROW_ON_ERROR)]);
 
             return $preview;
         });
@@ -173,7 +173,7 @@ class ProductSheetService
 
     public function commit(array $input, string $userId): array
     {
-        return Cache::lock('products:sheet-import', 120)->block(5, function () use ($input, $userId) {
+        return Cache::lock(app(BusinessContext::class)->key('products:sheet-import'), 120)->block(5, function () use ($input, $userId) {
             $result = DB::transaction(function () use ($input, $userId) {
                 $draft = $this->draft($input['token'], $userId, true);
                 $preview = json_decode($draft->preview ?? '{}', true, flags: JSON_THROW_ON_ERROR);
@@ -246,7 +246,7 @@ class ProductSheetService
                     }
                 }
                 // Receipt and product writes commit together, so a retry cannot import twice.
-                DB::table('product_sheet_imports')->where('id', $draft->id)->update([
+                app(BusinessContext::class)->table('product_sheet_imports')->where('id', $draft->id)->update([
                     'payload' => '[]', 'result' => json_encode(['selection' => $selection, 'counts' => $counts], JSON_THROW_ON_ERROR),
                 ]);
 
@@ -349,7 +349,7 @@ class ProductSheetService
 
     private function draft(string $token, string $userId, bool $lock = false): object
     {
-        $query = DB::table('product_sheet_imports')->where('id', $token)->where('user_id', $userId)->where('expires_at', '>', now());
+        $query = app(BusinessContext::class)->table('product_sheet_imports')->where('id', $token)->where('user_id', $userId)->where('expires_at', '>', now());
         $draft = ($lock ? $query->lockForUpdate() : $query)->first();
         if (! $draft) {
             $this->fail('Pratinjau kedaluwarsa (30 menit) atau tidak ditemukan. Upload ulang file.');

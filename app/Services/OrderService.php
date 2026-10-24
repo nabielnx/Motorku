@@ -70,10 +70,10 @@ class OrderService
 
         return DB::transaction(function () use ($id, $fingerprint, $create) {
             // The primary key serializes even two first-time submissions.
-            $inserted = DB::table('checkout_requests')->insertOrIgnore([
-                'id' => $id, 'fingerprint' => $fingerprint, 'created_at' => now(), 'updated_at' => now(),
+            $inserted = app(BusinessContext::class)->table('checkout_requests')->insertOrIgnore([
+                ...app(BusinessContext::class)->attributes([]), 'id' => $id, 'fingerprint' => $fingerprint, 'created_at' => now(), 'updated_at' => now(),
             ]);
-            $request = DB::table('checkout_requests')->where('id', $id)->lockForUpdate()->first();
+            $request = app(BusinessContext::class)->table('checkout_requests')->where('id', $id)->lockForUpdate()->first();
             if (! hash_equals($request->fingerprint, $fingerprint)) {
                 throw ValidationException::withMessages(['request_id' => 'Identitas checkout sudah digunakan untuk pesanan berbeda.']);
             }
@@ -86,7 +86,7 @@ class OrderService
                 return $order;
             }
             $order = $create();
-            DB::table('checkout_requests')->where('id', $id)->update(['order_id' => $order->id, 'updated_at' => now()]);
+            app(BusinessContext::class)->table('checkout_requests')->where('id', $id)->update(['order_id' => $order->id, 'updated_at' => now()]);
 
             return $order;
         }, 3);
@@ -247,6 +247,7 @@ class OrderService
                 ];
 
                 $orderItemsData[] = [
+                    'business_id' => app(BusinessContext::class)->id(),
                     'id' => (string) Str::uuid(),
                     'product_id' => $product->id,
                     'product_name' => $product->name,

@@ -26,6 +26,7 @@ class AddRobotsHeader
      */
     private const PUBLIC_ROUTES = [
         'home',
+        'shop.home',
         'motor-saya',
         'sitemap',
     ];

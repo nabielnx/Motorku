@@ -19,7 +19,7 @@ class CheckoutConcurrencyTest extends TestCase
     use DatabaseTruncation;
 
     // These rows are application configuration seeded by migrations, not checkout fixtures.
-    protected array $exceptTables = ['data_types'];
+    protected array $exceptTables = ['data_types', 'businesses'];
 
     protected function tearDown(): void
     {

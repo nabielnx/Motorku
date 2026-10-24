@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services;
 
 use App\Models\CashClosing;
@@ -24,10 +26,10 @@ class CashClosingService
 
     private function lockCashDay(string $date): void
     {
-        if (! DB::table('cash_day_locks')->where('business_date', $date)->lockForUpdate()->exists()) {
-            DB::table('cash_day_locks')->insertOrIgnore(['business_date' => $date]);
+        if (! app(BusinessContext::class)->table('cash_day_locks')->where('business_date', $date)->lockForUpdate()->exists()) {
+            app(BusinessContext::class)->table('cash_day_locks')->insertOrIgnore([...app(BusinessContext::class)->attributes([]), 'business_date' => $date]);
         }
-        DB::table('cash_day_locks')->where('business_date', $date)->lockForUpdate()->first();
+        app(BusinessContext::class)->table('cash_day_locks')->where('business_date', $date)->lockForUpdate()->first();
     }
 
     public function summary(string $date): array

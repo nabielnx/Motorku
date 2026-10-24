@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Reference;
 
+use App\Support\BusinessRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -27,7 +28,7 @@ class DataTypeRequest extends FormRequest
 
         return [
             'kind' => ['required', Rule::in(['product', 'reference'])],
-            'name' => ['required', 'string', 'max:80', Rule::unique('data_types')->where('kind', $type?->kind ?? $this->input('kind'))->ignore($type?->id)],
+            'name' => ['required', 'string', 'max:80', BusinessRule::unique('data_types', 'name')->where('kind', $type?->kind ?? $this->input('kind'))->ignore($type?->id)],
             'version' => [$type ? 'required' : 'sometimes', 'integer', 'min:1'],
             'key' => ['prohibited'], 'driver' => ['prohibited'], 'is_system' => ['prohibited'],
             'fields' => ['present', 'array', 'max:20'],

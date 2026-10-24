@@ -394,6 +394,11 @@ export default function SettingIndex() {
         <meta name="description" content="Pengaturan sistem toko, logo, printer struk, pajak, zona waktu, dan bahasa." />
       </Head>
       <div className="admin-settings max-w-6xl mx-auto space-y-4 pb-8">
+        {props.business?.public_url && <section className="admin-surface rounded-lg border border-[#dedfd7] bg-white p-4">
+          <h2 className="text-sm font-bold text-[#19231f]">Link katalog usaha</h2>
+          <a href={props.business.public_url} target="_blank" rel="noopener noreferrer" className="mt-2 block break-all text-xs font-semibold text-[#19231f] underline">{props.business.public_url}</a>
+          <p className="mt-1 text-xs text-slate-600">Bagikan link ini kepada pelanggan usaha Anda.</p>
+        </section>}
         {saved && (
           <div className="bg-emerald-50 dark:bg-emerald-950 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 p-4 rounded-2xl flex items-center gap-2 font-bold text-sm">
             <FiCheck className="text-emerald-600 dark:text-emerald-400" size={18} />

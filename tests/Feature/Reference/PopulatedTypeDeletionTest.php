@@ -65,7 +65,7 @@ class PopulatedTypeDeletionTest extends TestCase
         $order = Order::factory()->create(['order_status' => 'completed', 'payment_status' => 'paid']);
         $item = OrderItem::factory()->create(['order_id' => $order->id, 'product_id' => $product->id, 'product_name' => $product->name]);
         $log = app(InventoryService::class)->adjustStock(['product_id' => $product->id, 'type' => InventoryLogType::Adjustment, 'quantity' => 10]);
-        $cacheVersion = Cache::get('app:motorcycle:parts:version', 0);
+        $cacheVersion = Cache::get(CacheService::key('app:motorcycle:parts:version'), 0);
 
         $this->deleteJson('/data-types/'.$type->id)->assertOk();
 
@@ -80,7 +80,7 @@ class PopulatedTypeDeletionTest extends TestCase
         $this->assertDatabaseHas('order_items', ['id' => $item->id, 'product_id' => null, 'product_name' => $product->name]);
         $this->assertDatabaseHas('inventory_logs', ['id' => $log->id, 'product_id' => null, 'product_name' => $product->name]);
         Storage::disk('public')->assertMissing('products/remove.webp');
-        $this->assertGreaterThan($cacheVersion, Cache::get('app:motorcycle:parts:version'));
+        $this->assertGreaterThan($cacheVersion, Cache::get(CacheService::key('app:motorcycle:parts:version')));
     }
 
     public function test_builtin_motor_reference_deletes_more_than_one_batch_of_motors_and_photos_without_deleting_products(): void
@@ -92,13 +92,13 @@ class PopulatedTypeDeletionTest extends TestCase
             Storage::disk('public')->put('motorcycles/qa-'.$i.'.webp', 'qa');
             MotorcyclePart::create(['motorcycle_id' => $motor->id, 'product_id' => $product->id, 'part_category' => 'lainnya']);
         }
-        Cache::put(CacheService::MOTORCYCLES_LIST, ['old-data']);
+        Cache::put(CacheService::key(CacheService::MOTORCYCLES_LIST), ['old-data']);
         $this->deleteJson('/data-types/'.$type->id)->assertOk();
         $this->assertDatabaseCount('motorcycles', 0);
         $this->assertDatabaseCount('motorcycle_parts', 0);
         $this->assertNotNull($product->fresh());
         $this->assertSame([], Storage::disk('public')->allFiles('motorcycles'));
-        $this->assertFalse(Cache::has(CacheService::MOTORCYCLES_LIST));
+        $this->assertFalse(Cache::has(CacheService::key(CacheService::MOTORCYCLES_LIST)));
     }
 
     public function test_custom_reference_deletes_all_entries_and_their_files_but_preserves_linked_products_and_other_references(): void

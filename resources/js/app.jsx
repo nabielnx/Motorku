@@ -35,14 +35,22 @@ router.on('invalid', (event) => {
 });
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+const businessPages = new Map();
 
 createInertiaApp({
     title: (title) => `${title} - ${appName}`,
-    resolve: (name) =>
-        resolvePageComponent(
+    resolve: async (name) => {
+        if (businessPages.has(name)) return businessPages.get(name);
+        const module = await resolvePageComponent(
             `./Pages/${name}.jsx`,
             import.meta.glob('./Pages/**/*.jsx'),
-        ),
+        );
+        const Page = module.default;
+        const BusinessPage = props => <Page key={`${props.business?.id || 'platform'}:${props.auth?.user?.id || 'guest'}`} {...props} />;
+        BusinessPage.layout = Page.layout;
+        businessPages.set(name, BusinessPage);
+        return BusinessPage;
+    },
     setup({ el, App, props }) {
         const root = createRoot(el);
 

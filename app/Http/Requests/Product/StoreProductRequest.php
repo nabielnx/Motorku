@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests\Product;
 
 use App\Services\ImageUploadService;
+use App\Support\BusinessRule;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -24,8 +27,8 @@ class StoreProductRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'category_id' => ['required', 'exists:categories,id'],
-            'sku' => ['required', 'string', 'unique:products,sku'],
+            'category_id' => ['required', BusinessRule::exists('categories', 'id')],
+            'sku' => ['required', 'string', BusinessRule::unique('products', 'sku')],
             'name' => ['required', 'string', 'max:255'],
             'brand' => ['nullable', 'string', 'max:255'],
             'barcode' => ['nullable', 'string', 'max:255'],

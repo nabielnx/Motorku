@@ -9,6 +9,7 @@ use App\Http\Requests\Reference\DataTypeRequest;
 use App\Models\DataType;
 use App\Services\DataTypeService;
 use App\Traits\ApiResponseHelpers;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class DataTypeController extends Controller
@@ -17,9 +18,9 @@ class DataTypeController extends Controller
 
     public function __construct(private DataTypeService $types) {}
 
-    public function index()
+    public function index(Request $request)
     {
-        return Inertia::render('DataType/Index', ['types' => $this->types->listing()]);
+        return Inertia::render('DataType/Index', ['types' => $this->types->listing((string) $request->user()->business_id)]);
     }
 
     public function store(DataTypeRequest $request)

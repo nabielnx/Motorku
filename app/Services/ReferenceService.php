@@ -7,9 +7,9 @@ namespace App\Services;
 use App\Models\DataType;
 use App\Models\Product;
 use App\Models\ReferenceEntry;
+use App\Support\BusinessFiles;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Throwable;
@@ -92,7 +92,7 @@ class ReferenceService
             });
         } catch (Throwable $exception) {
             if ($newPath && ! $committed) {
-                Storage::disk('public')->delete($newPath);
+                BusinessFiles::delete($newPath);
             }
             throw $exception;
         }
@@ -116,7 +116,7 @@ class ReferenceService
     private function removeImage(string $path): void
     {
         if (str_starts_with($path, 'references/') && ! str_contains($path, '..') && ! ReferenceEntry::where('image_path', $path)->exists()) {
-            Storage::disk('public')->delete($path);
+            BusinessFiles::delete($path);
         }
     }
 }

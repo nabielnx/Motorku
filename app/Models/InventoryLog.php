@@ -1,14 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use App\Enums\InventoryLogType;
+use App\Models\Concerns\BelongsToBusiness;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class InventoryLog extends Model
 {
+    use BelongsToBusiness;
     use HasUuids;
 
     protected $fillable = [

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services;
 
 use Illuminate\Support\Facades\Cache;
@@ -23,6 +25,11 @@ class CacheService
 
     public const MOTORCYCLE_PARTS_PREFIX = 'app:motorcycle:parts:'; // per motorcycle
 
+    public static function key(string $key): string
+    {
+        return app(BusinessContext::class)->key($key);
+    }
+
     // ── TTLs (seconds) ─────────────────────────────────────
     public const TTL_SETTINGS = 3600;  // 60 min — settings rarely change
 
@@ -33,9 +40,9 @@ class CacheService
      */
     public static function flushSettings(): void
     {
-        Cache::forget(self::SETTINGS_SHARED);
-        Cache::forget(self::SETTINGS_STORE);
-        Cache::forget(self::SETTINGS_ALL);
+        Cache::forget(self::key(self::SETTINGS_SHARED));
+        Cache::forget(self::key(self::SETTINGS_STORE));
+        Cache::forget(self::key(self::SETTINGS_ALL));
     }
 
     /**
@@ -43,7 +50,7 @@ class CacheService
      */
     public static function flushMotorcycles(): void
     {
-        Cache::forget(self::MOTORCYCLES_LIST);
+        Cache::forget(self::key(self::MOTORCYCLES_LIST));
         self::flushMotorcycleParts();
     }
 
@@ -51,10 +58,10 @@ class CacheService
     {
         // Pattern-based flush for per-motorcycle parts caches
         // Since database cache driver doesn't support tags, we use a version key
-        if (! Cache::has('app:motorcycle:parts:version')) {
-            Cache::forever('app:motorcycle:parts:version', 1);
+        if (! Cache::has(self::key('app:motorcycle:parts:version'))) {
+            Cache::forever(self::key('app:motorcycle:parts:version'), 1);
         } else {
-            Cache::increment('app:motorcycle:parts:version');
+            Cache::increment(self::key('app:motorcycle:parts:version'));
         }
     }
 
@@ -63,9 +70,9 @@ class CacheService
      */
     public static function motorcyclePartsKey(string $motorcycleId): string
     {
-        $version = (int) Cache::get('app:motorcycle:parts:version', 0);
+        $version = (int) Cache::get(self::key('app:motorcycle:parts:version'), 0);
 
-        return self::MOTORCYCLE_PARTS_PREFIX.$motorcycleId.':v'.$version;
+        return self::key(self::MOTORCYCLE_PARTS_PREFIX.$motorcycleId.':v'.$version);
     }
 
     /**

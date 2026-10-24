@@ -23,8 +23,8 @@
         <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
         <link rel="manifest" href="{{ asset('manifest.webmanifest') }}">
         <link rel="apple-touch-icon" href="{{ asset('icons/motorku-v2-192.png') }}">
-        @if (request()->routeIs('home', 'motor-saya'))
-            <link rel="canonical" href="{{ request()->routeIs('home') ? route('home') : route('motor-saya', ['slug' => data_get($page, 'props.initialPartsData.motorcycle.slug')]) }}">
+        @if (request()->routeIs('home', 'shop.home', 'motor-saya'))
+            <link rel="canonical" href="{{ request()->routeIs('home', 'shop.home') ? (data_get($page, 'props.shop_slug') ? data_get($page, 'props.business.public_url') : route('home')) : route('motor-saya', array_filter(['slug' => data_get($page, 'props.initialPartsData.motorcycle.slug'), 'shop' => data_get($page, 'props.shop_slug')])) }}">
         @endif
 
         <!-- Fonts (Non-blocking) -->

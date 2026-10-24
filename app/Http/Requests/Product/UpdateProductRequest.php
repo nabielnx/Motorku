@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests\Product;
 
 use App\Services\ImageUploadService;
+use App\Support\BusinessRule;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -24,8 +27,8 @@ class UpdateProductRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'category_id' => ['sometimes', 'required', 'exists:categories,id'],
-            'sku' => ['sometimes', 'required', 'string', 'unique:products,sku,'.$this->route('id'), 'max:255'],
+            'category_id' => ['sometimes', 'required', BusinessRule::exists('categories', 'id')],
+            'sku' => ['sometimes', 'required', 'string', BusinessRule::unique('products', 'sku')->ignore($this->route('id')), 'max:255'],
             'name' => ['sometimes', 'required', 'string', 'max:255'],
             'brand' => ['nullable', 'string', 'max:255'],
             'barcode' => ['nullable', 'string', 'max:255'],

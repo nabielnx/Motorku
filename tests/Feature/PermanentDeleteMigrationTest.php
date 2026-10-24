@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use App\Models\Category;
@@ -9,6 +11,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\User;
+use App\Services\BusinessContext;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -34,7 +37,7 @@ class PermanentDeleteMigrationTest extends TestCase
             $part = MotorcyclePart::create(['motorcycle_id' => $motor->id, 'product_id' => $product->id, 'part_category' => 'oli_mesin']);
             $category = Category::create(['name' => 'Archived']);
             $logId = (string) Str::uuid();
-            DB::table('inventory_logs')->insert(['id' => $logId, 'product_id' => $product->id, 'user_id' => $staff->id, 'type' => 'adjustment', 'quantity' => 1, 'created_at' => now(), 'updated_at' => now()]);
+            DB::table('inventory_logs')->insert(['business_id' => BusinessContext::LEGACY_ID, 'id' => $logId, 'product_id' => $product->id, 'user_id' => $staff->id, 'type' => 'adjustment', 'quantity' => 1, 'created_at' => now(), 'updated_at' => now()]);
             foreach (['products' => $product->id, 'users' => $staff->id, 'motorcycles' => $motor->id, 'categories' => $category->id] as $table => $id) {
                 DB::table($table)->where('id', $id)->update(['deleted_at' => now()]);
             }

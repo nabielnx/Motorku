@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Motorcycle;
 
 use App\Http\Controllers\Controller;
@@ -7,6 +9,7 @@ use App\Models\Motorcycle;
 use App\Models\MotorcyclePart;
 use App\Models\Setting;
 use App\Services\CacheService;
+use App\Services\SettingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
@@ -22,7 +25,7 @@ class MotorSayaController extends Controller
         if (Setting::where('group', 'qr_order')->where('key', 'enabled')->value('value') === 'false') {
             return Inertia::render('Motorcycle/MotorSaya', ['motorcyclesByBrand' => [], 'settings' => ['qr_order.enabled' => 'false'], 'partCategories' => [], 'initialPartsData' => null]);
         }
-        $motorcycles = Cache::remember(CacheService::MOTORCYCLES_LIST, CacheService::TTL_MOTORCYCLE, function () {
+        $motorcycles = Cache::remember(CacheService::key(CacheService::MOTORCYCLES_LIST), CacheService::TTL_MOTORCYCLE, function () {
             return Motorcycle::withCount('parts')
                 ->orderBy('brand')
                 ->orderBy('model')
@@ -32,10 +35,8 @@ class MotorSayaController extends Controller
                 ->toArray();
         });
 
-        $settings = Cache::remember(CacheService::SETTINGS_ALL, CacheService::TTL_SETTINGS, function () {
-            return Setting::all()->mapWithKeys(fn ($s) => [
-                $s->group.'.'.$s->key => $s->value,
-            ])->toArray();
+        $settings = Cache::remember(CacheService::key(CacheService::SETTINGS_ALL), CacheService::TTL_SETTINGS, function () {
+            return app(SettingService::class)->publicValues();
         });
 
         $partCategories = MotorcyclePart::categoryLabels();

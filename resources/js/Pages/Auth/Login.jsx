@@ -3,7 +3,8 @@ import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import TextInput from '@/Components/TextInput';
 import GuestLayout from '@/Layouts/GuestLayout';
-import { Head, useForm, usePage } from '@inertiajs/react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import GoogleButton from '@/Components/Auth/GoogleButton';
 import { FiMail, FiLock, FiLogOut, FiX, FiEye, FiEyeOff } from 'react-icons/fi';
 
 export default function Login({ status }) {
@@ -60,6 +61,7 @@ export default function Login({ status }) {
                 </div>
             )}
 
+            <div className="mb-5"><GoogleButton /><InputError message={errors.google} className="mt-2" /></div>
             <form onSubmit={submit} className="space-y-5">
                 {/* Input Email */}
                 <div>
@@ -127,6 +129,7 @@ export default function Login({ status }) {
                 </div>
 
             </form>
+            <p className="mt-5 text-center text-xs text-slate-600">Punya usaha sendiri? <Link href={route('register')} className="font-semibold text-[#19231f] underline">Daftarkan usaha</Link></p>
         </GuestLayout>
     );
 }
