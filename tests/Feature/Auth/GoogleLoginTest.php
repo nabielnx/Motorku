@@ -7,6 +7,7 @@ namespace Tests\Feature\Auth;
 use App\Models\Business;
 use App\Models\Scopes\BusinessScope;
 use App\Models\User;
+use App\Services\BusinessContext;
 use App\Services\BusinessOnboardingService;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -80,6 +81,13 @@ class GoogleLoginTest extends TestCase
         $this->assertTrue($user->hasVerifiedEmail());
         $this->assertNotNull(Business::findOrFail($user->business_id)->activated_at);
         $this->assertTrue(Hash::check('Strong@1234', $user->password));
+        app(BusinessContext::class)->run($user->business_id, function (): void {
+            foreach (['data_types', 'reference_entries', 'categories', 'products', 'motorcycles', 'motorcycle_parts', 'suppliers', 'orders', 'order_items', 'payments', 'inventory_logs', 'order_returns', 'cash_closings'] as $table) {
+                $this->assertSame(0, app(BusinessContext::class)->table($table)->count(), $table.' must start empty');
+            }
+        });
+        $this->get('/data-types')->assertOk()->assertInertia(fn ($page) => $page
+            ->has('types', 0)->has('catalog_groups', 0)->has('reference_modules', 0));
         $this->post('/register/google', $this->registerData())->assertRedirect('/dashboard');
         $this->assertDatabaseCount('businesses', 2);
         Notification::assertNothingSent();

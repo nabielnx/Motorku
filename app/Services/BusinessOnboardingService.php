@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\Business;
-use App\Models\DataType;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -39,12 +38,6 @@ final class BusinessOnboardingService
                         app(SettingService::class)->upsertSetting($group, $key, $value);
                     }
                 }
-                foreach (['automotive' => 'Motor', 'electronics' => 'Elektronik', 'hardware' => 'Alat', 'bicycle' => 'Sepeda'] as $key => $name) {
-                    DataType::create(['kind' => 'product', 'key' => $key, 'name' => $name, 'fields' => []]);
-                }
-                $type = new DataType(['kind' => 'reference', 'key' => 'motorcycles', 'name' => 'Motor', 'fields' => []]);
-                $type->driver = 'motorcycles';
-                $type->save();
 
                 return $owner;
             });
