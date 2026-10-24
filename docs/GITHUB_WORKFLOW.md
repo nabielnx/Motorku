@@ -63,6 +63,10 @@ Staging deploy otomatis setelah CI untuk push ke `develop` sukses dan `STAGING_D
 
 Saat migrasi atau pemeriksaan konfigurasi gagal, maintenance tetap aktif. Kegagalan health check setelah aktivasi juga mengaktifkan maintenance. Database tidak dipulihkan otomatis: pemulihan harus mempertimbangkan perubahan skema dan transaksi yang mungkin sudah tercatat. Backup berada di luar `public`, dengan direktori izin 700 dan file privat. Jadwalkan penghapusan backup lama sesuai kapasitas server; salinan backup terpisah dan uji restore tetap diperlukan.
 
+Health check bersama memakai `scripts/check-deployment-health.sh`: maksimal empat percobaan dengan jeda lima detik untuk kegagalan sementara, termasuk HTTP 403 dari CDN. Sertifikat TLS tetap diverifikasi. Kelulusan mensyaratkan `/up` HTTP 200 berisi `Application up` serta halaman utama HTTP 200. Ini mendeteksi challenge CDN yang menyamar sebagai HTTP 200 dan maintenance Laravel (karena `/up` sendiri tetap dapat diakses saat maintenance). HTTP 403 yang menetap tetap menggagalkan deploy. Log hanya mencatat status dan header diagnostik terpilih, termasuk `x-hcdn-request-id`, tanpa cookie atau body aplikasi.
+
+Untuk HTTP 403 yang menetap di Hostinger, periksa aturan CDN/firewall dan gunakan request ID serta waktu kejadian saat meminta pengecualian terbatas untuk health monitoring ke dukungan hosting. Jangan menonaktifkan seluruh perlindungan atau mengabaikan health check. Setelah konfigurasi, database, dan migrasi terverifikasi sehat, pulihkan maintenance melalui SSH dengan `php artisan up`, lalu periksa `/up` **dan** halaman utama. Rerun workflow lama tidak memakai perbaikan workflow yang baru; untuk staging, perubahan definisi workflow harus tersedia di default branch `main` dan script harus tersedia pada SHA `develop` yang dideploy.
+
 
 ## Instalasi pertama
 
