@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Http\Middleware\AddRobotsHeader;
 use App\Http\Middleware\ApplySystemSettings;
+use App\Http\Middleware\ControlAdminDeletion;
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\SecurityHeaders;
@@ -62,6 +65,7 @@ return Application::configure(basePath: dirname(__DIR__))
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
             EnsureUserIsActive::class,
+            ControlAdminDeletion::class,
         ]);
         $middleware->alias([
             'role' => RoleMiddleware::class,

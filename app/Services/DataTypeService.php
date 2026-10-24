@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Models\Category;
 use App\Models\DataType;
+use App\Models\Motorcycle;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -15,9 +16,11 @@ class DataTypeService
     public function listing(): array
     {
         $categoryCounts = Category::selectRaw('catalog_group, COUNT(*) as total')->groupBy('catalog_group')->pluck('total', 'catalog_group');
+        $motorcycleCount = Motorcycle::count();
 
         return DataType::withCount('entries')->orderBy('created_at')->orderBy('name')->get()->map(fn ($type) => [
             ...$type->toArray(), 'categories_count' => (int) ($categoryCounts[$type->key] ?? 0),
+            'records_count' => $type->driver === 'motorcycles' ? $motorcycleCount : $type->entries_count,
         ])->all();
     }
 
@@ -32,7 +35,8 @@ class DataTypeService
             }
             $fields = array_map(fn ($field) => [...$field, 'required' => (bool) $field['required']], $input['fields']);
             $legacyKey = array_search(mb_strtolower($input['name']), array_map('mb_strtolower', Category::CATALOG_GROUPS), true);
-            if ($input['kind'] === 'product' && $legacyKey !== false && $type?->key !== $legacyKey) {
+            if ($input['kind'] === 'product' && $legacyKey !== false && $type?->key !== $legacyKey
+                && DataType::where('kind', 'product')->where('key', $legacyKey)->exists()) {
                 $this->fail('Nama tersebut masih dipakai sebagai alias jenis produk bawaan. Gunakan nama lain.');
             }
             if (($input['kind'] === 'product' || $type?->driver) && $fields !== []) {
@@ -81,11 +85,18 @@ class DataTypeService
     {
         DB::transaction(function () use ($type) {
             $type = DataType::whereKey($type->id)->lockForUpdate()->firstOrFail();
-            if ($type->is_system || $type->entries()->exists() || ($type->kind === 'product' && Category::where('catalog_group', $type->key)->exists())) {
-                $this->fail('Jenis bawaan atau jenis yang masih memiliki data/kategori tidak dapat dihapus.');
+            if ($type->kind === 'product') {
+                while ($category = Category::where('catalog_group', $type->key)->orderBy('id')->first(['id'])) {
+                    app(CategoryService::class)->deleteCategory($category->id);
+                }
+            } elseif ($type->driver === 'motorcycles') {
+                Motorcycle::orderBy('id')->eachById(fn ($motorcycle) => app(MotorcycleService::class)->deleteMotorcycle($motorcycle->id), 100);
+            } else {
+                $type->entries()->eachById(fn ($entry) => app(ReferenceService::class)->delete($type, $entry), 100);
             }
             $type->delete();
-        });
+            DB::afterCommit(fn () => CacheService::flushMotorcycles());
+        }, 3);
     }
 
     private function fail(string $message): never

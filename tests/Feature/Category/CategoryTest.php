@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature\Category;
 
 use App\Models\Category;
@@ -90,19 +92,20 @@ class CategoryTest extends TestCase
         ]);
     }
 
-    public function test_failed_subcategory_removal_rolls_back_parent_update(): void
+    public function test_subcategory_removal_deletes_its_products_when_enabled(): void
     {
         $category = Category::factory()->create(['name' => 'Kategori Awal']);
         $child = Category::factory()->create(['parent_id' => $category->id]);
-        Product::factory()->create(['category_id' => $child->id]);
+        $product = Product::factory()->create(['category_id' => $child->id]);
 
         $this->actingAs($this->owner)->putJson("/api/categories/{$category->id}", [
             'name' => 'Kategori Baru',
             'sub_categories' => [],
-        ])->assertUnprocessable();
+        ])->assertOk();
 
-        $this->assertSame('Kategori Awal', $category->fresh()->name);
-        $this->assertNotNull($child->fresh());
+        $this->assertSame('Kategori Baru', $category->fresh()->name);
+        $this->assertNull($child->fresh());
+        $this->assertNull($product->fresh());
     }
 
     public function test_owner_can_delete_category(): void

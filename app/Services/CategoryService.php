@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Models\Category;
 use App\Models\DataType;
+use App\Models\Product;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -93,15 +94,13 @@ class CategoryService
 
                 // Remove subcategories removed from the list
                 $toDeleteIds = array_diff($existingChildIds, $submittedIds);
+                if ($toDeleteIds !== [] && ! app(DeletionControlService::class)->enabled()) {
+                    throw ValidationException::withMessages(['sub_categories' => DeletionControlService::MESSAGE]);
+                }
                 foreach ($toDeleteIds as $delId) {
                     $child = Category::find($delId);
                     if ($child) {
-                        if ($child->products()->count() > 0) {
-                            throw ValidationException::withMessages([
-                                'sub_categories' => "Sub-kategori '{$child->name}' tidak bisa dihapus karena masih memiliki produk.",
-                            ]);
-                        }
-                        $child->delete();
+                        $this->deleteCategory($child->id);
                     }
                 }
             }
@@ -115,15 +114,22 @@ class CategoryService
 
     public function deleteCategory($id)
     {
-        $category = Category::findOrFail($id);
+        return DB::transaction(function () use ($id) {
+            $category = Category::whereKey($id)->lockForUpdate()->firstOrFail();
+            $deleted = $this->deleteContents($category);
+            DB::afterCommit(fn () => CacheService::flushMotorcycleParts());
 
-        if ($category->products()->exists() || $category->children()->exists()) {
-            throw ValidationException::withMessages(['category' => 'Kategori masih memiliki produk atau subkategori. Pindahkan atau hapus isinya terlebih dahulu.']);
+            return $deleted;
+        }, 3);
+    }
+
+    private function deleteContents(Category $category): bool
+    {
+        foreach ($category->children()->orderBy('id')->lockForUpdate()->get() as $child) {
+            $this->deleteContents($child);
         }
+        Product::where('category_id', $category->id)->eachById(fn ($product) => app(ProductService::class)->deleteProduct($product->id), 100);
 
-        $deleted = $category->delete();
-        CacheService::flushMotorcycleParts();
-
-        return $deleted;
+        return (bool) $category->delete();
     }
 }

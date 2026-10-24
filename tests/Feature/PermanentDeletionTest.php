@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use App\Enums\InventoryLogType;
@@ -14,7 +16,6 @@ use App\Services\ProductService;
 use App\Services\ReportService;
 use App\Services\UserService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
 class PermanentDeletionTest extends TestCase
@@ -36,17 +37,15 @@ class PermanentDeletionTest extends TestCase
         $this->assertDatabaseHas('orders', ['id' => $order->id]);
     }
 
-    public function test_product_in_active_order_must_be_resolved_before_deletion(): void
+    public function test_product_in_active_order_can_be_deleted_without_losing_its_invoice_snapshot(): void
     {
         $product = Product::factory()->create();
         $order = Order::factory()->create(['order_status' => 'pending', 'payment_status' => 'unpaid']);
-        OrderItem::factory()->create(['order_id' => $order->id, 'product_id' => $product->id]);
-        try {
-            app(ProductService::class)->deleteProduct($product->id);
-            $this->fail('Active order must prevent product deletion.');
-        } catch (ValidationException) {
-            $this->assertDatabaseHas('products', ['id' => $product->id]);
-        }
+        $item = OrderItem::factory()->create(['order_id' => $order->id, 'product_id' => $product->id, 'product_name' => $product->name]);
+        app(ProductService::class)->deleteProduct($product->id);
+        $this->assertDatabaseMissing('products', ['id' => $product->id]);
+        $this->assertDatabaseHas('order_items', ['id' => $item->id, 'product_id' => null, 'product_name' => $product->name]);
+        $this->assertNotNull($order->fresh());
     }
 
     public function test_deleted_products_remain_distinct_in_sales_reports(): void

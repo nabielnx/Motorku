@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Models\DataType;
 use App\Models\Motorcycle;
 use App\Models\MotorcyclePart;
 use App\Models\Product;
@@ -92,10 +93,15 @@ class MotorcycleService
         while (Motorcycle::where('slug', $data['slug'])->exists()) {
             $data['slug'] = $baseSlug.'-'.++$counter;
         }
+        $persist = fn (array $attributes) => DB::transaction(function () use ($attributes) {
+            DataType::where('kind', 'reference')->where('driver', 'motorcycles')->lockForUpdate()->firstOrFail();
+
+            return Motorcycle::create($attributes);
+        });
         $motorcycle = $file
             ? app(ImageUploadService::class)->replace($file, 'motorcycles', null,
-                fn ($path) => Motorcycle::create([...$data, 'image_url' => '/storage/'.$path]))
-            : Motorcycle::create($data);
+                fn ($path) => $persist([...$data, 'image_url' => '/storage/'.$path]))
+            : $persist($data);
 
         return $motorcycle->loadCount('parts');
     }
@@ -139,15 +145,22 @@ class MotorcycleService
      */
     public function deleteMotorcycle(string $id): bool
     {
-        $motorcycle = Motorcycle::findOrFail($id);
+        return DB::transaction(function () use ($id) {
+            $motorcycle = Motorcycle::whereKey($id)->lockForUpdate()->firstOrFail();
 
-        $path = str_starts_with($motorcycle->image_url ?? '', '/storage/motorcycles/') ? substr($motorcycle->image_url, 9) : null;
-        $deleted = (bool) $motorcycle->delete();
-        if ($deleted && $path) {
-            Storage::disk('public')->delete($path);
-        }
+            $url = $motorcycle->image_url;
+            $path = str_starts_with($url ?? '', '/storage/motorcycles/') ? substr($url, 9) : null;
+            $deleted = (bool) $motorcycle->delete();
+            if ($deleted && $path && ! str_contains($path, '..')) {
+                DB::afterCommit(function () use ($path, $url) {
+                    if (! Motorcycle::where('image_url', $url)->exists()) {
+                        Storage::disk('public')->delete($path);
+                    }
+                });
+            }
 
-        return $deleted;
+            return $deleted;
+        });
     }
 
     /**

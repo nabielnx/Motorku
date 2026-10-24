@@ -63,7 +63,8 @@ class DataTypeTest extends TestCase
         $path = $response->baseResponse->getFile()->getPathname();
         $this->assertStringContainsString('Peralatan Kebun', file_get_contents($path));
         @unlink($path);
-        $this->deleteJson('/data-types/'.$type['id'])->assertUnprocessable();
+        $this->deleteJson('/data-types/'.$type['id'])->assertOk();
+        $this->assertDatabaseMissing('categories', ['catalog_group' => $type['key']]);
     }
 
     public function test_custom_reference_type_validates_its_fields_and_maps_products_without_changing_stock(): void
@@ -99,7 +100,8 @@ class DataTypeTest extends TestCase
         $this->putJson('/data-types/'.$type['id'], $input)->assertOk();
         $this->postJson('/references/'.$type['id'].'/entries', ['name' => 'Stale', 'schema_version' => 1, 'values' => ['voltage' => 220, 'portable' => true]])->assertUnprocessable();
         $this->putJson('/data-types/'.$type['id'], $input)->assertUnprocessable();
-        $this->deleteJson('/data-types/'.$type['id'])->assertUnprocessable();
+        $this->deleteJson('/data-types/'.$type['id'])->assertOk();
+        $this->assertDatabaseMissing('reference_entries', ['data_type_id' => $type['id']]);
     }
 
     public function test_photos_are_physically_removed_and_entries_cannot_be_modified_through_another_type(): void
@@ -115,14 +117,15 @@ class DataTypeTest extends TestCase
         $this->deleteJson('/references/'.$type['id'].'/entries/'.$entry['id'])->assertOk();
     }
 
-    public function test_builtin_motor_module_and_preset_product_types_are_preserved(): void
+    public function test_builtin_motor_module_uses_its_driver_and_can_be_deleted_when_empty(): void
     {
         $motor = DataType::where('driver', 'motorcycles')->sole();
         $this->get('/references/'.$motor->id)->assertRedirect('/motorcycles');
-        $this->deleteJson('/data-types/'.$motor->id)->assertUnprocessable();
         $this->postJson('/references/'.$motor->id.'/entries', ['name' => 'Invalid', 'schema_version' => 1])->assertNotFound();
         $this->putJson('/data-types/'.$motor->id, $this->type(['name' => 'Motor', 'version' => 1]))->assertUnprocessable();
         $this->assertSame(4, DataType::where('kind', 'product')->count());
+        $this->deleteJson('/data-types/'.$motor->id)->assertOk();
+        $this->assertDatabaseMissing('data_types', ['id' => $motor->id]);
     }
 
     public function test_cleanup_failure_does_not_delete_a_newly_saved_photo(): void

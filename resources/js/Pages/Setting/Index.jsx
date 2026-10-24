@@ -1,3 +1,4 @@
+import DeleteButton from '@/Components/Admin/DeleteButton';
 import AdminButton from '@/Components/Admin/Button';
 import ImagePicker from '@/Components/ImagePicker';
 import { IMAGE_HELP, validImage } from '@/Utils/imageUpload';
@@ -32,6 +33,7 @@ const fieldMap = {
   store_close_time:            { group: 'store',           key: 'close_time' },
   system_timezone:             { group: 'system',          key: 'timezone' },
   system_locale:               { group: 'system',          key: 'locale' },
+  system_deletion_enabled:     { group: 'system',          key: 'deletion_enabled' },
 };
 
 const defaults = {
@@ -44,6 +46,7 @@ const defaults = {
   qr_order_enabled: 'true', qr_order_session_timeout: '120', catalog_show_total_sold: 'true', promo_banner_enabled: 'false',
   store_open_time: '10:00', store_close_time: '22:00',
   system_timezone: 'Asia/Jakarta', system_locale: 'id',
+  system_deletion_enabled: 'true',
 };
 
 // Frontend validation rules per field
@@ -372,6 +375,7 @@ export default function SettingIndex() {
       { field: 'store_close_time', label: 'Jam Tutup', type: 'time' },
     ]},
     { title: 'Sistem', icon: FiSettings, fields: [
+      { field: 'system_deletion_enabled', label: 'Izinkan Penghapusan Data Admin', type: 'toggle', span: true, note: 'Berlaku untuk seluruh data admin, termasuk jenis bawaan dan custom. Saat aktif, jenis dan kategori dapat dihapus beserta seluruh isinya secara permanen. Nonaktifkan untuk mengunci penghapusan.' },
       { field: 'system_timezone', label: 'Zona Waktu', type: 'select', options: [
         { value: 'Asia/Jakarta', label: 'Asia/Jakarta (WIB)' },
         { value: 'Asia/Makassar', label: 'Asia/Makassar (WITA)' },
@@ -419,7 +423,7 @@ export default function SettingIndex() {
                 }} />
 
                 {(logoUrl || logoPreview) && (
-                  <AdminButton
+                  <DeleteButton as={AdminButton}
                     type="button"
                     onClick={handleDeleteLogo}
                     disabled={uploading}
@@ -427,7 +431,7 @@ export default function SettingIndex() {
                   >
                     <FiTrash2 size={14} />
                     <span>Hapus Logo</span>
-                  </AdminButton>
+                  </DeleteButton>
                 )}
               </div>
               <p className="admin-help">{IMAGE_HELP}</p>
@@ -464,7 +468,7 @@ export default function SettingIndex() {
               <div className="flex flex-wrap gap-2">
                 {qrisFile && <AdminButton type="button" onClick={handleUploadQris} disabled={uploadingQris} variant="primary">{uploadingQris ? 'Menyimpan...' : 'Simpan QRIS'}</AdminButton>}
                 {qrisUrl && !qrisFile && !qrisConfig?.dynamic_available && <AdminButton type="button" onClick={handleActivateQris} disabled={uploadingQris} variant="primary">{uploadingQris ? 'Membaca QRIS...' : 'Aktifkan nominal otomatis'}</AdminButton>}
-                {qrisUrl && <button type="button" onClick={() => setDeleteConfirm({ type: 'qris' })} disabled={uploadingQris} className="px-4 py-2 rounded-lg border border-red-200 text-red-600 text-xs font-bold disabled:opacity-50">Hapus QRIS</button>}
+                {qrisUrl && <DeleteButton type="button" onClick={() => setDeleteConfirm({ type: 'qris' })} disabled={uploadingQris} className="px-4 py-2 rounded-lg border border-red-200 text-red-600 text-xs font-bold disabled:opacity-50">Hapus QRIS</DeleteButton>}
               </div>
             </div>
           </div>
@@ -497,9 +501,9 @@ export default function SettingIndex() {
                   </AdminButton>
                 )}
                 {loginImageUrl && (
-                  <button type="button" onClick={() => setDeleteConfirm({ type: 'login_image' })} disabled={uploadingLoginImage} className="px-4 py-2 rounded-lg border border-red-200 text-red-600 text-xs font-bold disabled:opacity-50 hover:bg-red-50">
+                  <DeleteButton type="button" onClick={() => setDeleteConfirm({ type: 'login_image' })} disabled={uploadingLoginImage} className="px-4 py-2 rounded-lg border border-red-200 text-red-600 text-xs font-bold disabled:opacity-50 hover:bg-red-50">
                     Hapus Gambar
-                  </button>
+                  </DeleteButton>
                 )}
               </div>
             </div>
@@ -566,14 +570,14 @@ export default function SettingIndex() {
                       </AdminButton>
                     )}
                     {b.url && !b.preview && (
-                      <AdminButton
+                      <DeleteButton as={AdminButton}
                         onClick={() => handleDeleteBanner(slot)}
                         disabled={isUploading}
                         variant="danger"
                       >
                         <FiTrash2 size={11} />
                         {isUploading ? 'Menghapus...' : 'Hapus'}
-                      </AdminButton>
+                      </DeleteButton>
                     )}
                   </div>
                 </div>
@@ -665,7 +669,7 @@ export default function SettingIndex() {
             <p className="text-sm text-slate-500 dark:text-slate-400">Gambar yang sedang dipakai akan dihapus.</p>
             <div className="flex justify-end gap-2">
               <AdminButton type="button" onClick={() => setDeleteConfirm(null)} variant="secondary">Batal</AdminButton>
-              <AdminButton type="button" onClick={executeDelete} variant="danger">Hapus</AdminButton>
+              <DeleteButton as={AdminButton} type="button" onClick={executeDelete} variant="danger">Hapus</DeleteButton>
             </div>
           </div>
         </AdminDialog>

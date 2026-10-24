@@ -8,6 +8,7 @@ use App\Enums\InventoryLogType;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
 use App\Models\Order;
+use App\Models\Product;
 use Illuminate\Support\Facades\DB;
 
 class OrderCancellationService
@@ -64,6 +65,10 @@ class OrderCancellationService
     {
         $order->loadMissing('items');
         foreach ($order->items as $item) {
+            // Deleted catalogue items retain their invoice snapshot, but have no stock to restore.
+            if (! $item->product_id || ! Product::whereKey($item->product_id)->lockForUpdate()->first(['id'])) {
+                continue;
+            }
             $this->inventoryService->adjustStock([
                 'product_id' => $item->product_id,
                 'type' => InventoryLogType::StockReturn,

@@ -1,3 +1,4 @@
+import DeleteButton from '@/Components/Admin/DeleteButton';
 import ImagePicker from '@/Components/ImagePicker';
 import { IMAGE_HELP, validImage } from '@/Utils/imageUpload';
 import { useState } from 'react';
@@ -108,7 +109,7 @@ export default function UpdateProfileInformation({
                             )}
 
                             {(user.avatar || avatarPreview) && (
-                                <button
+                                <DeleteButton
                                     type="button"
                                     onClick={() => setShowDeleteModal(true)}
                                     disabled={uploading}
@@ -116,7 +117,7 @@ export default function UpdateProfileInformation({
                                 >
                                     <FiTrash2 className="w-4 h-4" strokeWidth={2.2} />
                                     <span>Hapus Foto</span>
-                                </button>
+                                </DeleteButton>
                             )}
                         </div>
                     </div>
@@ -241,7 +242,7 @@ export default function UpdateProfileInformation({
                             >
                                 Batal
                             </button>
-                            <button
+                            <DeleteButton
                                 type="button"
                                 onClick={() => {
                                     setShowDeleteModal(false);
@@ -251,7 +252,7 @@ export default function UpdateProfileInformation({
                                 className="px-3.5 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg transition border border-red-700 shadow-xs cursor-pointer"
                             >
                                 {uploading ? 'Menghapus...' : 'Ya, Hapus Foto'}
-                            </button>
+                            </DeleteButton>
                         </div>
                     </div>
                 </div>
