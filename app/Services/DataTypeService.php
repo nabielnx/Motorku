@@ -85,13 +85,18 @@ class DataTypeService
     {
         DB::transaction(function () use ($type) {
             $type = DataType::whereKey($type->id)->lockForUpdate()->firstOrFail();
-            if ($type->entries()->exists()
-                || ($type->driver === 'motorcycles' && Motorcycle::exists())
-                || ($type->kind === 'product' && Category::where('catalog_group', $type->key)->exists())) {
-                $this->fail('Jenis masih memiliki data atau kategori. Kosongkan atau pindahkan datanya terlebih dahulu sebelum menghapus jenis.');
+            if ($type->kind === 'product') {
+                while ($category = Category::where('catalog_group', $type->key)->orderBy('id')->first(['id'])) {
+                    app(CategoryService::class)->deleteCategory($category->id);
+                }
+            } elseif ($type->driver === 'motorcycles') {
+                Motorcycle::orderBy('id')->eachById(fn ($motorcycle) => app(MotorcycleService::class)->deleteMotorcycle($motorcycle->id), 100);
+            } else {
+                $type->entries()->eachById(fn ($entry) => app(ReferenceService::class)->delete($type, $entry), 100);
             }
             $type->delete();
-        });
+            DB::afterCommit(fn () => CacheService::flushMotorcycles());
+        }, 3);
     }
 
     private function fail(string $message): never

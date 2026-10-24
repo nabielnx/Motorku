@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use App\Models\Category;
@@ -291,14 +293,16 @@ class FullAuditRemediationTest extends TestCase
         $this->assertSame('2026-10-07 01:30:00', DB::table('orders')->where('id', $orderId)->value('created_at'));
     }
 
-    public function test_parent_category_cannot_orphan_children(): void
+    public function test_parent_category_deletes_its_children_and_products_without_leaving_orphans(): void
     {
         $root = Category::factory()->create(['catalog_group' => 'electronics']);
         $child = Category::factory()->create(['parent_id' => $root->id, 'catalog_group' => 'automotive']);
         $product = Product::factory()->create(['category_id' => $child->id]);
         $this->assertSame(1, Product::inCatalogGroup('electronics')->count());
-        $this->actingAs($this->owner)->deleteJson('/api/categories/'.$root->id)->assertUnprocessable();
-        $this->assertSame(1, Product::inCatalogGroup('electronics')->count());
+        $this->actingAs($this->owner)->deleteJson('/api/categories/'.$root->id)->assertOk();
+        $this->assertNull($child->fresh());
+        $this->assertNull($product->fresh());
+        $this->assertSame(0, Product::inCatalogGroup('electronics')->count());
         $this->assertSame(0, Product::inCatalogGroup('automotive')->whereKey($product->id)->count());
     }
 

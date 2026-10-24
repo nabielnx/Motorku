@@ -167,7 +167,7 @@ class AdminDeletionControlTest extends TestCase
         $this->assertDatabaseHas('data_types', ['kind' => 'product', 'name' => 'Elektronik']);
     }
 
-    public function test_used_types_remain_protected_and_motor_records_are_counted_for_the_driver(): void
+    public function test_populated_types_can_be_deleted_and_motor_records_are_counted_for_the_driver(): void
     {
         $category = Category::factory()->create(['catalog_group' => 'automotive']);
         $productType = DataType::where('kind', 'product')->where('key', 'automotive')->sole();
@@ -175,13 +175,13 @@ class AdminDeletionControlTest extends TestCase
         $entry = $referenceType->entries()->create(['name' => 'QA', 'values' => []]);
         $motorType = DataType::where('driver', 'motorcycles')->sole();
         $motor = $this->motor();
-        foreach ([$productType, $referenceType, $motorType] as $type) {
-            $this->deleteJson('/data-types/'.$type->id)->assertUnprocessable()->assertJsonValidationErrors('type');
-        }
         $this->get('/data-types')->assertInertia(fn (Assert $page) => $page->where('types', fn ($types) => collect($types)->firstWhere('id', $motorType->id)['records_count'] === 1));
-        $this->assertNotNull($category->fresh());
-        $this->assertNotNull($entry->fresh());
-        $this->assertNotNull($motor->fresh());
+        foreach ([$productType, $referenceType, $motorType] as $type) {
+            $this->deleteJson('/data-types/'.$type->id)->assertOk();
+        }
+        $this->assertNull($category->fresh());
+        $this->assertNull($entry->fresh());
+        $this->assertNull($motor->fresh());
     }
 
     public function test_a_deleted_builtin_motor_type_cannot_receive_new_orphaned_motor_records(): void

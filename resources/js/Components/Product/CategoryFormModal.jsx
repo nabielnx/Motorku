@@ -66,6 +66,7 @@ export default function CategoryFormModal({
                                 <span>Tambah</span>
                             </button>
                         </div>
+                        {editingCategory && <p className="mb-2 text-xs text-red-700 dark:text-red-300">Menghapus subkategori juga menghapus produk, mapping, dan fotonya secara permanen saat disimpan.</p>}
 
                         <div className="space-y-2">
                             {(categoryFormData.sub_categories || []).map((sub, idx) => (

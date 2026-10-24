@@ -4,11 +4,9 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Models\OrderItem;
 use App\Models\Product;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\ValidationException;
 
 class ProductService
 {
@@ -123,15 +121,15 @@ class ProductService
     {
         return DB::transaction(function () use ($id) {
             $product = Product::whereKey($id)->lockForUpdate()->firstOrFail();
-            if (OrderItem::where('product_id', $product->id)
-                ->whereHas('order', fn ($query) => $query->whereIn('order_status', ['pending', 'preparing', 'ready']))
-                ->exists()) {
-                throw ValidationException::withMessages(['product' => 'Selesaikan atau batalkan pesanan aktif yang memakai produk ini sebelum menghapusnya.']);
-            }
-
             $path = $product->image_path;
             $deleted = $product->delete();
-            DB::afterCommit(fn () => $path ? Storage::disk('public')->delete($path) : null);
+            if ($path && str_starts_with($path, 'products/') && ! str_contains($path, '..')) {
+                DB::afterCommit(function () use ($path) {
+                    if (! Product::where('image_path', $path)->exists()) {
+                        Storage::disk('public')->delete($path);
+                    }
+                });
+            }
 
             return $deleted;
         });

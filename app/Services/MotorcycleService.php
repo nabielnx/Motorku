@@ -145,15 +145,22 @@ class MotorcycleService
      */
     public function deleteMotorcycle(string $id): bool
     {
-        $motorcycle = Motorcycle::findOrFail($id);
+        return DB::transaction(function () use ($id) {
+            $motorcycle = Motorcycle::whereKey($id)->lockForUpdate()->firstOrFail();
 
-        $path = str_starts_with($motorcycle->image_url ?? '', '/storage/motorcycles/') ? substr($motorcycle->image_url, 9) : null;
-        $deleted = (bool) $motorcycle->delete();
-        if ($deleted && $path) {
-            Storage::disk('public')->delete($path);
-        }
+            $url = $motorcycle->image_url;
+            $path = str_starts_with($url ?? '', '/storage/motorcycles/') ? substr($url, 9) : null;
+            $deleted = (bool) $motorcycle->delete();
+            if ($deleted && $path && ! str_contains($path, '..')) {
+                DB::afterCommit(function () use ($path, $url) {
+                    if (! Motorcycle::where('image_url', $url)->exists()) {
+                        Storage::disk('public')->delete($path);
+                    }
+                });
+            }
 
-        return $deleted;
+            return $deleted;
+        });
     }
 
     /**

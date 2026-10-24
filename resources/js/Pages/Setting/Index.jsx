@@ -375,7 +375,7 @@ export default function SettingIndex() {
       { field: 'store_close_time', label: 'Jam Tutup', type: 'time' },
     ]},
     { title: 'Sistem', icon: FiSettings, fields: [
-      { field: 'system_deletion_enabled', label: 'Izinkan Penghapusan Data Admin', type: 'toggle', span: true, note: 'Berlaku untuk seluruh data admin, termasuk jenis, referensi, produk, kategori, supplier, staf, dan foto. Nonaktifkan untuk mengunci penghapusan. Jenis yang masih berisi data perlu dikosongkan terlebih dahulu.' },
+      { field: 'system_deletion_enabled', label: 'Izinkan Penghapusan Data Admin', type: 'toggle', span: true, note: 'Berlaku untuk seluruh data admin, termasuk jenis bawaan dan custom. Saat aktif, jenis dan kategori dapat dihapus beserta seluruh isinya secara permanen. Nonaktifkan untuk mengunci penghapusan.' },
       { field: 'system_timezone', label: 'Zona Waktu', type: 'select', options: [
         { value: 'Asia/Jakarta', label: 'Asia/Jakarta (WIB)' },
         { value: 'Asia/Makassar', label: 'Asia/Makassar (WITA)' },

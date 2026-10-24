@@ -26,6 +26,7 @@ export default function DeleteProductModal({
                 Apakah Anda yakin ingin menghapus {deleteTarget.type === 'product' ? 'produk' : 'kategori'}{' '}
                 <span className="font-bold text-slate-900 dark:text-white">"{deleteTarget.name}"</span>? Perubahan ini tidak dapat dibatalkan.
             </p>
+            {deleteTarget.type === 'category' && <p className="text-xs font-semibold text-red-700 dark:text-red-300">Seluruh subkategori, produk, mapping, dan foto di dalam kategori ini ikut dihapus permanen. Riwayat nota dan mutasi stok tetap tersimpan.</p>}
             <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
                 <AdminButton
                     type="button"
