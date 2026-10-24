@@ -105,6 +105,26 @@ class BusinessIsolationTest extends TestCase
         $this->assertDatabaseHas('suppliers', ['id' => $supplier->id]);
     }
 
+    public function test_manage_types_listing_is_scoped_to_the_authenticated_business(): void
+    {
+        $typeA = DataType::create(['kind' => 'reference', 'key' => 'legacy-owner-only', 'name' => 'Referensi Owner Lama', 'fields' => []]);
+        $typeB = $this->inB(fn () => DataType::create([
+            'kind' => 'reference', 'key' => 'new-owner-only', 'name' => 'Referensi Owner Baru', 'fields' => [],
+        ]));
+
+        $this->actingAs($this->ownerA)->get('/data-types?kind=reference')->assertOk()->assertInertia(fn ($page) => $page
+            ->where('types', fn ($types) => collect($types)->contains('id', $typeA->id)
+                && ! collect($types)->contains('id', $typeB->id))
+            ->where('reference_modules', fn ($modules) => collect($modules)->contains('key', 'legacy-owner-only')
+                && ! collect($modules)->contains('key', 'new-owner-only')));
+
+        $this->actingAs($this->ownerB)->get('/data-types?kind=reference')->assertOk()->assertInertia(fn ($page) => $page
+            ->where('types', fn ($types) => collect($types)->contains('id', $typeB->id)
+                && ! collect($types)->contains('id', $typeA->id))
+            ->where('reference_modules', fn ($modules) => collect($modules)->contains('key', 'new-owner-only')
+                && ! collect($modules)->contains('key', 'legacy-owner-only')));
+    }
+
     public function test_foreign_ids_are_rejected_before_product_inventory_and_order_writes(): void
     {
         $this->actingAs($this->ownerA)->postJson('/api/products', ['category_id' => $this->categoryB->id, 'sku' => 'NEW', 'name' => 'Injected', 'price' => 1000, 'stock' => 1])->assertUnprocessable()->assertJsonValidationErrors('category_id');

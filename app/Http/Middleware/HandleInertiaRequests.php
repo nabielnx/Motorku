@@ -44,8 +44,8 @@ class HandleInertiaRequests extends Middleware
             'google_login_enabled' => app(GoogleLoginService::class)->enabled(),
             'business' => $business ? ['id' => $business->id, 'name' => $business->name, 'slug' => $business->slug, 'public_url' => $business->publicUrl()] : null,
             'shop_slug' => $request->attributes->get('shop_slug'),
-            'catalog_groups' => fn () => DataType::productGroups(),
-            'reference_modules' => fn () => $user?->hasRole('owner') ? DataType::referenceModules() : [],
+            'catalog_groups' => fn () => DataType::productGroups($user?->business_id ?? $business?->id),
+            'reference_modules' => fn () => $user?->hasRole('owner') ? DataType::referenceModules($user->business_id) : [],
 
             'auth' => [
                 'user' => $user ? [

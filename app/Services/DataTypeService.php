@@ -13,12 +13,14 @@ use Illuminate\Validation\ValidationException;
 
 class DataTypeService
 {
-    public function listing(): array
+    public function listing(string $businessId): array
     {
-        $categoryCounts = Category::selectRaw('catalog_group, COUNT(*) as total')->groupBy('catalog_group')->pluck('total', 'catalog_group');
-        $motorcycleCount = Motorcycle::count();
+        $categoryCounts = Category::where('business_id', $businessId)->selectRaw('catalog_group, COUNT(*) as total')->groupBy('catalog_group')->pluck('total', 'catalog_group');
+        $motorcycleCount = Motorcycle::where('business_id', $businessId)->count();
 
-        return DataType::withCount('entries')->orderBy('created_at')->orderBy('name')->get()->map(fn ($type) => [
+        return DataType::where('business_id', $businessId)->withCount([
+            'entries' => fn ($query) => $query->where('business_id', $businessId),
+        ])->orderBy('created_at')->orderBy('name')->get()->map(fn ($type) => [
             ...$type->toArray(), 'categories_count' => (int) ($categoryCounts[$type->key] ?? 0),
             'records_count' => $type->driver === 'motorcycles' ? $motorcycleCount : $type->entries_count,
         ])->all();
