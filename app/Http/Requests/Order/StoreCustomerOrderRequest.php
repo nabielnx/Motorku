@@ -32,6 +32,8 @@ class StoreCustomerOrderRequest extends FormRequest
             'request_id' => ['sometimes', 'uuid'],
             'customer_name' => ['required', 'string', 'min:2', 'max:255'],
             'notes' => ['nullable', 'string', 'max:500'],
+            'payment_preference' => ['sometimes', 'in:kasir,qris'],
+            'expected_total' => ['sometimes', 'numeric', 'min:0'],
 
             'items' => ['required', 'array', 'min:1', 'max:20'],
             'items.*.product_id' => ['required', BusinessRule::exists('products', 'id')],

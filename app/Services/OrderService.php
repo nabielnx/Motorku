@@ -168,6 +168,9 @@ class OrderService
                     'status' => $order->order_status,
                     'payment_status' => $order->payment_status,
                     'payment_method' => $payment?->payment_method,
+                    'payment_preference' => $order->payment_preference,
+                    'payment_review_requested_at' => $order->payment_review_requested_at?->toIso8601String(),
+                    'payment_reference' => $order->payment_reference,
                     'returned_amount' => (float) ($order->returns_sum_amount ?? 0),
                     'paid_at' => $paidPayment?->paid_at?->toIso8601String(),
                     'created_at' => $order->created_at?->toIso8601String(),
@@ -263,6 +266,12 @@ class OrderService
 
             $discountAmount = (float) ($data['discount_amount'] ?? 0);
             ['tax_amount' => $taxAmount, 'total' => $total] = $this->pricing->totals($subtotal, $discountAmount);
+            if ($isPublicOrder && array_key_exists('expected_total', $data) && abs((float) $data['expected_total'] - $total) > 0.001) {
+                throw ValidationException::withMessages(['expected_total' => 'Harga atau pajak berubah. Periksa kembali keranjang sebelum membuat pesanan.']);
+            }
+            if ($isPublicOrder && ($data['payment_preference'] ?? 'kasir') === 'qris') {
+                app(CustomerOrderService::class)->assertQrisAvailable($total);
+            }
             $orderNumber = $this->nextOrderNumber();
 
             $order = Order::create([
@@ -271,6 +280,7 @@ class OrderService
                 'customer_name' => $data['customer_name'] ?? null,
                 'customer_access_token' => $isPublicOrder ? Str::random(64) : null,
                 'notes' => $data['notes'] ?? null,
+                'payment_preference' => $isPublicOrder ? ($data['payment_preference'] ?? 'kasir') : null,
                 'subtotal' => $subtotal,
                 'discount_amount' => $discountAmount,
                 'tax_amount' => $taxAmount,
@@ -332,7 +342,7 @@ class OrderService
                 return;
             }
 
-            if ($order->payment_status !== PaymentStatus::Unpaid
+            if ($order->payment_review_requested_at || $order->payment_status !== PaymentStatus::Unpaid
                 || ! in_array($order->order_status, [OrderStatus::Pending, OrderStatus::Cancelled], true)) {
                 throw ValidationException::withMessages(['order' => 'Transaksi yang sudah dibayar tidak dapat dihapus.']);
             }
@@ -363,6 +373,9 @@ class OrderService
                     abort(403, 'Hanya owner yang dapat membatalkan pesanan.');
                 }
 
+                if ($order->payment_review_requested_at) {
+                    throw ValidationException::withMessages(['order_status' => 'Periksa laporan pembayaran sebelum membatalkan pesanan.']);
+                }
                 if ($order->payment_status === PaymentStatus::Paid) {
                     throw ValidationException::withMessages([
                         'order_status' => 'Pesanan yang sudah dibayar tidak dapat dibatalkan.',
@@ -399,6 +412,9 @@ class OrderService
 
             // Convert enum to string for the update array
             $updateData = $data;
+            if ($nextStatus === OrderStatus::Cancelled) {
+                $updateData['cancel_reason'] = 'store';
+            }
             if (isset($updateData['order_status']) && $updateData['order_status'] instanceof OrderStatus) {
                 $updateData['order_status'] = $updateData['order_status']->value;
             }

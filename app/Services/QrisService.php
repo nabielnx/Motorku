@@ -117,7 +117,7 @@ class QrisService
         $order = Order::whereKey($orderId)->first();
         abort_unless($order && $order->customer_access_token && hash_equals($order->customer_access_token, $customerToken), 401, 'Pesanan atau token tidak valid.');
 
-        if ($order->payment_status !== PaymentStatus::Unpaid
+        if ($order->payment_review_requested_at || $order->payment_status !== PaymentStatus::Unpaid
             || in_array($order->order_status, [OrderStatus::Cancelled, OrderStatus::Completed], true)
             || $order->expires_at?->isPast()) {
             throw ValidationException::withMessages(['order' => 'Pesanan ini tidak dapat dibayar dengan QRIS. Periksa status pesanan atau hubungi toko.']);

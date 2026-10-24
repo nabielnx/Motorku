@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('payments')->name('api.payments.')->group(function () {
     Route::post('/qris/quote', [QrisController::class, 'quote'])->middleware('throttle:60,1')->name('qris.quote');
+    Route::post('/order/{orderId}/reject-review', [PaymentController::class, 'rejectReview'])->whereUuid('orderId')->name('reject-review');
     Route::get('/', [PaymentController::class, 'index'])->name('index');
     Route::get('/{id}', [PaymentController::class, 'show'])->name('show');
     Route::post('/', [PaymentController::class, 'store'])->name('store');

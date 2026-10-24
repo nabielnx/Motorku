@@ -5,13 +5,13 @@ import { FiDownload, FiRefreshCw } from 'react-icons/fi';
 import { customerOrderQris } from '@/Api/customerOrders';
 import { qrisErrorMessage, renderQrisImage } from '@/Utils/qris';
 
-export default function CustomerQrisPayment({ order, initiallyOpen = false }) {
+export default function CustomerQrisPayment({ order, initiallyOpen = false, children, compact = false }) {
     const enabled = usePage().props.app_settings?.customer_qris_enabled === true;
     const [open, setOpen] = useState(initiallyOpen);
     const [attempt, setAttempt] = useState(0);
     const [result, setResult] = useState(null);
     const [expired, setExpired] = useState(false);
-    const available = enabled && order?.order_id && order?.customer_token
+    const available = enabled && !order?.payment_review_requested_at && order?.connection === 'fresh' && order?.order_id && order?.customer_token
         && ['unpaid', 'pending', undefined].includes(order.payment_status)
         && !['cancelled', 'completed'].includes(order.order_status);
     const key = JSON.stringify([order?.order_id, order?.total, attempt]);
@@ -53,8 +53,8 @@ export default function CustomerQrisPayment({ order, initiallyOpen = false }) {
     const loading = !current || current.loading;
 
     return (
-        <section aria-label="Pembayaran QRIS" className="w-full rounded-lg border border-slate-200 bg-white p-4 text-center">
-            <h2 className="flex items-center justify-center gap-2 text-sm font-bold text-slate-900"><RiQrCodeLine size={20} aria-hidden="true" />Bayar dengan QRIS</h2>
+        <section aria-label="Pembayaran QRIS" className={compact ? 'order-compact-qris' : 'w-full rounded-lg border border-slate-200 bg-white p-4 text-center'}>
+            {!compact && <h2 className="flex items-center justify-center gap-2 text-sm font-bold text-slate-900"><RiQrCodeLine size={20} aria-hidden="true" />Bayar dengan QRIS</h2>}
             {expired ? <p role="status" className="mt-3 text-xs text-red-600">Pesanan sudah kedaluwarsa. Periksa status pesanan atau hubungi toko sebelum membayar.</p>
                 : loading ? <p role="status" className="py-12 text-xs text-slate-500">Menyiapkan QRIS pesanan…</p>
                 : current.error ? <p role="alert" className="mt-3 text-xs text-red-600">{current.error}</p>
@@ -67,7 +67,8 @@ export default function CustomerQrisPayment({ order, initiallyOpen = false }) {
                     <a href={current.imageUrl} download={`QRIS-${order.order_number || 'pesanan'}.png`} className="mt-3 inline-flex min-h-10 items-center gap-2 text-xs font-semibold text-slate-900 underline underline-offset-4"><FiDownload size={15} aria-hidden="true" />Simpan QRIS</a>
                 </>}
             {!expired && !loading && <button type="button" onClick={() => setAttempt(value => value + 1)} className="mx-auto mt-2 flex min-h-10 items-center gap-2 text-xs font-semibold text-slate-600"><FiRefreshCw size={14} aria-hidden="true" />Muat ulang QRIS</button>}
-            <p className="mt-3 border-t border-slate-200 pt-3 text-xs leading-relaxed text-slate-500">Pembayaran diverifikasi oleh kasir. Jika sudah membayar, jangan batalkan pesanan; hubungi toko bila belum dikonfirmasi.</p>
+            {children}
+            {!compact && <p className="mt-3 border-t border-slate-200 pt-3 text-xs leading-relaxed text-slate-500">Setelah transfer berhasil, kirim konfirmasi agar kasir memeriksa pembayaran Anda.</p>}
         </section>
     );
 }

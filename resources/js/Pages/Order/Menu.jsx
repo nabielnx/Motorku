@@ -1,3 +1,4 @@
+import { readCustomerOrders } from '@/Utils/customerOrderStore';
 import useStorefront from '@/Hooks/useStorefront';
 import CustomerProductCard from '@/Components/Customer/CustomerProductCard';
 import ProgressiveProducts from '@/Components/Customer/ProgressiveProducts';
@@ -18,7 +19,7 @@ import { customerCartTotals, loadCustomerCatalog, reconcileCustomerCart } from '
 
 const CART_KEY = 'motorku_cart';
 const ORDER_KEY = 'motorku_pending_order';
-const HISTORY_KEY = 'motorku_orders_history';
+
 
 function loadCart(storage) {
     try {
@@ -208,8 +209,7 @@ export default function CustomerMenu({
                 }
             }
             storage.removeItem('motorku_active_motorcycle');
-            const rawHistory = storage.getItem(HISTORY_KEY);
-            const history = rawHistory ? JSON.parse(rawHistory) : [];
+            const history = readCustomerOrders(storage);
             if (Array.isArray(history) && history.length > 0) {
                 const activeOrders = history.filter(o => ['pending', 'preparing', 'ready'].includes(o.order_status));
                 setHasAnyOrders(activeOrders.length > 0);

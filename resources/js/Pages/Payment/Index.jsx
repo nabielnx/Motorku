@@ -1,293 +1,88 @@
-import useStorefront from '@/Hooks/useStorefront';
-import '../../../css/customer-storefront.css';
-import { createCustomerOrder } from '@/Api/customerOrders';
-import { useState, useEffect, useRef } from 'react';
-import { Head, Link, router, usePage } from '@inertiajs/react';
+import { useEffect, useRef, useState } from 'react';
+import { Link, router, usePage } from '@inertiajs/react';
+import { z } from 'zod';
+import { FiArrowRight, FiShoppingBag, FiCreditCard, FiMapPin } from 'react-icons/fi';
 import { RiQrCodeLine } from 'react-icons/ri';
+import useStorefront from '@/Hooks/useStorefront';
+import { createCustomerOrder } from '@/Api/customerOrders';
+import { CHECKOUT_ATTEMPT as ATTEMPT, CHECKOUT_DRAFT as DRAFT, prepareCustomerCheckout, finishCustomerCheckout } from '@/Utils/customerCheckout';
+import { OrderWorkspace, OrderItems, OrderTotals, PickupDetails } from '@/Components/Customer/OrderWorkspace';
 
-import { checkoutRequestId } from '@/Utils/checkout';
-import useForceLightTheme from '@/Utils/useForceLightTheme';
-import PaymentSkeleton from '@/Components/Skeletons/PaymentSkeleton';
-import { FiArrowLeft, FiCheck, FiShoppingBag, FiUser, FiAlertCircle, FiDollarSign, FiTrash2 } from 'react-icons/fi';
-
-const ORDER_KEY = 'motorku_pending_order';
-const CART_KEY = 'motorku_cart';
-const PAYMENT_KEY = 'motorku_order_for_payment';
-const CURRENT_ORDER_KEY = 'motorku_current_order';
-const HISTORY_KEY = 'motorku_orders_history';
+const schema = z.object({ customer_name: z.string().trim().min(2, 'Isi nama pemesan minimal 2 karakter.').max(255), payment_preference: z.enum(['kasir', 'qris']) });
+const parse = raw => { try { return JSON.parse(raw); } catch { return null; } };
 
 export default function Payment() {
     const { storage, storeUrl } = useStorefront();
-    useForceLightTheme();
-    const [loaded, setLoaded] = useState(false);
-    const [orderData, setOrderData] = useState(null);
-    const [customerName, setCustomerName] = useState('');
-    const [paymentMethod, setPaymentMethod] = useState('kasir');
     const qrisEnabled = usePage().props.app_settings?.customer_qris_enabled === true;
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [error, setError] = useState(null);
-    const submittedRef = useRef(false);
-    const customerNameInputRef = useRef(null);
-
-    const handleClearAndReturn = () => {
-        storage.removeItem(ORDER_KEY);
-        storage.removeItem(CART_KEY);
-        storage.removeItem('motorku_cart_time');
-        router.visit(storeUrl('/'));
-    };
-
+    const [data, setData] = useState(null);
+    const [loaded, setLoaded] = useState(false);
+    const [name, setName] = useState('');
+    const [method, setMethod] = useState('kasir');
+    const [attempt, setAttempt] = useState(null);
+    const [busy, setBusy] = useState(false);
+    const [error, setError] = useState('');
+    const [changed, setChanged] = useState(false);
+    const submitting = useRef(false);
+    const nameRef = useRef(null);
     useEffect(() => {
         try {
-            const raw = storage.getItem(ORDER_KEY);
-            if (!raw) {
-                router.visit(storeUrl('/'));
-                return;
-            }
-            const data = JSON.parse(raw);
-            if (!data || !data.cart || data.cart.length === 0) {
-                handleClearAndReturn();
-                return;
-            }
-            setOrderData(data);
-        } catch {
-            handleClearAndReturn();
-        } finally { setLoaded(true); }
-    }, []);
-
-    const formatRp = (val) => `Rp ${val.toLocaleString('id-ID')}`;
-
-    if (loaded && !orderData) return <div className="p-6 text-center">Data pesanan tidak tersedia. <Link href={storeUrl('/')} className="text-stone-700 underline">Kembali ke katalog</Link></div>;
-
-    if (!orderData) {
-        return <PaymentSkeleton qrisEnabled={qrisEnabled} />;
-    }
-
-    const handleSubmitOrder = async () => {
-        if (isSubmitting || submittedRef.current) return;
-        setError(null);
-        if (!customerName.trim()) {
-            setError('Harap isi nama pemesan terlebih dahulu!');
-            customerNameInputRef.current?.focus();
-            customerNameInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            return;
-        }
-        setIsSubmitting(true);
-
-        const payload = {
-            customer_name: customerName,
-            notes: `Pre-order Web | Pembayaran: ${paymentMethod === 'qris' ? 'QRIS' : 'Bayar di Kasir'}`,
-            items: orderData.cart.map(i => ({
-                product_id: i.id,
-                quantity: i.qty,
-                notes: i.notes || null
-            }))
-        };
-
+            const pending = parse(storage.getItem(ATTEMPT));
+            const draft = parse(storage.getItem(DRAFT));
+            setData(pending?.display || parse(storage.getItem('motorku_pending_order')));
+            setAttempt(pending?.payload ? pending : null);
+            setName(pending?.payload?.customer_name || draft?.name || '');
+            setMethod(pending?.payload?.payment_preference || draft?.method || 'kasir');
+        } catch { setError('Penyimpanan browser tidak tersedia. Aktifkan penyimpanan untuk membuat pesanan.'); }
+        setLoaded(true);
+    }, [storage]);
+    useEffect(() => {
+        if (loaded && !attempt) { try { storage.setItem(DRAFT, JSON.stringify({ name, method })); } catch { /* Submission checks persistence before creating an order. */ } }
+    }, [name, method, loaded, attempt, storage]);
+    const submit = async event => {
+        event.preventDefault();
+        if (submitting.current || changed) return;
+        setError('');
+        const validated = schema.safeParse({ customer_name: name, payment_preference: method });
+        if (!validated.success) { setError(validated.error.issues[0].message); nameRef.current?.focus(); return; }
+        submitting.current = true; setBusy(true);
+        let request = attempt;
         try {
-            const requestId = checkoutRequestId(storage, 'customer_checkout', payload);
-            const order = await createCustomerOrder({ ...payload, request_id: requestId });
-            if (!order?.id || !order?.customer_token) throw new Error('Respons pesanan tidak lengkap.');
-            submittedRef.current = true;
-            storage.removeItem('customer_checkout');
-
-            storage.removeItem(ORDER_KEY);
-            storage.removeItem(CART_KEY);
-            storage.removeItem('motorku_cart_time');
-
-            const paymentData = {
-                order_id: order.id,
-                order_number: order.order_number,
-                customer_token: order.customer_token,
-                total: order.total,
-                subtotal: order.subtotal,
-                tax_amount: order.tax_amount,
-                pickup_label: 'Ambil di Toko',
-                customer_name: customerName,
-                payment_method: paymentMethod,
-                payment_status: order.payment_status,
-                expires_at: order.expires_at,
-                order_status: order.order_status,
-                created_at: order.created_at,
-                items: order.items,
-            };
-
-            storage.setItem(PAYMENT_KEY, JSON.stringify(paymentData));
-            storage.setItem(CURRENT_ORDER_KEY, JSON.stringify(paymentData));
-
-            // Append to order history list in storage
-            try {
-                const rawHistory = storage.getItem(HISTORY_KEY);
-                let history = rawHistory ? JSON.parse(rawHistory) : [];
-                if (!Array.isArray(history)) history = [];
-                // Prevent duplicate order_id
-                history = history.filter(o => o.order_id !== order.id);
-                history.push(paymentData);
-                storage.setItem(HISTORY_KEY, JSON.stringify(history));
-            } catch {}
-
-            router.visit(storeUrl('/order/waiting'));
-        } catch (err) {
-            setError(submittedRef.current ? 'Pesanan sudah dibuat, tetapi penyimpanan browser gagal. Jangan kirim ulang; hubungi kasir untuk memeriksa pesanan.' : (err.response?.data?.message || 'Terjadi kesalahan saat memproses pesanan.'));
-        } finally {
-            setIsSubmitting(false);
-        }
+            if (!request) {
+                request = prepareCustomerCheckout(storage, data, validated.data);
+                setAttempt(request);
+            }
+            const order = await createCustomerOrder(request.payload);
+            const saved = finishCustomerCheckout(storage, order);
+            router.visit(storeUrl(`/order/waiting?order=${encodeURIComponent(order.id)}${saved.persisted ? '' : '&receipt=temporary'}`));
+        } catch (error) {
+            const status = error.response?.status;
+            if ([400, 403, 422].includes(status)) {
+                try { storage.removeItem(ATTEMPT); setAttempt(null); } catch { /* Keep the exact previous attempt if removal fails. */ }
+                if (error.response?.data?.errors?.expected_total || error.response?.data?.errors?.items) setChanged(true);
+            }
+            const retry = error.response?.headers?.['retry-after'];
+            setError(status === 429 ? `Terlalu banyak percobaan. Tunggu ${retry || 60} detik, lalu coba lagi.` : error.response?.data?.message || error.message || 'Koneksi terputus. Coba lagi untuk memeriksa pesanan yang sama.');
+        } finally { submitting.current = false; setBusy(false); }
     };
-
-    return (
-        <div className="customer-storefront customer-flow h-full w-full bg-slate-100 font-sans text-slate-800 flex justify-center overflow-y-auto">
-            <Head title="Konfirmasi Pembayaran - Toko Sparepart">
-                <meta name="description" content="Selesaikan pesanan dan pilih pembayaran di kasir atau QRIS toko." />
-            </Head>
-
-            <div className="customer-frame w-full max-w-md bg-white min-h-full shadow-2xl flex flex-col pb-24">
-                {/* HEADER */}
-                <header className="sticky top-0 bg-white border-b border-slate-100 p-4 flex items-center justify-between z-10">
-                    <Link href={storeUrl('/')} aria-label="Kembali ke katalog" className="text-slate-600 hover:text-slate-800 p-1">
-                        <FiArrowLeft size={20} />
-                    </Link>
-                    <h1 className="font-black text-slate-900 text-sm">Pembayaran</h1>
-                </header>
-
-                {/* CONTENT */}
-                <div className="flex-1 p-4 space-y-4">
-
-                    {/* ORDER INFO */}
-                    <div className="bg-stone-50 border border-stone-200 rounded-lg p-4 space-y-2">
-                        <div className="flex items-center gap-2 text-xs text-stone-800">
-                            <FiShoppingBag size={14} />
-                            <span className="font-bold">Ambil di Toko</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-xs text-stone-800">
-                            <FiShoppingBag size={14} />
-                            <span>{orderData.cart.length} item</span>
-                        </div>
-                    </div>
-
-                    {/* ORDER ITEMS */}
-                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-3">
-                        <div className="flex items-center justify-between border-b border-slate-200 pb-2">
-                            <h3 className="text-xs font-bold text-slate-800">Ringkasan Pesanan</h3>
-                            <div className="flex items-center gap-3">
-                                <span className="text-[10px] text-slate-500 font-semibold">{orderData.cart.length} Item</span>
-                                <button
-                                    type="button"
-                                    onClick={handleClearAndReturn}
-                                    className="text-[11px] text-red-500 hover:text-red-700 font-bold flex items-center gap-1 transition-colors cursor-pointer"
-                                    title="Kosongkan keranjang"
-                                >
-                                    <FiTrash2 size={12} />
-                                    <span>Kosongkan</span>
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Table Header */}
-                        <div className="grid grid-cols-12 gap-2 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider border-b border-slate-200 pb-1.5 px-0.5">
-                            <span className="col-span-6">Nama Produk</span>
-                            <span className="col-span-2 text-center">Qty</span>
-                            <span className="col-span-4 text-right">Subtotal</span>
-                        </div>
-
-                        {/* Items Row */}
-                        <div className="space-y-2">
-                            {orderData.cart.map((item) => (
-                                <div key={item.cartItemId} className="grid grid-cols-12 gap-2 items-center text-xs px-0.5 py-0.5 border-b border-slate-100 last:border-0 pb-1.5 last:pb-0">
-                                    <div className="col-span-6 min-w-0 pr-1">
-                                        <p className="font-bold text-slate-800 leading-snug">{item.name}</p>
-                                        {item.notes && <p className="text-[10px] text-stone-600 truncate">{item.notes}</p>}
-                                    </div>
-                                    <div className="col-span-2 flex justify-center">
-                                        <span className="text-[11px] font-black text-slate-800 bg-slate-200 border border-slate-300 px-2 py-0.5 rounded text-center">
-                                            x{item.qty}
-                                        </span>
-                                    </div>
-                                    <span className="col-span-4 font-bold text-slate-700 text-right">
-                                        {formatRp(item.price * item.qty)}
-                                    </span>
-                                </div>
-                            ))}
-                        </div>
-                        <div className="border-t border-slate-200 pt-2 space-y-1">
-                            <div className="flex justify-between text-xs text-slate-500">
-                                <span>Subtotal</span><span>{formatRp(orderData.subtotal)}</span>
-                            </div>
-                            <div className="flex justify-between text-xs text-slate-500">
-                                <span>Pajak</span><span>{formatRp(orderData.tax)}</span>
-                            </div>
-                            <div className="flex justify-between font-black text-sm text-slate-900 pt-1 border-t border-slate-200">
-                                <span>Total Bayar</span>
-                                <span className="text-stone-600">{formatRp(orderData.total)}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* CUSTOMER NAME */}
-                    <div className="space-y-2">
-                        <label htmlFor="customer-name" className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                            <FiUser size={14} /> Nama Pemesan
-                        </label>
-                        <input
-                            id="customer-name"
-                            ref={customerNameInputRef}
-                            type="text"
-                            placeholder="Masukkan nama Anda..."
-                            value={customerName}
-                            onChange={(e) => { setCustomerName(e.target.value); if (error) setError(null); }}
-                            className={`w-full bg-slate-50 border rounded-xl px-4 py-3 text-xs font-bold text-slate-800 focus:ring-2 focus:ring-stone-500 focus:outline-none transition-colors ${
-                                error && !customerName.trim() ? 'border-red-400 bg-red-50' : 'border-slate-200'
-                            }`}
-                        />
-                    </div>
-
-                    <fieldset className="space-y-2" disabled={isSubmitting}>
-                        <legend className="mb-2 text-xs font-bold text-slate-800">Metode Pembayaran</legend>
-                        {[
-                            { value: 'kasir', title: 'Bayar di Kasir', description: 'Tunjukkan nomor pesanan saat datang ke toko.', Icon: FiDollarSign },
-                            ...(qrisEnabled ? [{ value: 'qris', title: 'QRIS', description: 'Scan QRIS setelah pesanan dibuat. Pembayaran diverifikasi kasir.', Icon: RiQrCodeLine }] : []),
-                        ].map(({ value, title, description, Icon }) => (
-                            <label key={value} className={`flex cursor-pointer items-center gap-3 rounded-lg border p-4 ${paymentMethod === value ? 'border-[#19231f] bg-stone-50' : 'border-slate-200 bg-white'}`}>
-                                <input type="radio" name="payment_method" value={value} checked={paymentMethod === value} onChange={() => setPaymentMethod(value)} className="h-4 w-4 shrink-0 text-[#19231f] focus:ring-[#19231f]" />
-                                <Icon size={20} className="shrink-0" aria-hidden="true" />
-                                <span>
-                                    <span className="block text-xs font-bold text-slate-900">{title}</span>
-                                    <span className="mt-1 block text-xs leading-relaxed text-slate-500">{description}</span>
-                                </span>
-                            </label>
-                        ))}
-                    </fieldset>
-                </div>
-
-                {/* SUBMIT */}
-                <div className="p-4 border-t border-slate-100 bg-white space-y-2">
-                    {error && (
-                        <div className="space-y-2">
-                            <div className="flex items-start gap-2 text-xs text-red-600 bg-red-50 p-3 rounded-xl border border-red-100">
-                                <FiAlertCircle size={15} className="shrink-0 mt-0.5" />
-                                <div className="flex-1">
-                                    <p className="font-semibold">{error}</p>
-                                    <p className="text-[11px] text-red-500 mt-0.5">Produk di keranjang mungkin sudah tidak tersedia atau data lama tersimpan di browser.</p>
-                                </div>
-                            </div>
-                            <button
-                                type="button"
-                                onClick={handleClearAndReturn}
-                                className="w-full py-2.5 px-4 bg-red-50 hover:bg-red-100 text-red-700 font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-2 border border-red-200 cursor-pointer"
-                            >
-                                <FiTrash2 size={14} />
-                                <span>Kosongkan Keranjang & Belanja Ulang</span>
-                            </button>
-                        </div>
-                    )}
-                    <button
-                        onClick={handleSubmitOrder}
-                        disabled={isSubmitting}
-                        className="store-primary w-full py-3 bg-[#FFDD00] hover:bg-[#FFE838] disabled:bg-slate-300 disabled:cursor-not-allowed text-[#19231f] font-bold rounded-lg text-sm transition-colors flex items-center justify-center gap-2 cursor-pointer"
-                    >
-                        <FiCheck size={16} />
-                        {isSubmitting ? 'Mengirim Pesanan...' : paymentMethod === 'qris' ? 'Buat Pesanan & Tampilkan QRIS' : 'Kirim Pesanan'}
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
+    return <OrderWorkspace title="Checkout">
+        <div className="order-page-title"><div><span className="order-eyebrow">Selesaikan pesanan</span><h1>Checkout</h1><p>Periksa barang dan pilih cara pembayaran.</p></div></div>
+        {!loaded ? <section className="order-panel" role="status">Memuat keranjang…</section> : !data?.cart?.length ? <section className="order-panel order-empty"><FiShoppingBag size={36} /><h2>Keranjang belum tersedia</h2><p>{error || 'Pilih sparepart yang Anda butuhkan terlebih dahulu.'}</p><Link className="order-button order-button-primary" href={storeUrl('/')}>Mulai belanja</Link></section> : <div className="order-grid order-grid-checkout">
+            <div className="order-stack"><section className="order-panel"><div className="order-section-title"><h2>Barang pesanan</h2><small>{data.cart.reduce((sum, item) => sum + item.qty, 0)} barang</small></div><OrderItems items={data.cart} draft />
+                {!attempt && <Link className="order-text-button" href={storeUrl('/')} style={{ marginTop: 16 }}>Ubah keranjang<FiArrowRight size={15} /></Link>}
+            </section><PickupDetails /></div>
+            <form onSubmit={submit} className="order-panel order-checkout-form">
+                <h2 style={{ marginBottom: 20 }}>Detail pemesan</h2>
+                <label htmlFor="customer-name">Nama pemesan<input ref={nameRef} id="customer-name" type="text" autoComplete="name" maxLength={255} value={name} onChange={event => setName(event.target.value)} disabled={busy || Boolean(attempt)} required aria-describedby="customer-name-help" /></label>
+                <span id="customer-name-help" className="order-field-help">Nama ini digunakan saat mengambil pesanan.</span>
+                <fieldset disabled={busy || Boolean(attempt)}><legend>Metode pembayaran</legend>
+                    {[{ value: 'kasir', title: 'Bayar di kasir', help: 'Bayar saat datang ke toko.', Icon: FiCreditCard }, ...(qrisEnabled || method === 'qris' ? [{ value: 'qris', title: 'QRIS', help: 'Scan QRIS setelah pesanan dibuat.', Icon: RiQrCodeLine }] : [])].map(({ value, title, help, Icon }) => <label className="order-payment-option" key={value}><input type="radio" name="payment" value={value} checked={method === value} onChange={() => setMethod(value)} /><Icon size={21} aria-hidden="true" /><span><strong>{title}</strong><small>{help}</small></span></label>)}
+                </fieldset>
+                <OrderTotals order={data} />
+                {attempt && !busy && <div className="order-notice" style={{ marginTop: 16 }} role="status">Pengiriman sebelumnya belum terkonfirmasi. Coba lagi untuk memeriksa pesanan yang sama; rincian dikunci agar tidak membuat pesanan ganda.</div>}
+                {error && <div className="order-notice order-error" style={{ marginTop: 16 }} role="alert">{error}</div>}
+                {changed ? <Link className="order-button order-button-primary" href={storeUrl('/')}>Perbarui keranjang<FiArrowRight size={16} /></Link> : <button type="submit" className="order-button order-button-primary" disabled={busy}>{busy ? 'Memproses pesanan…' : attempt ? 'Periksa & lanjutkan pesanan' : method === 'qris' ? 'Buat pesanan & bayar QRIS' : 'Buat pesanan'}<FiArrowRight size={16} /></button>}
+                <p className="order-checkout-footnote"><FiMapPin size={12} style={{ display: 'inline', marginRight: 3 }} />Pengambilan di toko. Belum ada pembayaran yang ditarik.</p>
+            </form>
+        </div>}
+    </OrderWorkspace>;
 }

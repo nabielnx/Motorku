@@ -32,7 +32,10 @@ class PaymentService
                 ]);
             }
 
-            if ($method === 'qris_manual' && (
+            if ($order->payment_review_requested_at && $method !== 'qris_manual') {
+                throw ValidationException::withMessages(['payment_method' => 'Periksa laporan QRIS terlebih dahulu sebelum menerima pembayaran lain.']);
+            }
+            if ($method === 'qris_manual' && ! $order->payment_review_requested_at && (
                 Setting::where('group', 'payment')->where('key', 'qris_enabled')->value('value') === 'false'
                 || blank(Setting::where('group', 'store')->where('key', 'qris_image')->value('value'))
             )) {
@@ -183,6 +186,9 @@ class PaymentService
     {
         $order->update([
             'payment_status' => PaymentStatus::Paid,
+            'payment_review_requested_at' => null,
+            'payment_review_note' => null,
+            'expires_at' => null,
             'order_status' => $order->customer_access_token && $order->order_status === OrderStatus::Pending
                 ? OrderStatus::Preparing
                 : $order->order_status,

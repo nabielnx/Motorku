@@ -140,7 +140,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 return response()->json([
                     'success' => false,
                     'message' => $message,
-                ], $statusCode);
+                ], $statusCode, $e instanceof HttpExceptionInterface ? $e->getHeaders() : []);
             }
         });
     })->create();
