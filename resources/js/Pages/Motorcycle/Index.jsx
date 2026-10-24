@@ -1,3 +1,4 @@
+import DeleteButton from '@/Components/Admin/DeleteButton';
 import Pagination from '@/Components/Pagination';
 import { fuzzyFilterProducts } from '@/Utils/fuzzySearch';
 import AdminButton from '@/Components/Admin/Button';
@@ -811,7 +812,7 @@ export default function MotorcycleIndex({
                                                         >
                                                             <FiEdit2 size={15} />
                                                         </button>
-                                                        <button
+                                                        <DeleteButton
                                                             type="button"
                                                             onClick={(e) => { e.stopPropagation(); handleDeleteMotor(m.id, `${m.brand} ${m.model}`); }}
                                                             className="p-1 text-red-500 hover:text-red-600 transition cursor-pointer admin-icon-button"
@@ -819,7 +820,7 @@ export default function MotorcycleIndex({
                                                             aria-label="Hapus Data Motor"
                                                         >
                                                             <FiTrash2 size={15} />
-                                                        </button>
+                                                        </DeleteButton>
                                                     </div>
 
                                                     {/* Expand / Collapse Button */}
@@ -1122,14 +1123,14 @@ export default function MotorcycleIndex({
                                                                         >
                                                                             <FiEdit2 size={14} />
                                                                         </button>
-                                                                        <button
+                                                                        <DeleteButton
                                                                             onClick={() => handleDetachPart(m.id, part.id, part.product?.name)}
                                                                             className="p-1 text-red-500 hover:text-red-600 transition cursor-pointer admin-icon-button"
                                                                             title="Hapus Mapping Part"
                                                                             aria-label="Hapus Mapping Part"
                                                                         >
                                                                             <FiTrash2 size={14} />
-                                                                        </button>
+                                                                        </DeleteButton>
                                                                     </div>
                                                                 </div>
                                                             );

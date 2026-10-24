@@ -1,3 +1,4 @@
+import DeleteButton from '@/Components/Admin/DeleteButton';
 import Pagination from '@/Components/Pagination';
 import React, { useEffect } from 'react';
 import { FiPlus, FiEdit2, FiTrash2 } from 'react-icons/fi';
@@ -136,7 +137,7 @@ export default function ProductBookView({
                             >
                                 <FiEdit2 size={14} />
                             </button>
-                            <button
+                            <DeleteButton
                                 type="button"
                                 onClick={() => onDeleteProduct?.(item)}
                                 title="Hapus"
@@ -144,7 +145,7 @@ export default function ProductBookView({
                                 className="flex h-8 w-8 items-center justify-center rounded text-slate-500 hover:bg-red-50 hover:text-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFDD00]"
                             >
                                 <FiTrash2 size={14} />
-                            </button>
+                            </DeleteButton>
                         </div>
                     )}
                 </div>

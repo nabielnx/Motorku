@@ -1,3 +1,4 @@
+import DeleteButton from '@/Components/Admin/DeleteButton';
 import AdminButton from '@/Components/Admin/Button';
 import AdminDialog, { DialogTitle } from '@/Components/Admin/Dialog';
 import { FiAlertTriangle } from 'react-icons/fi';
@@ -34,14 +35,14 @@ export default function DeleteProductModal({
                 >
                     Batal
                 </AdminButton>
-                <AdminButton
+                <DeleteButton as={AdminButton}
                     type="button"
                     onClick={executeDeleteTarget}
                     disabled={isLoading}
                     variant="danger"
                 >
                     {isLoading ? 'Menghapus...' : 'Ya, Hapus'}
-                </AdminButton>
+                </DeleteButton>
             </div>
         </AdminDialog>
     );

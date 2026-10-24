@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Models\DataType;
 use App\Models\Motorcycle;
 use App\Models\MotorcyclePart;
 use App\Models\Product;
@@ -92,10 +93,15 @@ class MotorcycleService
         while (Motorcycle::where('slug', $data['slug'])->exists()) {
             $data['slug'] = $baseSlug.'-'.++$counter;
         }
+        $persist = fn (array $attributes) => DB::transaction(function () use ($attributes) {
+            DataType::where('kind', 'reference')->where('driver', 'motorcycles')->lockForUpdate()->firstOrFail();
+
+            return Motorcycle::create($attributes);
+        });
         $motorcycle = $file
             ? app(ImageUploadService::class)->replace($file, 'motorcycles', null,
-                fn ($path) => Motorcycle::create([...$data, 'image_url' => '/storage/'.$path]))
-            : Motorcycle::create($data);
+                fn ($path) => $persist([...$data, 'image_url' => '/storage/'.$path]))
+            : $persist($data);
 
         return $motorcycle->loadCount('parts');
     }

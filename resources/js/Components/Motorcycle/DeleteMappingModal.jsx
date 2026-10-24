@@ -1,3 +1,4 @@
+import DeleteButton from '@/Components/Admin/DeleteButton';
 import AdminButton from '@/Components/Admin/Button';
 import AdminDialog, { DialogTitle } from '@/Components/Admin/Dialog';
 import { FiTrash2, FiRefreshCw } from 'react-icons/fi';
@@ -33,7 +34,7 @@ export default function DeleteMappingModal({
                 >
                     Batal
                 </AdminButton>
-                <AdminButton
+                <DeleteButton as={AdminButton}
                     type="button"
                     onClick={executeDeleteConfirm}
                     disabled={isDeleting}
@@ -47,7 +48,7 @@ export default function DeleteMappingModal({
                     ) : (
                         <span>Ya, Hapus</span>
                     )}
-                </AdminButton>
+                </DeleteButton>
             </div>
         </AdminDialog>
     );

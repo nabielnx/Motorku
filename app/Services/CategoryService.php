@@ -93,6 +93,9 @@ class CategoryService
 
                 // Remove subcategories removed from the list
                 $toDeleteIds = array_diff($existingChildIds, $submittedIds);
+                if ($toDeleteIds !== [] && ! app(DeletionControlService::class)->enabled()) {
+                    throw ValidationException::withMessages(['sub_categories' => DeletionControlService::MESSAGE]);
+                }
                 foreach ($toDeleteIds as $delId) {
                     $child = Category::find($delId);
                     if ($child) {

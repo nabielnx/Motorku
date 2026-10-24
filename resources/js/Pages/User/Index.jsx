@@ -1,3 +1,4 @@
+import DeleteButton from '@/Components/Admin/DeleteButton';
 import Pagination from '@/Components/Pagination';
 import AdminDialog, { DialogTitle } from '@/Components/Admin/Dialog';
 import AdminButton from '@/Components/Admin/Button';
@@ -341,7 +342,7 @@ export default function UserIndex({ initialUsers = {}, activeOwnersCount = 0, ma
                                                         <button onClick={() => resendInvitation(user)} disabled={loading} className="p-2 text-primary hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg disabled:opacity-40 admin-icon-button" title="Kirim ulang undangan" aria-label={`Kirim ulang undangan untuk ${user.name}`}><FiMail size={16} /></button>
                                                     )}
                                                     <button onClick={() => openEdit(user)} className="p-2 text-slate-500 hover:text-primaryDark dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg cursor-pointer admin-icon-button" title="Edit Staf" aria-label={`Edit staf ${user.name}`}><FiEdit2 size={16} /></button>
-                                                    <button 
+                                                    <DeleteButton
                                                         onClick={() => confirmDelete(user.id)} 
                                                         disabled={deleteDisabled}
                                                         className={`p-2 rounded-lg transition-colors cursor-pointer admin-icon-button ${deleteDisabled ? 'text-slate-200 dark:text-slate-700 cursor-not-allowed' : 'text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950'}`}
@@ -349,7 +350,7 @@ export default function UserIndex({ initialUsers = {}, activeOwnersCount = 0, ma
                                                         aria-label={`Hapus staf ${user.name}`}
                                                     >
                                                         <FiTrash2 size={16} />
-                                                    </button>
+                                                    </DeleteButton>
                                                 </div>
                                             </td>
                                         </tr>
@@ -456,9 +457,9 @@ export default function UserIndex({ initialUsers = {}, activeOwnersCount = 0, ma
                             <AdminButton disabled={loading} onClick={() => setModal(null)} variant="secondary" className="flex-1">
                                 Batal
                             </AdminButton>
-                            <AdminButton onClick={executeDelete} disabled={loading} variant="danger" className="flex-1">
+                            <DeleteButton as={AdminButton} onClick={executeDelete} disabled={loading} variant="danger" className="flex-1">
                                 {loading ? 'Menghapus...' : 'Ya, Hapus!'}
-                            </AdminButton>
+                            </DeleteButton>
                         </div>
                     </div>
                 </AdminDialog>

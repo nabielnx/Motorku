@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests\Setting;
 
 use Illuminate\Foundation\Http\FormRequest;
@@ -28,6 +30,7 @@ class SaveSettingsRequest extends FormRequest
         'promo_banner.enabled' => ['required', 'in:true,false'],
         'system.timezone' => ['required', 'in:Asia/Jakarta,Asia/Makassar,Asia/Jayapura'],
         'system.locale' => ['required', 'in:id,en'],
+        'system.deletion_enabled' => ['required', 'in:true,false'],
     ];
 
     public function authorize(): bool

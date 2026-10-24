@@ -65,6 +65,7 @@ class HandleInertiaRequests extends Middleware
             'login_image_url' => ! empty($s['store.login_image']) ? (str_starts_with($s['store.login_image'], 'http') ? $s['store.login_image'] : '/storage/'.ltrim($s['store.login_image'], '/')) : null,
 
             'app_settings' => [
+                'deletion_enabled' => ! array_key_exists('system.deletion_enabled', $s) || $s['system.deletion_enabled'] === 'true',
                 'cash_enabled' => ($s['payment.cash_enabled'] ?? 'true') !== 'false',
                 'timezone' => $timezone,
                 'locale' => $s['system.locale'] ?? 'id',

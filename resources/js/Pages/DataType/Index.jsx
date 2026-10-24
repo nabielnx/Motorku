@@ -1,3 +1,4 @@
+import DeleteButton from '@/Components/Admin/DeleteButton';
 import { useState } from 'react';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import axios from 'axios';
@@ -56,8 +57,8 @@ export default function DataTypeIndex({ types = [] }) {
             </nav>
             <p className="text-xs leading-5 text-slate-600">{kind === 'product' ? 'Jenis baru otomatis tersedia di menu Produk, kategori, dan pilihan impor/ekspor.' : 'Tentukan kolom untuk setiap jenis, lalu buka jenis tersebut untuk mengisi data dan menghubungkan produk.'}</p>
             <div className="space-y-2">{listed.map(type => <article key={type.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4 dark:bg-slate-900 dark:border-slate-700">
-                <div className="min-w-0 flex-1"><Link className="break-words text-sm font-semibold hover:underline" href={kind === 'product' ? `/products?group=${type.key}` : type.driver === 'motorcycles' ? '/motorcycles' : `/references/${type.id}`}>{type.name}</Link><p className="mt-1 text-xs text-slate-500">{type.driver ? 'Form khusus motor' : kind === 'reference' ? `${type.fields.length} kolom · ${type.entries_count} data` : `${type.categories_count} kategori`}{type.is_system ? ' · Bawaan' : ''}</p></div>
-                <div className="flex shrink-0 gap-2"><Button variant="secondary" onClick={() => open(type)} aria-label={`Edit jenis ${type.name}`}><FiEdit2 />Edit</Button><Button variant="secondary" disabled={type.is_system || type.entries_count > 0 || (kind === 'product' && type.categories_count > 0)} onClick={() => { setDeleting(type); setError(''); }} aria-label={`Hapus jenis ${type.name}`}><FiTrash2 /></Button></div>
+                <div className="min-w-0 flex-1"><Link className="break-words text-sm font-semibold hover:underline" href={kind === 'product' ? `/products?group=${type.key}` : type.driver === 'motorcycles' ? '/motorcycles' : `/references/${type.id}`}>{type.name}</Link><p className="mt-1 text-xs text-slate-500">{type.driver ? `Form khusus motor · ${type.records_count} data` : kind === 'reference' ? `${type.fields.length} kolom · ${type.entries_count} data` : `${type.categories_count} kategori`}{type.is_system ? ' · Bawaan' : ''}</p></div>
+                <div className="flex shrink-0 gap-2"><Button variant="secondary" onClick={() => open(type)} aria-label={`Edit jenis ${type.name}`}><FiEdit2 />Edit</Button><DeleteButton as={Button} variant="secondary" disabled={type.records_count > 0 || (kind === 'product' && type.categories_count > 0)} title={type.records_count > 0 || (kind === 'product' && type.categories_count > 0) ? 'Kosongkan atau pindahkan data/kategori terlebih dahulu.' : undefined} onClick={() => { setDeleting(type); setError(''); }} aria-label={`Hapus jenis ${type.name}`}><FiTrash2 /></DeleteButton></div>
             </article>)}</div>
             {!listed.length && <div className="rounded-xl border border-slate-200 bg-white p-6 text-sm">Belum ada jenis. Tambahkan jenis pertama untuk mulai mengisi data.</div>}
         </section>
@@ -83,7 +84,7 @@ export default function DataTypeIndex({ types = [] }) {
             </form>}
         </Dialog>
         <Dialog show={deleting !== null} onClose={() => !busy && setDeleting(null)} closeable={!busy} className="max-w-sm rounded-xl p-5">
-            <DialogTitle className="font-heading text-lg">Hapus Jenis</DialogTitle><p className="my-3 text-sm">Hapus jenis {deleting?.name}?</p>{error && <p role="alert" className="mb-3 text-xs text-red-600">{error}</p>}<div className="flex justify-end gap-2"><Button variant="secondary" disabled={busy} onClick={() => setDeleting(null)}>Batal</Button><Button disabled={busy} onClick={remove}>Hapus</Button></div>
+            <DialogTitle className="font-heading text-lg">Hapus Jenis</DialogTitle><p className="my-3 text-sm">Hapus jenis {deleting?.name}?</p>{error && <p role="alert" className="mb-3 text-xs text-red-600">{error}</p>}<div className="flex justify-end gap-2"><Button variant="secondary" disabled={busy} onClick={() => setDeleting(null)}>Batal</Button><DeleteButton as={Button} disabled={busy} onClick={remove}>Hapus</DeleteButton></div>
         </Dialog>
     </AuthenticatedLayout>;
 }

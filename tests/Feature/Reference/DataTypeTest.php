@@ -115,14 +115,15 @@ class DataTypeTest extends TestCase
         $this->deleteJson('/references/'.$type['id'].'/entries/'.$entry['id'])->assertOk();
     }
 
-    public function test_builtin_motor_module_and_preset_product_types_are_preserved(): void
+    public function test_builtin_motor_module_uses_its_driver_and_can_be_deleted_when_empty(): void
     {
         $motor = DataType::where('driver', 'motorcycles')->sole();
         $this->get('/references/'.$motor->id)->assertRedirect('/motorcycles');
-        $this->deleteJson('/data-types/'.$motor->id)->assertUnprocessable();
         $this->postJson('/references/'.$motor->id.'/entries', ['name' => 'Invalid', 'schema_version' => 1])->assertNotFound();
         $this->putJson('/data-types/'.$motor->id, $this->type(['name' => 'Motor', 'version' => 1]))->assertUnprocessable();
         $this->assertSame(4, DataType::where('kind', 'product')->count());
+        $this->deleteJson('/data-types/'.$motor->id)->assertOk();
+        $this->assertDatabaseMissing('data_types', ['id' => $motor->id]);
     }
 
     public function test_cleanup_failure_does_not_delete_a_newly_saved_photo(): void

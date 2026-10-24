@@ -1,3 +1,4 @@
+import DeleteButton from '@/Components/Admin/DeleteButton';
 import Pagination from '@/Components/Pagination';
 import AdminButton from '@/Components/Admin/Button';
 import useProductNavigation from '@/Hooks/useProductNavigation';
@@ -873,7 +874,7 @@ export default function MenuManagement({
                                                             <div className="flex flex-wrap items-center gap-1 pt-1 font-semibold">
                                                                 <button type="button" onClick={() => openAdjustModal(item)} className="inline-flex min-h-8 items-center gap-1 px-2 rounded-md text-primary dark:text-blue-300"><FiPlus size={14} /> Stok</button>
                                                                 <button type="button" onClick={() => openEditProductModal(item)} className="inline-flex min-h-8 items-center gap-1 px-2 rounded-md text-slate-700 dark:text-slate-200"><FiEdit2 size={13} /> Edit</button>
-                                                                <button type="button" onClick={() => handleDeleteProduct(item)} className="inline-flex min-h-8 items-center gap-1 px-2 rounded-md text-red-600 dark:text-red-400"><FiTrash2 size={13} /> Hapus</button>
+                                                                <DeleteButton type="button" onClick={() => handleDeleteProduct(item)} className="inline-flex min-h-8 items-center gap-1 px-2 rounded-md text-red-600 dark:text-red-400"><FiTrash2 size={13} /> Hapus</DeleteButton>
                                                             </div>
                                                         </div>
                                                     )}
@@ -965,14 +966,14 @@ export default function MenuManagement({
                                                     >
                                                         <FiEdit2 size={13} /> <span className="hidden xl:inline text-[11px] font-semibold">Edit</span>
                                                     </button>
-                                                    <button
+                                                    <DeleteButton
                                                         type="button"
                                                         onClick={() => handleDeleteProduct(item)}
                                                         className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-white dark:hover:bg-slate-800 rounded-lg transition cursor-pointer admin-icon-button"
                                                         title="Hapus Produk"
                                                     >
                                                         <FiTrash2 size={13} /> <span className="hidden xl:inline text-[11px] font-semibold">Hapus</span>
-                                                    </button>
+                                                    </DeleteButton>
                                                 </div>
                                             </div>
                                         ))}
@@ -1117,14 +1118,14 @@ export default function MenuManagement({
                                                                     >
                                                                         <FiEdit2 size={14} />
                                                                     </button>
-                                                                    <button
+                                                                    <DeleteButton
                                                                         type="button"
                                                                         onClick={() => handleDeleteProduct(item)}
                                                                         className="p-1 text-red-500 hover:text-red-600 transition cursor-pointer admin-icon-button"
                                                                         title="Hapus Produk"
                                                                     >
                                                                         <FiTrash2 size={14} />
-                                                                    </button>
+                                                                    </DeleteButton>
                                                                 </div>
                                                             </td>
                                                         </tr>
@@ -1186,13 +1187,13 @@ export default function MenuManagement({
                                                                             >
                                                                                 <FiEdit2 size={13} /> Edit
                                                                             </button>
-                                                                            <button
+                                                                            <DeleteButton
                                                                                 type="button"
                                                                                 onClick={() => handleDeleteProduct(item)}
                                                                                 className="px-3 py-1.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-red-600 dark:text-red-400 text-xs font-bold rounded-md border border-slate-300 dark:border-slate-700 transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
                                                                             >
                                                                                 <FiTrash2 size={13} /> Hapus
-                                                                            </button>
+                                                                            </DeleteButton>
                                                                         </div>
                                                                     </div>
                                                                 </td>
@@ -1281,7 +1282,7 @@ export default function MenuManagement({
                                                     </div>
                                                     <button type="button" onClick={() => { setActiveTab('products'); handleCategoryFilterChange(cat.name); }} className="min-h-8 px-1 text-xs font-semibold text-primary dark:text-blue-300 hover:underline whitespace-nowrap">Lihat produk</button>
                                                     <button type="button" onClick={() => openEditCategoryModal(cat)} className="p-2 text-slate-500 hover:text-slate-900 dark:hover:text-white admin-icon-button" title="Edit kategori dan subkategori" aria-label={`Edit ${cat.name}`}><FiEdit2 size={15} /></button>
-                                                    <button type="button" onClick={() => handleDeleteCategory(cat)} className="p-2 text-slate-400 hover:text-red-600 admin-icon-button" title="Hapus kategori" aria-label={`Hapus ${cat.name}`}><FiTrash2 size={15} /></button>
+                                                    <DeleteButton type="button" onClick={() => handleDeleteCategory(cat)} className="p-2 text-slate-400 hover:text-red-600 admin-icon-button" title="Hapus kategori" aria-label={`Hapus ${cat.name}`}><FiTrash2 size={15} /></DeleteButton>
                                                 </div>
                                                 {isExpanded && (
                                                     <div className="pl-11 pr-4 pb-2">

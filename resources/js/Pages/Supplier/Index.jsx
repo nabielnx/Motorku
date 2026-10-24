@@ -1,3 +1,4 @@
+import DeleteButton from '@/Components/Admin/DeleteButton';
 import { useEffect, useState } from 'react';
 import { Head, router, useForm } from '@inertiajs/react';
 import { FiEdit2, FiExternalLink, FiPlus, FiSearch, FiTrash2, FiTruck, FiX } from 'react-icons/fi';
@@ -112,7 +113,7 @@ export default function SupplierIndex({ suppliers, filters }) {
     }, { preserveState: true, preserveScroll: true, onStart: () => setNavigating(true), onFinish: () => setNavigating(false) });
     const actions = supplier => <div className="flex shrink-0 items-center gap-1">
         <button type="button" className="admin-icon-button p-2" aria-label={`Edit supplier ${supplier.name}`} onClick={() => setEditing(supplier)}><FiEdit2 size={15} /></button>
-        <button type="button" className="admin-icon-button p-2 text-red-600 dark:text-red-400" aria-label={`Hapus supplier ${supplier.name}`} onClick={() => { deletion.clearErrors(); setDeleting(supplier); }}><FiTrash2 size={15} /></button>
+        <DeleteButton type="button" className="admin-icon-button p-2 text-red-600 dark:text-red-400" aria-label={`Hapus supplier ${supplier.name}`} onClick={() => { deletion.clearErrors(); setDeleting(supplier); }}><FiTrash2 size={15} /></DeleteButton>
     </div>;
     return <AuthenticatedLayout pageTitle="Supplier" noPadding>
         <Head title="Supplier" />
@@ -141,7 +142,7 @@ export default function SupplierIndex({ suppliers, filters }) {
         <Dialog show={deleting !== null} onClose={() => setDeleting(null)} closeable={!deletion.processing} className="max-w-sm rounded-xl p-5">
             <DialogTitle className="font-heading text-lg font-semibold">Hapus Supplier</DialogTitle>
             <p className="my-3 break-words text-sm">Hapus supplier <strong>{deleting?.name}</strong>? Data kontak, alamat, dan catatannya akan dihapus permanen.</p>
-            <div className="flex justify-end gap-2"><Button variant="secondary" disabled={deletion.processing} onClick={() => setDeleting(null)}>Batal</Button><Button variant="danger" disabled={deletion.processing} onClick={() => deletion.delete(route('suppliers.destroy', deleting.id), { preserveScroll: true, onSuccess: () => setDeleting(null) })}>{deletion.processing ? 'Menghapus…' : 'Hapus Supplier'}</Button></div>
+            <div className="flex justify-end gap-2"><Button variant="secondary" disabled={deletion.processing} onClick={() => setDeleting(null)}>Batal</Button><DeleteButton as={Button} variant="danger" disabled={deletion.processing} onClick={() => deletion.delete(route('suppliers.destroy', deleting.id), { preserveScroll: true, onSuccess: () => setDeleting(null) })}>{deletion.processing ? 'Menghapus…' : 'Hapus Supplier'}</DeleteButton></div>
         </Dialog>
     </AuthenticatedLayout>;
 }

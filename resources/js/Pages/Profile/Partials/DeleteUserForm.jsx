@@ -1,3 +1,4 @@
+import DeleteButton from '@/Components/Admin/DeleteButton';
 import InputError from '@/Components/InputError';
 import Modal from '@/Components/Modal';
 import { useForm } from '@inertiajs/react';
@@ -54,14 +55,14 @@ export default function DeleteUserForm({ className = '' }) {
                 </div>
             </header>
 
-            <button
+            <DeleteButton
                 type="button"
                 onClick={confirmUserDeletion}
                 className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-lg text-xs shadow-xs transition border border-rose-700 cursor-pointer"
             >
                 <FiTrash2 className="w-4 h-4" strokeWidth={2.5} />
                 <span>Hapus Akun Permanen</span>
-            </button>
+            </DeleteButton>
 
             <Modal show={confirmingUserDeletion} onClose={closeModal}>
                 <form onSubmit={deleteUser} className="p-6 space-y-4 bg-white dark:bg-slate-900 text-slate-900 dark:text-white">
@@ -104,13 +105,13 @@ export default function DeleteUserForm({ className = '' }) {
                             Batal
                         </button>
 
-                        <button
+                        <DeleteButton
                             type="submit"
                             disabled={processing}
                             className="px-4 py-2 bg-rose-600 hover:bg-rose-700 disabled:bg-slate-300 text-white font-bold text-xs rounded-lg shadow-xs transition border border-rose-700 cursor-pointer"
                         >
                             {processing ? 'Menghapus...' : 'Hapus Akun Permanen'}
-                        </button>
+                        </DeleteButton>
                     </div>
                 </form>
             </Modal>
