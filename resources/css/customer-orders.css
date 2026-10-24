@@ -1,4 +1,5 @@
 @import './customer-storefront.css';
+@import './customer-checkout.css';
 
 .order-workspace { height: 100%; min-height: 100dvh; overflow-y: auto; background: #f3f3ed; color: #19231f; font-size: 13px; line-height: 1.6; }
 .order-workspace *, .order-dialog * { box-sizing: border-box; }
@@ -42,19 +43,6 @@
 .order-totals > div { display: flex; justify-content: space-between; gap: 20px; color: #58645e; font-size: 12px; }
 .order-totals dd { text-align: right; }
 .order-totals .order-total { font-size: 16px; font-weight: 750; color: #19231f; padding: 6px 0; }
-.order-checkout-form label, .order-dialog label { display: block; font-size: 12px; font-weight: 650; }
-.order-checkout-form input[type='text'], .order-dialog input { width: 100%; min-height: 46px; margin-top: 8px; border: 1px solid #c8cdc1; border-radius: 6px; padding: 11px 12px; background: #fff; color: #19231f; font-size: 13px; }
-.order-field-help { display: block; font-size: 11px; color: #58645e; margin-top: 6px; }
-.order-checkout-form fieldset { border: 0; padding: 0; margin-top: 24px; }
-.order-checkout-form legend { font-size: 12px; font-weight: 700; margin-bottom: 10px; }
-.order-checkout-form .order-payment-option { display: flex; align-items: center; gap: 10px; padding: 14px 12px; border: 1px solid #dddfd5; border-radius: 6px; margin-bottom: 10px; cursor: pointer; }
-.order-payment-option:has(input:checked) { border-color: #19231f; background: #f3f3ed; }
-.order-payment-option input { flex: 0 0 16px; width: 16px; height: 16px; color: #19231f; }
-.order-payment-option span { min-width: 0; }
-.order-payment-option strong { display: block; font-size: 12px; }
-.order-payment-option small { display: block; color: #58645e; font-size: 11px; font-weight: 400; margin-top: 3px; }
-.order-checkout-form .order-button-primary { margin-top: 20px; width: 100%; }
-.order-checkout-footnote { color: #58645e; font-size: 11px; margin-top: 12px; text-align: center; }
 .order-badge { display: inline-flex; align-items: center; padding: 4px 9px; border: 1px solid #dddfd5; border-radius: 4px; background: #f3f3ed; color: #58645e; font-size: 10px; font-weight: 650; line-height: 1.4; }
 .order-badge-ink { background: #19231f; color: #fff; border-color: #19231f; }
 .order-badge-attention { background: #fff4bd; border-color: #e3cf71; color: #564806; }
@@ -86,6 +74,8 @@
 .order-dialog-panel { position: relative; background: #fff; border: 1px solid #dddfd5; border-radius: 10px; padding: 28px; max-width: 440px; width: 100%; max-height: calc(100dvh - 40px); overflow-y: auto; }
 .order-dialog h2 { font-size: 22px; padding-right: 30px; }
 .order-dialog p { font-size: 13px; line-height: 1.7; color: #58645e; margin: 14px 0 20px; }
+.order-dialog label { display: block; font-size: 12px; font-weight: 650; }
+.order-dialog input { width: 100%; min-height: 46px; margin-top: 8px; border: 1px solid #c8cdc1; border-radius: 6px; padding: 11px 12px; background: #fff; color: #19231f; font-size: 13px; }
 .order-dialog label > span { color: #58645e; font-weight: 400; }
 .order-dialog-close { position: absolute; right: 10px; top: 10px; width: 44px; height: 44px; display: grid; place-items: center; }
 .order-dialog-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; }
@@ -162,9 +152,6 @@
     .order-grid > * { width: 100%; }
     .order-stack { gap: 18px; }
     .order-panel { padding: 20px; border-radius: 8px; }
-    .order-grid-checkout > .order-stack { display: contents; }
-    .order-grid-checkout > .order-stack > .order-pickup { order: 2; }
-    .order-grid-checkout > form { order: 1; }
     .order-items li { gap: 10px; }
     .order-item-qty { min-width: 28px; min-height: 30px; }
     .order-item-total { font-size: 11px; }

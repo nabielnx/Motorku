@@ -11,3 +11,10 @@ The customer needs to check what they bought, know whether payment was received,
 Reference: the local storefront and payment-flow audit. No external design service or customer data upload. This direction incorporates the user's request to simplify the first revision.
 
 Legacy cleanup: after the first successful refresh cycle, inaccessible closed receipts are moved out of the main list. Original receipts stay in browser storage, scoped to the shop. The history footer offers Restore. Active orders and records that refresh successfully are retained.
+
+
+## Checkout refinement
+
+Reference observations: Shopee's official checkout guide selects a payment method before placing an order (https://help.shopee.co.id/portal/4/article/71961). Maybank's Tokopedia guide reviews the transaction before selecting payment (https://www.maybank.co.id/ebanking/how-to/Bill-Payment/pembayaran-tokopedia). Apply this hierarchy to pickup orders without adding shipping, vouchers or unsupported payment methods.
+
+Contract: a compact checkout header; one continuous main sheet for pickup/name, product rows with thumbnails and quantities, and two simple payment rows. Desktop has a separate payment summary with the only submit action. Mobile has a fixed total/submit bar, with enough bottom clearance to reach all content. Use the same short action label, Make order, for both payment preferences. No promotional hero, nested cards, repeated instructions or oversized method tiles. Validate at 390x844 and 1440x900 with long product names and more than one item. Retain the existing checkout persistence, price validation and idempotency behavior.
