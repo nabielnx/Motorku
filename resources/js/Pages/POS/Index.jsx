@@ -1060,6 +1060,8 @@ return (
                 qrisImageLoading={qrisImageLoading}
                 qrisImageUrl={qrisImageUrl}
                 qrisAvailable={qris.available}
+                qrisEnabled={qris.enabled}
+                qrisConfigured={qris.configured}
                 qrisDynamic={qris.dynamic}
                 qrisMerchant={qris.merchant}
                 qrisError={qris.error}

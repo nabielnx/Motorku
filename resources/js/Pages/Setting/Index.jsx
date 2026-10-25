@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 import { readQrisPayload, qrisErrorMessage } from '@/Utils/qris';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import AdminDialog, { DialogTitle } from '@/Components/Admin/Dialog';
-import { Head, usePage } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { FiSave, FiCheck, FiHome, FiPercent, FiCreditCard, FiPrinter, FiSmartphone, FiClock, FiSettings, FiUpload, FiClipboard, FiTrash2, FiAlertTriangle } from 'react-icons/fi';
@@ -73,12 +73,12 @@ const fieldValidators = {
   },
 };
 
-function Toggle({ value, onChange, label }) {
+function Toggle({ value, onChange, label, disabled = false }) {
     const on = value === 'true';
     return (
-      <label className="relative inline-flex shrink-0 items-center cursor-pointer">
-        <input type="checkbox" checked={on} onChange={onChange} aria-label={label} className="sr-only peer" />
-        <div className="w-10 h-5 bg-slate-200 peer-checked:bg-primary rounded-full after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-5" />
+      <label className={`relative inline-flex min-h-11 shrink-0 items-center ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
+        <input type="checkbox" checked={on} onChange={onChange} disabled={disabled} aria-label={label} className="sr-only peer" />
+        <div className="relative w-10 h-5 bg-slate-200 peer-checked:bg-primary peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-[#19231f] rounded-full after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-5" />
       </label>
     );
 }
@@ -105,6 +105,7 @@ export default function SettingIndex() {
   const [qrisUrl, setQrisUrl] = useState(props.qrisUrl || null);
   const [qrisConfig, setQrisConfig] = useState(props.qrisConfig || null);
   const [uploadingQris, setUploadingQris] = useState(false);
+  const [savingQrisEnabled, setSavingQrisEnabled] = useState(false);
   useEffect(() => () => { if (qrisPreview) URL.revokeObjectURL(qrisPreview); }, [qrisPreview]);
   const [loginImageFile, setLoginImageFile] = useState(null);
   const [loginImagePreview, setLoginImagePreview] = useState(null);
@@ -146,7 +147,9 @@ export default function SettingIndex() {
         setQrisFile(null);
         setQrisPreview(null);
         setQrisConfig(null);
-        toast.success('Gambar QRIS toko berhasil dihapus.');
+        setForm(prev => ({ ...prev, payment_qris_enabled: 'false' }));
+        router.reload({ only: ['app_settings'] });
+        toast.success('Gambar QRIS dihapus dan pembayaran QRIS dinonaktifkan.');
       } catch (err) {
         toast.error('Gagal menghapus gambar QRIS: ' + (err.response?.data?.message || err.message));
       } finally {
@@ -221,6 +224,27 @@ export default function SettingIndex() {
     setDeleteConfirm({ type: 'logo' });
   };
 
+  const handleToggleQris = async () => {
+    if (savingQrisEnabled || uploadingQris || loading) return;
+    const enabled = form.payment_qris_enabled !== 'true';
+    if (enabled && !qrisUrl) {
+      toast.error('Unggah dan simpan gambar QRIS terlebih dahulu.');
+      return;
+    }
+    setSavingQrisEnabled(true);
+    try {
+      await axios.post('/api/settings', { settings: [{ group: 'payment', key: 'qris_enabled', value: String(enabled) }] });
+      setForm(prev => ({ ...prev, payment_qris_enabled: String(enabled) }));
+      setQrisConfig(prev => prev ? { ...prev, enabled, available: enabled && Boolean(qrisUrl) } : prev);
+      router.reload({ only: ['app_settings'] });
+      toast.success(enabled ? 'Pembayaran QRIS aktif untuk POS dan checkout pelanggan.' : 'Pembayaran QRIS dinonaktifkan.');
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Status QRIS gagal disimpan. Coba lagi.');
+    } finally {
+      setSavingQrisEnabled(false);
+    }
+  };
+
   const handleUploadQris = async () => {
     if (!qrisFile) return;
     setUploadingQris(true);
@@ -233,7 +257,7 @@ export default function SettingIndex() {
       setQrisConfig(response.data);
       setQrisFile(null);
       setQrisPreview(null);
-      toast.success('Gambar QRIS toko berhasil disimpan.');
+      toast.success(form.payment_qris_enabled === 'true' ? 'Gambar QRIS toko berhasil disimpan.' : 'Gambar disimpan. Aktifkan pembayaran QRIS melalui toggle di atas.');
     } catch (err) {
       toast.error(qrisErrorMessage(err));
     } finally {
@@ -306,6 +330,7 @@ export default function SettingIndex() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (savingQrisEnabled || uploadingQris) return;
 
     // Run all frontend validators before submit
     const errors = {};
@@ -457,23 +482,29 @@ export default function SettingIndex() {
         <div className="admin-surface admin-setting-section bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
           <div className="admin-section-header flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
             <FiUpload className="text-primary dark:text-yellow-400" size={20} />
-            <h3 className="font-extrabold text-base text-slate-900 dark:text-white">Gambar QRIS Toko</h3>
+            <h3 className="flex-1 font-extrabold text-base text-slate-900 dark:text-white">Pembayaran QRIS</h3>
+            <Toggle label="Aktifkan pembayaran QRIS" value={form.payment_qris_enabled} onChange={handleToggleQris} disabled={savingQrisEnabled || uploadingQris || loading || (!qrisUrl && form.payment_qris_enabled !== 'true')} />
           </div>
-          <p className="text-xs text-slate-600 dark:text-slate-300">Unggah QRIS statis toko. Nominal pembayaran di POS akan terisi otomatis; kasir tetap memeriksa dana masuk sebelum mengonfirmasi lunas.</p>
-          {qrisConfig?.dynamic_available && <p role="status" className="flex items-center gap-2 text-xs font-semibold text-slate-800 dark:text-slate-100"><FiCheck aria-hidden="true" /> Nominal otomatis aktif · {qrisConfig.merchant.name} · {qrisConfig.merchant.city}</p>}
+          <div className="space-y-3">
+            <p role="status" className="text-xs font-semibold text-[#19231f] dark:text-slate-100">
+              {savingQrisEnabled ? 'Menyimpan status QRIS...' : !qrisUrl ? 'Belum ada gambar QRIS.' : form.payment_qris_enabled === 'true' ? 'Aktif untuk POS dan checkout pelanggan.' : 'Nonaktif. Aktifkan toggle untuk menerima pembayaran QRIS.'}
+            </p>
+            <p className="text-xs text-slate-600 dark:text-slate-300">Unggah gambar QRIS toko, lalu aktifkan pembayaran melalui toggle. Perubahan toggle langsung tersimpan; kasir tetap memeriksa dana masuk sebelum mengonfirmasi lunas.</p>
+            {qrisConfig?.dynamic_available && <p className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-300"><FiCheck aria-hidden="true" /> QRIS mendukung nominal otomatis · {qrisConfig.merchant.name} · {qrisConfig.merchant.city}</p>}
+          </div>
           <div className="flex flex-wrap items-start gap-4">
             <div className="w-32 h-32 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex items-center justify-center overflow-hidden">
               {qrisPreview || qrisUrl ? <img src={qrisPreview || qrisUrl} alt="QRIS toko" className="w-full h-full object-contain" /> : <span className="text-xs text-slate-400">Belum ada QRIS</span>}
             </div>
             <div className="space-y-2">
-              <ImagePicker label="QRIS toko" disabled={uploadingQris} onSelect={file => {
+              <ImagePicker label="QRIS toko" disabled={uploadingQris || savingQrisEnabled || loading} onSelect={file => {
                 if (validImage(file)) { setQrisFile(file); setQrisPreview(URL.createObjectURL(file)); }
               }} />
               <p className="admin-help">{IMAGE_HELP}</p>
               <div className="flex flex-wrap gap-2">
-                {qrisFile && <AdminButton type="button" onClick={handleUploadQris} disabled={uploadingQris} variant="primary">{uploadingQris ? 'Menyimpan...' : 'Simpan QRIS'}</AdminButton>}
-                {qrisUrl && !qrisFile && !qrisConfig?.dynamic_available && <AdminButton type="button" onClick={handleActivateQris} disabled={uploadingQris} variant="primary">{uploadingQris ? 'Membaca QRIS...' : 'Aktifkan nominal otomatis'}</AdminButton>}
-                {qrisUrl && <DeleteButton type="button" onClick={() => setDeleteConfirm({ type: 'qris' })} disabled={uploadingQris} className="px-4 py-2 rounded-lg border border-red-200 text-red-600 text-xs font-bold disabled:opacity-50">Hapus QRIS</DeleteButton>}
+                {qrisFile && <AdminButton type="button" onClick={handleUploadQris} disabled={uploadingQris || savingQrisEnabled || loading} variant="primary">{uploadingQris ? 'Menyimpan...' : 'Simpan QRIS'}</AdminButton>}
+                {qrisUrl && !qrisFile && !qrisConfig?.dynamic_available && <AdminButton type="button" onClick={handleActivateQris} disabled={uploadingQris || savingQrisEnabled || loading} variant="primary">{uploadingQris ? 'Membaca QRIS...' : 'Aktifkan nominal otomatis'}</AdminButton>}
+                {qrisUrl && <DeleteButton type="button" onClick={() => setDeleteConfirm({ type: 'qris' })} disabled={uploadingQris || savingQrisEnabled || loading} className="px-4 py-2 rounded-lg border border-red-200 text-red-600 text-xs font-bold disabled:opacity-50">Hapus QRIS</DeleteButton>}
               </div>
             </div>
           </div>
@@ -661,7 +692,7 @@ export default function SettingIndex() {
           ))}
 
           <div className="flex justify-end">
-            <AdminButton type="submit" disabled={loading} variant="primary" className="w-full sm:w-auto">
+            <AdminButton type="submit" disabled={loading || savingQrisEnabled || uploadingQris} variant="primary" className="w-full sm:w-auto">
               <FiSave size={18} className="shrink-0" />
               {loading ? 'Menyimpan...' : 'Simpan Semua Pengaturan'}
             </AdminButton>

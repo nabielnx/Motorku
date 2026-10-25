@@ -37,7 +37,11 @@ class QrisService
             }
         }
 
+        $enabled = Setting::where('group', 'payment')->where('key', 'qris_enabled')->value('value') !== 'false';
+
         return [
+            'enabled' => $enabled,
+            'available' => $enabled && filled($path),
             'url' => $path ? Storage::url($path) : null,
             'image_revision' => $path ? hash('sha256', $path) : null,
             'dynamic_available' => $merchant !== null,
@@ -87,6 +91,7 @@ class QrisService
             foreach ($rows as $row) {
                 $row->update(['value' => null]);
             }
+            $this->settings->upsertSetting('payment', 'qris_enabled', 'false');
 
             return $path;
         });
