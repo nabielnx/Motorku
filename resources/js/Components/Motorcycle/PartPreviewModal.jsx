@@ -1,3 +1,4 @@
+import { usePage } from '@inertiajs/react';
 import { FiStar, FiX } from 'react-icons/fi';
 import { ProductPhoto } from '@/Components/Customer/Storefront';
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
@@ -6,6 +7,7 @@ export default function PartPreviewModal({
     setPreviewPart,
     previewPart
 }) {
+    const referencesEnabled = usePage().props.app_settings?.references_enabled !== false;
     return (
         <Dialog
             open
@@ -67,12 +69,12 @@ export default function PartPreviewModal({
                     )}
                 </div>
 
-                {(previewPart.description || previewPart.brand || previewPart.rack_location || previewPart.motorcycles?.length > 0) && (
+                {(previewPart.description || previewPart.brand || previewPart.rack_location || (referencesEnabled && previewPart.motorcycles?.length > 0)) && (
                     <div className="px-5 py-4 space-y-3 text-xs text-slate-600 dark:text-slate-300 whitespace-normal break-words [overflow-wrap:anywhere]">
                         {previewPart.brand && <p><span className="font-semibold">Merek:</span> {previewPart.brand}</p>}
                         {previewPart.rack_location && <p><span className="font-semibold">Lokasi rak:</span> {previewPart.rack_location}</p>}
                         {previewPart.description && <p className="whitespace-pre-line">{previewPart.description}</p>}
-                        {previewPart.motorcycles?.length > 0 && <div>
+                        {(referencesEnabled && previewPart.motorcycles?.length > 0) && <div>
                             <p className="font-semibold">Cocok untuk motor:</p>
                             <ul className="mt-1 list-disc pl-4 space-y-1">
                                 {previewPart.motorcycles.map(motor => <li key={motor.id}>{motor.brand} {motor.model}</li>)}

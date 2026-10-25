@@ -26,6 +26,7 @@ class SaveSettingsRequest extends FormRequest
         'printer.auto_print_receipt' => ['required', 'in:true,false'],
         'qr_order.enabled' => ['required', 'in:true,false'],
         'qr_order.session_timeout' => ['required', 'integer', 'min:1', 'max:1440'],
+        'references.enabled' => ['required', 'in:true,false'],
         'catalog.show_total_sold' => ['required', 'in:true,false'],
         'promo_banner.enabled' => ['required', 'in:true,false'],
         'system.timezone' => ['required', 'in:Asia/Jakarta,Asia/Makassar,Asia/Jayapura'],

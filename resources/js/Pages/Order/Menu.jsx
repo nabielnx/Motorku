@@ -69,6 +69,7 @@ export default function CustomerMenu({
     const { storage, storeUrl } = useStorefront();
     useForceLightTheme();
     const { props } = usePage();
+    const referencesEnabled = props.app_settings?.references_enabled !== false;
     const showTotalSold = (props.app_settings?.show_total_sold !== false) && (settings['catalog.show_total_sold'] !== 'false');
 
     const [isNavigating, setIsNavigating] = useState(false);
@@ -658,7 +659,7 @@ export default function CustomerMenu({
                                         </div>
                                     </div>
                                 </div>
-                                <div className="border-t border-slate-100 px-5 py-4.5 sm:px-7 bg-slate-50">
+                                {referencesEnabled && <div className="border-t border-slate-100 px-5 py-4.5 sm:px-7 bg-slate-50">
                                     <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">Kecocokan motor</h3>
                                     {selectedDetailProduct.motorcycles.length > 0 ? (
                                         <ul className="mt-3 grid max-h-36 gap-2 overflow-y-auto text-sm text-slate-700 sm:grid-cols-2">
@@ -674,7 +675,7 @@ export default function CustomerMenu({
                                     ) : (
                                         <p className="mt-2 text-xs leading-relaxed text-slate-400">Produk ini bersifat Universal (cocok untuk berbagai motor) atau informasi kecocokan spesifik belum tersedia di sistem.</p>
                                     )}
-                                </div>
+                                </div>}
                                 <div className="flex flex-wrap items-center gap-3 border-t border-slate-200 bg-slate-50 px-5 py-4 sm:px-7">
                                     <div className="flex h-10 items-center rounded-xl border border-slate-200 bg-white">
                                         <button type="button" onClick={() => setDetailQty(q => Math.max(1, q - 1))} disabled={selectedDetailProduct.stock <= 0}

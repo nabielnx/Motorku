@@ -10,7 +10,7 @@ import Dialog, { DialogTitle } from '@/Components/Admin/Dialog';
 import { dataTypeSchema, dataTypeError, fieldTypeLabels, fieldKey } from '@/Utils/dataTypes';
 
 export default function DataTypeIndex({ types = [] }) {
-    const { url } = usePage();
+    const { url, props } = usePage();
     const kind = new URL(url, 'http://localhost').searchParams.get('kind') === 'reference' ? 'reference' : 'product';
     const [editing, setEditing] = useState(null);
     const [form, setForm] = useState(null);
@@ -53,7 +53,7 @@ export default function DataTypeIndex({ types = [] }) {
                 <Button onClick={() => open(null)}><FiPlus />Tambah Jenis</Button>
             </div>
             <nav aria-label="Jenis data" className="flex flex-wrap gap-2">
-                {[['product', 'Produk'], ['reference', 'Data Referensi']].map(([key, label]) => <Link key={key} href={`/data-types?kind=${key}`} aria-current={kind === key ? 'page' : undefined} className={`admin-button ${kind === key ? 'admin-button-primary' : 'admin-button-secondary'}`}>{label}</Link>)}
+                {[['product', 'Produk'], ['reference', 'Data Referensi']].filter(([key]) => key !== 'reference' || props.app_settings?.references_enabled !== false).map(([key, label]) => <Link key={key} href={`/data-types?kind=${key}`} aria-current={kind === key ? 'page' : undefined} className={`admin-button ${kind === key ? 'admin-button-primary' : 'admin-button-secondary'}`}>{label}</Link>)}
             </nav>
             <p className="text-xs leading-5 text-slate-600">{kind === 'product' ? 'Jenis baru otomatis tersedia di menu Produk, kategori, dan pilihan impor/ekspor.' : 'Tentukan kolom untuk setiap jenis, lalu buka jenis tersebut untuk mengisi data dan menghubungkan produk.'}</p>
             <div className="space-y-2">{listed.map(type => <article key={type.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4 dark:bg-slate-900 dark:border-slate-700">
