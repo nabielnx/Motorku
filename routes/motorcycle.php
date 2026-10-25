@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Http\Controllers\Motorcycle\MotorcycleController;
 use App\Http\Middleware\EnsureReferencesEnabled;
 use Illuminate\Support\Facades\Route;

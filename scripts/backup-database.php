@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 // Runs on the deployment host; the password stays out of command arguments/logs.
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Support\Facades\DB;
