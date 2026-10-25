@@ -4,6 +4,13 @@ import { customerCartTotals, loadCustomerCatalog, reconcileCustomerCart } from '
 
 const saved = { id: 'oil', name: 'Oli', price: 10000, stock: 8, image: null, qty: 2, notes: 'Untuk motor merah', cartItemId: 'oil-123' };
 
+test('a cart refresh preserves a product added after the request started and removes only checked missing ids', () => {
+    const added = { ...saved, id: 'new-item' };
+    const result = reconcileCustomerCart([saved, added], [], ['oil']);
+    assert.deepEqual(result.cart, [added]);
+    assert.equal(result.needsReview, true);
+});
+
 test('saved customer cart follows increased and decreased prices without losing quantities or notes', () => {
     for (const price of ['15000.00', '8000.00']) {
         const cart = JSON.parse(JSON.stringify([saved, { ...saved, qty: 1, notes: 'Motor biru', cartItemId: 'oil-456' }]));

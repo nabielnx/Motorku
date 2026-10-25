@@ -7,6 +7,7 @@ namespace App\Services\ProductSheet;
 use App\Models\Category;
 use App\Models\Product;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Validation\ValidationException;
 use OpenSpout\Common\Entity\Cell;
 use OpenSpout\Common\Entity\Cell\StringCell;
 use OpenSpout\Common\Entity\Row;
@@ -60,11 +61,15 @@ class ProductSheetExporter
                 }
                 fclose($stream);
             } elseif ($format === 'pdf') {
+                if (! $template && Product::inCatalogGroup($group)->count() > 1000) {
+                    throw ValidationException::withMessages(['format' => 'PDF maksimal 1.000 produk. Pilih kelompok yang lebih kecil atau gunakan XLSX/CSV.']);
+                }
                 $products = $template ? collect() : Product::query()
                     ->select(['id', 'category_id', 'sku', 'name', 'description', 'brand', 'price', 'cost_price', 'stock', 'unit'])
                     ->with('category:id,name')
                     ->inCatalogGroup($group)
                     ->orderBy('name')
+                    ->limit(1000)
                     ->get();
                 $groupLabel = $group ? ($catalogGroups[$group] ?? $group) : 'Seluruh Katalog';
                 $pdf = Pdf::loadView('pdf.products', [

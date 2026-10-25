@@ -25,7 +25,7 @@ class StoreOrderRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->merge([
-            'customer_name' => $this->customer_name
+            'customer_name' => is_string($this->customer_name)
                 ? strip_tags(trim($this->customer_name))
                 : $this->customer_name,
         ]);
@@ -40,13 +40,14 @@ class StoreOrderRequest extends FormRequest
     {
         return [
             'request_id' => ['sometimes', 'uuid'],
+            'expected_total' => ['sometimes', 'numeric', 'min:0', 'max:9999999999999'],
             'customer_name' => ['required', 'string', 'min:2', 'max:255'],
-            'notes' => ['nullable', 'string'],
+            'notes' => ['nullable', 'string', 'max:500'],
 
             'items' => ['required', 'array', 'min:1', 'max:20'],
-            'items.*.product_id' => ['required', BusinessRule::exists('products', 'id')],
+            'items.*.product_id' => ['required', 'uuid', BusinessRule::exists('products', 'id')],
             'items.*.quantity' => ['required', 'integer', 'min:1', 'max:200'],
-            'items.*.notes' => ['nullable', 'string'],
+            'items.*.notes' => ['nullable', 'string', 'max:500'],
         ];
     }
 

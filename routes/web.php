@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\CatalogPageController;
 use App\Http\Controllers\Dashboard\DashboardController;
 use App\Http\Controllers\Dashboard\PosController;
 use App\Http\Controllers\Inventory\InventoryController;
@@ -10,6 +11,7 @@ use App\Http\Controllers\Motorcycle\MotorSayaController;
 use App\Http\Controllers\Order\CustomerMenuController;
 use App\Http\Controllers\Order\OrderController;
 use App\Http\Controllers\Product\ProductController;
+use App\Http\Controllers\PwaManifestController;
 use App\Http\Controllers\Report\ReportController;
 use App\Http\Controllers\Setting\SettingController;
 use App\Http\Controllers\User\UserController;
@@ -22,6 +24,8 @@ use Inertia\Inertia;
 // Public QR Customer Menu (katalog sparepart)
 Route::get('/', [CustomerMenuController::class, 'index'])->name('home');
 Route::get('/s/{businessSlug}', [CustomerMenuController::class, 'index'])->name('shop.home');
+Route::get('/pwa/manifest', PwaManifestController::class)->name('pwa.manifest');
+Route::get('/catalog/products', CatalogPageController::class)->middleware('throttle:60,1,catalog-public:')->name('customer.catalog');
 Route::get('/sitemap.xml', function () {
     $referencesEnabled = app(SettingService::class)->referencesEnabled();
 
@@ -58,6 +62,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::prefix('pos')->group(function () {
         Route::get('/', [PosController::class, 'index'])->name('pos.index');
+        Route::get('/catalog', CatalogPageController::class)->middleware(['role:owner|cashier', 'throttle:120,1,catalog-pos:'])->name('pos.catalog');
     });
 
     Route::prefix('users')->group(function () {

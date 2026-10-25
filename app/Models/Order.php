@@ -137,7 +137,8 @@ class Order extends Model
     {
         return $query->where('order_status', OrderStatus::Pending)
             ->where('payment_status', PaymentStatus::Unpaid)
-            ->whereNull('payment_review_requested_at')
+            ->where(fn ($query) => $query->whereNull('payment_review_requested_at')
+                ->orWhere('payment_review_requested_at', '<=', now()->subHours(config('order.payment_review_expiry_hours', 24))))
             ->whereNotNull('expires_at')
             ->where('expires_at', '<=', now());
     }

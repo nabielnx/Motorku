@@ -37,7 +37,7 @@ class CheckoutConcurrencyTest extends TestCase
         $product = Product::factory()->create(['price' => 10000, 'stock' => 5]);
         $payload = json_encode([
             'request_id' => (string) Str::uuid(), 'customer_name' => 'Concurrent sale',
-            'items' => [['product_id' => $product->id, 'quantity' => 1]], 'amount_received' => 10000,
+            'items' => [['product_id' => $product->id, 'quantity' => 1]], 'expected_total' => 10000, 'amount_received' => 10000,
         ], JSON_THROW_ON_ERROR);
         $directory = storage_path('app/testing/'.Str::uuid());
         mkdir($directory, 0700, true);

@@ -35,6 +35,27 @@ export function readPosCart(storage) {
     }
 }
 
+export function reconcilePosCart(cart, products, checkedIds = null) {
+    const catalog = new Map(products.map(formatPosProduct).map(product => [product.id, product]));
+    const requested = checkedIds ? new Set(checkedIds) : null;
+    let changed = false;
+    let needsReview = false;
+    const updated = cart.flatMap(item => {
+        const product = catalog.get(item.id);
+        if (!product && requested && !requested.has(item.id)) return [item];
+        if (!product || product.is_available === false) {
+            changed = true;
+            needsReview = true;
+            return [];
+        }
+        const differs = ['price', 'stock', 'name', 'image'].some(key => item[key] !== product[key]);
+        changed ||= differs;
+        needsReview ||= Number(item.price) !== product.price || item.qty > product.stock;
+        return [differs ? { ...item, ...product } : item];
+    });
+    return { cart: changed ? updated : cart, needsReview };
+}
+
 export function addToPosCart(cart, item) {
     if (!item?.id || item.is_available === false) throw new Error('Produk tidak aktif di POS.');
     if (!Number.isFinite(item.price) || item.price < 0) throw new Error('Harga produk tidak valid.');

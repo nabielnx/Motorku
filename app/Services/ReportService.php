@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services;
 
 use App\Models\Order;
@@ -7,6 +9,7 @@ use App\Models\OrderItem;
 use App\Models\OrderReturn;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class ReportService
 {
@@ -117,8 +120,11 @@ class ReportService
 
     public function getExportDataByDateRange(Carbon $startDate, Carbon $endDate)
     {
-        return Order::with('items')
-            ->paidWithinRange($startDate, $endDate)
-            ->get();
+        $query = Order::paidWithinRange($startDate, $endDate);
+        if ((clone $query)->limit(5001)->count() > 5000) {
+            throw ValidationException::withMessages(['start_date' => 'Ekspor maksimal 5.000 pesanan. Persempit rentang tanggal.']);
+        }
+
+        return $query->with('items')->limit(5000)->get();
     }
 }

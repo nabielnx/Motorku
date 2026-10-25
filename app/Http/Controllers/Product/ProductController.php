@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Product;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\PaginationRequest;
 use App\Http\Requests\Product\StoreProductRequest;
 use App\Http\Requests\Product\UpdateProductRequest;
 use App\Http\Resources\ProductResource;
@@ -79,7 +80,7 @@ class ProductController extends Controller implements HasMiddleware
         return redirect()->route('products.index');
     }
 
-    public function index(Request $request): JsonResponse
+    public function index(PaginationRequest $request): JsonResponse
     {
         Gate::authorize('viewAny', Product::class);
 

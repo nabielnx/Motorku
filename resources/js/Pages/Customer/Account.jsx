@@ -22,7 +22,8 @@ export default function CustomerAccount() {
             parsed.error.issues.forEach(issue => form.setError(issue.path[0], issue.message));
             return;
         }
-        form.transform(() => parsed.data).patch(storeUrl('/customer/account'), { preserveScroll: true });
+        form.transform(() => parsed.data);
+        form.patch(storeUrl('/customer/account'), { preserveScroll: true });
     };
     return <OrderWorkspace title="Akun pelanggan" compact>
         <section className="customer-account-card">

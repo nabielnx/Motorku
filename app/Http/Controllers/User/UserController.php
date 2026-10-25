@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\PaginationRequest;
 use App\Http\Requests\User\StoreUserRequest;
 use App\Http\Requests\User\UpdateUserRequest;
 use App\Http\Resources\UserResource;
@@ -60,7 +61,7 @@ class UserController extends Controller implements HasMiddleware
         ]);
     }
 
-    public function index(Request $request): JsonResponse
+    public function index(PaginationRequest $request): JsonResponse
     {
         Gate::authorize('viewAny', User::class);
 

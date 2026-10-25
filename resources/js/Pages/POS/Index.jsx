@@ -1,3 +1,5 @@
+import useCatalogFeed from '@/Hooks/useCatalogFeed';
+import CatalogFeedControl from '@/Components/Customer/CatalogFeedControl';
 import useStorefront from '@/Hooks/useStorefront';
 import { createPosSale } from '@/Api/posSales';
 import PaymentModal from '@/Components/POS/PaymentModal';
@@ -7,7 +9,7 @@ import ThermalReceipt from '@/Components/ThermalReceipt';
 
 import { checkoutRequestId } from '@/Utils/checkout';
 import useQrisPayment from '@/Utils/useQrisPayment';
-import { POS_CART_KEY, MAX_POS_QTY as MAX_QTY, formatPosProduct, readPosCart, addToPosCart } from '@/Utils/posCart';
+import { POS_CART_KEY, MAX_POS_QTY as MAX_QTY, formatPosProduct, readPosCart, addToPosCart, reconcilePosCart } from '@/Utils/posCart';
 import React, { useState, useEffect, useRef } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import Modal from '@/Components/Modal';
@@ -25,7 +27,7 @@ import { FiSearch, FiGrid, FiList, FiPlus, FiMinus, FiTrash2, FiShoppingBag, FiC
 import ProductBookView from '@/Components/Product/ProductBookView';
 
 
-export default function POSIndex({ initialProducts = [], initialCategories = [], settings = {} }) {
+export default function POSIndex({ initialProducts = [], initialPagination = null, initialCategories = [], settings = {} }) {
     const { auth } = usePage().props;
     const { storage } = useStorefront({ admin: true });
     // Format Products from Database or Fallback
@@ -58,7 +60,7 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
     }, []);
 
     useEffect(() => {
-        setMenuItems(formatProducts(initialProducts));
+
         setCategories(initialCategories);
     }, [initialProducts, initialCategories]);
 
@@ -110,6 +112,29 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
 
     // Cart State
     const [cart, setCart] = useState(() => readPosCart(storage));
+
+    const cartIds = JSON.stringify([...new Set(cart.map(item => item.id))]);
+    useEffect(() => {
+        const ids = JSON.parse(cartIds);
+        if (!ids.length) return;
+        const controller = new AbortController();
+        axios.get('/pos/catalog', { params: { ids }, signal: controller.signal }).then(response => {
+            if (!controller.signal.aborted && Array.isArray(response.data?.data?.cart_products)) {
+                setCart(current => reconcilePosCart(current, response.data.data.cart_products, ids).cart);
+            }
+        }).catch(() => {});
+        return () => controller.abort();
+    }, [initialProducts, cartIds]);
+
+    useEffect(() => {
+        const refresh = () => {
+            if (document.visibilityState === 'visible' && !submittingRef.current) {
+                router.reload({ only: ['initialProducts', 'settings'], async: true, preserveScroll: true });
+            }
+        };
+        window.addEventListener('focus', refresh);
+        return () => window.removeEventListener('focus', refresh);
+    }, []);
 
     useEffect(() => {
         const syncCart = event => {
@@ -227,6 +252,10 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
     const childCategories = categories.filter(category => category.parent_id === selectedParentId);
     const visibleCategoryIds = getVisibleCategoryIds(categories, selectedParentId, selectedChildId);
     const categoryFilterPredicate = (item) => !visibleCategoryIds || visibleCategoryIds.has(item.categoryId);
+
+    const catalogCategory = categories.find(category => category.id === (selectedChildId || selectedParentId))?.name || '';
+    const feed = useCatalogFeed({ url: '/pos/catalog', initialProducts, initialPagination, search: searchQuery, category: catalogCategory });
+    useEffect(() => setMenuItems(formatProducts(feed.products)), [feed.products]);
 
     const filteredMenu = fuzzyFilterProducts(menuItems, searchQuery, {
         filterPredicate: categoryFilterPredicate
@@ -359,6 +388,7 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
             // Simpan order dan pembayaran bersama setelah kasir mengonfirmasi dana masuk.
             const payload = {
                 ...buildOrderData(),
+                expected_total: total,
                 payment_method: paymentMethod,
                 ...(paymentMethod === 'cash'
                     ? { amount_received: Number(cashReceived) }
@@ -390,6 +420,9 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
             const errMsg = validationErr || (errRes?.message && errRes.message !== 'The given data was invalid.' ? errRes.message : null) || err.message || 'Terjadi kesalahan sistem.';
             toast.error('Gagal: ' + errMsg);
             setValidationError(errMsg);
+            if (errRes?.errors?.expected_total || errRes?.errors?.items) {
+                router.reload({ only: ['initialProducts', 'settings'], preserveScroll: true });
+            }
         } finally {
             submittingRef.current = false;
             setIsSubmittingOrder(false);
@@ -413,6 +446,7 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
         setCashReceived('');
         setLastCreatedOrder(null);
         setValidationError('');
+        router.reload({ only: ['initialProducts', 'settings'], preserveScroll: true });
     };
 
     // Auto-focus Cash Input when Modal Opens
@@ -793,6 +827,7 @@ return (
                         )}
                     </div>
                     )}
+                    <CatalogFeedControl feed={feed} />
                     <div className="pos-mobile-cart-bar shrink-0 border-t border-slate-200 bg-white p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] dark:border-slate-800 dark:bg-slate-900 md:hidden">
                         <button
                             type="button"

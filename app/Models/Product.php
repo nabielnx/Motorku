@@ -18,6 +18,8 @@ class Product extends Model
     use BelongsToBusiness;
     use HasFactory, HasUuids;
 
+    protected $attributes = ['sync_version' => 1];
+
     protected $fillable = [
         'category_id',
         'sku',

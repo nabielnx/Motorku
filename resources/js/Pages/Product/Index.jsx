@@ -85,6 +85,7 @@ export default function MenuManagement({
             const catName = p.category ? p.category.name : 'Umum';
             return {
                 id: p.id,
+                sync_version: Number(p.sync_version),
                 sku: p.sku || '',
                 brand: p.brand || '',
                 rack_location: p.rack_location || '',
@@ -409,6 +410,7 @@ export default function MenuManagement({
 
         try {
             if (editingItem) {
+                fd.append('sync_version', String(editingItem.sync_version));
                 fd.append('_method', 'PUT');
                 await axios.post(`/api/products/${editingItem.id}`, fd);
                 toast.success(`Data produk "${productFormData.name}" berhasil diperbarui!`);
@@ -419,6 +421,7 @@ export default function MenuManagement({
             router.reload({ preserveScroll: true });
             setIsProductModalOpen(false);
         } catch (err) {
+            if (err.response?.status === 409) router.reload({ only: ['initialProducts'], preserveScroll: true });
             toast.error(err.response?.data?.message || 'Gagal menyimpan produk');
         } finally {
             setIsLoading(false);

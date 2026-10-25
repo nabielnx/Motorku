@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Payment;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\PaginationRequest;
 use App\Http\Requests\Payment\RejectCustomerPaymentRequest;
 use App\Http\Requests\Payment\StorePaymentRequest;
 use App\Models\Payment;
@@ -33,7 +34,7 @@ class PaymentController extends Controller implements HasMiddleware
         ];
     }
 
-    public function index(Request $request)
+    public function index(PaginationRequest $request)
     {
         Gate::authorize('viewAny', Payment::class);
 

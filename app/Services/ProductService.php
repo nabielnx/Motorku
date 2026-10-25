@@ -90,15 +90,29 @@ class ProductService
 
     public function updateProduct($id, array $data)
     {
-        $product = Product::findOrFail($id);
+        return DB::transaction(fn () => $this->updateLockedProduct($id, $data), 3);
+    }
+
+    private function updateLockedProduct($id, array $data)
+    {
+        $product = Product::whereKey($id)->lockForUpdate()->firstOrFail();
+        abort_unless(isset($data['sync_version']) && (int) $data['sync_version'] === (int) $product->sync_version, 409,
+            'Produk sudah diubah. Muat ulang data terbaru sebelum menyimpan kembali.');
         $data['sync_version'] = $product->sync_version + 1;
         $removeImage = filter_var($data['remove_image'] ?? false, FILTER_VALIDATE_BOOLEAN);
         unset($data['remove_image']);
         if (isset($data['image'])) {
             $file = $data['image'];
             unset($data['image']);
-            app(ImageUploadService::class)->replace($file, 'products', $product->image_path,
-                fn ($path) => $product->update([...$data, 'image_path' => $path]));
+            $newPath = app(ImageUploadService::class)->store($file, 'products');
+            try {
+                $oldPath = $product->image_path;
+                $product->update([...$data, 'image_path' => $newPath]);
+                DB::afterCommit(fn () => $oldPath ? BusinessFiles::delete($oldPath) : null);
+            } catch (\Throwable $exception) {
+                BusinessFiles::delete($newPath);
+                throw $exception;
+            }
         } elseif ($removeImage) {
             $oldPath = $product->image_path;
             $product->update([...$data, 'image_path' => null]);

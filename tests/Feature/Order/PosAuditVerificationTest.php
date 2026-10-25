@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature\Order;
 
 use App\Models\Category;
@@ -32,7 +34,7 @@ class PosAuditVerificationTest extends TestCase
 
         $this->actingAs($cashier)->postJson('/api/orders/pos-sale', [
             'items' => [['product_id' => $product->id, 'quantity' => 2]],
-            'amount_received' => 40000,
+            'expected_total' => 30000, 'amount_received' => 40000,
         ])->assertCreated()
             ->assertJsonPath('data.order.customer_name', 'Pelanggan Umum')
             ->assertJsonPath('data.order.order_status', 'completed')
@@ -50,7 +52,7 @@ class PosAuditVerificationTest extends TestCase
 
         $this->actingAs($cashier)->postJson('/api/orders/pos-sale', [
             'items' => [['product_id' => $product->id, 'quantity' => 2]],
-            'amount_received' => 1000,
+            'expected_total' => 30000, 'amount_received' => 1000,
         ])->assertUnprocessable();
 
         $this->assertDatabaseCount('orders', 0);

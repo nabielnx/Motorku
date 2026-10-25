@@ -20,7 +20,7 @@ class StoreCustomerOrderRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->merge([
-            'customer_name' => $this->customer_name
+            'customer_name' => is_string($this->customer_name)
                 ? strip_tags(trim($this->customer_name))
                 : $this->customer_name,
         ]);
@@ -34,10 +34,10 @@ class StoreCustomerOrderRequest extends FormRequest
             'customer_phone' => ['nullable', 'string', 'regex:/^[0-9+\-\s()]{8,20}$/'],
             'notes' => ['nullable', 'string', 'max:500'],
             'payment_preference' => ['sometimes', 'in:kasir,qris'],
-            'expected_total' => ['sometimes', 'numeric', 'min:0'],
+            'expected_total' => ['sometimes', 'numeric', 'min:0', 'max:9999999999999'],
 
             'items' => ['required', 'array', 'min:1', 'max:20'],
-            'items.*.product_id' => ['required', BusinessRule::exists('products', 'id')],
+            'items.*.product_id' => ['required', 'uuid', BusinessRule::exists('products', 'id')],
             'items.*.quantity' => ['required', 'integer', 'min:1', 'max:'.config('order.public_max_quantity_per_item', 10)],
             'items.*.notes' => ['nullable', 'string', 'max:500'],
         ];

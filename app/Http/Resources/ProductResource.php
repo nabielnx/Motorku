@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
@@ -16,6 +18,7 @@ class ProductResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'sync_version' => (int) $this->sync_version,
             'sku' => $this->sku,
             'brand' => $this->brand,
             'barcode' => $this->barcode,
