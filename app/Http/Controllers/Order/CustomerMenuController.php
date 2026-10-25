@@ -87,6 +87,7 @@ class CustomerMenuController extends Controller
             ->where('is_available', true)
             ->get()
             ->map(function ($product) use ($totalSoldMap, $recommendedProductIds) {
+                $product->motorcycles->each->makeHidden('pivot');
                 $product->total_sold = (int) ($totalSoldMap[$product->id] ?? 0);
                 $product->is_recommended = isset($recommendedProductIds[$product->id]);
 

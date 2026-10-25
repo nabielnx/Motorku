@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
@@ -22,10 +24,6 @@ class PosController extends Controller implements HasMiddleware
 
     public function index(): Response
     {
-        $settings = Setting::all()->mapWithKeys(fn ($s) => [
-            $s->group.'.'.$s->key => $s->value,
-        ])->toArray();
-
         $products = Product::with([
             'category:id,name,parent_id',
             'category.parent:id,name',
@@ -37,12 +35,13 @@ class PosController extends Controller implements HasMiddleware
                 'brand', 'barcode', 'unit', 'rack_location',
                 'price', 'stock', 'image_path', 'is_available',
             ])
-            ->get();
+            ->get()
+            ->each(fn (Product $product) => $product->motorcycles->each->makeHidden('pivot'));
 
         return Inertia::render('POS/Index', [
             'initialProducts' => $products,
-            'initialCategories' => Category::all(),
-            'settings' => $settings,
+            'initialCategories' => fn () => Category::all(),
+            'settings' => fn () => Setting::all()->mapWithKeys(fn ($s) => [$s->group.'.'.$s->key => $s->value])->toArray(),
         ]);
     }
 }
