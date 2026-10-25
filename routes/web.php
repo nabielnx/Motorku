@@ -13,16 +13,23 @@ use App\Http\Controllers\Product\ProductController;
 use App\Http\Controllers\Report\ReportController;
 use App\Http\Controllers\Setting\SettingController;
 use App\Http\Controllers\User\UserController;
+use App\Http\Middleware\EnsureReferencesEnabled;
 use App\Models\Motorcycle;
+use App\Services\SettingService;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 // Public QR Customer Menu (katalog sparepart)
 Route::get('/', [CustomerMenuController::class, 'index'])->name('home');
 Route::get('/s/{businessSlug}', [CustomerMenuController::class, 'index'])->name('shop.home');
-Route::get('/sitemap.xml', fn () => response()
-    ->view('sitemap', ['motorcycleSlugs' => Motorcycle::whereNotNull('slug')->pluck('slug')])
-    ->header('Content-Type', 'application/xml; charset=UTF-8'))->name('sitemap');
+Route::get('/sitemap.xml', function () {
+    $referencesEnabled = app(SettingService::class)->referencesEnabled();
+
+    return response()->view('sitemap', [
+        'referencesEnabled' => $referencesEnabled,
+        'motorcycleSlugs' => $referencesEnabled ? Motorcycle::whereNotNull('slug')->pluck('slug') : [],
+    ])->header('Content-Type', 'application/xml; charset=UTF-8');
+})->name('sitemap');
 
 // Public Customer QR Flow
 Route::get('/sanctum/csrf-cookie', fn () => response()->noContent());
@@ -31,8 +38,8 @@ Route::get('/order/waiting', fn () => Inertia::render('Order/Waiting'))->name('c
 Route::get('/order/status', fn () => Inertia::render('Order/Status'))->name('customer.order.status');
 
 // Public "Motor Saya" — motorcycle part finder
-Route::get('/motor-saya/{slug?}', [MotorSayaController::class, 'index'])->name('motor-saya');
-Route::get('/api/motor-saya/{motorcycleId}/parts', [MotorSayaController::class, 'compatibleParts'])->name('motor-saya.parts');
+Route::get('/motor-saya/{slug?}', [MotorSayaController::class, 'index'])->middleware(EnsureReferencesEnabled::class)->name('motor-saya');
+Route::get('/api/motor-saya/{motorcycleId}/parts', [MotorSayaController::class, 'compatibleParts'])->middleware(EnsureReferencesEnabled::class)->name('motor-saya.parts');
 
 // Protected Web App
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -70,7 +77,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // Motorcycle management (admin)
-    Route::prefix('motorcycles')->middleware('role:owner')->group(function () {
+    Route::prefix('motorcycles')->middleware(['role:owner', EnsureReferencesEnabled::class])->group(function () {
         Route::get('/', [MotorcycleController::class, 'indexWeb'])->name('motorcycles.index');
         Route::post('/', [MotorcycleController::class, 'store'])->name('motorcycles.store');
         Route::post('/bulk-attach', [MotorcycleController::class, 'bulkAttach'])->name('motorcycles.bulk-attach');

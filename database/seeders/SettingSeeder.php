@@ -149,6 +149,13 @@ class SettingSeeder extends Seeder
             */
 
             [
+                'group' => 'references',
+                'key' => 'enabled',
+                'value' => 'true',
+                'type' => 'boolean',
+            ],
+
+            [
                 'group' => 'catalog',
                 'key' => 'show_total_sold',
                 'value' => 'true',
