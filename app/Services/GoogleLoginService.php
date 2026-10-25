@@ -50,6 +50,9 @@ final class GoogleLoginService
         if ($identity['id'] === '' || strlen($identity['id']) > 255 || ! filter_var($identity['email'], FILTER_VALIDATE_EMAIL) || strlen($identity['email']) > 254) {
             throw ValidationException::withMessages(['google' => 'Google tidak memberikan identitas akun yang lengkap.']);
         }
+        if (($attempt['kind'] ?? null) === 'customer') {
+            return app(CustomerAccountService::class)->google($request, $identity, $attempt);
+        }
         $linked = User::withoutGlobalScope(BusinessScope::class)->where('google_id', $identity['id'])->first();
         if ($attempt['user_id'] !== null) {
             $user = $request->user();
@@ -96,6 +99,18 @@ final class GoogleLoginService
         }
 
         return $identity;
+    }
+
+    public function startCustomer(Request $request, ?string $customerId = null): RedirectResponse
+    {
+        abort_unless($this->enabled(), 404);
+        $request->session()->put('google_oauth', [
+            'kind' => 'customer', 'customer_id' => $customerId, 'started_at' => time(),
+            'shop' => $request->attributes->get('shop_slug'),
+            'return' => $customerId ? null : $request->session()->get('customer_return'),
+        ]);
+
+        return $this->provider()->with(['prompt' => 'select_account'])->redirect();
     }
 
     public function disconnect(User $user): void

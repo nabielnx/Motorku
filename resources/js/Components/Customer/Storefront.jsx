@@ -1,7 +1,8 @@
 import useStorefront from '@/Hooks/useStorefront';
 import React, { useEffect, useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
-import { FiTool, FiShoppingBag, FiShoppingCart, FiSearch, FiX, FiDisc, FiDroplet, FiZap, FiShield, FiLayers, FiSun, FiSliders, FiCpu, FiUser } from 'react-icons/fi';
+import { FiTool, FiShoppingBag, FiShoppingCart, FiSearch, FiX, FiDisc, FiDroplet, FiZap, FiShield, FiLayers, FiSun, FiSliders, FiCpu } from 'react-icons/fi';
+import AccountAvatar from './AccountAvatar';
 import clsx from 'clsx';
 import { getProductImage } from '@/Utils/productImage';
 import { RiMotorbikeFill } from 'react-icons/ri';
@@ -70,7 +71,7 @@ export function StoreHeader({
     const [isSearchFocused, setIsSearchFocused] = useState(false);
     const [showMotorHint, setShowMotorHint] = useState(true);
     const referencesEnabled = props.app_settings?.references_enabled !== false;
-    const accountLabel = props?.auth?.user ? 'Akun saya' : 'Masuk ke akun';
+    const accountLabel = props.customer ? `Akun ${props.customer.name} · Sudah masuk` : 'Masuk sebagai pelanggan';
 
     return (
         <>
@@ -171,12 +172,12 @@ export function StoreHeader({
                             )}
                         </Link>
                         <Link
-                            href={storeUrl(props?.auth?.user ? '/profile' : '/login')}
+                            href={storeUrl(props.customer ? '/customer/account' : '/customer/login')}
                             title={accountLabel}
                             aria-label={accountLabel}
-                            className="store-action store-account-action"
+                            className={clsx('store-action store-account-action', props.customer && 'store-account-signed-in')}
                         >
-                            <FiUser size={20} strokeWidth={2} aria-hidden="true" />
+                            <AccountAvatar customer={props.customer} />
                         </Link>
                     </nav>
                     <div className="store-tools">

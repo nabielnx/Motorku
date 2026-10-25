@@ -3,7 +3,7 @@ import axios from 'axios';
 import { entityPayload } from './entityPayload.js';
 
 export async function createCustomerOrder(payload) {
-    return entityPayload(await axios.post(storefrontUrl('/api/customer/order', currentShopSlug()), payload));
+    return entityPayload(await axios.post(storefrontUrl('/customer/checkout', currentShopSlug()), payload));
 }
 
 export async function cancelCustomerOrder(orderId, customerToken) {

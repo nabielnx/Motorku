@@ -31,6 +31,7 @@ class StoreCustomerOrderRequest extends FormRequest
         return [
             'request_id' => ['sometimes', 'uuid'],
             'customer_name' => ['required', 'string', 'min:2', 'max:255'],
+            'customer_phone' => ['nullable', 'string', 'regex:/^[0-9+\-\s()]{8,20}$/'],
             'notes' => ['nullable', 'string', 'max:500'],
             'payment_preference' => ['sometimes', 'in:kasir,qris'],
             'expected_total' => ['sometimes', 'numeric', 'min:0'],

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Tests\Feature\Setting;
 
 use App\Models\CashClosing;
+use App\Models\CustomerAccount;
+use App\Models\CustomerProfile;
 use App\Models\InventoryLog;
 use App\Models\Order;
 use App\Models\OrderItem;
@@ -54,6 +56,8 @@ final class TransactionResetTest extends TestCase
 
     public function test_owner_can_reset_only_its_operational_history_with_current_password(): void
     {
+        $customer = CustomerAccount::create(['name' => 'Pelanggan', 'email' => 'retained@example.test', 'password' => 'Strong@1234']);
+        $profile = CustomerProfile::create(['customer_account_id' => $customer->id, 'name' => 'Pelanggan Toko']);
         $this->createTransactionHistory($this->owner, $this->product);
         $otherOrder = app(BusinessContext::class)->run($this->otherOwner->business_id, fn () => Order::factory()->create([
             'cashier_id' => $this->otherOwner->id,
@@ -85,6 +89,8 @@ final class TransactionResetTest extends TestCase
         $this->assertSame('45000.00', $this->product->fresh()->price);
         $this->assertSame(1, Supplier::count());
         $this->assertNotNull($this->owner->fresh());
+        $this->assertNotNull($customer->fresh());
+        $this->assertNotNull($profile->fresh());
         $this->assertDatabaseHas('orders', ['id' => $otherOrder->id, 'business_id' => $this->otherOwner->business_id]);
     }
 

@@ -79,6 +79,8 @@
 .store-motor-hint button:hover { background: #36453d; }
 .customer-storefront .store-motor-hint button:focus-visible { outline-color: var(--store-yellow); }
 .store-action:hover { background: var(--store-selected); }
+.store-account-signed-in { background: var(--store-ink); border-color: var(--store-ink); }
+.store-account-signed-in:hover { background: #36453d; }
 .store-search-clear:hover { color: var(--store-ink); }
 .store-catalog { padding-top: 16px; }
 .store-catalog-layout { gap: 20px; }

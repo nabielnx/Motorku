@@ -37,17 +37,21 @@ final class GoogleLoginController extends Controller
 
     public function callback(Request $request, GoogleLoginService $google): RedirectResponse
     {
+        $attempt = $request->session()->get('google_oauth');
+        $fallback = is_array($attempt) && ($attempt['kind'] ?? null) === 'customer'
+            ? (($attempt['customer_id'] ?? null) ? '/customer/account' : '/customer/login').(isset($attempt['shop']) ? '?shop='.rawurlencode($attempt['shop']) : '')
+            : ($request->user() ? '/profile' : '/login');
         try {
             return redirect($google->callback($request));
         } catch (ValidationException $exception) {
-            return redirect($request->user() ? '/profile' : '/login')->withErrors($exception->errors());
+            return redirect($fallback)->withErrors($exception->errors());
         } catch (InvalidStateException) {
-            return redirect($request->user() ? '/profile' : '/login')->withErrors(['google' => 'Sesi Google tidak valid atau sudah digunakan. Coba masuk lagi.']);
+            return redirect($fallback)->withErrors(['google' => 'Sesi Google tidak valid atau sudah digunakan. Coba masuk lagi.']);
         } catch (\Throwable $exception) {
             // OAuth responses may contain credentials; never log their bodies or URLs.
             logger()->warning('Google OAuth tidak berhasil.', ['exception_class' => $exception::class]);
 
-            return redirect($request->user() ? '/profile' : '/login')->withErrors(['google' => 'Login Google dibatalkan atau sedang tidak tersedia. Silakan coba lagi.']);
+            return redirect($fallback)->withErrors(['google' => 'Login Google dibatalkan atau sedang tidak tersedia. Silakan coba lagi.']);
         }
     }
 

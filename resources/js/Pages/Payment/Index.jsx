@@ -9,8 +9,9 @@ import { CHECKOUT_ATTEMPT as ATTEMPT, CHECKOUT_DRAFT as DRAFT, prepareCustomerCh
 import { rupiah } from '@/Utils/customerOrderState';
 import useForceLightTheme from '@/Utils/useForceLightTheme';
 import '../../../css/customer-orders.css';
+import '../../../css/customer-account.css';
 
-const schema = z.object({ customer_name: z.string().trim().min(2, 'Isi nama pemesan minimal 2 karakter.').max(255), payment_preference: z.enum(['kasir', 'qris']) });
+const schema = z.object({ customer_name: z.string().trim().min(2, 'Isi nama pemesan minimal 2 karakter.').max(255), customer_phone: z.string().trim().refine(value => !value || /^[0-9+\-\s()]{8,20}$/.test(value), 'Nomor telepon harus 8–20 karakter (angka, +, -, spasi, atau tanda kurung).'), payment_preference: z.enum(['kasir', 'qris']) });
 const parse = raw => { try { return JSON.parse(raw); } catch { return null; } };
 
 export default function Payment() {
@@ -21,11 +22,13 @@ export default function Payment() {
     const [data, setData] = useState(null);
     const [loaded, setLoaded] = useState(false);
     const [name, setName] = useState('');
+    const [phone, setPhone] = useState('');
     const [method, setMethod] = useState('kasir');
     const [attempt, setAttempt] = useState(null);
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState('');
     const [nameError, setNameError] = useState('');
+    const [phoneError, setPhoneError] = useState('');
     const [changed, setChanged] = useState(false);
     const submitting = useRef(false);
     const nameRef = useRef(null);
@@ -37,21 +40,23 @@ export default function Payment() {
             const draft = parse(storage.getItem(DRAFT));
             setData(pending?.display || parse(storage.getItem('motorku_pending_order')));
             setAttempt(pending?.payload ? pending : null);
-            setName(pending?.payload?.customer_name || draft?.name || '');
+            setName(pending?.payload?.customer_name || draft?.name || page.props.customer?.name || '');
+            setPhone(pending?.payload?.customer_phone || draft?.phone || page.props.customer?.phone || '');
             setMethod(pending?.payload?.payment_preference || (qrisEnabled && draft?.method === 'qris' ? 'qris' : 'kasir'));
         } catch { setError('Penyimpanan browser tidak tersedia. Aktifkan penyimpanan untuk membuat pesanan.'); }
         setLoaded(true);
     }, [storage]);
     useEffect(() => {
-        if (loaded && !attempt) { try { storage.setItem(DRAFT, JSON.stringify({ name, method })); } catch { /* Submission checks persistence before creating an order. */ } }
-    }, [name, method, loaded, attempt, storage]);
+        if (loaded && !attempt) { try { storage.setItem(DRAFT, JSON.stringify({ name, phone, method })); } catch { /* Submission checks persistence before creating an order. */ } }
+    }, [name, phone, method, loaded, attempt, storage]);
     const submit = async event => {
         event.preventDefault();
         if (submitting.current || changed) return;
         setError('');
         setNameError('');
-        const validated = schema.safeParse({ customer_name: name, payment_preference: method });
-        if (!validated.success) { setNameError(validated.error.issues[0].message); nameRef.current?.focus(); nameRef.current?.scrollIntoView({ block: 'center' }); return; }
+        setPhoneError('');
+        const validated = schema.safeParse({ customer_name: name, customer_phone: phone, payment_preference: method });
+        if (!validated.success) { validated.error.issues.forEach(issue => issue.path[0] === 'customer_phone' ? setPhoneError(issue.message) : setNameError(issue.message)); nameRef.current?.focus(); return; }
         submitting.current = true; setBusy(true);
         let request = attempt;
         try {
@@ -104,6 +109,10 @@ export default function Payment() {
                     <form className="checkout-layout" onSubmit={submit} noValidate aria-busy={busy}>
                         <div className="checkout-sheet">
                             <section className="checkout-section checkout-pickup">
+                                <div className="checkout-account-status">
+                                    <span>{page.props.customer ? `Belanja sebagai ${page.props.customer.name}` : 'Belanja sebagai tamu'}</span>
+                                    {!attempt && <Link href={storeUrl(page.props.customer ? '/customer/account' : '/customer/login?return=/payment')}>{page.props.customer ? 'Akun pelanggan' : 'Masuk / daftar pelanggan'}</Link>}
+                                </div>
                                 <h2><FiMapPin size={18} aria-hidden="true" />Ambil di toko</h2>
                                 <p><strong>{settings.store_name || 'Motorku'}</strong>{settings.store_address && <> · {settings.store_address}</>}</p>
                                 <label htmlFor="customer-name">Nama pemesan</label>
@@ -115,6 +124,9 @@ export default function Payment() {
                                     aria-describedby={nameError ? 'customer-name-error' : undefined}
                                 />
                                 {nameError && <p id="customer-name-error" className="checkout-field-error" role="alert">{nameError}</p>}
+                                <label htmlFor="customer-phone">Nomor telepon (opsional)</label>
+                                <input id="customer-phone" type="tel" autoComplete="tel" maxLength={20} value={phone} onChange={event => { setPhone(event.target.value); setPhoneError(''); }} disabled={locked} aria-invalid={Boolean(phoneError)} aria-describedby={phoneError ? 'customer-phone-error' : undefined} />
+                                {phoneError && <p id="customer-phone-error" className="checkout-field-error" role="alert">{phoneError}</p>}
                             </section>
                             <section className="checkout-section checkout-products">
                                 <div className="checkout-section-heading">
@@ -149,7 +161,7 @@ export default function Payment() {
                                 <div className="checkout-mobile-total"><span>Total pembayaran</span><strong>{rupiah(data.total)}</strong></div>
                                 {changed ? <Link className="order-button order-button-primary" href={storeUrl('/?openCart=1')}>Perbarui keranjang</Link> : (
                                     <button type="submit" className="order-button order-button-primary" disabled={busy}>
-                                        {busy ? 'Memproses…' : attempt ? 'Periksa pesanan' : 'Buat pesanan'}
+                                        {busy ? 'Memproses…' : attempt ? 'Periksa pesanan' : page.props.customer ? 'Buat pesanan' : 'Pesan sebagai tamu'}
                                     </button>
                                 )}
                             </div>

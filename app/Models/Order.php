@@ -27,6 +27,7 @@ class Order extends Model
     }
 
     protected $fillable = [
+        'customer_account_id',
         'cashier_id',
         'order_number',
         'customer_name',

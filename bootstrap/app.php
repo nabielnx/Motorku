@@ -7,6 +7,7 @@ use App\Http\Middleware\ControlAdminDeletion;
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\ResolveBusiness;
+use App\Http\Middleware\ResolveCustomerSession;
 use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
@@ -64,6 +65,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->append([FrameGuard::class, AddRobotsHeader::class]);
         $middleware->web(append: [
             ResolveBusiness::class,
+            ResolveCustomerSession::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
             EnsureUserIsActive::class,
