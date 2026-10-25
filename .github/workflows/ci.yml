@@ -60,6 +60,8 @@ jobs:
           php artisan key:generate
       - name: Deployment health-check regression tests
         run: bash tests/shell/deploy-health-check-test.sh
+      - name: Deployment cleanup regression tests
+        run: bash tests/shell/deploy-cleanup-test.sh
       - name: Build frontend
         run: npm run build
       - name: PHP style and dependency checks
