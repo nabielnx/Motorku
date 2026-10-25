@@ -55,13 +55,10 @@ class ProductController extends Controller implements HasMiddleware
             return redirect()->route('products.index', $request->except('page'));
         }
 
-        $lowStockCount = Product::inCatalogGroup($group ?: null)->where('stock', '>', 0)->whereColumn('stock', '<=', 'minimum_stock')->count();
-        $outOfStockCount = Product::inCatalogGroup($group ?: null)->where('stock', '<=', 0)->count();
-
         return Inertia::render('Product/Index', [
             'catalogGroups' => $catalogGroups,
             'initialProducts' => $products,
-            'initialCategories' => Category::with(['children' => function ($q) {
+            'initialCategories' => fn () => Category::with(['children' => function ($q) {
                 $q->withCount('products');
             }])->whereNull('parent_id')->when($group, fn ($query) => $query->where('catalog_group', $group))->withCount('products')->get(),
             'filters' => [
@@ -72,8 +69,8 @@ class ProductController extends Controller implements HasMiddleware
                 'availability' => $availability ?: 'all',
                 'sort' => $sort ?: 'latest',
             ],
-            'lowStockCount' => $lowStockCount,
-            'outOfStockCount' => $outOfStockCount,
+            'lowStockCount' => fn () => Product::inCatalogGroup($group ?: null)->where('stock', '>', 0)->whereColumn('stock', '<=', 'minimum_stock')->count(),
+            'outOfStockCount' => fn () => Product::inCatalogGroup($group ?: null)->where('stock', '<=', 0)->count(),
         ]);
     }
 
