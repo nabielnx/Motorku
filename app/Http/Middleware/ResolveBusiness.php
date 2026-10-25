@@ -19,7 +19,7 @@ final class ResolveBusiness
         if (! $context->ready()) {
             return $next($request);
         }
-        $public = $request->routeIs('home', 'shop.home', 'sitemap', 'customer.*', 'motor-saya', 'motor-saya.parts', 'api.customer.*')
+        $public = $request->routeIs('home', 'shop.home', 'pwa.manifest', 'sitemap', 'customer.*', 'motor-saya', 'motor-saya.parts', 'api.customer.*')
             || ($request->routeIs('login') && $request->query('shop') !== null);
         if ($public) {
             $slug = $request->route('businessSlug') ?? $request->query('shop');

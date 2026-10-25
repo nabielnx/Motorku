@@ -1,5 +1,6 @@
-export function reconcileCustomerCart(cart, products) {
+export function reconcileCustomerCart(cart, products, checkedIds = null) {
     const catalog = new Map(products.map(product => [product.id, product]));
+    const requested = checkedIds ? new Set(checkedIds) : null;
     let changed = false;
     let needsReview = false;
     const updated = [];
@@ -7,6 +8,10 @@ export function reconcileCustomerCart(cart, products) {
     for (const item of cart) {
         const product = catalog.get(item.id);
         if (!product) {
+            if (requested && !requested.has(item.id)) {
+                updated.push(item);
+                continue;
+            }
             changed = true;
             needsReview = true;
             continue;

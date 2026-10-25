@@ -10,10 +10,9 @@ use App\Http\Requests\Payment\CustomerQrisRequest;
 use App\Http\Requests\Payment\ReportCustomerPaymentRequest;
 use App\Models\Category;
 use App\Models\Order;
-use App\Models\Product;
 use App\Models\Setting;
-use App\Services\BusinessContext;
 use App\Services\CacheService;
+use App\Services\CatalogPageService;
 use App\Services\CustomerOrderService;
 use App\Services\OrderCancellationService;
 use App\Services\OrderService;
@@ -57,43 +56,10 @@ class CustomerMenuController extends Controller
         if (($settingsData['settings']['qr_order.enabled'] ?? 'true') === 'false') {
             return Inertia::render('Order/Menu', ['initialProducts' => [], 'initialCategories' => [], 'settings' => $settingsData['settings'], 'bestSellerProductIds' => [], 'promoBanners' => []]);
         }
-        // Single query for both totalSoldMap AND bestSellerProductIds (was 2 separate queries)
-        $salesData = app(BusinessContext::class)->table('order_items')
-            ->join('orders', 'order_items.order_id', '=', 'orders.id')
-            ->where('orders.order_status', '!=', 'cancelled')
-            ->whereExists(function ($query) {
-                $query->selectRaw('1')
-                    ->from('payments')
-                    ->whereColumn('payments.order_id', 'orders.id')
-                    ->where('payments.status', 'paid');
-            })
-            ->select('order_items.product_id', DB::raw('SUM(order_items.quantity) as total_sold'))
-            ->groupBy('order_items.product_id')
-            ->orderByDesc('total_sold')
-            ->get();
-
-        $totalSoldMap = $salesData->pluck('total_sold', 'product_id')->toArray();
-        $bestSellerProductIds = $salesData->take(5)->pluck('product_id')->toArray();
-
-        $recommendedProductIds = app(BusinessContext::class)->table('motorcycle_parts')
-            ->where('is_recommended', true)
-            ->pluck('product_id')
-            ->unique()
-            ->flip()
-            ->toArray();
-
-        $products = Product::query()
-            ->select(['id', 'category_id', 'sku', 'barcode', 'brand', 'unit', 'name', 'description', 'price', 'stock', 'image_path', 'is_available'])
-            ->with(['category:id,name,parent_id', 'category.parent:id,name', 'motorcycles:id,brand,model,engine_type,year_start,year_end'])
-            ->where('is_available', true)
-            ->get()
-            ->map(function ($product) use ($totalSoldMap, $recommendedProductIds) {
-                $product->motorcycles->each->makeHidden('pivot');
-                $product->total_sold = (int) ($totalSoldMap[$product->id] ?? 0);
-                $product->is_recommended = isset($recommendedProductIds[$product->id]);
-
-                return $product;
-            });
+        $catalog = app(CatalogPageService::class);
+        $bestSellerProductIds = $catalog->salesData()->take(5)->pluck('product_id')->all();
+        $catalogPage = $catalog->page();
+        $products = $catalogPage['products'];
 
         $categories = Category::with('children:id,name,parent_id')
             ->whereNull('parent_id')
@@ -104,6 +70,7 @@ class CustomerMenuController extends Controller
 
         return Inertia::render('Order/Menu', [
             'initialProducts' => $products,
+            'initialPagination' => $catalogPage['pagination'],
             'initialCategories' => $categories,
             'settings' => $settingsData['settings'],
             'bestSellerProductIds' => $bestSellerProductIds,

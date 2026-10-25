@@ -50,7 +50,14 @@ class OrderCancellationService
 
             $this->restoreReservedStock($order, null,
                 'Stok dikembalikan — order '.$order->order_number.' kadaluarsa otomatis');
-            $this->markCancelled($order, 'expired');
+            $reviewExpired = $order->payment_review_requested_at !== null;
+            $this->markCancelled($order, $reviewExpired ? 'payment_review_expired' : 'expired');
+            if ($reviewExpired) {
+                $order->update([
+                    'payment_review_requested_at' => null,
+                    'payment_review_note' => 'Pemeriksaan QRIS melewati 24 jam. Pesanan dibatalkan dan stok dikembalikan. Jika dana sudah masuk, hubungi toko untuk rekonsiliasi.',
+                ]);
+            }
             $order->payments()->where('status', 'pending')->update(['status' => 'expired']);
 
             return true;

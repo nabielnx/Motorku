@@ -37,7 +37,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
             } else if (rawUrl?.pathname) {
                 targetPath = rawUrl.pathname;
             }
-            if (targetPath === '/dashboard') {
+            if (targetPath === '/dashboard' && !event.detail.visit.preserveState) {
                 setIsNavigating(true);
             }
         });

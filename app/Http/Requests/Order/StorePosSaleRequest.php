@@ -20,7 +20,8 @@ class StorePosSaleRequest extends StoreOrderRequest
         return [
             ...parent::rules(),
             'payment_method' => ['sometimes', 'in:cash,qris_manual'],
-            'amount_received' => ['required_unless:payment_method,qris_manual', 'nullable', 'numeric', 'gt:0'],
+            'amount_received' => ['required_unless:payment_method,qris_manual', 'nullable', 'numeric', 'gt:0', 'max:9999999999999'],
+            'expected_total' => ['required_unless:payment_method,qris_manual', 'nullable', 'numeric', 'min:0', 'max:9999999999999'],
             'reference_number' => ['nullable', 'string', 'max:100'],
             'qris_quote' => ['nullable', 'string', 'regex:/\A[a-f0-9]{64}\z/'],
         ];

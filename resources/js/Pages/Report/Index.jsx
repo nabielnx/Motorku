@@ -38,7 +38,7 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
             } else if (rawUrl?.pathname) {
                 targetPath = rawUrl.pathname;
             }
-            if (targetPath && targetPath.startsWith('/reports')) {
+            if (targetPath && targetPath.startsWith('/reports') && !event.detail.visit.preserveState) {
                 setIsNavigating(true);
             }
         });

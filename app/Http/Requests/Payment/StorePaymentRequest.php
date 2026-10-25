@@ -28,7 +28,7 @@ class StorePaymentRequest extends FormRequest
         return [
             'order_id' => ['required', 'uuid', BusinessRule::exists('orders', 'id')],
             'payment_method' => ['required', 'string', 'in:cash,qris_manual'],
-            'amount_received' => ['required_if:payment_method,cash', 'nullable', 'numeric', 'gt:0'],
+            'amount_received' => ['required_if:payment_method,cash', 'nullable', 'numeric', 'gt:0', 'max:9999999999999'],
             'reference_number' => ['nullable', 'string', 'max:100'],
             'notes' => 'nullable|string|max:500',
         ];

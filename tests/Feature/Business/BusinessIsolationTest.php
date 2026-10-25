@@ -241,8 +241,8 @@ class BusinessIsolationTest extends TestCase
 
     public function test_paid_sales_reports_and_exported_catalog_only_contain_the_owner_business(): void
     {
-        $this->actingAs($this->ownerA)->postJson('/api/orders/pos-sale', [...$this->payload($this->productA), 'amount_received' => 1000])->assertCreated();
-        $this->actingAs($this->ownerB)->postJson('/api/orders/pos-sale', [...$this->payload($this->productB), 'amount_received' => 2000])->assertCreated();
+        $this->actingAs($this->ownerA)->postJson('/api/orders/pos-sale', [...$this->payload($this->productA), 'expected_total' => 1000, 'amount_received' => 1000])->assertCreated();
+        $this->actingAs($this->ownerB)->postJson('/api/orders/pos-sale', [...$this->payload($this->productB), 'expected_total' => 2000, 'amount_received' => 2000])->assertCreated();
         $this->getJson('/api/reports/daily')->assertOk()->assertJsonPath('data.total_revenue', 2000)->assertJsonPath('data.total_orders', 1);
         $response = $this->get('/api/products/sheets/export?format=csv')->assertOk();
         $path = $response->baseResponse->getFile()->getPathname();

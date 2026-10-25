@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Enums\InventoryLogType;
 use App\Models\InventoryLog;
 use App\Models\Product;
+use App\Support\DomainLimits;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -41,11 +42,26 @@ class InventoryService
         $result = DB::transaction(function () use ($data, $userId, $note) {
             $product = Product::whereKey($data['product_id'])->lockForUpdate()->firstOrFail();
             $quantity = (float) $data['quantity'];
-            $previousStock = $product->stock;
+            $previousStock = (float) $product->getRawOriginal('stock');
 
             $type = $data['type'] instanceof InventoryLogType
                 ? $data['type']
                 : InventoryLogType::from($data['type']);
+
+            if (! is_finite($quantity) || $quantity !== floor($quantity) || $quantity < ($type === InventoryLogType::Adjustment ? 0 : 1)) {
+                throw ValidationException::withMessages(['quantity' => 'Jumlah stok harus berupa bilangan bulat yang valid.']);
+            }
+            if ($type !== InventoryLogType::Adjustment && $previousStock !== floor($previousStock)) {
+                throw ValidationException::withMessages(['quantity' => 'Stok lama masih pecahan. Lakukan opname fisik sebelum transaksi.']);
+            }
+            $nextStock = match ($type) {
+                InventoryLogType::StockOut => $previousStock - $quantity,
+                InventoryLogType::Adjustment => $quantity,
+                default => $previousStock + $quantity,
+            };
+            if ($nextStock > DomainLimits::MAX_STOCK || $quantity > DomainLimits::MAX_STOCK) {
+                throw ValidationException::withMessages(['quantity' => 'Jumlah stok melebihi batas penyimpanan.']);
+            }
 
             match ($type) {
                 InventoryLogType::StockOut => $this->decrementStock($product, $quantity),
@@ -53,6 +69,7 @@ class InventoryService
                 InventoryLogType::StockReturn => $product->increment('stock', $quantity),
                 InventoryLogType::Adjustment => $product->update(['stock' => $quantity]),
             };
+            $product->increment('sync_version');
 
             return InventoryLog::create([
                 'product_id' => $data['product_id'],

@@ -6,8 +6,8 @@ namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
-use App\Models\Product;
 use App\Models\Setting;
+use App\Services\CatalogPageService;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Inertia\Inertia;
@@ -24,22 +24,12 @@ class PosController extends Controller implements HasMiddleware
 
     public function index(): Response
     {
-        $products = Product::with([
-            'category:id,name,parent_id',
-            'category.parent:id,name',
-            'motorcycles:id,brand,model',
-        ])
-            ->where('is_available', true)
-            ->select([
-                'id', 'category_id', 'sku', 'name', 'description',
-                'brand', 'barcode', 'unit', 'rack_location',
-                'price', 'stock', 'image_path', 'is_available',
-            ])
-            ->get()
-            ->each(fn (Product $product) => $product->motorcycles->each->makeHidden('pivot'));
+        $catalogPage = app(CatalogPageService::class)->page();
+        $products = $catalogPage['products'];
 
         return Inertia::render('POS/Index', [
             'initialProducts' => $products,
+            'initialPagination' => $catalogPage['pagination'],
             'initialCategories' => fn () => Category::all(),
             'settings' => fn () => Setting::all()->mapWithKeys(fn ($s) => [$s->group.'.'.$s->key => $s->value])->toArray(),
         ]);

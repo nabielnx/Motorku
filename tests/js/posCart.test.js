@@ -1,8 +1,19 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { POS_CART_KEY, formatPosProduct, readPosCart, addToPosCart } from '../../resources/js/Utils/posCart.js';
+import { POS_CART_KEY, formatPosProduct, readPosCart, addToPosCart, reconcilePosCart } from '../../resources/js/Utils/posCart.js';
 
 const product = { id: 'tire', name: 'Ban IRC', price: '322000.00', stock: 3, is_available: true, image_path: 'products/tire.webp', category: { name: 'Ban' } };
+
+test('POS reconciles price and stock without clearing checks, notes or newly added unchecked ids', () => {
+    const line = { ...formatPosProduct(product), qty: 2, checked: true, notes: 'Checked tyre' };
+    const added = { ...line, id: 'new-item' };
+    const result = reconcilePosCart([line, added], [{ ...product, price: 330000, stock: 2 }], ['tire']);
+    assert.equal(result.cart[0].price, 330000);
+    assert.equal(result.cart[0].checked, true);
+    assert.equal(result.cart[0].notes, line.notes);
+    assert.equal(result.cart[1], added);
+    assert.equal(result.needsReview, true);
+});
 
 test('Data Motor additions survive storage and merge with the existing POS cart', () => {
     const saved = new Map();

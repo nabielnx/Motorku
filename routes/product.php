@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Http\Controllers\Product\ProductController;
 use App\Http\Controllers\Product\ProductSheetController;
 use Illuminate\Support\Facades\Route;

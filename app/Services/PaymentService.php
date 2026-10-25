@@ -9,6 +9,7 @@ use App\Enums\PaymentStatus;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\Setting;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -184,6 +185,8 @@ class PaymentService
      */
     public function finalizePaidOrder(Order $order): void
     {
+        $salesKey = CacheService::key('catalog:sales:v1');
+        DB::afterCommit(fn () => Cache::forget($salesKey));
         $order->update([
             'payment_status' => PaymentStatus::Paid,
             'payment_review_requested_at' => null,

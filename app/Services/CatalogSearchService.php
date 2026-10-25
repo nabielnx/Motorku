@@ -1,9 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services;
 
+use App\Models\Product;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Normalizer;
 
 /** Same vocabulary and matching contract as the client; no external search API or stale persistent index. */
@@ -14,6 +19,11 @@ class CatalogSearchService
     private array $units = [];
 
     private array $concepts = [];
+
+    // Request-local memoization: never cache stock/prices or leak between businesses.
+    private array $wordCache = [];
+
+    private array $canonicalCache = [];
 
     public function __construct()
     {
@@ -50,6 +60,10 @@ class CatalogSearchService
 
     private function words(mixed $value): array
     {
+        $key = (string) ($value ?? '');
+        if (isset($this->wordCache[$key])) {
+            return $this->wordCache[$key];
+        }
         $text = preg_replace('/(\d+)\s*w\s*-\s*(\d+)/', '$1w$2', $this->fold($value));
         $text = preg_replace_callback('/(\d+)\s+(\d+)\/(\d+)/', fn ($m) => (int) $m[3] <= 16 && (int) $m[2] < (int) $m[3] ? (string) ((int) $m[1] + (int) $m[2] / (int) $m[3]) : $m[0], $text);
         foreach ($this->units as $unit) {
@@ -57,6 +71,10 @@ class CatalogSearchService
         }
         $text = preg_replace(['/(\d+)[.,](\d+)/', '/(\d+)\/(\d+)/'], ['$1p$2', '$1r$2'], $text);
         preg_match_all('/[\p{L}\p{N}]+/u', $text, $matches);
+
+        if (count($this->wordCache) < 4096) {
+            $this->wordCache[$key] = $matches[0];
+        }
 
         return $matches[0];
     }
@@ -78,6 +96,10 @@ class CatalogSearchService
     {
         if (! $tokens) {
             return [];
+        }
+        $cacheKey = implode('\0', $tokens);
+        if (isset($this->canonicalCache[$cacheKey])) {
+            return $this->canonicalCache[$cacheKey];
         }
         $available = array_fill_keys(array_merge(...array_map($this->forms(...), $tokens)), true);
         foreach ($this->rules as $rule) {
@@ -102,7 +124,12 @@ class CatalogSearchService
             $available = array_fill_keys(array_merge(...array_map($this->forms(...), $tokens)), true);
         }
 
-        return array_values(array_unique($tokens));
+        $result = array_values(array_unique($tokens));
+        if (count($this->canonicalCache) < 4096) {
+            $this->canonicalCache[$cacheKey] = $result;
+        }
+
+        return $result;
     }
 
     private function prepare(string $raw): array
@@ -146,12 +173,11 @@ class CatalogSearchService
 
     private function scorePrepared(array $item, array $query): float
     {
-        if (! $query['valid'] || ! $query['tokens']) {
-            return 0;
-        }
-        if (isset($item['sku']) && (string) $item['sku'] !== '' && $this->compact($item['sku']) === $this->compact($query['raw'])) {
-            return 1060;
-        }
+        return $this->scoreDocument($this->document($item), $query);
+    }
+
+    private function document(array $item): array
+    {
         $category = $item['category'] ?? null;
         $fields = [
             [$item['name'] ?? '', 100], [$item['sku'] ?? '', 110], [$item['barcode'] ?? '', 110], [$item['brand'] ?? '', 90],
@@ -200,6 +226,19 @@ class CatalogSearchService
         if (isset($tokens['aki'])) {
             $add('baterai', 55);
         }
+
+        return ['tokens' => $tokens, 'codes' => $codes, 'name' => $this->fold($item['name'] ?? ''), 'sku' => $this->compact($item['sku'] ?? '')];
+    }
+
+    private function scoreDocument(array $document, array $query): float
+    {
+        if (! $query['valid'] || ! $query['tokens']) {
+            return 0;
+        }
+        if ($document['sku'] !== '' && $document['sku'] === $this->compact($query['raw'])) {
+            return 1060;
+        }
+        ['tokens' => $tokens, 'codes' => $codes] = $document;
         $sum = 0;
         foreach ($query['tokens'] as $token) {
             $score = $tokens[$token] ?? 0;
@@ -229,15 +268,27 @@ class CatalogSearchService
         }
         $score = $sum / count($query['tokens']);
         $raw = $this->fold($query['raw']);
-        if ($this->fold($item['name'] ?? '') === $raw) {
+        if ($document['name'] === $raw) {
             $score += 1000;
-        } elseif (! empty($item['sku']) && $this->compact($item['sku']) === $this->compact($query['raw'])) {
+        } elseif ($document['sku'] !== '' && $document['sku'] === $this->compact($query['raw'])) {
             $score += 950;
-        } elseif (str_contains($this->fold($item['name'] ?? ''), $raw)) {
+        } elseif (str_contains($document['name'], $raw)) {
             $score += 300;
         }
 
         return $score;
+    }
+
+    private function searchableItem(?Product $product): array
+    {
+        if (! $product) {
+            return [];
+        }
+
+        return [...$product->getAttributes(),
+            'category' => $product->category ? ['name' => $product->category->name, 'parent' => ['name' => $product->category->parent?->name]] : null,
+            'motorcycles' => $product->motorcycles->map(fn ($motorcycle) => $motorcycle->getAttributes())->all(),
+        ];
     }
 
     public function apply(Builder $query, string $search, bool $rank = true, bool $parts = false): void
@@ -261,26 +312,78 @@ class CatalogSearchService
                 ->with(['category.parent', 'motorcycles:id,brand,model,engine_type']);
         }
         if ($prepared['valid'] && $prepared['tokens']) {
+            if ((clone $candidates)->toBase()->getCountForPagination() > 10000) {
+                throw ValidationException::withMessages(['search' => 'Katalog lebih dari 10.000 produk. Pilih kategori untuk mempersempit pencarian.']);
+            }
             $candidates->chunkById(250, function ($rows) use (&$scores, $prepared, $parts): void {
+                $items = [];
+                $keys = [];
+                $vocabulary = hash('sha256', json_encode(config('catalog_search'), JSON_THROW_ON_ERROR));
                 foreach ($rows as $row) {
-                    $item = $parts ? [...($row->product?->toArray() ?? []), 'notes' => $row->notes] : $row->toArray();
-                    $score = $this->scorePrepared($item, $prepared);
-                    if ($score > 0) {
-                        $scores[$row->id] = $score;
+                    $item = $parts ? [...$this->searchableItem($row->product), 'notes' => $row->notes] : $this->searchableItem($row);
+                    $items[$row->id] = $item;
+                    $keys[$row->id] = CacheService::key('search:document:v2:'.$vocabulary.':'.hash('sha256', json_encode($item, JSON_THROW_ON_ERROR)));
+                }
+                // Content-addressed metadata only; prices/stock are never selected or cached here.
+                $documents = Cache::many(array_values(array_unique($keys)));
+                $missing = [];
+                foreach ($items as $id => $item) {
+                    $key = $keys[$id];
+                    if (! isset($documents[$key])) {
+                        $documents[$key] = $this->document($item);
+                        $missing[$key] = $documents[$key];
                     }
+                    $score = $this->scoreDocument($documents[$key], $prepared);
+                    if ($score > 0) {
+                        $scores[$id] = $score;
+                    }
+                }
+                foreach (array_chunk($missing, 25, true) as $batch) {
+                    Cache::putMany($batch, CacheService::TTL_MOTORCYCLE);
                 }
             });
         }
         $column = $query->getModel()->qualifyColumn('id');
         $query->whereIn($column, array_keys($scores));
         if ($rank && $scores) {
+            $connection = $query->getConnection();
+            $version = (string) $connection->getPdo()->getAttribute(\PDO::ATTR_SERVER_VERSION);
+            $supportsJsonTable = false;
+            if ($connection->getDriverName() === 'mysql') {
+                if (stripos($version, 'MariaDB') !== false) {
+                    $supportsJsonTable = preg_match('/([0-9]+\.[0-9]+\.[0-9]+)-MariaDB/i', $version, $match)
+                        && version_compare($match[1], '10.6.0', '>=');
+                } else {
+                    $supportsJsonTable = version_compare($version, '8.0.4', '>=');
+                }
+            }
+            if ($supportsJsonTable) {
+                // A relation of scores avoids evaluating a large CASE for every matching row.
+                // IDs and weights remain bound data, never interpolated SQL.
+                $rows = [];
+                foreach ($scores as $id => $score) {
+                    $rows[] = ['id' => $id, 'score' => $score];
+                }
+                // LIMIT keeps this derived relation materialized so JSON_TABLE is not rerun for each product.
+                $matches = $connection->query()->select(['match_id', 'match_score'])->fromRaw(
+                    "JSON_TABLE(?, '$[*]' COLUMNS(match_id VARBINARY(36) PATH '$.id', match_score DOUBLE PATH '$.score')) AS score_rows",
+                    [json_encode($rows, JSON_THROW_ON_ERROR)]
+                )->limit(count($rows));
+                if ($query->getQuery()->columns === null) {
+                    $query->select($query->getModel()->qualifyColumn('*'));
+                }
+                $query->joinSub($matches, 'catalog_search_matches', $column, '=', 'catalog_search_matches.match_id')
+                    ->orderByDesc('catalog_search_matches.match_score');
+
+                return;
+            }
             $bindings = [];
             $clauses = [];
             foreach ($scores as $id => $score) {
                 $clauses[] = 'WHEN ? THEN ?';
                 array_push($bindings, $id, $score);
             }
-            $query->orderByRaw('CASE '.$column.' '.implode(' ', $clauses).' ELSE 0 END DESC', $bindings);
+            $query->orderByRaw('CAST(CASE '.$column.' '.implode(' ', $clauses).' ELSE 0 END AS DECIMAL(16, 8)) DESC', $bindings);
         }
     }
 }

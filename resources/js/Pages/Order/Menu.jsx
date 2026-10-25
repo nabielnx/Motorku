@@ -1,3 +1,6 @@
+import useCatalogFeed from '@/Hooks/useCatalogFeed';
+import CatalogFeedControl from '@/Components/Customer/CatalogFeedControl';
+import axios from 'axios';
 import { readCustomerOrders } from '@/Utils/customerOrderStore';
 import useStorefront from '@/Hooks/useStorefront';
 import CustomerProductCard from '@/Components/Customer/CustomerProductCard';
@@ -15,7 +18,7 @@ import { StoreHeader, ProductPhoto } from '@/Components/Customer/Storefront';
 import MotoQuickPromoSection from '@/Components/Customer/MotoQuickPromoSection';
 import { FaWhatsapp } from 'react-icons/fa';
 import { fuzzyFilterProducts } from '@/Utils/fuzzySearch';
-import { customerCartTotals, loadCustomerCatalog, reconcileCustomerCart } from '@/Utils/customerCart';
+import { customerCartTotals, reconcileCustomerCart } from '@/Utils/customerCart';
 
 const CART_KEY = 'motorku_cart';
 const ORDER_KEY = 'motorku_pending_order';
@@ -61,12 +64,16 @@ function saveCart(cart, storage) {
 
 export default function CustomerMenu({
     initialProducts = [],
+    initialPagination = null,
     initialCategories = [],
-    settings = {},
+    settings: initialSettings = {},
     bestSellerProductIds = [],
     promoBanners = {},
 }) {
     const { storage, storeUrl } = useStorefront();
+    const [settings, setSettings] = useState(initialSettings);
+    useEffect(() => setSettings(initialSettings), [initialSettings]);
+    const catalogUrl = storeUrl('/catalog/products');
     useForceLightTheme();
     const { props } = usePage();
     const referencesEnabled = props.app_settings?.references_enabled !== false;
@@ -133,7 +140,7 @@ export default function CustomerMenu({
     const active = useRef(true);
     const [searchQuery, setSearchQuery] = useState('');
     const deferredSearch = useDeferredValue(searchQuery);
-    const catalogProps = useRef({ initialProducts, initialCategories });
+
     const [selectedMainCategory, setSelectedMainCategory] = useState(null);
     const [selectedSubCategory, setSelectedSubCategory] = useState(null);
     const [hasAnyOrders, setHasAnyOrders] = useState(false);
@@ -142,29 +149,35 @@ export default function CustomerMenu({
     const [detailQty, setDetailQty] = useState(1);
     const searchInputRef = useRef(null);
 
-    useEffect(() => {
-        if (catalogProps.current.initialProducts !== initialProducts || catalogProps.current.initialCategories !== initialCategories) {
-            setMenuItems(formatProducts(initialProducts));
-            setCategories(formatCategories(initialCategories));
-            catalogProps.current = { initialProducts, initialCategories };
-        }
-
-        // Saved cart lines retain quantities/notes, but catalog values come from the server.
-        const reconciled = reconcileCustomerCart(cartRef.current, formatProducts(initialProducts));
-        cartRef.current = reconciled.cart;
-        setCart(reconciled.cart);
-        if (reconciled.needsReview) setCartMessage('Harga atau ketersediaan barang diperbarui. Periksa kembali keranjang Anda.');
-    }, [initialProducts, initialCategories]);
+    const feed = useCatalogFeed({ url: catalogUrl, initialProducts, initialPagination, search: deferredSearch, category: selectedSubCategory || selectedMainCategory || '' });
+    useEffect(() => setMenuItems(formatProducts(feed.products)), [feed.products]);
+    useEffect(() => setCategories(formatCategories(initialCategories)), [initialCategories]);
 
     const refreshCatalog = React.useCallback(() => {
         if (catalogRequest.current) return catalogRequest.current;
         setCheckingCart(true);
-        catalogRequest.current = loadCustomerCatalog(router).finally(() => {
+        const ids = [...new Set(cartRef.current.map(item => item.id))];
+        catalogRequest.current = axios.get(catalogUrl, { params: { ids } }).then(response => {
+            const data = response.data?.data;
+            if (!Array.isArray(data?.cart_products) || !data?.settings) return null;
+            const latest = { initialProducts: data.cart_products, settings: data.settings, requestedIds: ids };
+            if (active.current) {
+                const products = formatProducts(latest.initialProducts);
+                const reconciled = reconcileCustomerCart(cartRef.current, products, ids);
+                cartRef.current = reconciled.cart;
+                setCart(reconciled.cart);
+                setSettings(previous => ({ ...previous, ...latest.settings }));
+                if (reconciled.needsReview) setCartMessage('Harga atau ketersediaan barang diperbarui. Periksa kembali keranjang Anda.');
+                const updates = new Map(products.map(product => [product.id, product]));
+                setMenuItems(previous => previous.map(product => updates.has(product.id) ? updates.get(product.id) : product));
+            }
+            return latest;
+        }).catch(() => null).finally(() => {
             catalogRequest.current = null;
             if (active.current) setCheckingCart(false);
         });
         return catalogRequest.current;
-    }, []);
+    }, [catalogUrl]);
 
     useEffect(() => {
         active.current = true;
@@ -273,6 +286,11 @@ export default function CustomerMenu({
         if (!active.current) return;
         if (!latest) {
             setCartMessage('Harga terbaru belum dapat diperiksa. Periksa koneksi lalu coba lagi.');
+            setShowCart(true);
+            return;
+        }
+        if (cartRef.current.some(item => !latest.requestedIds.includes(item.id))) {
+            setCartMessage('Keranjang berubah saat harga diperiksa. Periksa kembali lalu lanjutkan.');
             setShowCart(true);
             return;
         }
@@ -508,6 +526,7 @@ export default function CustomerMenu({
                                 {hasFilters && <button type="button" onClick={resetFilters} className="mt-4 min-h-8 rounded-xl bg-[#19231f] hover:bg-[#29372f] px-4 text-xs font-black text-white transition-colors shadow-2xs cursor-pointer">Lihat semua produk</button>}
                             </div>
                         )}
+                        <CatalogFeedControl feed={feed} />
                     </main>
                 </div>
 

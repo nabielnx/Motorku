@@ -48,7 +48,7 @@ class FullAuditRemediationTest extends TestCase
     public function test_checkout_key_cannot_be_reused_for_a_different_cart_or_cashier(): void
     {
         $product = Product::factory()->create(['price' => 10000, 'stock' => 5]);
-        $payload = ['request_id' => fake()->uuid(), 'items' => [['product_id' => $product->id, 'quantity' => 1]], 'amount_received' => 10000];
+        $payload = ['request_id' => fake()->uuid(), 'items' => [['product_id' => $product->id, 'quantity' => 1]], 'expected_total' => 10000, 'amount_received' => 10000];
         $this->actingAs($this->owner)->postJson('/api/orders/pos-sale', $payload)->assertCreated();
         $changed = $payload;
         $changed['items'][0]['quantity'] = 2;
@@ -77,7 +77,7 @@ class FullAuditRemediationTest extends TestCase
     public function test_failed_checkout_rolls_back_the_request_key_stock_and_order(): void
     {
         $product = Product::factory()->create(['price' => 10000, 'stock' => 5]);
-        $payload = ['request_id' => fake()->uuid(), 'items' => [['product_id' => $product->id, 'quantity' => 1]], 'amount_received' => 5000];
+        $payload = ['request_id' => fake()->uuid(), 'items' => [['product_id' => $product->id, 'quantity' => 1]], 'expected_total' => 10000, 'amount_received' => 5000];
         $this->actingAs($this->owner)->postJson('/api/orders/pos-sale', $payload)->assertUnprocessable();
         $this->assertDatabaseCount('orders', 0);
         $this->assertDatabaseCount('checkout_requests', 0);
@@ -199,7 +199,7 @@ class FullAuditRemediationTest extends TestCase
     public function test_same_pos_submission_returns_one_paid_sale(): void
     {
         $product = Product::factory()->create(['price' => 10000, 'stock' => 5]);
-        $payload = ['request_id' => fake()->uuid(), 'items' => [['product_id' => $product->id, 'quantity' => 1]], 'amount_received' => 10000];
+        $payload = ['request_id' => fake()->uuid(), 'items' => [['product_id' => $product->id, 'quantity' => 1]], 'expected_total' => 10000, 'amount_received' => 10000];
         $firstSale = $this->actingAs($this->owner)->postJson('/api/orders/pos-sale', $payload)->assertCreated();
         $this->postJson('/api/orders/pos-sale', $payload)->assertCreated();
         $this->assertDatabaseCount('orders', 1);
@@ -266,7 +266,7 @@ class FullAuditRemediationTest extends TestCase
         Setting::create(['group' => 'tax', 'key' => 'enabled', 'value' => 'true']);
         Setting::create(['group' => 'tax', 'key' => 'percentage', 'value' => '10']);
         $product = Product::factory()->create(['price' => 10001, 'stock' => 5]);
-        $this->actingAs($this->owner)->postJson('/api/orders/pos-sale', ['items' => [['product_id' => $product->id, 'quantity' => 1]], 'amount_received' => 11001])->assertCreated()->assertJsonPath('data.order.tax_amount', 1000);
+        $this->actingAs($this->owner)->postJson('/api/orders/pos-sale', ['items' => [['product_id' => $product->id, 'quantity' => 1]], 'expected_total' => 11001, 'amount_received' => 11001])->assertCreated()->assertJsonPath('data.order.tax_amount', 1000);
         $this->assertDatabaseCount('orders', 1);
         $this->assertSame(4, $product->fresh()->stock);
     }
@@ -310,7 +310,7 @@ class FullAuditRemediationTest extends TestCase
     public function test_order_resource_contains_receipt_payment_amounts(): void
     {
         $product = Product::factory()->create(['price' => 10000, 'stock' => 5]);
-        $sale = $this->actingAs($this->owner)->postJson('/api/orders/pos-sale', ['items' => [['product_id' => $product->id, 'quantity' => 1]], 'amount_received' => 20000])->assertCreated();
+        $sale = $this->actingAs($this->owner)->postJson('/api/orders/pos-sale', ['items' => [['product_id' => $product->id, 'quantity' => 1]], 'expected_total' => 10000, 'amount_received' => 20000])->assertCreated();
         $this->getJson('/api/orders/'.$sale->json('data.order.id'))->assertOk()->assertJsonPath('data.payments.0.amount_received', 20000)->assertJsonPath('data.payments.0.change_amount', 10000);
     }
 

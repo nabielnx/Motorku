@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Inventory;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Inventory\StoreInventoryRequest;
+use App\Http\Requests\PaginationRequest;
 use App\Services\InventoryService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 
@@ -31,7 +33,7 @@ class InventoryController extends Controller implements HasMiddleware
         return redirect()->route('products.index');
     }
 
-    public function index(Request $request): JsonResponse
+    public function index(PaginationRequest $request): JsonResponse
     {
         $perPage = $request->integer('per_page', 15);
         $logs = $this->inventoryService->getAllLogs($perPage);

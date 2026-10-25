@@ -266,7 +266,7 @@ class OrderService
 
             $discountAmount = (float) ($data['discount_amount'] ?? 0);
             ['tax_amount' => $taxAmount, 'total' => $total] = $this->pricing->totals($subtotal, $discountAmount);
-            if ($isPublicOrder && array_key_exists('expected_total', $data) && abs((float) $data['expected_total'] - $total) > 0.001) {
+            if (array_key_exists('expected_total', $data) && abs((float) $data['expected_total'] - $total) > 0.001) {
                 throw ValidationException::withMessages(['expected_total' => 'Harga atau pajak berubah. Periksa kembali keranjang sebelum membuat pesanan.']);
             }
             if ($isPublicOrder && ($data['payment_preference'] ?? 'kasir') === 'qris') {

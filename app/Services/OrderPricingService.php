@@ -6,18 +6,21 @@ namespace App\Services;
 
 use App\Models\Product;
 use App\Models\Setting;
+use App\Support\DomainLimits;
 use Illuminate\Validation\ValidationException;
 
 class OrderPricingService
 {
     public function totals(float $subtotal, float $discount = 0): array
     {
+        DomainLimits::amount($subtotal);
+        DomainLimits::amount($discount);
         $tax = Setting::where('group', 'tax')->pluck('value', 'key');
         $enabled = filter_var($tax['enabled'] ?? 'true', FILTER_VALIDATE_BOOLEAN);
         $rate = (float) ($tax['percentage'] ?? 0) / 100;
         $taxAmount = $enabled ? round($subtotal * $rate) : 0;
 
-        return ['tax_amount' => $taxAmount, 'total' => max(0, $subtotal - $discount + $taxAmount)];
+        return ['tax_amount' => DomainLimits::amount($taxAmount), 'total' => DomainLimits::amount(max(0, $subtotal - $discount + $taxAmount))];
     }
 
     public function quote(array $items): float

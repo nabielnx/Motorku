@@ -207,12 +207,16 @@ class ProductSheetService
                         if (! $product || $this->fingerprint($product) !== $row['fingerprint'] || $this->group($product->category) !== $row['group']) {
                             $this->fail('Data barang berubah setelah pratinjau. Buat pratinjau ulang.');
                         }
-                        $changes = ['price' => $data['price'], 'sync_version' => $product->sync_version + 1];
+                        $stockWillChange = ($row['update_stock'] ?? false) && $data['stock'] !== $product->stock;
+                        $changes = ['price' => $data['price']];
+                        if (! $stockWillChange) {
+                            $changes['sync_version'] = $product->sync_version + 1;
+                        }
                         if ($data['cost_price'] !== null) {
                             $changes['cost_price'] = $data['cost_price'];
                         }
                         $product->update($changes);
-                        if (($row['update_stock'] ?? false) && $data['stock'] !== $product->stock) {
+                        if ($stockWillChange) {
                             app(InventoryService::class)->adjustStock([
                                 'product_id' => $product->id,
                                 'type' => InventoryLogType::Adjustment,

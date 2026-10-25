@@ -56,6 +56,7 @@ class CacheService
 
     public static function flushMotorcycleParts(): void
     {
+        self::flushCatalogSales();
         // Pattern-based flush for per-motorcycle parts caches
         // Since database cache driver doesn't support tags, we use a version key
         if (! Cache::has(self::key('app:motorcycle:parts:version'))) {
@@ -63,6 +64,11 @@ class CacheService
         } else {
             Cache::increment(self::key('app:motorcycle:parts:version'));
         }
+    }
+
+    public static function flushCatalogSales(): void
+    {
+        Cache::forget(self::key('catalog:sales:v1'));
     }
 
     /**

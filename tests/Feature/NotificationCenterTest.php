@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use App\Enums\OrderStatus;
@@ -129,7 +131,7 @@ class NotificationCenterTest extends TestCase
     public function test_checkout_retry_and_failed_payment_do_not_create_duplicate_or_phantom_notifications(): void
     {
         $product = Product::factory()->create(['stock' => 20, 'minimum_stock' => 0, 'price' => 10000]);
-        $data = ['request_id' => fake()->uuid(), 'items' => [['product_id' => $product->id, 'quantity' => 1]], 'amount_received' => 10000];
+        $data = ['request_id' => fake()->uuid(), 'items' => [['product_id' => $product->id, 'quantity' => 1]], 'expected_total' => 10000, 'amount_received' => 10000];
         $this->actingAs($this->owner)->postJson('/api/orders/pos-sale', $data)->assertCreated();
         $this->postJson('/api/orders/pos-sale', $data)->assertCreated();
         $this->assertSame(2, $this->owner->notifications()->count());

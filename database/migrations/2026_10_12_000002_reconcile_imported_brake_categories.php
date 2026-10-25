@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Services\Migrations\ReconcileImportedBrakeCategories20261012;
 use Illuminate\Database\Migrations\Migration;
 

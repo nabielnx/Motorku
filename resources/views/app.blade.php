@@ -21,7 +21,7 @@
         <title inertia>{{ config('app.name', 'Motorku') }}</title>
         <meta name="description" content="Motorku - Sistem POS Kasir & Katalog QR Sparepart Modern. Pesan online, ambil di toko tanpa antri.">
         <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
-        <link rel="manifest" href="{{ asset('manifest.webmanifest') }}">
+        <link rel="manifest" href="{{ route('pwa.manifest', ['shop' => request()->attributes->get('shop_slug') ?? request()->attributes->get('business')?->slug]) }}">
         <link rel="apple-touch-icon" href="{{ asset('icons/motorku-v2-192.png') }}">
         @if (request()->routeIs('home', 'shop.home', 'motor-saya'))
             <link rel="canonical" href="{{ request()->routeIs('home', 'shop.home') ? (data_get($page, 'props.shop_slug') ? data_get($page, 'props.business.public_url') : route('home')) : route('motor-saya', array_filter(['slug' => data_get($page, 'props.initialPartsData.motorcycle.slug'), 'shop' => data_get($page, 'props.shop_slug')])) }}">

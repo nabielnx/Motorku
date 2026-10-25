@@ -9,6 +9,7 @@ use App\Http\Requests\Order\StoreOrderRequest;
 use App\Http\Requests\Order\StoreOrderReturnRequest;
 use App\Http\Requests\Order\StorePosSaleRequest;
 use App\Http\Requests\Order\UpdateOrderRequest;
+use App\Http\Requests\PaginationRequest;
 use App\Http\Resources\OrderResource;
 use App\Models\Order;
 use App\Models\OrderReturn;
@@ -134,7 +135,7 @@ class OrderController extends Controller implements HasMiddleware
         ]);
     }
 
-    public function index(Request $request): JsonResponse
+    public function index(PaginationRequest $request): JsonResponse
     {
         Gate::authorize('viewAny', Order::class);
 

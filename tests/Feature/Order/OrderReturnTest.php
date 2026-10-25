@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature\Order;
 
 use App\Models\Order;
@@ -30,7 +32,7 @@ class OrderReturnTest extends TestCase
                 ['product_id' => $first->id, 'quantity' => 1],
                 ['product_id' => $second->id, 'quantity' => 1],
             ],
-            'amount_received' => 30000,
+            'expected_total' => 30000, 'amount_received' => 30000,
         ])->assertCreated();
 
         $order = Order::with('items')->firstOrFail();
@@ -81,7 +83,7 @@ class OrderReturnTest extends TestCase
 
         $this->actingAs($owner)->postJson('/api/orders/pos-sale', [
             'items' => [['product_id' => $product->id, 'quantity' => 1]],
-            'amount_received' => 15000,
+            'expected_total' => 15000, 'amount_received' => 15000,
         ])->assertCreated();
 
         $order = Order::with('items')->firstOrFail();
@@ -128,7 +130,7 @@ class OrderReturnTest extends TestCase
                 ['product_id' => $first->id, 'quantity' => 1],
                 ['product_id' => $second->id, 'quantity' => 1],
             ],
-            'amount_received' => 22000,
+            'expected_total' => 22000, 'amount_received' => 22000,
         ])->assertCreated();
         $order = Order::with('items')->firstOrFail();
 
