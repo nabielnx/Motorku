@@ -31,7 +31,7 @@ class HandleInertiaRequests extends Middleware
 
         // 1 query untuk semua settings — cached for 60 min, flushed on save
         $s = Cache::remember(CacheService::key(CacheService::SETTINGS_SHARED), CacheService::TTL_SETTINGS, function () {
-            return Setting::whereIn('group', ['store', 'system', 'printer', 'catalog', 'payment'])
+            return Setting::whereIn('group', ['store', 'system', 'printer', 'catalog', 'payment', 'references'])
                 ->get()
                 ->mapWithKeys(fn ($row) => ["{$row->group}.{$row->key}" => $row->value])
                 ->toArray();
@@ -45,7 +45,7 @@ class HandleInertiaRequests extends Middleware
             'business' => $business ? ['id' => $business->id, 'name' => $business->name, 'slug' => $business->slug, 'public_url' => $business->publicUrl()] : null,
             'shop_slug' => $request->attributes->get('shop_slug'),
             'catalog_groups' => fn () => DataType::productGroups($user?->business_id ?? $business?->id),
-            'reference_modules' => fn () => $user?->hasRole('owner') ? DataType::referenceModules($user->business_id) : [],
+            'reference_modules' => fn () => ($s['references.enabled'] ?? 'true') !== 'false' && $user?->hasRole('owner') ? DataType::referenceModules($user->business_id) : [],
 
             'auth' => [
                 'user' => $user ? [
@@ -74,6 +74,7 @@ class HandleInertiaRequests extends Middleware
 
             'app_settings' => [
                 'deletion_enabled' => ! array_key_exists('system.deletion_enabled', $s) || $s['system.deletion_enabled'] === 'true',
+                'references_enabled' => ($s['references.enabled'] ?? 'true') !== 'false',
                 'cash_enabled' => ($s['payment.cash_enabled'] ?? 'true') !== 'false',
                 'customer_qris_enabled' => ($s['payment.qris_enabled'] ?? 'true') !== 'false' && ! empty($s['store.qris_image']),
                 'timezone' => $timezone,

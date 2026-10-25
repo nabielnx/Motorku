@@ -11,6 +11,11 @@ use Illuminate\Support\Facades\DB;
 
 class SettingService
 {
+    public function referencesEnabled(): bool
+    {
+        return Setting::where('group', 'references')->where('key', 'enabled')->value('value') !== 'false';
+    }
+
     public function publicValues(): array
     {
         return Setting::where(function ($query): void {
@@ -18,7 +23,7 @@ class SettingService
         })->orWhere(function ($query): void {
             $query->where('group', 'tax')->whereIn('key', ['enabled', 'percentage']);
         })->orWhere(function ($query): void {
-            $query->whereIn('group', ['catalog', 'promo_banner', 'qr_order'])->where('key', 'enabled');
+            $query->whereIn('group', ['catalog', 'promo_banner', 'qr_order', 'references'])->where('key', 'enabled');
         })->orWhere(function ($query): void {
             $query->where('group', 'catalog')->where('key', 'show_total_sold');
         })->get(['group', 'key', 'value'])->mapWithKeys(fn ($setting) => [$setting->group.'.'.$setting->key => $setting->value])->all();
@@ -37,7 +42,7 @@ class SettingService
     public function applyRuntimeSettings(): void
     {
         $settings = Cache::remember(CacheService::key(CacheService::SETTINGS_SHARED), CacheService::TTL_SETTINGS,
-            fn () => Setting::whereIn('group', ['store', 'system', 'printer', 'catalog', 'payment'])->get()
+            fn () => Setting::whereIn('group', ['store', 'system', 'printer', 'catalog', 'payment', 'references'])->get()
                 ->mapWithKeys(fn ($row) => ["{$row->group}.{$row->key}" => $row->value])->all());
         $timezone = $settings['system.timezone'] ?? 'Asia/Jakarta';
         if (in_array($timezone, ['Asia/Jakarta', 'Asia/Makassar', 'Asia/Jayapura'], true)) {

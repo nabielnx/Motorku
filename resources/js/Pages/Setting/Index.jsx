@@ -9,7 +9,14 @@ import AdminDialog, { DialogTitle } from '@/Components/Admin/Dialog';
 import { Head, router, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import { toast } from 'sonner';
-import { FiSave, FiCheck, FiHome, FiPercent, FiCreditCard, FiPrinter, FiSmartphone, FiClock, FiSettings, FiUpload, FiClipboard, FiTrash2, FiAlertTriangle } from 'react-icons/fi';
+import { FiSave, FiCheck, FiHome, FiPercent, FiCreditCard, FiPrinter, FiSmartphone, FiClock, FiSettings, FiUpload, FiClipboard, FiTrash2, FiAlertTriangle, FiBookOpen } from 'react-icons/fi';
+
+const settingCategories = [
+  { key: 'store', label: 'Toko', icon: FiHome, description: 'Identitas, kontak, logo, dan jam operasional toko.' },
+  { key: 'catalog', label: 'Katalog', icon: FiSmartphone, description: 'Katalog pelanggan, referensi motor, dan banner promo.' },
+  { key: 'payment', label: 'Pembayaran', icon: FiCreditCard, description: 'Metode pembayaran, pajak, dan printer struk.' },
+  { key: 'system', label: 'Sistem', icon: FiSettings, description: 'Bahasa, zona waktu, tampilan login, dan penghapusan data.' },
+];
 
 const fieldMap = {
   store_tagline: { group: 'store', key: 'tagline' },
@@ -27,6 +34,7 @@ const fieldMap = {
   printer_auto_print_receipt:  { group: 'printer',         key: 'auto_print_receipt' },
   qr_order_enabled:            { group: 'qr_order',        key: 'enabled' },
   qr_order_session_timeout:    { group: 'qr_order',        key: 'session_timeout' },
+  references_enabled: { group: 'references', key: 'enabled' },
   catalog_show_total_sold:     { group: 'catalog',         key: 'show_total_sold' },
   promo_banner_enabled:        { group: 'promo_banner',    key: 'enabled' },
   store_open_time:             { group: 'store',           key: 'open_time' },
@@ -37,6 +45,7 @@ const fieldMap = {
 };
 
 const defaults = {
+  references_enabled: 'true',
   store_tagline: 'POS & ORDER',
   store_name: 'Motorku', store_phone: '081234567890',
   store_email: 'info@tokosparepart.com', store_address: 'Jl. Contoh No. 1',
@@ -73,11 +82,11 @@ const fieldValidators = {
   },
 };
 
-function Toggle({ value, onChange, label, disabled = false }) {
+function Toggle({ value, onChange, label, id, disabled = false }) {
     const on = value === 'true';
     return (
-      <label className={`relative inline-flex min-h-11 shrink-0 items-center ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
-        <input type="checkbox" checked={on} onChange={onChange} disabled={disabled} aria-label={label} className="sr-only peer" />
+      <label className={`relative inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
+        <input id={id} type="checkbox" checked={on} onChange={onChange} disabled={disabled} aria-label={label} className="sr-only peer" />
         <div className="relative w-10 h-5 bg-slate-200 peer-checked:bg-primary peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-[#19231f] rounded-full after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-5" />
       </label>
     );
@@ -93,7 +102,10 @@ export default function SettingIndex() {
     });
     return initial;
   });
-  const [saved, setSaved] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState('store');
+  const [savedForm, setSavedForm] = useState(form);
+  const [savingReferences, setSavingReferences] = useState(false);
+  const [referenceError, setReferenceError] = useState('');
   const [loading, setLoading] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({});
   const [logoFile, setLogoFile] = useState(null);
@@ -131,8 +143,6 @@ export default function SettingIndex() {
         setLogoUrl(null);
         setLogoFile(null);
         setLogoPreview(null);
-        setSaved(true);
-        setTimeout(() => setSaved(false), 3000);
         toast.success('Logo toko berhasil dihapus.');
       } catch (err) {
         toast.error('Gagal menghapus logo: ' + (err.response?.data?.message || err.message));
@@ -162,8 +172,6 @@ export default function SettingIndex() {
         setLoginImageUrl(null);
         setLoginImageFile(null);
         setLoginImagePreview(null);
-        setSaved(true);
-        setTimeout(() => setSaved(false), 3000);
         toast.success('Gambar login berhasil dihapus.');
       } catch (err) {
         toast.error('Gagal menghapus gambar login: ' + (err.response?.data?.message || err.message));
@@ -176,8 +184,6 @@ export default function SettingIndex() {
       try {
         await axios.delete(`/api/settings/banners/${slot}`);
         setBanners(prev => ({ ...prev, [slot]: {} }));
-        setSaved(true);
-        setTimeout(() => setSaved(false), 3000);
         toast.success(`Banner slot ${slot} berhasil dihapus.`);
       } catch (err) {
         toast.error(`Gagal menghapus banner slot ${slot}: ` + (err.response?.data?.message || err.message));
@@ -211,8 +217,6 @@ export default function SettingIndex() {
       if (res.data?.url) setLogoUrl(res.data.url);
       setLogoFile(null);
       setLogoPreview(null);
-      setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
     } catch (err) {
       toast.error('Gagal upload logo: ' + (err.response?.data?.message || err.message));
     } finally {
@@ -222,6 +226,26 @@ export default function SettingIndex() {
 
   const handleDeleteLogo = () => {
     setDeleteConfirm({ type: 'logo' });
+  };
+
+  const handleToggleReferences = async () => {
+    if (savingReferences || loading) return;
+    const enabled = form.references_enabled !== 'true';
+    setSavingReferences(true);
+    setReferenceError('');
+    try {
+      await axios.post('/api/settings', { settings: [{ group: 'references', key: 'enabled', value: String(enabled) }] });
+      setForm(prev => ({ ...prev, references_enabled: String(enabled) }));
+      setSavedForm(prev => ({ ...prev, references_enabled: String(enabled) }));
+      router.reload({ only: ['app_settings', 'reference_modules'] });
+      toast.success(enabled ? 'Referensi dan Motor Saya diaktifkan.' : 'Referensi dan Motor Saya dinonaktifkan. Data tetap tersimpan.');
+    } catch (error) {
+      const message = error.response?.data?.message || 'Status referensi gagal disimpan. Coba ubah toggle lagi.';
+      setReferenceError(message);
+      toast.error(message);
+    } finally {
+      setSavingReferences(false);
+    }
   };
 
   const handleToggleQris = async () => {
@@ -290,8 +314,6 @@ export default function SettingIndex() {
       setLoginImageUrl(res.data?.url || null);
       setLoginImageFile(null);
       setLoginImagePreview(null);
-      setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
       toast.success('Gambar login berhasil disimpan.');
     } catch (err) {
       toast.error('Gagal upload gambar login: ' + (err.response?.data?.message || err.message));
@@ -310,8 +332,6 @@ export default function SettingIndex() {
       fd.append('slot', slot);
       const res = await axios.post('/api/settings/banners', fd);
       setBanners(prev => ({ ...prev, [slot]: { url: res.data?.url, file: null, preview: null } }));
-      setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
     } catch (err) {
       toast.error(`Gagal upload banner slot ${slot}: ` + (err.response?.data?.message || err.message));
     } finally {
@@ -330,12 +350,12 @@ export default function SettingIndex() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (savingQrisEnabled || uploadingQris) return;
+    if (loading || savingQrisEnabled || uploadingQris || savingReferences) return;
 
-    // Run all frontend validators before submit
+    // Validate and save only the selected category; media and feature toggles save separately.
     const errors = {};
     Object.entries(fieldValidators).forEach(([field, { validate, message }]) => {
-      if (!validate(form[field] || '')) {
+      if (categoryFields.includes(field) && !validate(form[field] || '')) {
         errors[field] = message;
       }
     });
@@ -348,15 +368,13 @@ export default function SettingIndex() {
 
     setLoading(true);
     try {
-      const settings = Object.entries(fieldMap).map(([field, { group, key }]) => ({
+      const settings = categoryFields.map(field => ({ field, ...fieldMap[field] })).map(({ field, group, key }) => ({
         group, key, value: String(form[field]),
       }));
       await axios.post('/api/settings', { settings });
-      setSaved(true);
-      toast.success('Pengaturan berhasil disimpan!');
-      setTimeout(() => {
-        window.location.reload();
-      }, 800);
+      setSavedForm(prev => ({ ...prev, ...Object.fromEntries(categoryFields.map(field => [field, form[field]])) }));
+      router.reload({ only: ['app_settings', 'reference_modules', 'business'] });
+      toast.success('Pengaturan ' + activeCategory.label.toLowerCase() + ' disimpan.');
     } catch (err) {
       if (err.response?.status === 419) {
         toast.error('Sesi telah diperbarui, silakan tekan Simpan sekali lagi.');
@@ -372,7 +390,7 @@ export default function SettingIndex() {
   const labelCls = 'block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1';
 
   const sections = [
-    { title: 'Informasi Toko', icon: FiHome, fields: [
+    { category: 'store', title: 'Informasi Toko', icon: FiHome, fields: [
       { field: 'store_tagline', label: 'Tagline Toko', type: 'text', maxLength: 120, placeholder: 'POS & ORDER' },
       { field: 'store_name', label: 'Nama Toko', type: 'text', maxLength: 100, placeholder: 'Nama toko Anda' },
       { field: 'store_phone', label: 'Telepon', type: 'tel', maxLength: 20, placeholder: '081234567890', inputMode: 'tel' },
@@ -380,26 +398,29 @@ export default function SettingIndex() {
       { field: 'store_address', label: 'Alamat', type: 'text', span: true, maxLength: 500, placeholder: 'Jl. Contoh No. 1' },
     ]},
 
-    { title: 'Pajak', icon: FiPercent, fields: [
+    { category: 'payment', title: 'Metode Pembayaran', icon: FiCreditCard, fields: [
+      { field: 'payment_cash_enabled', label: 'Pembayaran tunai di kasir', type: 'toggle', span: true },
+    ]},
+    { category: 'payment', title: 'Pajak', icon: FiPercent, fields: [
       { field: 'tax_enabled', label: 'Aktifkan Pajak', type: 'toggle' },
       { field: 'tax_percentage', label: 'Persentase Pajak (%)', type: 'number', min: 0, max: 100, step: 0.1 },
     ]},
-    { title: 'Printer', icon: FiPrinter, fields: [
+    { category: 'payment', title: 'Printer', icon: FiPrinter, fields: [
       { field: 'printer_paper_size', label: 'Ukuran Kertas', type: 'select', options: [
         { value: '80', label: '80mm (Standar Thermal Struk)' },
         { value: '58', label: '58mm (Mini Portable Thermal)' },
       ]},
       { field: 'printer_auto_print_receipt', label: 'Cetak Otomatis Struk', type: 'toggle' },
     ]},
-    { title: 'Katalog & Tampilan', icon: FiSmartphone, fields: [
+    { category: 'catalog', title: 'Katalog & Tampilan', icon: FiSmartphone, fields: [
       { field: 'qr_order_enabled', label: 'Aktifkan Katalog QR', type: 'toggle' },
       { field: 'catalog_show_total_sold', label: 'Tampilkan Total Produk Terjual di Katalog', type: 'toggle' },
     ]},
-    { title: 'Jam Operasional', icon: FiClock, fields: [
+    { category: 'store', title: 'Jam Operasional', icon: FiClock, fields: [
       { field: 'store_open_time', label: 'Jam Buka', type: 'time' },
       { field: 'store_close_time', label: 'Jam Tutup', type: 'time' },
     ]},
-    { title: 'Sistem', icon: FiSettings, fields: [
+    { category: 'system', title: 'Sistem', icon: FiSettings, fields: [
       { field: 'system_deletion_enabled', label: 'Izinkan Penghapusan Data Admin', type: 'toggle', span: true, note: 'Berlaku untuk seluruh data admin, termasuk jenis bawaan dan custom. Saat aktif, jenis dan kategori dapat dihapus beserta seluruh isinya secara permanen. Nonaktifkan untuk mengunci penghapusan.' },
       { field: 'system_timezone', label: 'Zona Waktu', type: 'select', options: [
         { value: 'Asia/Jakarta', label: 'Asia/Jakarta (WIB)' },
@@ -413,24 +434,112 @@ export default function SettingIndex() {
     ]},
   ];
 
+  const activeCategory = settingCategories.find(category => category.key === selectedCategory);
+  const fieldsForCategory = category => [
+    ...sections.filter(section => section.category === category).flatMap(section => section.fields.map(item => item.field)),
+    ...(category === 'catalog' ? ['promo_banner_enabled'] : []),
+  ];
+  const categoryFields = fieldsForCategory(selectedCategory);
+  const categoryDirty = categoryFields.some(field => form[field] !== savedForm[field]);
+
   return (
     <AuthenticatedLayout pageTitle={locale === 'en' ? 'Settings' : 'Pengaturan'}>
       <Head title={`${locale === 'en' ? 'Settings' : 'Pengaturan'}`}>
         <meta name="description" content="Pengaturan sistem toko, logo, printer struk, pajak, zona waktu, dan bahasa." />
       </Head>
       <div className="admin-settings max-w-6xl mx-auto space-y-4 pb-8">
-        {props.business?.public_url && <section className="admin-surface rounded-lg border border-[#dedfd7] bg-white p-4">
-          <h2 className="text-sm font-bold text-[#19231f]">Link katalog usaha</h2>
-          <a href={props.business.public_url} target="_blank" rel="noopener noreferrer" className="mt-2 block break-all text-xs font-semibold text-[#19231f] underline">{props.business.public_url}</a>
-          <p className="mt-1 text-xs text-slate-600">Bagikan link ini kepada pelanggan usaha Anda.</p>
-        </section>}
-        {saved && (
-          <div className="bg-emerald-50 dark:bg-emerald-950 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 p-4 rounded-2xl flex items-center gap-2 font-bold text-sm">
-            <FiCheck className="text-emerald-600 dark:text-emerald-400" size={18} />
-            Pengaturan berhasil disimpan!
-          </div>
-        )}
+        <div>
+          <h2 className="font-heading text-xl font-semibold">Pengaturan toko</h2>
+          <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Atur toko sesuai kebutuhan operasional Anda.</p>
+        </div>
+        <nav aria-label="Kategori pengaturan" className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {settingCategories.map(({ key, label, icon: Icon }) => (
+            <button key={key} type="button" aria-pressed={selectedCategory === key} disabled={loading || savingReferences || savingQrisEnabled}
+              onClick={() => setSelectedCategory(key)}
+              className={`flex min-h-12 items-center gap-2 rounded-lg border px-3 py-2 text-left text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#19231f] dark:focus-visible:outline-[#FFDD00] ${selectedCategory === key ? 'border-[#19231f] bg-[#19231f] text-white dark:border-[#FFDD00] dark:bg-[#FFDD00] dark:text-[#19231f]' : 'border-[#dedfd7] bg-white text-[#19231f] dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100'}`}>
+              <Icon aria-hidden="true" size={17} /><span>{label}</span>
+              {fieldsForCategory(key).some(field => form[field] !== savedForm[field]) && <span className="ml-auto text-xs" aria-label="Ada perubahan belum disimpan">●</span>}
+            </button>
+          ))}
+        </nav>
+        <p className="text-xs text-slate-600 dark:text-slate-300">{activeCategory.description}</p>
+        <form id="category-settings" onSubmit={handleSubmit} className="space-y-6">
+          {sections.filter(section => section.category === selectedCategory).map(({ title, icon: Icon, fields }) => (
+            <div key={title} className="admin-surface admin-setting-section bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4 transition-colors">
+              <div className="admin-section-header flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
+                <Icon className="text-primary dark:text-yellow-400" size={20} />
+                <h3 className="font-extrabold text-base text-slate-900 dark:text-white">{title}</h3>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {fields.map(({ field, label, type, options, span, note, maxLength, placeholder, inputMode, min, max, step }) => (
+                  <div key={field} className={`min-w-0 ${span ? 'sm:col-span-2' : ''}`}>
+                    <label htmlFor={`setting-${field}`} className={labelCls}>{label}</label>
+                    {type === 'toggle' ? (
+                      <div className="flex flex-wrap items-center gap-3 mt-1">
+                        <Toggle
+                          label={label}
+                          id={`setting-${field}`}
+                          disabled={loading}
+                          value={form[field]}
+                          onChange={() => set(field, form[field] === 'true' ? 'false' : 'true')}
+                        />
+                        <span className="text-sm text-slate-500 dark:text-slate-400 font-semibold">
+                          {form[field] === 'true' ? 'Aktif' : 'Nonaktif'}
+                        </span>
+                        {note && <span className="text-xs text-slate-400 dark:text-slate-500 italic">— {note}</span>}
+                      </div>
+                    ) : type === 'select' ? (
+                      <select
+                        id={`setting-${field}`}
+                        disabled={loading}
+                        value={form[field] || ''}
+                        onChange={e => set(field, e.target.value)}
+                        className={inputCls}
+                      >
+                        {options?.map(opt => (
+                          <option key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </option>
+                        ))}
+                      </select>
+                    ) : type === 'time' ? (
+                      <input id={`setting-${field}`} disabled={loading} type="time" value={form[field] || ''} onChange={e => set(field, e.target.value)} className={fieldErrors[field] ? inputCls + ' !border-red-400 !ring-red-400' : inputCls} />
+                    ) : (
+                      <input
+                        id={`setting-${field}`}
+                        disabled={loading}
+                        type={type}
+                        aria-invalid={Boolean(fieldErrors[field])}
+                        aria-describedby={fieldErrors[field] ? `error-${field}` : undefined}
+                        value={form[field] || ''}
+                        onChange={e => {
+                          let val = e.target.value;
+                          // For tel fields, strip non-phone characters on input
+                          if (type === 'tel') {
+                            val = val.replace(/[^0-9+\-\s()]/g, '');
+                          }
+                          set(field, val);
+                        }}
+                        className={fieldErrors[field] ? inputCls + ' !border-red-400 !ring-red-400' : inputCls}
+                        maxLength={maxLength}
+                        placeholder={placeholder}
+                        inputMode={inputMode}
+                        min={min}
+                        max={max}
+                        step={step}
+                      />
+                    )}
+                    {fieldErrors[field] && (
+                      <p id={`error-${field}`} role="alert" className="text-xs text-red-700 dark:text-red-300 font-semibold mt-1">{fieldErrors[field]}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
 
+        </form>
+        <div hidden={selectedCategory !== 'store'} className="space-y-4">
         <div className="admin-surface admin-setting-section bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4 transition-colors">
           <div className="admin-section-header flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
             <FiHome className="text-primary dark:text-yellow-400" size={20} />
@@ -479,73 +588,25 @@ export default function SettingIndex() {
           </div>
         </div>
 
-        <div className="admin-surface admin-setting-section bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
-          <div className="admin-section-header flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
-            <FiUpload className="text-primary dark:text-yellow-400" size={20} />
-            <h3 className="flex-1 font-extrabold text-base text-slate-900 dark:text-white">Pembayaran QRIS</h3>
-            <Toggle label="Aktifkan pembayaran QRIS" value={form.payment_qris_enabled} onChange={handleToggleQris} disabled={savingQrisEnabled || uploadingQris || loading || (!qrisUrl && form.payment_qris_enabled !== 'true')} />
-          </div>
-          <div className="space-y-3">
-            <p role="status" className="text-xs font-semibold text-[#19231f] dark:text-slate-100">
-              {savingQrisEnabled ? 'Menyimpan status QRIS...' : !qrisUrl ? 'Belum ada gambar QRIS.' : form.payment_qris_enabled === 'true' ? 'Aktif untuk POS dan checkout pelanggan.' : 'Nonaktif. Aktifkan toggle untuk menerima pembayaran QRIS.'}
-            </p>
-            <p className="text-xs text-slate-600 dark:text-slate-300">Unggah gambar QRIS toko, lalu aktifkan pembayaran melalui toggle. Perubahan toggle langsung tersimpan; kasir tetap memeriksa dana masuk sebelum mengonfirmasi lunas.</p>
-            {qrisConfig?.dynamic_available && <p className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-300"><FiCheck aria-hidden="true" /> QRIS mendukung nominal otomatis · {qrisConfig.merchant.name} · {qrisConfig.merchant.city}</p>}
-          </div>
-          <div className="flex flex-wrap items-start gap-4">
-            <div className="w-32 h-32 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex items-center justify-center overflow-hidden">
-              {qrisPreview || qrisUrl ? <img src={qrisPreview || qrisUrl} alt="QRIS toko" className="w-full h-full object-contain" /> : <span className="text-xs text-slate-400">Belum ada QRIS</span>}
-            </div>
-            <div className="space-y-2">
-              <ImagePicker label="QRIS toko" disabled={uploadingQris || savingQrisEnabled || loading} onSelect={file => {
-                if (validImage(file)) { setQrisFile(file); setQrisPreview(URL.createObjectURL(file)); }
-              }} />
-              <p className="admin-help">{IMAGE_HELP}</p>
-              <div className="flex flex-wrap gap-2">
-                {qrisFile && <AdminButton type="button" onClick={handleUploadQris} disabled={uploadingQris || savingQrisEnabled || loading} variant="primary">{uploadingQris ? 'Menyimpan...' : 'Simpan QRIS'}</AdminButton>}
-                {qrisUrl && !qrisFile && !qrisConfig?.dynamic_available && <AdminButton type="button" onClick={handleActivateQris} disabled={uploadingQris || savingQrisEnabled || loading} variant="primary">{uploadingQris ? 'Membaca QRIS...' : 'Aktifkan nominal otomatis'}</AdminButton>}
-                {qrisUrl && <DeleteButton type="button" onClick={() => setDeleteConfirm({ type: 'qris' })} disabled={uploadingQris || savingQrisEnabled || loading} className="px-4 py-2 rounded-lg border border-red-200 text-red-600 text-xs font-bold disabled:opacity-50">Hapus QRIS</DeleteButton>}
-              </div>
-            </div>
-          </div>
         </div>
-
-        {/* LOGIN IMAGE SECTION */}
-        <div className="admin-surface admin-setting-section bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
-          <div className="admin-section-header flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
-            <FiUpload className="text-primary dark:text-yellow-400" size={20} />
-            <h3 className="font-extrabold text-base text-slate-900 dark:text-white">Gambar Halaman Login</h3>
+        <div hidden={selectedCategory !== 'catalog'} className="space-y-4">
+        <section className="admin-surface admin-setting-section space-y-4 border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900 sm:p-6" aria-labelledby="reference-setting-title">
+          <div className="admin-section-header flex items-center gap-2 border-b border-slate-200 pb-3 dark:border-slate-700">
+            <FiBookOpen aria-hidden="true" size={20} />
+            <h3 id="reference-setting-title" className="flex-1 text-base font-semibold">Referensi &amp; Motor Saya</h3>
+            <Toggle label="Aktifkan Referensi dan Motor Saya" value={form.references_enabled} onChange={handleToggleReferences} disabled={savingReferences || loading} />
           </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400">Gambar ini ditampilkan di sisi kiri halaman login. Rekomendasi resolusi minimal 1200×800px.</p>
-          <div className="flex flex-wrap items-start gap-4">
-            <div className="w-48 h-32 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex items-center justify-center overflow-hidden">
-              {loginImagePreview || loginImageUrl ? (
-                <img src={loginImagePreview || loginImageUrl} alt="Login background" className="w-full h-full object-cover" />
-              ) : (
-                <span className="text-xs text-slate-400">Belum ada gambar</span>
-              )}
-            </div>
-            <div className="space-y-2">
-              <ImagePicker label="halaman login" disabled={uploadingLoginImage} onSelect={file => {
-                if (validImage(file)) { setLoginImageFile(file); setLoginImagePreview(URL.createObjectURL(file)); }
-              }} />
-              <p className="admin-help">{IMAGE_HELP}</p>
-              <div className="flex flex-wrap gap-2">
-                {loginImageFile && (
-                  <AdminButton type="button" onClick={handleUploadLoginImage} disabled={uploadingLoginImage} variant="primary">
-                    {uploadingLoginImage ? 'Menyimpan...' : 'Simpan Gambar'}
-                  </AdminButton>
-                )}
-                {loginImageUrl && (
-                  <DeleteButton type="button" onClick={() => setDeleteConfirm({ type: 'login_image' })} disabled={uploadingLoginImage} className="px-4 py-2 rounded-lg border border-red-200 text-red-600 text-xs font-bold disabled:opacity-50 hover:bg-red-50">
-                    Hapus Gambar
-                  </DeleteButton>
-                )}
-              </div>
-            </div>
+          <div className="space-y-2">
+            <p role="status" className="text-sm font-semibold">{savingReferences ? 'Menyimpan status referensi…' : form.references_enabled === 'true' ? 'Aktif untuk pelanggan dan admin.' : 'Nonaktif. Data referensi tetap tersimpan.'}</p>
+            <p className="text-xs leading-relaxed text-slate-600 dark:text-slate-300">Mengatur menu Motor Saya, Data Referensi di admin, dan informasi kecocokan motor pada produk. Perubahan toggle langsung tersimpan.</p>
+            {referenceError && <p role="alert" className="text-xs text-red-700 dark:text-red-300">{referenceError}</p>}
           </div>
-        </div>
-
+        </section>
+        {props.business?.public_url && <section className="admin-surface rounded-lg border border-[#dedfd7] bg-white p-4">
+          <h3 className="text-sm font-semibold text-[#19231f] dark:text-slate-100">Link katalog usaha</h3>
+          <a href={props.business.public_url} target="_blank" rel="noopener noreferrer" className="mt-2 block break-all text-xs font-semibold text-[#19231f] underline dark:text-[#FFDD00]">{props.business.public_url}</a>
+          <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">Bagikan link ini kepada pelanggan usaha Anda.</p>
+        </section>}
         {/* PROMO BANNER SECTION */}
         <div className="admin-surface admin-setting-section bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4 transition-colors">
           <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
@@ -623,81 +684,84 @@ export default function SettingIndex() {
           </>
           )}
         </div>
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {sections.map(({ title, icon: Icon, fields }) => (
-            <div key={title} className="admin-surface admin-setting-section bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4 transition-colors">
-              <div className="admin-section-header flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
-                <Icon className="text-primary dark:text-yellow-400" size={20} />
-                <h3 className="font-extrabold text-base text-slate-900 dark:text-white">{title}</h3>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {fields.map(({ field, label, type, options, span, note, maxLength, placeholder, inputMode, min, max, step }) => (
-                  <div key={field} className={`min-w-0 ${span ? 'sm:col-span-2' : ''}`}>
-                    <label className={labelCls}>{label}</label>
-                    {type === 'toggle' ? (
-                      <div className="flex flex-wrap items-center gap-3 mt-1">
-                        <Toggle
-                          label={label}
-                          value={form[field]}
-                          onChange={() => set(field, form[field] === 'true' ? 'false' : 'true')}
-                        />
-                        <span className="text-sm text-slate-500 dark:text-slate-400 font-semibold">
-                          {form[field] === 'true' ? 'Aktif' : 'Nonaktif'}
-                        </span>
-                        {note && <span className="text-xs text-slate-400 dark:text-slate-500 italic">— {note}</span>}
-                      </div>
-                    ) : type === 'select' ? (
-                      <select
-                        value={form[field] || ''}
-                        onChange={e => set(field, e.target.value)}
-                        className={inputCls}
-                      >
-                        {options?.map(opt => (
-                          <option key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </option>
-                        ))}
-                      </select>
-                    ) : type === 'time' ? (
-                      <input type="time" value={form[field] || ''} onChange={e => set(field, e.target.value)} className={fieldErrors[field] ? inputCls + ' !border-red-400 !ring-red-400' : inputCls} />
-                    ) : (
-                      <input
-                        type={type}
-                        value={form[field] || ''}
-                        onChange={e => {
-                          let val = e.target.value;
-                          // For tel fields, strip non-phone characters on input
-                          if (type === 'tel') {
-                            val = val.replace(/[^0-9+\-\s()]/g, '');
-                          }
-                          set(field, val);
-                        }}
-                        className={fieldErrors[field] ? inputCls + ' !border-red-400 !ring-red-400' : inputCls}
-                        maxLength={maxLength}
-                        placeholder={placeholder}
-                        inputMode={inputMode}
-                        min={min}
-                        max={max}
-                        step={step}
-                      />
-                    )}
-                    {fieldErrors[field] && (
-                      <p className="text-xs text-red-500 font-semibold mt-1">{fieldErrors[field]}</p>
-                    )}
-                  </div>
-                ))}
+        </div>
+        <div hidden={selectedCategory !== 'payment'}>
+        <div className="admin-surface admin-setting-section bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+          <div className="admin-section-header flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
+            <FiUpload className="text-primary dark:text-yellow-400" size={20} />
+            <h3 className="flex-1 font-extrabold text-base text-slate-900 dark:text-white">Pembayaran QRIS</h3>
+            <Toggle label="Aktifkan pembayaran QRIS" value={form.payment_qris_enabled} onChange={handleToggleQris} disabled={savingQrisEnabled || uploadingQris || loading || (!qrisUrl && form.payment_qris_enabled !== 'true')} />
+          </div>
+          <div className="space-y-3">
+            <p role="status" className="text-xs font-semibold text-[#19231f] dark:text-slate-100">
+              {savingQrisEnabled ? 'Menyimpan status QRIS...' : !qrisUrl ? 'Belum ada gambar QRIS.' : form.payment_qris_enabled === 'true' ? 'Aktif untuk POS dan checkout pelanggan.' : 'Nonaktif. Aktifkan toggle untuk menerima pembayaran QRIS.'}
+            </p>
+            <p className="text-xs text-slate-600 dark:text-slate-300">Unggah gambar QRIS toko, lalu aktifkan pembayaran melalui toggle. Perubahan toggle langsung tersimpan; kasir tetap memeriksa dana masuk sebelum mengonfirmasi lunas.</p>
+            {qrisConfig?.dynamic_available && <p className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-300"><FiCheck aria-hidden="true" /> QRIS mendukung nominal otomatis · {qrisConfig.merchant.name} · {qrisConfig.merchant.city}</p>}
+          </div>
+          <div className="flex flex-wrap items-start gap-4">
+            <div className="w-32 h-32 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex items-center justify-center overflow-hidden">
+              {qrisPreview || qrisUrl ? <img src={qrisPreview || qrisUrl} alt="QRIS toko" className="w-full h-full object-contain" /> : <span className="text-xs text-slate-400">Belum ada QRIS</span>}
+            </div>
+            <div className="space-y-2">
+              <ImagePicker label="QRIS toko" disabled={uploadingQris || savingQrisEnabled || loading} onSelect={file => {
+                if (validImage(file)) { setQrisFile(file); setQrisPreview(URL.createObjectURL(file)); }
+              }} />
+              <p className="admin-help">{IMAGE_HELP}</p>
+              <div className="flex flex-wrap gap-2">
+                {qrisFile && <AdminButton type="button" onClick={handleUploadQris} disabled={uploadingQris || savingQrisEnabled || loading} variant="primary">{uploadingQris ? 'Menyimpan...' : 'Simpan QRIS'}</AdminButton>}
+                {qrisUrl && !qrisFile && !qrisConfig?.dynamic_available && <AdminButton type="button" onClick={handleActivateQris} disabled={uploadingQris || savingQrisEnabled || loading} variant="primary">{uploadingQris ? 'Membaca QRIS...' : 'Aktifkan nominal otomatis'}</AdminButton>}
+                {qrisUrl && <DeleteButton type="button" onClick={() => setDeleteConfirm({ type: 'qris' })} disabled={uploadingQris || savingQrisEnabled || loading} className="px-4 py-2 rounded-lg border border-red-200 text-red-600 text-xs font-bold disabled:opacity-50">Hapus QRIS</DeleteButton>}
               </div>
             </div>
-          ))}
-
-          <div className="flex justify-end">
-            <AdminButton type="submit" disabled={loading || savingQrisEnabled || uploadingQris} variant="primary" className="w-full sm:w-auto">
-              <FiSave size={18} className="shrink-0" />
-              {loading ? 'Menyimpan...' : 'Simpan Semua Pengaturan'}
-            </AdminButton>
           </div>
-        </form>
+        </div>
+
+        </div>
+        <div hidden={selectedCategory !== 'system'}>
+        {/* LOGIN IMAGE SECTION */}
+        <div className="admin-surface admin-setting-section bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+          <div className="admin-section-header flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
+            <FiUpload className="text-primary dark:text-yellow-400" size={20} />
+            <h3 className="font-extrabold text-base text-slate-900 dark:text-white">Gambar Halaman Login</h3>
+          </div>
+          <p className="text-xs text-slate-500 dark:text-slate-400">Gambar ini ditampilkan di sisi kiri halaman login. Rekomendasi resolusi minimal 1200×800px.</p>
+          <div className="flex flex-wrap items-start gap-4">
+            <div className="w-48 h-32 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex items-center justify-center overflow-hidden">
+              {loginImagePreview || loginImageUrl ? (
+                <img src={loginImagePreview || loginImageUrl} alt="Login background" className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-xs text-slate-400">Belum ada gambar</span>
+              )}
+            </div>
+            <div className="space-y-2">
+              <ImagePicker label="halaman login" disabled={uploadingLoginImage} onSelect={file => {
+                if (validImage(file)) { setLoginImageFile(file); setLoginImagePreview(URL.createObjectURL(file)); }
+              }} />
+              <p className="admin-help">{IMAGE_HELP}</p>
+              <div className="flex flex-wrap gap-2">
+                {loginImageFile && (
+                  <AdminButton type="button" onClick={handleUploadLoginImage} disabled={uploadingLoginImage} variant="primary">
+                    {uploadingLoginImage ? 'Menyimpan...' : 'Simpan Gambar'}
+                  </AdminButton>
+                )}
+                {loginImageUrl && (
+                  <DeleteButton type="button" onClick={() => setDeleteConfirm({ type: 'login_image' })} disabled={uploadingLoginImage} className="px-4 py-2 rounded-lg border border-red-200 text-red-600 text-xs font-bold disabled:opacity-50 hover:bg-red-50">
+                    Hapus Gambar
+                  </DeleteButton>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        </div>
+        <div className="admin-surface sticky bottom-0 z-10 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 bg-white px-4 py-3 dark:border-slate-700 dark:bg-slate-900">
+          <p role="status" className="text-xs text-slate-600 dark:text-slate-300">{categoryDirty ? 'Ada perubahan belum disimpan di kategori ini.' : 'Perubahan di kategori ini sudah tersimpan.'}</p>
+          <AdminButton form="category-settings" type="submit" disabled={!categoryDirty || loading || savingQrisEnabled || uploadingQris || savingReferences} variant="primary">
+            <FiSave size={16} aria-hidden="true" />{loading ? 'Menyimpan…' : 'Simpan perubahan'}
+          </AdminButton>
+        </div>
 
         <AdminDialog show={!!deleteConfirm} onClose={() => setDeleteConfirm(null)} className="max-w-sm overflow-y-auto">
           <div className="p-6 space-y-4 bg-white dark:bg-slate-900 text-slate-900 dark:text-white">

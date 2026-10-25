@@ -69,6 +69,7 @@ export function StoreHeader({
     const [logoFailed, setLogoFailed] = useState(false);
     const [isSearchFocused, setIsSearchFocused] = useState(false);
     const [showMotorHint, setShowMotorHint] = useState(true);
+    const referencesEnabled = props.app_settings?.references_enabled !== false;
     const accountLabel = props?.auth?.user ? 'Akun saya' : 'Masuk ke akun';
 
     return (
@@ -99,7 +100,7 @@ export function StoreHeader({
                         <span className="store-brand-name">{storeName}</span>
                     </Link>
                     <nav aria-label="Navigasi toko" className="store-actions">
-                        <div className="store-motor-entry" onKeyDown={e => { if (e.key === 'Escape') setShowMotorHint(false); }}>
+                        {referencesEnabled && <div className="store-motor-entry" onKeyDown={e => { if (e.key === 'Escape') setShowMotorHint(false); }}>
                             <Link
                                 href={storeUrl('/motor-saya')}
                                 title="Cari sparepart sesuai motor saya"
@@ -121,7 +122,7 @@ export function StoreHeader({
                                     </button>
                                 </div>
                             )}
-                        </div>
+                        </div>}
                         {onCart ? (
                             <button
                                 type="button"
