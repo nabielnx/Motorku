@@ -98,7 +98,7 @@ final class CustomerAccountTest extends TestCase
         $data = $this->postJson('/customer/checkout', $payload)->assertCreated()->json('data');
         $this->postJson('/customer/checkout', $payload)->assertCreated()->assertJsonPath('data.id', $data['id']);
         $this->assertDatabaseHas('orders', ['id' => $data['id'], 'customer_account_id' => $customer->id, 'cashier_id' => null, 'customer_phone' => '08123456789']);
-        $this->assertDatabaseHas('customer_profiles', ['customer_account_id' => $customer->id, 'name' => 'Pembeli QA', 'phone' => '08123456789']);
+        $this->assertSame('Pembeli', $customer->fresh()->name);
         $this->getJson('/customer/orders')->assertOk()->assertJsonPath('total', 1)->assertJsonPath('data.0.id', $data['id'])->assertJsonMissingPath('data.0.customer_token');
         $this->getJson('/customer/orders/'.$data['id'])->assertOk()->assertJsonPath('data.customer_token', $data['customer_token']);
         $this->assertSame(9, $product->fresh()->stock);
@@ -121,7 +121,7 @@ final class CustomerAccountTest extends TestCase
         }
     }
 
-    public function test_same_customer_has_separate_history_and_contact_profiles_in_each_store(): void
+    public function test_same_customer_has_separate_store_history_and_one_shared_account_profile(): void
     {
         $this->seed(RoleSeeder::class);
         $ownerB = app(BusinessOnboardingService::class)->register([
@@ -135,10 +135,30 @@ final class CustomerAccountTest extends TestCase
         $this->getJson('/customer/orders/'.$b->id)->assertNotFound();
         $this->getJson('/customer/orders?shop=toko-customer-b')->assertOk()->assertJsonPath('total', 1)->assertJsonPath('data.0.id', $b->id);
         $this->getJson('/customer/orders/'.$a->id.'?shop=toko-customer-b')->assertNotFound();
-        $this->patch('/customer/account', ['name' => 'Nama A', 'phone' => '08111111111'])->assertSessionHasNoErrors();
-        $this->patch('/customer/account?shop=toko-customer-b', ['name' => 'Nama B', 'phone' => '08222222222'])->assertSessionHasNoErrors();
-        $this->get('/customer/account')->assertInertia(fn ($page) => $page->where('customer.name', 'Nama A')->where('customer.phone', '08111111111'));
-        $this->get('/customer/account?shop=toko-customer-b')->assertInertia(fn ($page) => $page->where('customer.name', 'Nama B')->where('customer.phone', '08222222222'));
+        $this->patch('/customer/account', ['name' => 'Nama A', 'phone' => '08111111111', 'address' => 'Jalan Toko A 10'])->assertSessionHasNoErrors();
+        $this->get('/customer/account?shop=toko-customer-b')->assertInertia(fn ($page) => $page->where('customer.name', 'Nama A')->where('customer.phone', '08111111111')->where('customer.address', 'Jalan Toko A 10'));
+        $this->patch('/customer/account?shop=toko-customer-b', ['name' => 'Nama B', 'phone' => '08222222222', 'address' => 'Jalan Toko B 20'])->assertSessionHasNoErrors();
+        $this->get('/customer/account')->assertInertia(fn ($page) => $page->where('customer.name', 'Nama B')->where('customer.phone', '08222222222')->where('customer.address', 'Jalan Toko B 20'));
+        $this->get('/customer/account?shop=toko-customer-b')->assertInertia(fn ($page) => $page->where('customer.name', 'Nama B')->where('customer.phone', '08222222222')->where('customer.address', 'Jalan Toko B 20'));
+    }
+
+    public function test_profile_address_is_optional_validated_and_preserved_by_checkout(): void
+    {
+        $customer = $this->customer();
+        $this->login($customer);
+        $profile = ['name' => 'Nama Baru', 'phone' => '08123456789', 'address' => "Jalan Merdeka 10\nDemak"];
+        $this->patch('/customer/account', [...$profile, 'address' => str_repeat('x', 501)])->assertSessionHasErrors('address');
+        $this->patch('/customer/account', [...$profile, 'email' => 'changed@example.test', 'google_id' => 'injected'])->assertSessionHasNoErrors();
+        $this->get('/')->assertInertia(fn ($page) => $page
+            ->where('customer.name', 'Nama Baru')->where('customer.address', $profile['address'])
+            ->where('customer.email', $customer->email)->where('customer.joined_at', $customer->created_at->toDateString())
+            ->where('customer.has_password', true)->where('customer.google_linked', false));
+        $this->assertNull($customer->fresh()->google_id);
+        $product = Product::factory()->create(['stock' => 10]);
+        $this->postJson('/customer/checkout', $this->payload($product))->assertCreated();
+        $this->assertDatabaseHas('customer_accounts', ['id' => $customer->id, 'name' => 'Nama Baru', 'phone' => $profile['phone'], 'address' => $profile['address']]);
+        $this->patch('/customer/account', [...$profile, 'address' => ''])->assertSessionHasNoErrors();
+        $this->get('/customer/account')->assertInertia(fn ($page) => $page->where('customer.address', null));
     }
 
     public function test_customer_can_share_an_email_with_owner_without_linking_their_accounts(): void

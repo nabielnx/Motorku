@@ -6,8 +6,18 @@
 .customer-account-form { display: grid; gap: 14px; }
 .customer-account-field { display: grid; gap: 6px; }
 .customer-account-field label { font-size: 12px; font-weight: 600; }
-.customer-account-field input { width: 100%; min-width: 0; min-height: 44px; border: 1px solid #dedfd7; border-radius: 8px; padding: 10px 12px; color: #19231f; background: #fff; font-size: 14px; }
-.customer-account-field input:focus { outline: 2px solid #19231f; outline-offset: 2px; }
+.customer-account-field :is(input, textarea) { width: 100%; min-width: 0; min-height: 44px; border: 1px solid #dedfd7; border-radius: 6px; padding: 10px 12px; color: #19231f; background: #fff; font-size: 14px; }
+.customer-account-field textarea { resize: vertical; }
+.customer-account-field :is(input, textarea):focus { outline: 2px solid #19231f; outline-offset: 2px; }
+.customer-account-summary { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.customer-account-summary > div { min-width: 0; }
+.customer-account-eyebrow { font-size: 11px; color: #53615a; margin-bottom: 4px; }
+.customer-account-details { display: grid; gap: 12px; padding: 16px; border-radius: 6px; background: #f3f3ed; font-size: 12px; }
+.customer-account-details > div { display: flex; justify-content: space-between; align-items: start; gap: 16px; }
+.customer-account-details dt { color: #53615a; flex-shrink: 0; }
+.customer-account-details dd { text-align: right; font-weight: 600; }
+.customer-account-verified { display: inline-flex; align-items: center; gap: 6px; }
+.customer-account-profile { border-top: 1px solid #dedfd7; padding-top: 18px; }
 .customer-account-error { color: #b91c1c; font-size: 12px; line-height: 1.6; }
 .customer-account-message { padding: 12px; background: #f3f3ed; border: 1px solid #dedfd7; border-radius: 8px; font-size: 12px; line-height: 1.6; }
 .customer-account-message button, .customer-account-links a, .customer-account-security a, .customer-account-business a { text-decoration: underline; text-underline-offset: 3px; font-weight: 600; }

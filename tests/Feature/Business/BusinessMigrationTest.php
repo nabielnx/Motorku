@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Business;
 
 use App\Models\Category;
+use App\Models\CustomerAccount;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
@@ -13,10 +14,36 @@ use App\Models\User;
 use App\Services\BusinessContext;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class BusinessMigrationTest extends TestCase
 {
+    public function test_customer_contact_upgrade_preserves_latest_legacy_contact_without_merging_accounts(): void
+    {
+        $paths = collect(glob(database_path('migrations/*.php')))
+            ->filter(fn ($path) => basename($path) < '2026_10_25_130000_add_contact_details_to_customer_accounts.php')
+            ->map(fn ($path) => 'database/migrations/'.basename($path))->values()->all();
+        Artisan::call('migrate:fresh', ['--path' => $paths]);
+        app(BusinessContext::class)->resetSchema();
+        try {
+            $customer = CustomerAccount::create(['name' => 'Nama Awal', 'email' => 'legacy@example.test']);
+            $other = CustomerAccount::create(['name' => 'Akun Lain', 'email' => 'other@example.test']);
+            $businessB = (string) Str::uuid();
+            DB::table('businesses')->insert(['id' => $businessB, 'name' => 'Toko B', 'slug' => 'migration-customer-b']);
+            foreach ([[BusinessContext::LEGACY_ID, 'Nama Lama', '08111111111', now()->subDay()], [$businessB, 'Nama Terbaru', '08222222222', now()]] as [$business, $name, $phone, $updated]) {
+                DB::table('customer_profiles')->insert(['id' => (string) Str::uuid(), 'business_id' => $business, 'customer_account_id' => $customer->id, 'name' => $name, 'phone' => $phone, 'updated_at' => $updated]);
+            }
+            $this->assertSame(0, Artisan::call('migrate'));
+            $this->assertDatabaseHas('customer_accounts', ['id' => $customer->id, 'name' => 'Nama Terbaru', 'phone' => '08222222222', 'address' => null]);
+            $this->assertDatabaseHas('customer_accounts', ['id' => $other->id, 'name' => 'Akun Lain', 'phone' => null]);
+            $this->assertDatabaseCount('customer_profiles', 2);
+        } finally {
+            Artisan::call('migrate:fresh');
+            app(BusinessContext::class)->resetSchema();
+        }
+    }
+
     public function test_populated_single_store_is_assigned_without_losing_stock_history_or_document_numbers(): void
     {
         $paths = collect(glob(database_path('migrations/*.php')))

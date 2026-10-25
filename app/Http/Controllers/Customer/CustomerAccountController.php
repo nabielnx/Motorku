@@ -73,7 +73,7 @@ final class CustomerAccountController extends Controller
     {
         $this->customers->saveProfile(Auth::guard('customer')->user(), $request->validated());
 
-        return back()->with('success', 'Data pelanggan untuk toko ini disimpan.');
+        return back()->with('success', 'Informasi akun pelanggan berhasil disimpan.');
     }
 
     public function logout(Request $request): RedirectResponse

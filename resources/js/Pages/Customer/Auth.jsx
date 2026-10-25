@@ -49,10 +49,11 @@ export default function CustomerAuth({ mode, token, email, returnTo = '/' }) {
     </OrderWorkspace>;
 }
 
-export function AccountField({ form, name, label, type = 'text', autoComplete, required = true }) {
+export function AccountField({ form, name, label, type = 'text', autoComplete, required = true, multiline = false, maxLength }) {
+    const attributes = { id: `customer-${name}`, autoComplete, value: form.data[name], required, maxLength, disabled: form.processing, onChange: event => form.setData(name, event.target.value), 'aria-invalid': Boolean(form.errors[name]), 'aria-describedby': form.errors[name] ? `customer-${name}-error` : undefined };
     return <div className="customer-account-field">
         <label htmlFor={`customer-${name}`}>{label}</label>
-        <input id={`customer-${name}`} type={type} autoComplete={autoComplete} value={form.data[name]} required={required} disabled={form.processing} onChange={event => form.setData(name, event.target.value)} aria-invalid={Boolean(form.errors[name])} aria-describedby={form.errors[name] ? `customer-${name}-error` : undefined} />
+        {multiline ? <textarea {...attributes} rows={3} /> : <input {...attributes} type={type} />}
         {form.errors[name] && <p id={`customer-${name}-error`} role="alert" className="customer-account-error">{form.errors[name]}</p>}
     </div>;
 }

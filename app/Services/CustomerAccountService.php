@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\CustomerAccount;
-use App\Models\CustomerProfile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -15,17 +14,12 @@ final class CustomerAccountService
 {
     public function register(array $data): CustomerAccount
     {
-        return DB::transaction(function () use ($data): CustomerAccount {
-            $customer = CustomerAccount::create($data);
-            $this->saveProfile($customer, ['name' => $customer->name, 'phone' => null]);
-
-            return $customer;
-        });
+        return CustomerAccount::create($data);
     }
 
     public function saveProfile(CustomerAccount $customer, array $data): void
     {
-        CustomerProfile::updateOrCreate(['customer_account_id' => $customer->id], $data);
+        $customer->update($data);
     }
 
     public function shared(): ?array
@@ -34,11 +28,11 @@ final class CustomerAccountService
         if (! $customer) {
             return null;
         }
-        $profile = CustomerProfile::where('customer_account_id', $customer->id)->first();
 
         return [
-            'id' => $customer->id, 'name' => $profile?->name ?? $customer->name,
-            'email' => $customer->email, 'phone' => $profile?->phone,
+            'id' => $customer->id, 'name' => $customer->name,
+            'email' => $customer->email, 'phone' => $customer->phone, 'address' => $customer->address,
+            'joined_at' => $customer->created_at->toDateString(),
             'verified' => $customer->hasVerifiedEmail(), 'google_linked' => filled($customer->google_id),
             'has_password' => filled($customer->password),
         ];

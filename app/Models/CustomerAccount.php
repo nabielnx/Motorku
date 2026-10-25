@@ -15,7 +15,7 @@ final class CustomerAccount extends Authenticatable implements MustVerifyEmail
 {
     use HasUuids, Notifiable;
 
-    protected $fillable = ['name', 'email', 'password'];
+    protected $fillable = ['name', 'email', 'password', 'phone', 'address'];
 
     protected $attributes = ['auth_version' => 1];
 

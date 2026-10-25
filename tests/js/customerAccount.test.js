@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { customerStorage, LEGACY_BUSINESS_ID } from '../../resources/js/Utils/storefrontContext.js';
-import { customerAuthSchemas } from '../../resources/js/Utils/customerAuth.js';
+import { customerAuthSchemas, customerProfileSchema } from '../../resources/js/Utils/customerAuth.js';
 
 test('customer receipts and retry identities are isolated while the shopping cart survives login', () => {
     const map = new Map();
@@ -30,4 +30,12 @@ test('customer registration and password recovery validate confirmation independ
     assert.equal(customerAuthSchemas.reset.safeParse(data).success, true);
     assert.equal(customerAuthSchemas.reset.safeParse({ ...data, password: 'weak' }).success, false);
     assert.equal(customerAuthSchemas.forgot.safeParse({ email: 'invalid' }).success, false);
+});
+
+test('customer contact form validates optional address and phone before saving', () => {
+    const profile = { name: '  Nama Baru  ', phone: '', address: '' };
+    assert.equal(customerProfileSchema.parse(profile).name, 'Nama Baru');
+    assert.equal(customerProfileSchema.safeParse({ ...profile, address: 'Jalan Merdeka 10\nDemak' }).success, true);
+    assert.equal(customerProfileSchema.safeParse({ ...profile, address: 'x'.repeat(501) }).success, false);
+    assert.equal(customerProfileSchema.safeParse({ ...profile, phone: 'not a phone' }).success, false);
 });

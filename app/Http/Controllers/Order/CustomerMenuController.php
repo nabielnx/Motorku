@@ -14,7 +14,6 @@ use App\Models\Product;
 use App\Models\Setting;
 use App\Services\BusinessContext;
 use App\Services\CacheService;
-use App\Services\CustomerAccountService;
 use App\Services\CustomerOrderService;
 use App\Services\OrderCancellationService;
 use App\Services\OrderService;
@@ -132,15 +131,10 @@ class CustomerMenuController extends Controller
             $data['customer_account_id'] = $customer->id;
         }
 
-        $order = DB::transaction(function () use ($data, $orderService, $customer) {
+        $order = DB::transaction(function () use ($data, $orderService) {
             // QR orders stay customer-owned even when the same browser is
             // also logged in to the cashier panel.
             $order = $orderService->createOrder($data, true);
-            if ($customer && $order->customer_account_id === $customer->id) {
-                app(CustomerAccountService::class)->saveProfile($customer, [
-                    'name' => mb_substr($data['customer_name'], 0, 120), 'phone' => $data['customer_phone'] ?? null,
-                ]);
-            }
 
             return $order;
         });

@@ -32,6 +32,7 @@ final class CustomerAccountRequest extends FormRequest
             'customer.profile.update' => [
                 'name' => ['required', 'string', 'min:2', 'max:120'],
                 'phone' => ['nullable', 'string', 'regex:/^[0-9+\-\s()]{8,20}$/'],
+                'address' => ['nullable', 'string', 'max:500'],
             ],
             'customer.password.email' => ['email' => ['required', 'email', 'max:254']],
             'customer.password.store' => [
