@@ -9,7 +9,7 @@ import AdminDialog, { DialogTitle } from '@/Components/Admin/Dialog';
 import { Head, router, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import { toast } from 'sonner';
-import { FiSave, FiCheck, FiHome, FiPercent, FiCreditCard, FiPrinter, FiSmartphone, FiClock, FiSettings, FiUpload, FiClipboard, FiTrash2, FiAlertTriangle, FiBookOpen } from 'react-icons/fi';
+import { FiSave, FiCheck, FiHome, FiPercent, FiCreditCard, FiPrinter, FiSmartphone, FiClock, FiSettings, FiUpload, FiClipboard, FiTrash2, FiAlertTriangle, FiBookOpen, FiRotateCcw } from 'react-icons/fi';
 
 const settingCategories = [
   { key: 'store', label: 'Toko', icon: FiHome, description: 'Identitas, kontak, logo, dan jam operasional toko.' },
@@ -133,6 +133,11 @@ export default function SettingIndex() {
   const [bannerUploading, setBannerUploading] = useState({ 1: false, 2: false, 3: false });
   // Konfirmasi hapus gambar toko.
   const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [resetDialogOpen, setResetDialogOpen] = useState(false);
+  const [ownerPassword, setOwnerPassword] = useState('');
+  const [resetError, setResetError] = useState('');
+  const [resettingTransactions, setResettingTransactions] = useState(false);
+  const deletionEnabled = props.app_settings?.deletion_enabled !== false;
 
   const executeDelete = async () => {
     if (!deleteConfirm) return;
@@ -341,6 +346,35 @@ export default function SettingIndex() {
 
   const handleDeleteBanner = (slot) => {
     setDeleteConfirm({ type: 'banner', slot });
+  };
+
+  const closeResetDialog = () => {
+    if (resettingTransactions) return;
+    setResetDialogOpen(false);
+    setOwnerPassword('');
+    setResetError('');
+  };
+
+  const handleResetTransactions = async (event) => {
+    event.preventDefault();
+    if (resettingTransactions) return;
+    setResettingTransactions(true);
+    setResetError('');
+    try {
+      const { data } = await axios.post('/api/settings/reset-transactions', { owner_password: ownerPassword });
+      setResetDialogOpen(false);
+      setOwnerPassword('');
+      setResetError('');
+      toast.success(data.message || 'Data transaksi berhasil direset.');
+      router.reload({ only: ['app_settings'] });
+    } catch (error) {
+      const message = error.response?.data?.errors?.owner_password?.[0]
+        || error.response?.data?.message
+        || 'Reset data transaksi gagal. Coba lagi.';
+      setResetError(message);
+    } finally {
+      setResettingTransactions(false);
+    }
   };
 
   const handleBannerFileSelect = (slot, file) => {
@@ -755,6 +789,40 @@ export default function SettingIndex() {
           </div>
         </div>
 
+        <section className="admin-surface space-y-4 border border-red-300 bg-white p-4 dark:border-red-700 dark:bg-slate-900 sm:p-6" aria-labelledby="reset-transactions-title">
+          <div className="flex items-start gap-3 border-b border-red-200 pb-3 dark:border-red-800">
+            <FiAlertTriangle aria-hidden="true" className="mt-0.5 shrink-0 text-red-700 dark:text-red-300" size={20} />
+            <div>
+              <h3 id="reset-transactions-title" className="text-base font-bold text-slate-900 dark:text-white">Reset data transaksi</h3>
+              <p className="mt-1 text-xs leading-relaxed text-slate-700 dark:text-slate-300">Aksi ini menghapus riwayat operasional usaha secara permanen. Tidak dapat dibatalkan dari aplikasi.</p>
+            </div>
+          </div>
+          <div className="grid gap-4 text-xs leading-relaxed sm:grid-cols-2">
+            <div>
+              <p className="font-bold text-slate-900 dark:text-white">Yang direset permanen</p>
+              <ul className="mt-2 list-disc space-y-1 pl-4 text-slate-700 dark:text-slate-300">
+                <li>Pesanan, item pesanan, pembayaran, dan retur.</li>
+                <li>Kas harian, log pergerakan stok, dan checkout pelanggan yang tertunda.</li>
+                <li>Nomor urut dokumen transaksi serta notifikasi aktivitas toko.</li>
+              </ul>
+            </div>
+            <div>
+              <p className="font-bold text-slate-900 dark:text-white">Yang tetap disimpan</p>
+              <ul className="mt-2 list-disc space-y-1 pl-4 text-slate-700 dark:text-slate-300">
+                <li>Akun owner/staf, password, peran, dan usaha.</li>
+                <li>Produk beserta harga dan stok saat ini, kategori, supplier, dan data referensi.</li>
+                <li>Pengaturan toko, QRIS, logo, gambar, serta file impor produk.</li>
+              </ul>
+            </div>
+          </div>
+          {!deletionEnabled && <p role="alert" className="text-xs font-semibold text-red-700 dark:text-red-300">Penghapusan data admin sedang dikunci. Aktifkan terlebih dahulu pada pengaturan Sistem di atas.</p>}
+          <div>
+            <AdminButton type="button" variant="danger" disabled={!deletionEnabled || resettingTransactions} onClick={() => { setResetError(''); setResetDialogOpen(true); }}>
+              <FiRotateCcw aria-hidden="true" size={15} />Reset data transaksi
+            </AdminButton>
+          </div>
+        </section>
+
         </div>
         <div className="admin-surface sticky bottom-0 z-10 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 bg-white px-4 py-3 dark:border-slate-700 dark:bg-slate-900">
           <p role="status" className="text-xs text-slate-600 dark:text-slate-300">{categoryDirty ? 'Ada perubahan belum disimpan di kategori ini.' : 'Perubahan di kategori ini sudah tersimpan.'}</p>
@@ -772,6 +840,28 @@ export default function SettingIndex() {
               <DeleteButton as={AdminButton} type="button" onClick={executeDelete} variant="danger">Hapus</DeleteButton>
             </div>
           </div>
+        </AdminDialog>
+
+        <AdminDialog show={resetDialogOpen} onClose={closeResetDialog} closeable={!resettingTransactions} className="max-w-md overflow-y-auto">
+          <form onSubmit={handleResetTransactions} className="space-y-4 bg-white p-6 text-slate-900 dark:bg-slate-900 dark:text-white">
+            <div className="flex items-start gap-3">
+              <FiAlertTriangle aria-hidden="true" className="mt-0.5 shrink-0 text-red-700 dark:text-red-300" size={21} />
+              <div>
+                <DialogTitle className="admin-dialog-title">Reset seluruh data transaksi?</DialogTitle>
+                <p className="mt-2 text-sm leading-relaxed text-slate-700 dark:text-slate-300">Pesanan, pembayaran, retur, kas harian, log stok, checkout tertunda, nomor dokumen, dan notifikasi aktivitas akan dihapus permanen. Produk dan stok saat ini tidak berubah.</p>
+              </div>
+            </div>
+            <div>
+              <label htmlFor="owner-reset-password" className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300">Password akun owner</label>
+              <input id="owner-reset-password" type="password" autoComplete="current-password" required disabled={resettingTransactions} value={ownerPassword} onChange={event => { setOwnerPassword(event.target.value); setResetError(''); }} className="admin-control mt-1 w-full px-3 py-2" placeholder="Masukkan password Anda" />
+              <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">Password dipakai hanya untuk mengonfirmasi tindakan ini.</p>
+              {resetError && <p role="alert" className="mt-2 text-xs font-semibold text-red-700 dark:text-red-300">{resetError}</p>}
+            </div>
+            <div className="flex justify-end gap-2">
+              <AdminButton type="button" variant="secondary" disabled={resettingTransactions} onClick={closeResetDialog}>Batal</AdminButton>
+              <AdminButton type="submit" variant="danger" disabled={resettingTransactions || ownerPassword.length === 0}>{resettingTransactions ? 'Mereset…' : 'Reset permanen'}</AdminButton>
+            </div>
+          </form>
         </AdminDialog>
 
 
