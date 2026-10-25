@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Setting;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ImageUploadRequest;
 use App\Http\Requests\Setting\ActivateQrisRequest;
+use App\Http\Requests\Setting\ResetTransactionDataRequest;
 use App\Http\Requests\Setting\SaveSettingsRequest;
 use App\Http\Requests\Setting\UpdateSettingRequest;
 use App\Http\Requests\Setting\UploadQrisRequest;
@@ -15,6 +16,7 @@ use App\Services\CacheService;
 use App\Services\ImageUploadService;
 use App\Services\QrisService;
 use App\Services\SettingService;
+use App\Services\TransactionResetService;
 use App\Support\BusinessFiles;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controllers\HasMiddleware;
@@ -100,6 +102,16 @@ class SettingController extends Controller implements HasMiddleware
         $this->settingService->saveAll($request->validated('settings'));
 
         return response()->json(['message' => 'Pengaturan berhasil disimpan!']);
+    }
+
+    public function resetTransactions(ResetTransactionDataRequest $request, TransactionResetService $transactions): JsonResponse
+    {
+        $deleted = $transactions->reset();
+
+        return response()->json([
+            'message' => 'Data transaksi usaha berhasil direset secara permanen.',
+            'deleted' => $deleted,
+        ]);
     }
 
     public function uploadLogo(ImageUploadRequest $request): JsonResponse
