@@ -10,7 +10,7 @@ export default function useQrisPayment({ open, active, items, amount }) {
     const [result, setResult] = useState(null);
     const [attempt, setAttempt] = useState(0);
     const itemsKey = JSON.stringify(items.map(item => ({ product_id: item.product_id, quantity: item.quantity })));
-    const key = JSON.stringify([itemsKey, amount, config?.image_revision, attempt]);
+    const key = JSON.stringify([itemsKey, amount, config?.image_revision, config?.enabled, attempt]);
 
     useEffect(() => {
         if (!open) return;
@@ -28,7 +28,7 @@ export default function useQrisPayment({ open, active, items, amount }) {
 
     useEffect(() => {
         setResult(null);
-        if (!open || !active || configLoading || !config?.dynamic_available) return;
+        if (!open || !active || configLoading || config?.enabled === false || !config?.dynamic_available) return;
         const controller = new AbortController();
         requestQrisQuote({ items: JSON.parse(itemsKey), expected_amount: amount }, { signal: controller.signal })
             .then(async quote => {
@@ -37,16 +37,19 @@ export default function useQrisPayment({ open, active, items, amount }) {
             })
             .catch(error => { if (!controller.signal.aborted) setResult({ key, error: qrisErrorMessage(error) }); });
         return () => controller.abort();
-    }, [open, active, configLoading, config?.dynamic_available, itemsKey, amount, key]);
+    }, [open, active, configLoading, config?.dynamic_available, config?.enabled, itemsKey, amount, key]);
 
     const current = open && active && result?.key === key ? result : null;
     const dynamic = Boolean(config?.dynamic_available);
-    const loading = configLoading || (open && active && dynamic && !current);
+    const available = Boolean(config?.url) && config?.enabled !== false && !configLoading && !configError;
+    const loading = configLoading || (open && active && dynamic && available && !current);
     const error = configError || current?.error || '';
     return {
-        imageUrl: !open || loading || error ? null : (dynamic ? current?.imageUrl : config?.url),
+        imageUrl: !open || !available || loading || error ? null : (dynamic ? current?.imageUrl : config?.url),
         loading, error, dynamic,
-        available: Boolean(config?.url),
+        available,
+        enabled: config?.enabled !== false,
+        configured: Boolean(config?.url),
         quote: current?.quote,
         merchant: current?.quote?.merchant || config?.merchant,
         retry: () => setAttempt(value => value + 1),

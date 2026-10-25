@@ -15,6 +15,8 @@ export default function PaymentModal({
     qrisImageLoading,
     qrisImageUrl,
     qrisAvailable,
+    qrisEnabled,
+    qrisConfigured,
     qrisDynamic,
     qrisMerchant,
     qrisError,
@@ -107,19 +109,19 @@ export default function PaymentModal({
                                     <button
                                         type="button"
                                         onClick={() => { resetQrisFlow(); setPaymentMethod('qris_manual'); }}
-                                        disabled={!qrisAvailable || settings['payment.qris_enabled'] === 'false'}
+                                        disabled={!qrisAvailable}
                                         className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border text-xs font-bold transition cursor-pointer ${
-                                            paymentMethod === 'qris_manual'
+                                            paymentMethod === 'qris_manual' && qrisAvailable
                                                 ? 'border-primary bg-primary text-white shadow-2xs'
-                                                : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600 disabled:opacity-40 disabled:cursor-not-allowed'
+                                                : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600 disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed dark:disabled:bg-slate-800 dark:disabled:text-slate-400'
                                         }`}
                                     >
                                         <FiSmartphone className="w-4 h-4" />
                                         <span>QRIS</span>
                                     </button>
                                 </div>
-                                {!qrisImageLoading && (!qrisAvailable || settings['payment.qris_enabled'] === 'false') && (
-                                    <p className="text-[11px] text-slate-500 dark:text-slate-400">QRIS belum tersedia. Owner perlu mengunggah gambar QRIS di Pengaturan.</p>
+                                {!qrisImageLoading && !qrisError && !qrisAvailable && (
+                                    <p className="text-[11px] text-slate-500 dark:text-slate-400">{!qrisConfigured ? 'Gambar QRIS belum tersedia. Minta owner mengunggahnya di Pengaturan.' : !qrisEnabled ? 'Pembayaran QRIS dinonaktifkan. Minta owner mengaktifkan toggle QRIS di Pengaturan.' : 'QRIS belum dapat digunakan. Coba muat ulang.'}</p>
                                 )}
                                 {qrisError && paymentMethod !== 'qris_manual' && <div role="alert" className="flex items-center justify-between gap-2 text-xs text-red-600 dark:text-red-400"><span>{qrisError}</span><button type="button" onClick={retryQris} disabled={qrisImageLoading} className="shrink-0 rounded-lg border border-slate-300 px-2 py-1.5 text-slate-800 dark:border-slate-600 dark:text-white">Coba lagi</button></div>}
                             </div>
@@ -209,7 +211,7 @@ export default function PaymentModal({
                                 </div>
                             )}
 
-                            {paymentMethod === 'qris_manual' && (
+                            {paymentMethod === 'qris_manual' && (qrisAvailable || qrisImageLoading || qrisError) && (
                                 <div className="space-y-3">
                                     <div className="flex min-h-60 items-center justify-center rounded-xl bg-white p-3 border border-slate-200">
                                         {qrisImageLoading ? <p role="status" className="text-xs text-slate-600">Menyiapkan QRIS...</p> : qrisImageUrl ? <img src={qrisImageUrl} alt={qrisDynamic ? `QRIS ${qrisMerchant?.name || 'toko'} untuk ${formatRp(total)}` : 'QRIS toko untuk pembayaran'} className="aspect-square w-60 max-w-full object-contain" /> : <p role="status" className="text-xs text-slate-600">QRIS belum siap ditampilkan.</p>}
@@ -258,7 +260,7 @@ export default function PaymentModal({
                                 disabled={
                                     isSubmittingOrder ||
                                     (paymentMethod === 'cash' && (settings['payment.cash_enabled'] === 'false' || !cashReceived || cashShortfall > 0)) ||
-                                    (paymentMethod === 'qris_manual' && (settings['payment.qris_enabled'] === 'false' || qrisImageLoading || Boolean(qrisError) || !qrisImageUrl || !qrisVerified))
+                                    (paymentMethod === 'qris_manual' && (!qrisAvailable || qrisImageLoading || Boolean(qrisError) || !qrisImageUrl || !qrisVerified))
                                 }
                                 className="w-full py-3.5 px-4 bg-primary hover:bg-primaryDark disabled:bg-slate-200 dark:disabled:bg-slate-800 disabled:text-slate-400 dark:disabled:text-slate-600 text-white font-bold rounded-xl text-xs sm:text-sm shadow-sm transition flex items-center justify-center gap-2 group cursor-pointer disabled:cursor-not-allowed"
                             >
