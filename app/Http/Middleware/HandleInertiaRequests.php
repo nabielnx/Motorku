@@ -7,6 +7,7 @@ namespace App\Http\Middleware;
 use App\Models\DataType;
 use App\Models\Setting;
 use App\Services\CacheService;
+use App\Services\CustomerAccountService;
 use App\Services\GoogleLoginService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -41,6 +42,7 @@ class HandleInertiaRequests extends Middleware
 
         return [
             ...parent::share($request),
+            'customer' => fn () => $request->attributes->get('public_store') ? app(CustomerAccountService::class)->shared() : null,
             'google_login_enabled' => app(GoogleLoginService::class)->enabled(),
             'business' => $business ? ['id' => $business->id, 'name' => $business->name, 'slug' => $business->slug, 'public_url' => $business->publicUrl()] : null,
             'shop_slug' => $request->attributes->get('shop_slug'),

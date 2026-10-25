@@ -277,7 +277,9 @@ class OrderService
             $order = Order::create([
                 'order_number' => $orderNumber,
                 'cashier_id' => $isPublicOrder ? null : auth()->id(),
+                'customer_account_id' => $isPublicOrder ? ($data['customer_account_id'] ?? null) : null,
                 'customer_name' => $data['customer_name'] ?? null,
+                'customer_phone' => $data['customer_phone'] ?? null,
                 'customer_access_token' => $isPublicOrder ? Str::random(64) : null,
                 'notes' => $data['notes'] ?? null,
                 'payment_preference' => $isPublicOrder ? ($data['payment_preference'] ?? 'kasir') : null,

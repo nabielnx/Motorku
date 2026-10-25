@@ -1,0 +1,19 @@
+.customer-account-card { padding: 24px; border: 1px solid #dedfd7; border-radius: 12px; background: #fff; color: #19231f; display: grid; gap: 18px; }
+.customer-auth-card { max-width: 460px; margin: 0 auto; }
+.customer-account-card h1 { font-family: 'Outfit', sans-serif; font-size: 24px; font-weight: 600; }
+.customer-account-card h2 { font-size: 14px; font-weight: 700; }
+.customer-account-description, .customer-account-help, .customer-account-security p { font-size: 13px; color: #53615a; line-height: 1.6; }
+.customer-account-form { display: grid; gap: 14px; }
+.customer-account-field { display: grid; gap: 6px; }
+.customer-account-field label { font-size: 12px; font-weight: 600; }
+.customer-account-field input { width: 100%; min-width: 0; min-height: 44px; border: 1px solid #dedfd7; border-radius: 8px; padding: 10px 12px; color: #19231f; background: #fff; font-size: 14px; }
+.customer-account-field input:focus { outline: 2px solid #19231f; outline-offset: 2px; }
+.customer-account-error { color: #b91c1c; font-size: 12px; line-height: 1.6; }
+.customer-account-message { padding: 12px; background: #f3f3ed; border: 1px solid #dedfd7; border-radius: 8px; font-size: 12px; line-height: 1.6; }
+.customer-account-message button, .customer-account-links a, .customer-account-security a, .customer-account-business a { text-decoration: underline; text-underline-offset: 3px; font-weight: 600; }
+.customer-account-links, .customer-account-business { display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; font-size: 12px; }
+.customer-guest-link { text-align: center; font-size: 13px; font-weight: 600; padding: 10px; }
+.customer-account-security, .customer-account-business { border-top: 1px solid #dedfd7; padding-top: 16px; display: grid; gap: 12px; font-size: 12px; }
+.checkout-account-status { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; padding-bottom: 12px; }
+.checkout-account-status a { text-decoration: underline; font-weight: 600; }
+@media (max-width: 480px) { .customer-account-card { padding: 18px; } }

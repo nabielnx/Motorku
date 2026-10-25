@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { FiRefreshCw, FiShoppingBag, FiChevronRight } from 'react-icons/fi';
 import useStorefront from '@/Hooks/useStorefront';
 import useCustomerOrders from '@/Hooks/useCustomerOrders';
@@ -36,30 +36,33 @@ function HistoryRow({ order, storeUrl }) {
 
 export default function Status() {
     const { storage, storeUrl } = useStorefront();
-    const { orders, syncing, refresh, storageError, archivedCount, cleanArchived, restoreArchived } = useCustomerOrders(storage);
+    const { customer } = usePage().props;
     const [filter, setFilter] = useState('all');
+    const { orders, syncing, refresh, storageError, archivedCount, cleanArchived, restoreArchived, historyPage, lastPage, setHistoryPage, accountError, counts } = useCustomerOrders(storage, filter);
     const active = orders.filter(isActiveOrder);
     const closed = orders.filter(order => !isActiveOrder(order));
-    const visible = filter === 'active' ? active : filter === 'closed' ? closed : orders;
+    const visible = customer ? orders : filter === 'active' ? active : filter === 'closed' ? closed : orders;
     const inaccessibleClosed = closed.filter(order => order.connection === 'unavailable').length;
     const filters = [
-        { value: 'all', label: 'Semua', count: orders.length },
-        { value: 'active', label: 'Aktif', count: active.length },
-        { value: 'closed', label: 'Selesai', count: closed.length },
+        { value: 'all', label: 'Semua', count: counts?.all ?? orders.length },
+        { value: 'active', label: 'Aktif', count: counts?.active ?? active.length },
+        { value: 'closed', label: 'Selesai', count: counts?.closed ?? closed.length },
     ];
 
     return (
         <OrderWorkspace title="Pesanan saya" compact>
             <div className="order-page-title">
-                <div><h1>Pesanan saya</h1><p>Riwayat di perangkat ini</p></div>
+                <div><h1>Pesanan saya</h1><p>{customer ? 'Riwayat akun Anda di toko ini' : 'Riwayat tamu di perangkat ini'}</p></div>
                 <button type="button" className="order-icon-button" onClick={() => refresh()} disabled={syncing} aria-label={syncing ? 'Memeriksa pesanan' : 'Perbarui semua pesanan'} title="Perbarui">
                     <FiRefreshCw size={18} />
                 </button>
             </div>
             {storageError && <div className="order-notice order-error" role="alert">Riwayat belum dapat disimpan. Catat nomor pesanan Anda.</div>}
+            {!customer && <p className="order-notice"><Link href={storeUrl('/customer/login?return=/order/status')}>Masuk pelanggan</Link> untuk melihat pesanan akun dari perangkat lain. Pesanan tamu tetap tersimpan di perangkat ini.</p>}
+            {accountError && <div className="order-notice order-error" role="alert">{accountError}</div>}
             <div className="order-filters" aria-label="Filter pesanan">
                 {filters.map(option => (
-                    <button type="button" key={option.value} aria-pressed={filter === option.value} onClick={() => setFilter(option.value)}>
+                    <button type="button" key={option.value} aria-pressed={filter === option.value} onClick={() => { setHistoryPage(1); setFilter(option.value); }}>
                         {option.label}<span className="order-filter-count">{option.count}</span>
                     </button>
                 ))}
@@ -80,6 +83,11 @@ export default function Status() {
                 {archivedCount > 0 && <><span>{archivedCount} riwayat lama disembunyikan.</span><button type="button" className="order-text-button" onClick={restoreArchived}>Pulihkan</button></>}
                 {inaccessibleClosed > 0 && <button type="button" className="order-text-button" onClick={cleanArchived}>Bersihkan riwayat lama</button>}
             </div>}
+            {customer && lastPage > 1 && <nav className="flex items-center justify-center gap-3 py-4" aria-label="Halaman riwayat pesanan">
+                <button className="order-icon-button" type="button" aria-label="Halaman sebelumnya" disabled={syncing || historyPage <= 1} onClick={() => setHistoryPage(historyPage - 1)}>‹</button>
+                <span className="text-xs">{historyPage} / {lastPage}</span>
+                <button className="order-icon-button" type="button" aria-label="Halaman berikutnya" disabled={syncing || historyPage >= lastPage} onClick={() => setHistoryPage(historyPage + 1)}>›</button>
+            </nav>}
         </OrderWorkspace>
     );
 }

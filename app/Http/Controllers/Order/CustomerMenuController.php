@@ -14,6 +14,7 @@ use App\Models\Product;
 use App\Models\Setting;
 use App\Services\BusinessContext;
 use App\Services\CacheService;
+use App\Services\CustomerAccountService;
 use App\Services\CustomerOrderService;
 use App\Services\OrderCancellationService;
 use App\Services\OrderService;
@@ -21,6 +22,7 @@ use App\Services\QrisService;
 use App\Services\SettingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -123,11 +125,24 @@ class CustomerMenuController extends Controller
             ]);
         }
         $data['payment_status'] = 'unpaid';
+        // Only the CSRF-protected browser checkout can associate an authenticated
+        // customer. The legacy stateless API continues to create guest orders.
+        $customer = $request->routeIs('customer.checkout') ? Auth::guard('customer')->user() : null;
+        if ($customer) {
+            $data['customer_account_id'] = $customer->id;
+        }
 
-        $order = DB::transaction(function () use ($data, $orderService) {
+        $order = DB::transaction(function () use ($data, $orderService, $customer) {
             // QR orders stay customer-owned even when the same browser is
             // also logged in to the cashier panel.
-            return $orderService->createOrder($data, true);
+            $order = $orderService->createOrder($data, true);
+            if ($customer && $order->customer_account_id === $customer->id) {
+                app(CustomerAccountService::class)->saveProfile($customer, [
+                    'name' => mb_substr($data['customer_name'], 0, 120), 'phone' => $data['customer_phone'] ?? null,
+                ]);
+            }
+
+            return $order;
         });
 
         return response()->json([

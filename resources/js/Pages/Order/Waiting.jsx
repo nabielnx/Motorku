@@ -9,7 +9,7 @@ import OrderPaymentActions from '@/Components/Customer/OrderPaymentActions';
 
 export default function Waiting() {
     const { storage, storeUrl } = useStorefront();
-    const { orders, syncing, refresh, update, storageError } = useCustomerOrders(storage);
+    const { orders, syncing, refresh, update, storageError, accountError } = useCustomerOrders(storage);
     const id = new URLSearchParams(window.location.search).get('order');
     const order = id ? orders.find(row => row.order_id === id) : orders[0];
     const [copied, setCopied] = useState(false);
@@ -27,6 +27,7 @@ export default function Waiting() {
                     <FiRefreshCw size={18} />
                 </button>
             </div>
+            {accountError && <div className="order-notice order-error" role="alert">{accountError}</div>}
             {!order ? (
                 <section className="order-panel order-empty">
                     <FiShoppingBag size={32} /><h2>Pesanan belum tersedia</h2>

@@ -1,9 +1,9 @@
 import { useMemo } from 'react';
 import { usePage } from '@inertiajs/react';
-import { businessStorage, storefrontUrl } from '@/Utils/storefrontContext';
+import { businessStorage, customerStorage, storefrontUrl } from '@/Utils/storefrontContext';
 
 export default function useStorefront({ admin = false } = {}) {
-    const { business, shop_slug, auth } = usePage().props;
-    const storage = useMemo(() => businessStorage(business?.id, localStorage, admin ? auth?.user?.id : null), [business?.id, admin, auth?.user?.id]);
+    const { business, shop_slug, auth, customer } = usePage().props;
+    const storage = useMemo(() => admin ? businessStorage(business?.id, localStorage, auth?.user?.id) : customerStorage(business?.id, localStorage, customer?.id), [business?.id, admin, auth?.user?.id, customer?.id]);
     return { storage, storeUrl: path => storefrontUrl(path, shop_slug) };
 }

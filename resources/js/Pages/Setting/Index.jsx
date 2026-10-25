@@ -809,7 +809,7 @@ export default function SettingIndex() {
             <div>
               <p className="font-bold text-slate-900 dark:text-white">Yang tetap disimpan</p>
               <ul className="mt-2 list-disc space-y-1 pl-4 text-slate-700 dark:text-slate-300">
-                <li>Akun owner/staf, password, peran, dan usaha.</li>
+                <li>Akun owner/staf dan pelanggan, profil pelanggan, password, peran, dan usaha.</li>
                 <li>Produk beserta harga dan stok saat ini, kategori, supplier, dan data referensi.</li>
                 <li>Pengaturan toko, QRIS, logo, gambar, serta file impor produk.</li>
               </ul>

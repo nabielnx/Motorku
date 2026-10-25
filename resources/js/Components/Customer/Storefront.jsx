@@ -70,7 +70,7 @@ export function StoreHeader({
     const [isSearchFocused, setIsSearchFocused] = useState(false);
     const [showMotorHint, setShowMotorHint] = useState(true);
     const referencesEnabled = props.app_settings?.references_enabled !== false;
-    const accountLabel = props?.auth?.user ? 'Akun saya' : 'Masuk ke akun';
+    const accountLabel = props.customer ? 'Akun pelanggan saya' : 'Masuk sebagai pelanggan';
 
     return (
         <>
@@ -171,7 +171,7 @@ export function StoreHeader({
                             )}
                         </Link>
                         <Link
-                            href={storeUrl(props?.auth?.user ? '/profile' : '/login')}
+                            href={storeUrl(props.customer ? '/customer/account' : '/customer/login')}
                             title={accountLabel}
                             aria-label={accountLabel}
                             className="store-action store-account-action"

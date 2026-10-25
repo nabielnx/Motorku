@@ -20,7 +20,9 @@ class BusinessMigrationTest extends TestCase
     public function test_populated_single_store_is_assigned_without_losing_stock_history_or_document_numbers(): void
     {
         $paths = collect(glob(database_path('migrations/*.php')))
-            ->reject(fn ($path) => str_starts_with(basename($path), '2026_10_24_1800'))
+            // Recreate the schema before business ownership; later migrations can
+            // depend on businesses and must run during the subsequent upgrade.
+            ->filter(fn ($path) => basename($path) < '2026_10_24_180000_create_business_ownership.php')
             ->map(fn ($path) => 'database/migrations/'.basename($path))->values()->all();
         Artisan::call('migrate:fresh', ['--path' => $paths]);
         app(BusinessContext::class)->resetSchema();
