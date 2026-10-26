@@ -83,11 +83,12 @@ jobs:
             set -e
             test -f "$DEPLOY_PATH/.env"
             test -d "$DEPLOY_PATH/storage"
-            test -n "$STAGING_PATH"
             production=$(realpath -e "$DEPLOY_PATH")
-            staging=$(realpath -e "$STAGING_PATH")
-            case "$production/" in "$staging/"*) echo 'Production overlaps staging'; exit 1;; esac
-            case "$staging/" in "$production/"*) echo 'Production overlaps staging'; exit 1;; esac
+            if [ -n "$STAGING_PATH" ]; then
+              staging=$(realpath -m "$STAGING_PATH")
+              case "$production/" in "$staging/"*) echo 'Production overlaps staging'; exit 1;; esac
+              case "$staging/" in "$production/"*) echo 'Production overlaps staging'; exit 1;; esac
+            fi
             if [ "$FIRST_INSTALL" = true ]; then
               test ! -e "$DEPLOY_PATH/artisan"
             else
