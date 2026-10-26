@@ -103,7 +103,7 @@ npm run build
 
 ## Alur GitHub
 
-Fitur dibuat dari `develop`, diuji lewat Pull Request ke `develop`, lalu dirilis lewat Pull Request `develop` ke `main`. Staging berjalan setelah CI `develop` lulus; production dijalankan manual setelah server siap. Langkah lengkap ada di [panduan alur GitHub](docs/GITHUB_WORKFLOW.md).
+Fitur dibuat dari `develop`, diuji lokal dan lewat CI Pull Request ke `develop`, lalu dirilis lewat Pull Request `develop` ke `main`. Production dijalankan manual setelah CI `main` lulus. Hosted staging bersifat opsional dan dinonaktifkan pada instalasi ini. Langkah lengkap ada di [panduan alur GitHub](docs/GITHUB_WORKFLOW.md).
 
 ## Role
 

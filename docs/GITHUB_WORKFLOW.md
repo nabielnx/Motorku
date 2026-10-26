@@ -1,7 +1,7 @@
-# Alur GitHub Motorku
+# Alur GitHub TokoM
 
 ```text
-feat/* atau fix/* → PR ke develop → staging → PR develop ke main
+feat/* atau fix/* → uji lokal + CI PR develop → PR develop ke main
                   → deploy production manual → tag vX.Y.Z
 ```
 
@@ -18,7 +18,7 @@ Hanya gabungkan fitur yang siap ikut rilis ke `develop`: PR `develop` ke `main` 
 
 1. Buat branch fitur dari `develop`, implementasikan perubahan, lalu commit dan push.
 2. Buka Pull Request ke `develop`. CI menjalankan tes PHP dengan MySQL dan build frontend. Setelah lulus, gabungkan PR.
-3. Cek aplikasi di staging, termasuk migrasi dan alur yang berubah.
+3. Cek build produksi dan alur yang berubah di lokal. Hosted staging opsional; pada instalasi ini dinonaktifkan untuk menghemat kuota hosting.
 4. Saat semua perubahan di `develop` siap dirilis, buka PR `develop` ke `main`. Pastikan CI lulus, lalu gabungkan.
 5. Cadangkan database production. Jalankan workflow **Deploy production** secara manual dari branch `main` dengan versi seperti `v1.0.0`. Tag dibuat setelah health check berhasil.
 
@@ -39,6 +39,8 @@ Di GitHub, buat PR dari `feat/nama-fitur` ke `develop`. Setelah PR digabungkan, 
 Jadikan job CI `test-and-build` sebagai required status check untuk PR ke `develop` dan `main` setelah job pertama terlihat di GitHub. Jangan aktifkan auto-merge atau auto-deploy production sebelum proses rilis terbukti berjalan.
 
 ## Menyiapkan server
+
+Production tidak membutuhkan instalasi atau database staging. Pertahankan `STAGING_DEPLOY_ENABLED=false` saat staging tidak dipakai. `STAGING_DEPLOY_PATH` boleh kosong; jika diisi, guard tetap menolak folder yang tumpang tindih dengan production meskipun folder staging sudah dihapus. CI tetap berjalan untuk PR/push develop dan main.
 
 Deploy staging dan production nonaktif secara default. Masing-masing butuh instalasi Laravel sendiri dengan domain HTTPS, `.env`, `APP_KEY`, database MySQL, dan storage terpisah. Web server menunjuk ke direktori `public`. Direktori project harus sudah ada dengan `.env` dan `storage` sebelum workflow deploy pertama dijalankan. Server perlu akses SSH, Bash, rsync, mysqldump, PHP 8.3 dengan PDO MySQL dan GD yang mendukung WebP, serta perintah Artisan. Pembayaran yang digunakan saat ini adalah tunai dan QRIS manual. Jangan commit `.env`.
 
