@@ -22,7 +22,7 @@ class ProductSheetExporter
     {
         // Keep the familiar sheet order, but label exported cost as actual purchase price.
         $headers = ['Grup Barang', 'Kategori', 'Merek', 'Nama Barang', 'Spesifikasi / Keterangan', 'Harga Beli (Rp)', 'Harga Jual (Rp)', 'Stok', 'Satuan', 'Margin (Rp)', 'Kode Barang'];
-        $path = tempnam(sys_get_temp_dir(), 'motorku-sheet-');
+        $path = tempnam(sys_get_temp_dir(), 'tokom-sheet-');
         $name = ($template ? 'template-barang' : 'daftar-barang-'.now()->format('Ymd')).'.'.$format;
         $catalogGroups = Category::catalogGroups();
         try {

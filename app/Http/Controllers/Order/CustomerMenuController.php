@@ -110,7 +110,7 @@ class CustomerMenuController extends Controller
             'message' => 'Pesanan berhasil diterima. Silakan ambil di toko!',
             'data' => array_merge(app(CustomerOrderService::class)->snapshot($order), [
                 'customer_token' => $order->getAttribute('customer_access_token'),
-                'pickup' => true, // Semua order toko sparepart = ambil di toko
+                'pickup' => true, // Customer orders are collected at the store.
             ]),
         ], 201)->header('Cache-Control', 'no-store, private');
     }

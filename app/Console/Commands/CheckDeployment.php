@@ -42,7 +42,11 @@ class CheckDeployment extends Command
             DB::select('SELECT 1');
             $checks['Database reachable'] = true;
             $checks['Active owner exists'] = User::role('owner')->where('is_active', true)->exists();
-            $checks['No demo passwords'] = ! User::whereIn('email', ['owner@tokosparepart.com', 'andi@tokosparepart.com', 'siti@tokosparepart.com'])->get()
+            // Detect both current and legacy demo accounts on existing installs.
+            $checks['No demo passwords'] = ! User::whereIn('email', [
+                'owner@example.com', 'andi@example.com', 'siti@example.com',
+                'owner@tokosparepart.com', 'andi@tokosparepart.com', 'siti@tokosparepart.com',
+            ])->get()
                 ->contains(fn ($user) => Hash::check('password', $user->password));
         } catch (\Throwable) {
             $checks['Database/schema available'] = false;
