@@ -20,7 +20,8 @@ Hanya gabungkan fitur yang siap ikut rilis ke `develop`: PR `develop` ke `main` 
 2. Buka Pull Request ke `develop`. CI menjalankan tes PHP dengan MySQL dan build frontend. Setelah lulus, gabungkan PR.
 3. Cek build produksi dan alur yang berubah di lokal. Hosted staging opsional; pada instalasi ini dinonaktifkan untuk menghemat kuota hosting.
 4. Saat semua perubahan di `develop` siap dirilis, buka PR `develop` ke `main`. Pastikan CI lulus, lalu gabungkan.
-5. Cadangkan database production. Jalankan workflow **Deploy production** secara manual dari branch `main` dengan versi seperti `v1.0.0`. Tag dibuat setelah health check berhasil.
+5. Pastikan CI untuk commit hasil merge di `main` sudah sukses. Jika run tidak terbentuk, buka **Actions → CI → Run workflow**, pilih `main`, lalu tunggu sukses. CI PR atau CI `develop` tidak menggantikan pemeriksaan commit `main` tersebut.
+6. Cadangkan database production. Jalankan workflow **Deploy production** secara manual dari branch `main` dengan versi baru seperti `v1.0.1`. Untuk update instalasi yang sudah berjalan, biarkan `first_install` tidak dicentang. Tag dibuat setelah health check berhasil.
 
 Contoh memulai pekerjaan baru:
 
