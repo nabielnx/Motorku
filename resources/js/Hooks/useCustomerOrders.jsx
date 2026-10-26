@@ -89,7 +89,7 @@ export default function useCustomerOrders(storage, filter = 'all') {
         refresh();
         const interval = setInterval(() => { timerTick.current++; refresh(timerTick.current % 8 === 0); }, 8000);
         const storageChanged = event => {
-            if (!event.key || event.key.startsWith(storage.key('motorku_'))) { if (!customer) apply(); refresh(); }
+            if (!event.key || storage.matchesEventKey(event.key)) { if (!customer) apply(); refresh(); }
         };
         const focus = () => refresh();
         window.addEventListener('storage', storageChanged);

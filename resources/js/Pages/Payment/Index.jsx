@@ -38,7 +38,7 @@ export default function Payment() {
         try {
             const pending = parse(storage.getItem(ATTEMPT));
             const draft = parse(storage.getItem(DRAFT));
-            setData(pending?.display || parse(storage.getItem('motorku_pending_order')));
+            setData(pending?.display || parse(storage.getItem('tokom_pending_order')));
             setAttempt(pending?.payload ? pending : null);
             setName(pending?.payload?.customer_name || draft?.name || page.props.customer?.name || '');
             setPhone(pending?.payload?.customer_phone || draft?.phone || page.props.customer?.phone || '');

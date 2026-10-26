@@ -1,8 +1,8 @@
 import { createRequestId } from './checkout.js';
 import { saveCustomerOrder } from './customerOrderStore.js';
 
-export const CHECKOUT_ATTEMPT = 'motorku_checkout_attempt';
-export const CHECKOUT_DRAFT = 'motorku_checkout_draft';
+export const CHECKOUT_ATTEMPT = 'tokom_checkout_attempt';
+export const CHECKOUT_DRAFT = 'tokom_checkout_draft';
 export function prepareCustomerCheckout(storage, display, details, uuid = createRequestId) {
     let existing;
     try { existing = JSON.parse(storage.getItem(CHECKOUT_ATTEMPT)); } catch { /* Replace corrupt data. */ }
@@ -20,7 +20,7 @@ export function finishCustomerCheckout(storage, order) {
     const saved = saveCustomerOrder(storage, { ...order, order_id: order.id });
     // Never remove the cart/retry material before the access token is saved durably.
     if (saved.persisted) {
-        try { ['motorku_pending_order', 'motorku_cart', 'motorku_cart_time', CHECKOUT_DRAFT, CHECKOUT_ATTEMPT, 'customer_checkout'].forEach(key => storage.removeItem(key)); }
+        try { ['tokom_pending_order', 'tokom_cart', 'tokom_cart_time', CHECKOUT_DRAFT, CHECKOUT_ATTEMPT, 'customer_checkout'].forEach(key => storage.removeItem(key)); }
         catch { /* The persisted request still retrieves the same order on a retry. */ }
     }
     return saved;

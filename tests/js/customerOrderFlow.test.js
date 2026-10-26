@@ -17,19 +17,19 @@ test('a stale tab cannot erase a newly created receipt, including after a legacy
     const tab1 = businessStorage('multi-tab', raw);
     const tab2 = businessStorage('multi-tab', raw);
     const old = row('old');
-    tab1.setItem('motorku_orders_history', JSON.stringify([old]));
+    tab1.setItem('tokom_orders_history', JSON.stringify([old]));
     saveCustomerOrder(tab2, row('new'));
     saveCustomerOrder(tab1, { ...old, sync_version: 2, order_status: 'preparing' });
-    tab1.setItem('motorku_orders_history', JSON.stringify([old]));
+    tab1.setItem('tokom_orders_history', JSON.stringify([old]));
     assert.deepEqual(new Set(readCustomerOrders(tab2).map(row => row.order_id)), new Set(['old', 'new']));
     assert.equal(readCustomerOrders(tab2).find(row => row.order_id === 'old').order_status, 'preparing');
 });
 
 test('history, current receipt and payment backup are merged even when history is not empty', () => {
     const storage = businessStorage('backups', rawStorage());
-    storage.setItem('motorku_orders_history', JSON.stringify([row('history')]));
-    storage.setItem('motorku_current_order', JSON.stringify(row('current')));
-    storage.setItem('motorku_order_for_payment', JSON.stringify(row('payment')));
+    storage.setItem('tokom_orders_history', JSON.stringify([row('history')]));
+    storage.setItem('tokom_current_order', JSON.stringify(row('current')));
+    storage.setItem('tokom_order_for_payment', JSON.stringify(row('payment')));
     assert.equal(readCustomerOrders(storage).length, 3);
 });
 
@@ -103,17 +103,17 @@ test('checkout never sends without durable retry material and never clears cart 
     const raw = rawStorage();
     const storage = businessStorage('receipt-cleanup', raw);
     const cart = { total: 30000, cart: [{ id: 'product', qty: 2 }] };
-    storage.setItem('motorku_cart', JSON.stringify(cart));
+    storage.setItem('tokom_cart', JSON.stringify(cart));
     prepareCustomerCheckout(storage, cart, { customer_name: 'Name', payment_preference: 'qris' }, () => 'request');
     const original = raw.setItem;
     raw.setItem = () => { throw new Error('QuotaExceeded'); };
     assert.equal(finishCustomerCheckout(storage, { ...row('saved-order'), id: 'saved-order' }).persisted, false);
-    assert.notEqual(storage.getItem('motorku_cart'), null);
+    assert.notEqual(storage.getItem('tokom_cart'), null);
     assert.notEqual(storage.getItem(CHECKOUT_ATTEMPT), null);
     assert.throws(() => prepareCustomerCheckout(businessStorage('no-write', raw), cart, {}, () => 'id'), /Browser belum dapat menyimpan/);
     raw.setItem = original;
     assert.equal(finishCustomerCheckout(storage, { ...row('saved-order'), id: 'saved-order' }).persisted, true);
-    assert.equal(storage.getItem('motorku_cart'), null);
+    assert.equal(storage.getItem('tokom_cart'), null);
     assert.equal(storage.getItem(CHECKOUT_ATTEMPT), null);
 });
 
@@ -122,7 +122,7 @@ test('legacy access-token fields are retained when loading older receipts', () =
     const old = { ...row('legacy') };
     delete old.customer_token;
     old.customer_access_token = 'legacy-secret';
-    storage.setItem('motorku_orders_history', JSON.stringify([old]));
+    storage.setItem('tokom_orders_history', JSON.stringify([old]));
     assert.equal(readCustomerOrders(storage)[0].customer_token, 'legacy-secret');
 });
 
@@ -148,9 +148,9 @@ test('archiving is scoped to each shop and never removes the original legacy his
     const storage = businessStorage('cleanup-shop', raw);
     const other = businessStorage('other-cleanup-shop', raw);
     const legacy = { ...row('closed'), order_status: 'completed' };
-    storage.setItem('motorku_orders_history', JSON.stringify([legacy]));
+    storage.setItem('tokom_orders_history', JSON.stringify([legacy]));
     archiveCustomerOrders(storage, [legacy]);
     assert.equal(readCustomerOrders(storage).length, 0);
-    assert.equal(JSON.parse(storage.getItem('motorku_orders_history')).length, 1);
+    assert.equal(JSON.parse(storage.getItem('tokom_orders_history')).length, 1);
     assert.equal(readCustomerOrders(other).length, 0);
 });

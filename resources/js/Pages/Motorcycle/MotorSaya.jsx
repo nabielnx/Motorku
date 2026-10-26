@@ -57,7 +57,7 @@ function ProductImage({ src, alt, className = 'w-full h-full object-contain p-1'
     return <ProductPhoto src={src} name={alt} compact className={className} />;
 }
 
-const CART_KEY = 'motorku_cart';
+const CART_KEY = 'tokom_cart';
 
 function loadCart(storage) {
     try {

@@ -20,8 +20,8 @@ import { FaWhatsapp } from 'react-icons/fa';
 import { fuzzyFilterProducts } from '@/Utils/fuzzySearch';
 import { customerCartTotals, reconcileCustomerCart } from '@/Utils/customerCart';
 
-const CART_KEY = 'motorku_cart';
-const ORDER_KEY = 'motorku_pending_order';
+const CART_KEY = 'tokom_cart';
+const ORDER_KEY = 'tokom_pending_order';
 
 
 function loadCart(storage) {
@@ -222,7 +222,7 @@ export default function CustomerMenu({
                     setShowCart(true);
                 }
             }
-            storage.removeItem('motorku_active_motorcycle');
+            storage.removeItem('tokom_active_motorcycle');
             const history = readCustomerOrders(storage);
             if (Array.isArray(history) && history.length > 0) {
                 const activeOrders = history.filter(o => ['pending', 'preparing', 'ready'].includes(o.order_status));

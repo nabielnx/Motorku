@@ -1,6 +1,6 @@
-const PREFIX = 'motorku_order:';
-const ARCHIVED_KEY = 'motorku_archived_order_ids';
-const CLEANUP_KEY = 'motorku_legacy_history_cleaned_v1';
+const PREFIX = 'tokom_order:';
+const ARCHIVED_KEY = 'tokom_archived_order_ids';
+const CLEANUP_KEY = 'tokom_legacy_history_cleaned_v1';
 const memory = new Map();
 const safeParse = raw => { try { return JSON.parse(raw); } catch { return null; } };
 export const orderId = order => order?.order_id || order?.id;
@@ -20,9 +20,9 @@ export function readCustomerOrders(storage, { includeArchived = false } = {}) {
     const records = new Map();
     const add = value => { const row = normalizeOrder(value); if (row) records.set(row.order_id, newerOrder(records.get(row.order_id), row)); };
     try {
-        const history = safeParse(storage.getItem('motorku_orders_history'));
+        const history = safeParse(storage.getItem('tokom_orders_history'));
         if (Array.isArray(history)) history.forEach(add);
-        ['motorku_current_order', 'motorku_order_for_payment'].forEach(key => add(safeParse(storage.getItem(key))));
+        ['tokom_current_order', 'tokom_order_for_payment'].forEach(key => add(safeParse(storage.getItem(key))));
         (storage.keys?.() || []).filter(key => key.startsWith(PREFIX)).forEach(key => add(safeParse(storage.getItem(key))));
     } catch { /* Memory receipts remain usable if browser storage is unavailable. */ }
     const scope = storage.key(PREFIX);
