@@ -6,6 +6,8 @@ namespace App\Http\Controllers\Product;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\PaginationRequest;
+use App\Http\Requests\Product\BulkDeleteProductsRequest;
+use App\Http\Requests\Product\PreviewBulkDeleteProductsRequest;
 use App\Http\Requests\Product\StoreProductRequest;
 use App\Http\Requests\Product\UpdateProductRequest;
 use App\Http\Resources\ProductResource;
@@ -34,7 +36,7 @@ class ProductController extends Controller implements HasMiddleware
     public static function middleware(): array
     {
         return [
-            new Middleware('role:owner', only: ['indexWeb', 'createWeb', 'store', 'update', 'destroy']),
+            new Middleware('role:owner', only: ['indexWeb', 'createWeb', 'store', 'update', 'destroy', 'previewBulkDelete', 'bulkDestroy']),
             new Middleware('permission:product.view', only: ['index', 'show']),
         ];
     }
@@ -162,5 +164,19 @@ class ProductController extends Controller implements HasMiddleware
         CacheService::flushMotorcycleParts();
 
         return $this->successResponse('Produk berhasil dihapus!');
+    }
+
+    public function previewBulkDelete(PreviewBulkDeleteProductsRequest $request): JsonResponse
+    {
+        return $this->successResponse('Periksa pilihan produk sebelum menghapus.',
+            $this->productService->previewBulkDelete($request->validated(), $request->user()))
+            ->header('Cache-Control', 'no-store, private');
+    }
+
+    public function bulkDestroy(BulkDeleteProductsRequest $request): JsonResponse
+    {
+        $count = $this->productService->bulkDelete($request->validated('token'), $request->user());
+
+        return $this->successResponse($count.' produk berhasil dihapus.', ['deleted_count' => $count]);
     }
 }

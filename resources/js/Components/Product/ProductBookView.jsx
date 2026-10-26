@@ -24,6 +24,7 @@ export default function ProductBookView({
     onOpenAdjust,
     onOpenEdit,
     onDeleteProduct,
+    renderSelection,
     selectedCategory = '',
     searchQuery = '',
 }) {
@@ -73,17 +74,18 @@ export default function ProductBookView({
     const globalOffset = (currentPage - 1) * perPage;
 
     /* Baris 1 Garis Lurus (Sesuai Garis Buku Tulis Tipis) */
-    const BookRow = ({ item, no, isDesktop = false }) => {
+    const renderBookRow = ({ item, no, isDesktop = false }) => {
         const habis = Number(item.stock) <= 0;
         const kritis = !habis && Number(item.stock) <= (item.minimum_stock ?? 3);
         const displayName = formatProductBookName(item);
 
         return (
-            <div className={`group flex items-center justify-between border-b border-slate-200 hover:bg-amber-50 transition-colors ${
+            <div key={item.id} className={`group flex items-center justify-between border-b border-slate-200 hover:bg-amber-50 transition-colors ${
                 isDesktop ? 'py-2 px-3' : 'py-2 px-2'
             }`}>
                 {/* Kiri: Nomor + Nama Barang Simple & Jelas */}
                 <div className="flex items-center gap-2 min-w-0 flex-1 pr-2">
+                    {renderSelection?.(item)}
                     <span className="text-xs font-mono font-bold text-slate-400 w-5 sm:w-6 text-right shrink-0">
                         {no}.
                     </span>
@@ -194,14 +196,7 @@ export default function ProductBookView({
                         </div>
 
                         {/* Baris Mobile */}
-                        {items.map((item, idx) => (
-                            <BookRow
-                                key={item.id}
-                                item={item}
-                                no={globalOffset + idx + 1}
-                                isDesktop={false}
-                            />
-                        ))}
+                        {items.map((item, idx) => renderBookRow({ item, no: globalOffset + idx + 1 }))}
 
                         {/* Garis kosong pelengkap kertas bergaris */}
                         {Array.from({ length: Math.max(0, 12 - items.length) }).map((_, i) => (
@@ -221,14 +216,7 @@ export default function ProductBookView({
                                 </div>
                             </div>
                             <div className="flex-1">
-                                {leftItems.map((item, idx) => (
-                                    <BookRow
-                                        key={item.id}
-                                        item={item}
-                                        no={globalOffset + idx + 1}
-                                        isDesktop={true}
-                                    />
-                                ))}
+                                {leftItems.map((item, idx) => renderBookRow({ item, no: globalOffset + idx + 1, isDesktop: true }))}
                                 {Array.from({ length: Math.max(0, half - leftItems.length) }).map((_, i) => (
                                     <div key={`d-left-blank-${i}`} className="border-b border-slate-200 h-9" />
                                 ))}
@@ -245,14 +233,7 @@ export default function ProductBookView({
                                 </div>
                             </div>
                             <div className="flex-1">
-                                {rightItems.map((item, idx) => (
-                                    <BookRow
-                                        key={item.id}
-                                        item={item}
-                                        no={globalOffset + half + idx + 1}
-                                        isDesktop={true}
-                                    />
-                                ))}
+                                {rightItems.map((item, idx) => renderBookRow({ item, no: globalOffset + half + idx + 1, isDesktop: true }))}
                                 {Array.from({ length: Math.max(0, half - rightItems.length) }).map((_, i) => (
                                     <div key={`d-right-blank-${i}`} className="border-b border-slate-200 h-9" />
                                 ))}
