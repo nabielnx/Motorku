@@ -78,7 +78,15 @@ class ProductSheetExporter
                     'groupLabel' => $groupLabel,
                     'isTemplate' => $template,
                     'generatedAt' => now()->translatedFormat('d F Y H:i'),
-                ])->setPaper('a4', 'landscape')->setOption('isPhpEnabled', true);
+                ])->setPaper('a4', 'landscape')->setOption('isPhpEnabled', false);
+
+                // Add footers after rendering without enabling embedded PHP in the document.
+                $pdf->render();
+                $dompdf = $pdf->getDomPDF();
+                $canvas = $dompdf->getCanvas();
+                $font = $dompdf->getFontMetrics()->getFont('DejaVu Sans', 'normal');
+                $canvas->page_text(730, 560, 'Halaman {PAGE_NUM} dari {PAGE_COUNT}', $font, 7.5, [0.3, 0.3, 0.3]);
+                $canvas->page_text(28, 560, 'TokoM · Dokumen Rahasia Perusahaan', $font, 7.5, [0.3, 0.3, 0.3]);
 
                 $pdf->save($path);
             }
