@@ -7,6 +7,11 @@ on:
         description: Release tag, for example v1.0.0
         required: true
         type: string
+      first_install:
+        description: First installation into a new empty database, without owner or demo data
+        required: true
+        default: false
+        type: boolean
 
 permissions:
   contents: write
@@ -66,16 +71,28 @@ jobs:
         uses: appleboy/ssh-action@v1
         env:
           DEPLOY_PATH: ${{ vars.PRODUCTION_DEPLOY_PATH }}
+          FIRST_INSTALL: ${{ inputs.first_install }}
+          STAGING_PATH: ${{ vars.STAGING_DEPLOY_PATH }}
         with:
           host: ${{ secrets.PRODUCTION_SSH_HOST }}
           username: ${{ secrets.PRODUCTION_SSH_USER }}
           key: ${{ secrets.PRODUCTION_SSH_KEY }}
           port: ${{ vars.PRODUCTION_SSH_PORT || '22' }}
-          envs: DEPLOY_PATH
+          envs: DEPLOY_PATH,FIRST_INSTALL,STAGING_PATH
           script: |
             set -e
             test -f "$DEPLOY_PATH/.env"
             test -d "$DEPLOY_PATH/storage"
+            test -n "$STAGING_PATH"
+            production=$(realpath -e "$DEPLOY_PATH")
+            staging=$(realpath -e "$STAGING_PATH")
+            case "$production/" in "$staging/"*) echo 'Production overlaps staging'; exit 1;; esac
+            case "$staging/" in "$production/"*) echo 'Production overlaps staging'; exit 1;; esac
+            if [ "$FIRST_INSTALL" = true ]; then
+              test ! -e "$DEPLOY_PATH/artisan"
+            else
+              test -f "$DEPLOY_PATH/artisan"
+            fi
       - name: Package release
         run: |
           tar --exclude=bootstrap/cache --exclude=public/storage -czf release.tgz app bootstrap config database public resources routes artisan composer.json composer.lock vendor scripts
@@ -96,17 +113,22 @@ jobs:
         env:
           DEPLOY_PATH: ${{ vars.PRODUCTION_DEPLOY_PATH }}
           RELEASE_SHA: ${{ github.sha }}
+          FIRST_INSTALL: ${{ inputs.first_install }}
         with:
           host: ${{ secrets.PRODUCTION_SSH_HOST }}
           username: ${{ secrets.PRODUCTION_SSH_USER }}
           key: ${{ secrets.PRODUCTION_SSH_KEY }}
           port: ${{ vars.PRODUCTION_SSH_PORT || '22' }}
-          envs: DEPLOY_PATH,RELEASE_SHA
+          envs: DEPLOY_PATH,RELEASE_SHA,FIRST_INSTALL
           script: |
             set -e
             incoming="$DEPLOY_PATH/.incoming-$RELEASE_SHA"
             tar -xzf "$incoming/release.tgz" -C "$incoming"
-            bash "$incoming/scripts/deploy-release.sh" "$DEPLOY_PATH" "$incoming"
+            if [ "$FIRST_INSTALL" = true ]; then
+              bash "$incoming/scripts/deploy-release.sh" "$DEPLOY_PATH" "$incoming" --first-install
+            else
+              bash "$incoming/scripts/deploy-release.sh" "$DEPLOY_PATH" "$incoming"
+            fi
       - name: Health check
         run: bash scripts/check-deployment-health.sh "$APP_URL"
       - name: Keep failed release in maintenance

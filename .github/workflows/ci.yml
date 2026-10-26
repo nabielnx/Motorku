@@ -62,6 +62,8 @@ jobs:
         run: bash tests/shell/deploy-health-check-test.sh
       - name: Deployment cleanup regression tests
         run: bash tests/shell/deploy-cleanup-test.sh
+      - name: Deployment first-install regression tests
+        run: bash tests/shell/deploy-first-install-test.sh
       - name: Build frontend
         run: npm run build
       - name: PHP style and dependency checks
