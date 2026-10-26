@@ -364,9 +364,11 @@ class CatalogSearchService
                 foreach ($scores as $id => $score) {
                     $rows[] = ['id' => $id, 'score' => $score];
                 }
+                // Match the text UUID column so MySQL can use its primary-key index.
+                // A binary match_id forces conversion and can scan products once per match.
                 // LIMIT keeps this derived relation materialized so JSON_TABLE is not rerun for each product.
                 $matches = $connection->query()->select(['match_id', 'match_score'])->fromRaw(
-                    "JSON_TABLE(?, '$[*]' COLUMNS(match_id VARBINARY(36) PATH '$.id', match_score DOUBLE PATH '$.score')) AS score_rows",
+                    "JSON_TABLE(?, '$[*]' COLUMNS(match_id VARCHAR(36) PATH '$.id', match_score DOUBLE PATH '$.score')) AS score_rows",
                     [json_encode($rows, JSON_THROW_ON_ERROR)]
                 )->limit(count($rows));
                 if ($query->getQuery()->columns === null) {
