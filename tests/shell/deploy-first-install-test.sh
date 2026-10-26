@@ -14,7 +14,8 @@ fi
 printf '%s\n' "$*" >> "$INSTALL_TEST_LOG"
 case "$*" in
     'artisan app:initialize-production empty_install_test') exit "${INSTALL_TEST_FAIL:-0}";;
-    'artisan storage:link') ln -s "$PWD/storage/app/public" "$PWD/public/storage";;
+    'artisan storage:link') echo 'PHP symlink/exec are disabled' >&2; exit 99;;
+    'artisan app:check-deployment') exit "${INSTALL_TEST_OWNER_MISSING:-0}";;
 esac
 MOCK
 cat > "$fixture/bin/rsync" <<'MOCK'
@@ -44,7 +45,7 @@ grep -qx 'artisan app:initialize-production empty_install_test' "$INSTALL_TEST_L
 grep -qx 'artisan app:check-deployment --allow-empty-installation' "$INSTALL_TEST_LOG"
 grep -qx 'artisan up' "$INSTALL_TEST_LOG"
 test -L "$root/public/storage"
-if grep -Eq 'backup-database|artisan migrate --force|db:wipe|migrate:fresh' "$INSTALL_TEST_LOG"; then exit 1; fi
+if grep -Eq 'backup-database|artisan migrate --force|artisan storage:link|db:wipe|migrate:fresh' "$INSTALL_TEST_LOG"; then exit 1; fi
 echo 'PASS: first install initializes empty database, verifies registration readiness, and skips update/backup commands'
 
 prepare failed
@@ -79,3 +80,22 @@ ln -s "$fixture/shared" "$root/storage/shared"
 if bash "$repo/scripts/deploy-release.sh" "$root" "$incoming" --first-install; then exit 1; fi
 test ! -s "$INSTALL_TEST_LOG"
 echo 'PASS: linked storage is refused before application commands'
+
+prepare unexpected_public_storage
+mkdir "$incoming/public/storage"
+echo keep > "$incoming/public/storage/file.txt"
+if bash "$repo/scripts/deploy-release.sh" "$root" "$incoming" --first-install; then exit 1; fi
+grep -qx keep "$root/public/storage/file.txt"
+if grep -qx 'artisan up' "$INSTALL_TEST_LOG"; then exit 1; fi
+echo 'PASS: existing public storage directory is preserved and never overwritten'
+
+prepare ownerless_update
+for directory in app bootstrap config database public resources routes vendor scripts; do cp -a "$incoming/$directory" "$root/$directory"; done
+cp "$incoming/artisan" "$root/artisan"
+cp "$incoming/composer.json" "$root/composer.json"
+cp "$incoming/composer.lock" "$root/composer.lock"
+INSTALL_TEST_OWNER_MISSING=1 bash "$repo/scripts/deploy-release.sh" "$root" "$incoming"
+grep -qx 'artisan app:check-deployment' "$INSTALL_TEST_LOG"
+grep -qx 'artisan app:check-deployment --allow-empty-installation' "$INSTALL_TEST_LOG"
+grep -qx 'artisan up' "$INSTALL_TEST_LOG"
+echo 'PASS: update before first registration requires full empty-installation validation'
