@@ -29,6 +29,10 @@ Hasil: nol akun, produk, kategori, jenis, referensi, supplier, pesanan, pembayar
 
 `app:check-deployment --allow-empty-installation` hanya menerima instalasi yang terverifikasi belum memiliki data. Tanpa opsi ini, pemeriksaan owner aktif tetap berlaku. Jika instalasi pertama terputus, database parsial tidak otomatis dihapus. Periksa fase kegagalan sebelum pemulihan; jangan menyalakan ulang opsi first_install secara buta.
 
+Deploy menggunakan `ln -s` melalui Bash untuk public/storage, karena Hostinger dapat menonaktifkan fungsi PHP symlink dan exec. Link yang sudah ada wajib menunjuk storage instalasi yang sama; direktori biasa tidak ditimpa. Update sebelum owner pertama mendaftar mencoba pemeriksaan instalasi kosong hanya setelah pemeriksaan normal gagal; seluruh pemeriksaan host tetap dijalankan dan data operasional wajib kosong.
+
+Web server file statis perlu izin traversal pada folder aplikasi, storage, dan storage/app. Deploy menambahkan bit execute untuk akses tersebut, setelah mengunci akses other ke storage/app/private, storage/framework, dan storage/logs. Owner/group tetap dipertahankan; tidak memakai chmod rekursif atau izin 777. Link yang benar saja belum cukup jika direktori induknya tidak dapat dilewati web server.
+
 ## Pemeriksaan
 
 - Tes instalasi dari database tanpa tabel, lalu pendaftaran owner pertama.
