@@ -22,11 +22,11 @@ The storefront had 236 products. Motorcycle relations accounted for about 194 KB
 
 ## Reproducible local measurement
 
-Requires the existing MySQL test schema and dependencies. The script rejects non-testing environments and any connection other than MySQL `sparepart_testing`. It creates 236 synthetic products, 12 motorcycles, two fitments per product, then rolls the entire fixture back. Run before/after against the same test database contents. It measures controller execution plus JSON serialization, not browser paint or staging HTTP latency. Five measured samples follow one warm-up sample per case.
+Requires the existing MySQL test schema and dependencies. The script rejects non-testing environments and any connection other than MySQL `tokom_testing`. It creates 236 synthetic products, 12 motorcycles, two fitments per product, then rolls the entire fixture back. Run before/after against the same test database contents. It measures controller execution plus JSON serialization, not browser paint or staging HTTP latency. Five measured samples follow one warm-up sample per case.
 
 ```powershell
 $env:APP_ENV='testing'
-$env:DB_DATABASE='sparepart_testing'
+$env:DB_DATABASE='tokom_testing'
 $env:CACHE_STORE='array'
 php scripts/benchmark-page-payload.php
 ```
