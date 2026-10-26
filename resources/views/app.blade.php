@@ -48,7 +48,7 @@
         <!-- Scripts -->
         @routes(null, Illuminate\Support\Facades\Vite::cspNonce())
         @php $firstPromoBanner = collect(data_get($page, 'props.promoBanners', []))->filter()->first(); @endphp
-        @if (request()->routeIs('home') && $firstPromoBanner)
+        @if (request()->routeIs('shop.home') && $firstPromoBanner)
             <link rel="preload" as="image" href="{{ $firstPromoBanner }}" fetchpriority="high">
         @endif
         @viteReactRefresh
@@ -59,7 +59,9 @@
         <script nonce="{{ Illuminate\Support\Facades\Vite::cspNonce() }}" data-page="app" type="application/json">{!! json_encode($page) !!}</script>
         <div id="app">
             @php $comp = $page['component'] ?? ''; @endphp
-            @if ($comp === 'Order/Menu')
+            @if ($comp === 'Store/Entry')
+                @include('partials.store-entry')
+            @elseif ($comp === 'Order/Menu')
                 <!-- TokoM Customer Storefront Catalog Shell (1:1 Exact Monochromatic Parity) -->
                 <div class="customer-storefront min-h-screen bg-[#f3f3ed] text-slate-900" aria-busy="true" aria-label="Memuat katalog produk">
                     <!-- Store actions above a full-width search field -->

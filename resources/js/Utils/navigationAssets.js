@@ -1,7 +1,7 @@
 // Preload code only. Prices, stock, account data and payment state still come
 // from the normal, fresh Inertia visit; no page responses are cached here.
 const pages = new Map([
-    ['/', 'Order/Menu'], ['/dashboard', 'Dashboard/Owner/Index'],
+    ['/', 'Store/Entry'], ['/dashboard', 'Dashboard/Owner/Index'],
     ['/pos', 'POS/Index'], ['/products', 'Product/Index'],
     ['/orders', 'Order/Index'], ['/reports', 'Report/Index'],
     ['/settings', 'Setting/Index'], ['/users', 'User/Index'],

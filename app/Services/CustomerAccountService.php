@@ -49,7 +49,7 @@ final class CustomerAccountService
     {
         $target = $request->session()->pull('customer_return', '/customer/account');
 
-        return $this->url($request, in_array($target, ['/payment', '/order/status'], true) ? $target : '/customer/account');
+        return $this->url($request, $request->attributes->get('shop_slug') && in_array($target, ['/payment', '/order/status'], true) ? $target : '/customer/account');
     }
 
     public function google(Request $request, array $identity, array $attempt): string
@@ -80,7 +80,7 @@ final class CustomerAccountService
             $request->session()->regenerate();
             $request->session()->put('customer_auth_version', $customer->auth_version);
             $shop = $attempt['shop'] ?? null;
-            $path = in_array($attempt['return'] ?? null, ['/payment', '/order/status'], true) ? $attempt['return'] : '/customer/account';
+            $path = $shop && in_array($attempt['return'] ?? null, ['/payment', '/order/status'], true) ? $attempt['return'] : '/customer/account';
 
             return $path.($shop ? '?shop='.rawurlencode($shop) : '');
         });

@@ -31,7 +31,8 @@ class HandleInertiaRequests extends Middleware
         }
 
         // 1 query untuk semua settings — cached for 60 min, flushed on save
-        $s = Cache::remember(CacheService::key(CacheService::SETTINGS_SHARED), CacheService::TTL_SETTINGS, function () {
+        $platform = $request->attributes->get('platform_surface', false);
+        $s = $platform ? [] : Cache::remember(CacheService::key(CacheService::SETTINGS_SHARED), CacheService::TTL_SETTINGS, function () {
             return Setting::whereIn('group', ['store', 'system', 'printer', 'catalog', 'payment', 'references'])
                 ->get()
                 ->mapWithKeys(fn ($row) => ["{$row->group}.{$row->key}" => $row->value])
@@ -42,12 +43,12 @@ class HandleInertiaRequests extends Middleware
 
         return [
             ...parent::share($request),
-            'customer' => fn () => $request->attributes->get('public_store') ? app(CustomerAccountService::class)->shared() : null,
+            'customer' => fn () => $request->attributes->get('public_store') || $request->routeIs('customer.*') ? app(CustomerAccountService::class)->shared() : null,
             'google_login_enabled' => app(GoogleLoginService::class)->enabled(),
             'business' => $business ? ['id' => $business->id, 'name' => $business->name, 'slug' => $business->slug, 'public_url' => $business->publicUrl()] : null,
             'shop_slug' => $request->attributes->get('shop_slug'),
-            'catalog_groups' => fn () => DataType::productGroups($user?->business_id ?? $business?->id),
-            'reference_modules' => fn () => ($s['references.enabled'] ?? 'true') !== 'false' && $user?->hasRole('owner') ? DataType::referenceModules($user->business_id) : [],
+            'catalog_groups' => fn () => $platform ? [] : DataType::productGroups($user?->business_id ?? $business?->id),
+            'reference_modules' => fn () => ! $platform && ($s['references.enabled'] ?? 'true') !== 'false' && $user?->hasRole('owner') ? DataType::referenceModules($user->business_id) : [],
 
             'auth' => [
                 'user' => $user ? [

@@ -43,7 +43,7 @@ class CustomerQrisTest extends TestCase
 
     private function qr(Order $order, ?string $token = null, string $query = '')
     {
-        return $this->postJson('/api/customer/order/'.$order->id.'/qris'.$query, [
+        return $this->postJson($this->storeUrl('/api/customer/order/'.$order->id.'/qris'.$query), [
             'customer_token' => $token ?? $order->customer_access_token,
             'amount' => 1, 'total' => 1, 'payment_status' => 'paid',
         ]);
@@ -55,7 +55,7 @@ class CustomerQrisTest extends TestCase
         $this->setting('tax', 'enabled', 'true');
         $this->setting('tax', 'percentage', '11');
         $product = Product::factory()->create(['price' => 15000, 'stock' => 5, 'is_available' => true]);
-        $created = $this->postJson('/api/customer/order', [
+        $created = $this->postJson($this->storeUrl('/api/customer/order'), [
             'customer_name' => 'Pelanggan QRIS',
             'items' => [['product_id' => $product->id, 'quantity' => 2]],
             'notes' => 'Pre-order Web | Pembayaran: QRIS',
@@ -79,7 +79,7 @@ class CustomerQrisTest extends TestCase
     {
         $this->configure();
         $order = $this->order();
-        $this->postJson('/api/customer/order/'.$order->id.'/qris', [])->assertUnprocessable()->assertJsonValidationErrors('customer_token');
+        $this->postJson($this->storeUrl('/api/customer/order/'.$order->id.'/qris'), [])->assertUnprocessable()->assertJsonValidationErrors('customer_token');
         $this->qr($order, str_repeat('x', 64))->assertUnauthorized();
         $business = Business::create(['name' => 'Toko Lain', 'slug' => 'toko-lain']);
         $business->forceFill(['activated_at' => now()])->save();
@@ -130,10 +130,10 @@ class CustomerQrisTest extends TestCase
 
     public function test_checkout_qris_option_follows_store_settings(): void
     {
-        $this->get('/payment')->assertInertia(fn ($page) => $page->where('app_settings.customer_qris_enabled', false));
+        $this->get($this->storeUrl('/payment'))->assertInertia(fn ($page) => $page->where('app_settings.customer_qris_enabled', false));
         $this->configure();
-        $this->get('/payment')->assertInertia(fn ($page) => $page->where('app_settings.customer_qris_enabled', true));
+        $this->get($this->storeUrl('/payment'))->assertInertia(fn ($page) => $page->where('app_settings.customer_qris_enabled', true));
         $this->setting('payment', 'qris_enabled', 'false');
-        $this->get('/payment')->assertInertia(fn ($page) => $page->where('app_settings.customer_qris_enabled', false));
+        $this->get($this->storeUrl('/payment'))->assertInertia(fn ($page) => $page->where('app_settings.customer_qris_enabled', false));
     }
 }

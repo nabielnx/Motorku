@@ -23,11 +23,11 @@ final class CatalogPagingTest extends TestCase
         $category = Category::factory()->create();
         Product::factory()->count(61)->create(['category_id' => $category->id, 'name' => 'Common part']);
         $last = Product::factory()->create(['category_id' => $category->id, 'name' => 'Zebra special', 'price' => 1000]);
-        $this->get('/')->assertOk()->assertInertia(fn ($page) => $page->has('initialProducts', 60)->where('initialPagination.total', 62));
-        $this->getJson('/catalog/products?page=2')->assertOk()->assertJsonCount(2, 'data.products');
-        $this->getJson('/catalog/products?search=Zebra')->assertOk()->assertJsonPath('data.products.0.id', $last->id);
+        $this->get($this->storeUrl('/'))->assertOk()->assertInertia(fn ($page) => $page->has('initialProducts', 60)->where('initialPagination.total', 62));
+        $this->getJson($this->storeUrl('/catalog/products?page=2'))->assertOk()->assertJsonCount(2, 'data.products');
+        $this->getJson($this->storeUrl('/catalog/products?search=Zebra'))->assertOk()->assertJsonPath('data.products.0.id', $last->id);
         $last->update(['price' => 2000, 'stock' => 3]);
-        $this->getJson('/catalog/products?ids[]='.$last->id)->assertOk()
+        $this->getJson($this->storeUrl('/catalog/products?ids[]='.$last->id))->assertOk()
             ->assertJsonPath('data.cart_products.0.price', '2000.00')->assertJsonPath('data.cart_products.0.stock', 3)
             ->assertJsonCount(0, 'data.products');
     }
@@ -36,8 +36,8 @@ final class CatalogPagingTest extends TestCase
     {
         $business = Business::create(['name' => 'Foreign', 'slug' => 'foreign-catalog']);
         $foreign = app(BusinessContext::class)->run($business->id, fn () => Product::factory()->create(['cost_price' => 12345]));
-        $this->getJson('/catalog/products?ids[]='.$foreign->id)->assertOk()->assertJsonCount(0, 'data.cart_products');
-        $this->getJson('/catalog/products?search[]=invalid')->assertUnprocessable();
+        $this->getJson($this->storeUrl('/catalog/products?ids[]='.$foreign->id))->assertOk()->assertJsonCount(0, 'data.cart_products');
+        $this->getJson($this->storeUrl('/catalog/products?search[]=invalid'))->assertUnprocessable();
     }
 
     public function test_cached_search_metadata_changes_with_product_edits_and_never_caches_prices(): void

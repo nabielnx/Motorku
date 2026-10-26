@@ -6,6 +6,7 @@ const origin = 'https://example.test/dashboard';
 
 test('navigation code mapping supports catalog, checkout, admin lists and details', () => {
     const examples = [
+        ['/', 'Store/Entry'],
         ['/s/toko-utama?openCart=1', 'Order/Menu'], ['/payment?shop=toko-utama', 'Payment/Index'],
         ['/products?group=automotive', 'Product/Index'], ['/pos/', 'POS/Index'],
         ['/orders/00000000-0000-4000-8000-000000000001', 'Order/Show'],
