@@ -235,12 +235,5 @@
         </tbody>
     </table>
 
-    <script type="text/php">
-        if (isset($pdf)) {
-            $font = $fontMetrics->getFont("DejaVu Sans", "normal");
-            $pdf->page_text(730, 560, "Halaman " . $PAGE_NUM . " dari " . $PAGE_COUNT, $font, 7.5, array(0.3, 0.3, 0.3));
-            $pdf->page_text(28, 560, "TokoM · Dokumen Rahasia Perusahaan", $font, 7.5, array(0.3, 0.3, 0.3));
-        }
-    </script>
 </body>
 </html>

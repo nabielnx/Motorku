@@ -19,7 +19,7 @@ class OrderCancellationService
     {
         return DB::transaction(function () use ($orderId, $token) {
             $order = Order::whereKey($orderId)->lockForUpdate()->first();
-            if (! $order || $order->customer_access_token !== $token) {
+            if (! $order || ! $order->customer_access_token || ! hash_equals($order->customer_access_token, $token)) {
                 return ['outcome' => 'invalid_token'];
             }
             if ($order->order_status === OrderStatus::Cancelled) {
