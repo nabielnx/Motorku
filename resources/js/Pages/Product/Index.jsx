@@ -516,7 +516,7 @@ export default function MenuManagement({
     return (
         <AuthenticatedLayout pageTitle={groupName || 'Produk'} noPadding={true}>
             <Head title={`${locale === 'en' ? 'Products & Stock' : 'Produk & Stok'}`}>
-                <meta name="description" content="Kelola katalog produk sparepart, oli, aki, ban, harga, dan ketersediaan stok TokoM." />
+                <meta name="description" content="Kelola katalog produk, kategori, harga, dan ketersediaan stok usaha Anda di TokoM." />
             </Head>
 
             <div className="p-0 sm:p-4 lg:p-5 flex-1 min-h-0 flex flex-col overflow-hidden">
@@ -1240,7 +1240,7 @@ export default function MenuManagement({
                                     <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mb-4">
                                         {categorySearch
                                             ? `Tidak ada kategori atau sub-kategori yang cocok dengan "${categorySearch}".`
-                                            : 'Kelola kategori suku cadang untuk memudahkan pencarian dan pengelompokan produk kasir.'}
+                                            : 'Kelola kategori produk untuk memudahkan pencarian dan pengelompokan barang.'}
                                     </p>
                                     {categorySearch ? (
                                         <button

@@ -82,7 +82,7 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
     }, []);
     useEffect(() => setNavigatingDestination(null), [url]);
 
-    const user = props.auth?.user || { name: 'Admin', email: 'admin@tokosparepart.com' };
+    const user = props.auth?.user || { name: 'Admin', email: '' };
     const primaryRole = props.auth?.roles?.[0] ?? null;
     const userRoles = props.auth?.roles ?? (primaryRole ? [primaryRole] : []);
 

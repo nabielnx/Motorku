@@ -575,7 +575,7 @@ export default function POSIndex({ initialProducts = [], initialPagination = nul
 return (
         <AuthenticatedLayout pageTitle="POS Kasir" noPadding={true}>
             <Head title="POS Kasir">
-                <meta name="description" content="Sistem kasir POS cepat dan responsif untuk penjualan sparepart, pencetakan struk, dan pembayaran instan." />
+                <meta name="description" content="Sistem kasir TokoM untuk penjualan produk, pencetakan struk, dan pencatatan pembayaran." />
             </Head>
 
             <div className="admin-pos flex min-h-0 flex-1 flex-col md:flex-row w-full overflow-hidden bg-slate-100 dark:bg-slate-950">

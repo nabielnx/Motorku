@@ -69,6 +69,8 @@ Jalankan `php artisan config:cache` setelah mengubah `.env`. Bangun ulang fronte
 
 Build CI tanpa `.env` menggunakan nama bawaan TokoM. Nama PWA yang sudah terpasang mengikuti pembaruan manifest oleh browser dan mungkin tidak berubah seketika.
 
+Halaman umum memakai istilah produk agar sesuai untuk berbagai usaha. Istilah sparepart tetap digunakan dalam modul khusus motor. Kunci storage keranjang/pesanan dan namespace sesi lama tetap dipertahankan untuk kompatibilitas; ikon PWA diakses lewat nama file `tokom-*`, sementara berkas ikon lama tetap tersedia bagi instalasi yang belum memperbarui manifest. Contoh database `tokom` berlaku untuk instalasi baru; database yang sudah digunakan mengikuti konfigurasi `.env` masing-masing.
+
 ## Menjalankan Development
 
 ```bash

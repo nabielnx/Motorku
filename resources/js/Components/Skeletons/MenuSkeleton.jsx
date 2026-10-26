@@ -47,7 +47,7 @@ function CardSkeleton({ isGrid = false }) {
 }
 
 /**
- * Customer storefront skeleton — matches Order/Menu (Katalog Sparepart) 1:1.
+ * Customer storefront skeleton — matches Order/Menu (Katalog Produk) 1:1.
  * Accurate on both mobile and widescreen desktop (sidebar categories grid).
  *
  * @param {boolean} fullPage - When true renders the complete storefront.

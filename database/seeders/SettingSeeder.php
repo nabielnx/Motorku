@@ -46,7 +46,7 @@ class SettingSeeder extends Seeder
             [
                 'group' => 'store',
                 'key' => 'email',
-                'value' => 'info@tokosparepart.com',
+                'value' => '',
                 'type' => 'string',
             ],
 

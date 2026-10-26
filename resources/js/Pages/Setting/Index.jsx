@@ -13,7 +13,7 @@ import { FiSave, FiCheck, FiHome, FiPercent, FiCreditCard, FiPrinter, FiSmartpho
 
 const settingCategories = [
   { key: 'store', label: 'Toko', icon: FiHome, description: 'Identitas, kontak, logo, dan jam operasional toko.' },
-  { key: 'catalog', label: 'Katalog', icon: FiSmartphone, description: 'Katalog pelanggan, referensi motor, dan banner promo.' },
+  { key: 'catalog', label: 'Katalog', icon: FiSmartphone, description: 'Katalog pelanggan, data referensi, dan banner promo.' },
   { key: 'payment', label: 'Pembayaran', icon: FiCreditCard, description: 'Metode pembayaran, pajak, dan printer struk.' },
   { key: 'system', label: 'Sistem', icon: FiSettings, description: 'Bahasa, zona waktu, tampilan login, dan penghapusan data.' },
 ];
@@ -48,7 +48,7 @@ const defaults = {
   references_enabled: 'true',
   store_tagline: 'POS & ORDER',
   store_name: 'TokoM', store_phone: '081234567890',
-  store_email: 'info@tokosparepart.com', store_address: 'Jl. Contoh No. 1',
+  store_email: '', store_address: 'Jl. Contoh No. 1',
   tax_enabled: 'true', tax_percentage: '10',
   payment_cash_enabled: 'true', payment_qris_enabled: 'true', payment_card_enabled: 'false',
   printer_paper_size: '80', printer_auto_print_receipt: 'true',

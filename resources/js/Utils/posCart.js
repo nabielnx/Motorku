@@ -5,7 +5,7 @@ export const MAX_POS_QTY = 200;
 export const MAX_POS_ITEMS = 20;
 
 export function formatPosProduct(product) {
-    const category = product.category?.name || 'Sparepart';
+    const category = product.category?.name || 'Produk';
     return {
         id: product.id,
         sku: product.sku || '',

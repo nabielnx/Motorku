@@ -12,19 +12,19 @@
     "theme_color": "#19231f",
     "icons": [
         {
-            "src": "/icons/motorku-v2-192.png",
+            "src": "/icons/tokom-v1-192.png",
             "sizes": "192x192",
             "type": "image/png",
             "purpose": "any"
         },
         {
-            "src": "/icons/motorku-v2-512.png",
+            "src": "/icons/tokom-v1-512.png",
             "sizes": "512x512",
             "type": "image/png",
             "purpose": "any"
         },
         {
-            "src": "/icons/motorku-maskable-v2-512.png",
+            "src": "/icons/tokom-maskable-v1-512.png",
             "sizes": "512x512",
             "type": "image/png",
             "purpose": "maskable"

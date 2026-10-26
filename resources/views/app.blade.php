@@ -22,7 +22,7 @@
         <meta name="description" content="TokoM - Aplikasi kasir, pengelolaan stok, dan katalog online untuk usaha Anda.">
         <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
         <link rel="manifest" href="{{ route('pwa.manifest', ['shop' => request()->attributes->get('shop_slug') ?? request()->attributes->get('business')?->slug]) }}">
-        <link rel="apple-touch-icon" href="{{ asset('icons/motorku-v2-192.png') }}">
+        <link rel="apple-touch-icon" href="{{ asset('icons/tokom-v1-192.png') }}">
         @if (request()->routeIs('home', 'shop.home', 'motor-saya'))
             <link rel="canonical" href="{{ request()->routeIs('home', 'shop.home') ? (data_get($page, 'props.shop_slug') ? data_get($page, 'props.business.public_url') : route('home')) : route('motor-saya', array_filter(['slug' => data_get($page, 'props.initialPartsData.motorcycle.slug'), 'shop' => data_get($page, 'props.shop_slug')])) }}">
         @endif
@@ -61,7 +61,7 @@
             @php $comp = $page['component'] ?? ''; @endphp
             @if ($comp === 'Order/Menu')
                 <!-- TokoM Customer Storefront Catalog Shell (1:1 Exact Monochromatic Parity) -->
-                <div class="customer-storefront min-h-screen bg-[#f3f3ed] text-slate-900" aria-busy="true" aria-label="Memuat katalog sparepart">
+                <div class="customer-storefront min-h-screen bg-[#f3f3ed] text-slate-900" aria-busy="true" aria-label="Memuat katalog produk">
                     <!-- Store actions above a full-width search field -->
                     <header class="store-header">
                         <div class="store-header-shell">

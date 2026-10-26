@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
-import { FiArrowLeft, FiTool } from 'react-icons/fi';
+import { FiArrowLeft, FiShoppingBag } from 'react-icons/fi';
 import { getProductImage } from '@/Utils/productImage';
 import '../../css/customer-storefront.css';
 import { storefrontUrl } from '@/Utils/storefrontContext';
@@ -19,11 +19,11 @@ export default function Guest({ children, title = 'Selamat Datang Kembali', subt
     return (
         <div className="auth-workspace">
             <aside className="auth-brand-panel" aria-label={storeName}>
-                <Link href={homeUrl} className="auth-wordmark"><FiTool aria-hidden="true" />{storeName}</Link>
+                <Link href={homeUrl} className="auth-wordmark"><FiShoppingBag aria-hidden="true" />{storeName}</Link>
                 <div className="auth-brand-image">
                     {login_image_url && !photoFailed ? (
                         <img src={login_image_url} alt={storeName} onError={() => setPhotoFailed(true)} />
-                    ) : <FiTool className="auth-brand-symbol" aria-hidden="true" />}
+                    ) : <FiShoppingBag className="auth-brand-symbol" aria-hidden="true" />}
                 </div>
                 <span className="auth-brand-caption">Portal Manajemen Toko</span>
             </aside>
@@ -33,7 +33,7 @@ export default function Guest({ children, title = 'Selamat Datang Kembali', subt
                     <Link href={homeUrl} className="auth-logo" aria-label={storeName + ' — beranda'}>
                         {logo_url && !logoFailed ? (
                             <img src={getProductImage(logo_url)} alt={storeName} onError={() => setLogoFailed(true)} />
-                        ) : <FiTool aria-hidden="true" />}
+                        ) : <FiShoppingBag aria-hidden="true" />}
                     </Link>
                     <p className="auth-eyebrow">Akun toko</p>
                     <h1>{title}</h1>
