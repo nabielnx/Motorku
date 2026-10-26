@@ -122,6 +122,14 @@ class CustomerQrFlowTest extends TestCase
 
         $this->assertEquals(8, $product->fresh()->stock);
 
+        $wrongToken = ($customerToken[0] === 'a' ? 'b' : 'a').substr($customerToken, 1);
+        $this->postJson("/api/customer/order/{$orderId}/cancel", [
+            'customer_token' => $wrongToken,
+        ])->assertUnauthorized();
+        $this->assertDatabaseHas('orders', ['id' => $orderId, 'order_status' => 'pending']);
+        $this->assertEquals(8, $product->fresh()->stock);
+        $this->assertDatabaseMissing('inventory_logs', ['product_id' => $product->id, 'type' => 'stock_return']);
+
         $cancelResponse = $this->postJson("/api/customer/order/{$orderId}/cancel", [
             'customer_token' => $customerToken,
         ]);
