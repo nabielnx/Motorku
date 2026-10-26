@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Models\Scopes\BusinessScope;
 use App\Models\User;
+use App\Services\ProductionInstallationService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -12,7 +14,7 @@ use Illuminate\Support\Facades\Hash;
 
 class CheckDeployment extends Command
 {
-    protected $signature = 'app:check-deployment';
+    protected $signature = 'app:check-deployment {--allow-empty-installation : Permit a verified unused installation awaiting owner registration}';
 
     protected $description = 'Check deployment configuration without changing data or exposing secrets.';
 
@@ -41,9 +43,18 @@ class CheckDeployment extends Command
         try {
             DB::select('SELECT 1');
             $checks['Database reachable'] = true;
-            $checks['Active owner exists'] = User::role('owner')->where('is_active', true)->exists();
+            $checks['Active owner exists'] = User::withoutGlobalScope(BusinessScope::class)->role('owner')->where('is_active', true)->exists();
+            if ($this->option('allow-empty-installation')) {
+                unset($checks['Active owner exists']);
+                try {
+                    app(ProductionInstallationService::class)->assertReadyForRegistration();
+                    $checks['Empty installation ready for registration'] = true;
+                } catch (\LogicException) {
+                    $checks['Empty installation ready for registration'] = false;
+                }
+            }
             // Detect both current and legacy demo accounts on existing installs.
-            $checks['No demo passwords'] = ! User::whereIn('email', [
+            $checks['No demo passwords'] = ! User::withoutGlobalScope(BusinessScope::class)->whereIn('email', [
                 'owner@example.com', 'andi@example.com', 'siti@example.com',
                 'owner@tokosparepart.com', 'andi@tokosparepart.com', 'siti@tokosparepart.com',
             ])->get()
