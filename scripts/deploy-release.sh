@@ -51,11 +51,20 @@ else
     php artisan optimize:clear
     php artisan migrate --force
 fi
-if [ ! -L public/storage ]; then php artisan storage:link; fi
+if [ -L public/storage ]; then
+    test "$(realpath -e public/storage)" = "$(realpath -e storage/app/public)"
+else
+    test ! -e public/storage
+    ln -s "$root/storage/app/public" public/storage
+fi
 if [ "$mode" = --first-install ]; then
     php artisan app:check-deployment --allow-empty-installation
 else
-    php artisan app:check-deployment
+    if ! php artisan app:check-deployment; then
+        # A self-service installation can still be awaiting its first owner.
+        # This repeats every host check and requires all operational data empty.
+        php artisan app:check-deployment --allow-empty-installation
+    fi
 fi
 php artisan optimize
 php artisan queue:restart
