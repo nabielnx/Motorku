@@ -18,8 +18,8 @@
         <meta name="apple-mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-        <title inertia>{{ config('app.name', 'Motorku') }}</title>
-        <meta name="description" content="Motorku - Sistem POS Kasir & Katalog QR Sparepart Modern. Pesan online, ambil di toko tanpa antri.">
+        <title inertia>{{ config('app.name', 'TokoM') }}</title>
+        <meta name="description" content="TokoM - Aplikasi kasir, pengelolaan stok, dan katalog online untuk usaha Anda.">
         <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
         <link rel="manifest" href="{{ route('pwa.manifest', ['shop' => request()->attributes->get('shop_slug') ?? request()->attributes->get('business')?->slug]) }}">
         <link rel="apple-touch-icon" href="{{ asset('icons/motorku-v2-192.png') }}">
@@ -60,7 +60,7 @@
         <div id="app">
             @php $comp = $page['component'] ?? ''; @endphp
             @if ($comp === 'Order/Menu')
-                <!-- Motorku Customer Storefront Catalog Shell (1:1 Exact Monochromatic Parity) -->
+                <!-- TokoM Customer Storefront Catalog Shell (1:1 Exact Monochromatic Parity) -->
                 <div class="customer-storefront min-h-screen bg-[#f3f3ed] text-slate-900" aria-busy="true" aria-label="Memuat katalog sparepart">
                     <!-- Store actions above a full-width search field -->
                     <header class="store-header">

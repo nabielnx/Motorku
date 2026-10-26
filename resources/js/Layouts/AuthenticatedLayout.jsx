@@ -299,7 +299,7 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                         <ApplicationLogo className="w-10 h-10 shrink-0" />
                         <div>
                             <h1 className="text-lg font-heading font-black text-primaryDark dark:text-white tracking-tight leading-none">
-                                {props.app_settings?.store_name || 'Motorku'}
+                                {props.app_settings?.store_name || 'TokoM'}
                             </h1>
                             <p className="text-[10px] font-bold text-primary dark:text-accentYellow uppercase tracking-widest mt-1 max-w-[160px] truncate" title={props.app_settings?.store_tagline ?? 'POS & ORDER'}>{props.app_settings?.store_tagline ?? 'POS & ORDER'}</p>
                         </div>
@@ -373,7 +373,7 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                     </Link>
 
                     <div className="pt-2.5 mt-1.5 border-t border-slate-100 dark:border-slate-800 px-3 text-[10px] text-slate-400 dark:text-slate-500 space-y-1">
-                        <p className="font-semibold text-slate-500 dark:text-slate-400">© 2026 Motorku</p>
+                        <p className="font-semibold text-slate-500 dark:text-slate-400">© 2026 TokoM</p>
                         <div className="flex items-center gap-2 font-medium text-slate-400 dark:text-slate-500">
                             <a href="#privacy" className="hover:text-slate-600 dark:hover:text-slate-300 transition">{locale === 'en' ? 'Privacy Policy' : 'Kebijakan Privasi'}</a>
                             <span>•</span>

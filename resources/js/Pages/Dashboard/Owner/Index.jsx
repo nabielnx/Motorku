@@ -156,7 +156,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
     return (
         <AuthenticatedLayout pageTitle="Dashboard">
             <Head title="Dashboard Overview">
-                <meta name="description" content="Ringkasan performa penjualan, total pendapatan, statistik pesanan, dan produk terlaris toko Motorku." />
+                <meta name="description" content="Ringkasan performa penjualan, total pendapatan, statistik pesanan, dan produk terlaris toko TokoM." />
             </Head>
 
             {isNavigating ? <DashboardSkeleton /> : <div className="admin-dashboard grid w-full grid-cols-12 items-start gap-3 sm:gap-4">

@@ -478,7 +478,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
     return (
         <AuthenticatedLayout pageTitle={locale === 'en' ? 'Orders List' : 'Daftar Pesanan'} noPadding>
             <Head title={`${locale === 'en' ? 'Orders List' : 'Daftar Pesanan'}`}>
-                <meta name="description" content="Kelola dan pantau seluruh daftar pesanan pelanggan Motorku secara real-time." />
+                <meta name="description" content="Kelola dan pantau seluruh daftar pesanan pelanggan TokoM secara real-time." />
             </Head>
 
             {skeletonParam ? (

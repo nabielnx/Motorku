@@ -8,10 +8,10 @@ export default function ApplicationLogo(props) {
         <img 
             {...props}
             src={logoUrl ? (logoUrl.startsWith('/') || logoUrl.startsWith('http') ? logoUrl : '/storage/' + logoUrl) : '/storage/logo/KhjIclRcD4NNnH44nvMkhrGhEuhPyTpREqSfOTSQ.png'}
-            alt="Logo Motorku"
+            alt="Logo TokoM"
             className={`aspect-[3/4] rounded-xl object-contain ${props.className || ''}`}
             onError={(e) => {
-                e.target.src = 'https://ui-avatars.com/api/?name=Motorku&background=0284c7&color=fff&bold=true';
+                e.target.src = 'https://ui-avatars.com/api/?name=TokoM&background=0284c7&color=fff&bold=true';
             }}
         />
     );

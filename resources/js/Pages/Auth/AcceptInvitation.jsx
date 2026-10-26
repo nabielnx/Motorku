@@ -18,7 +18,7 @@ export default function AcceptInvitation({ email, token, valid }) {
     };
 
     return (
-        <GuestLayout title="Aktivasi Akun Staf" subtitle="Siapkan akses Anda ke Motorku.">
+        <GuestLayout title="Aktivasi Akun Staf" subtitle="Siapkan akses Anda ke TokoM.">
             <Head title="Aktivasi Akun Staf">
                 <meta name="referrer" content="no-referrer" />
             </Head>

@@ -241,7 +241,7 @@ export default function UserIndex({ initialUsers = {}, activeOwnersCount = 0, ma
     return (
         <AuthenticatedLayout pageTitle={locale === 'en' ? 'Staff Management' : 'Kelola Staf'}>
             <Head title={`${locale === 'en' ? 'Staff Management' : 'Kelola Staf'}`}>
-                <meta name="description" content="Kelola akun pengguna, peran hak akses (Owner / Kasir), dan status staf pegawai Motorku." />
+                <meta name="description" content="Kelola akun pengguna, peran hak akses (Owner / Kasir), dan status staf pegawai TokoM." />
             </Head>
             <div className="admin-staff space-y-4">
                 <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">

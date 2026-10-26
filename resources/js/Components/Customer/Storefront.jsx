@@ -65,7 +65,7 @@ export function StoreHeader({
 }) {
     const { storeUrl } = useStorefront();
     const { props } = usePage();
-    const storeName = settings['store.name'] || settings['name'] || props?.app_settings?.store_name || 'Motorku';
+    const storeName = settings['store.name'] || settings['name'] || props?.app_settings?.store_name || 'TokoM';
     const rawLogo = settings['store.logo'] || settings['logo'] || props?.logo_url;
     const [logoFailed, setLogoFailed] = useState(false);
     const [isSearchFocused, setIsSearchFocused] = useState(false);

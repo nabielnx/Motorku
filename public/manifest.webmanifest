@@ -1,8 +1,8 @@
 {
     "id": "/",
-    "name": "Motorku",
-    "short_name": "Motorku",
-    "description": "Sistem kasir dan katalog toko Motorku.",
+    "name": "TokoM",
+    "short_name": "TokoM",
+    "description": "Sistem kasir dan katalog toko TokoM.",
     "lang": "id",
     "start_url": "/",
     "scope": "/",

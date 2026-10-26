@@ -1,6 +1,6 @@
-# Motorku
+# TokoM
 
-POS dan katalog sparepart motor berbasis Laravel 12, React, dan Inertia.js.
+Aplikasi kasir, pengelolaan stok, dan katalog online untuk berbagai usaha, berbasis Laravel 12, React, dan Inertia.js.
 
 ## Fitur
 
@@ -50,6 +50,24 @@ php artisan migrate --seed
 ```
 
 Atur koneksi database di `.env` sebelum menjalankan migration. Owner dapat mengunggah gambar QRIS toko lewat Pengaturan.
+
+### Identitas TokoM
+
+Nama aplikasi adalah **TokoM**. Nama usaha, logo toko, serta nama PWA khusus toko tetap mengikuti data masing-masing usaha. Perubahan merek aplikasi tidak menimpa nama usaha yang sudah tersimpan.
+
+Untuk instalasi lama, perbarui nama tampilan di `.env` lokal dan hosting:
+
+```dotenv
+APP_NAME="TokoM"
+VITE_APP_NAME="${APP_NAME}"
+MAIL_FROM_NAME="${APP_NAME}"
+```
+
+Sebelum mengganti `APP_NAME`, pertahankan nilai efektif `SESSION_COOKIE`, `CACHE_PREFIX`, dan `REDIS_PREFIX` yang lama jika belum disetel. Untuk instalasi standar dengan `APP_NAME="Motorku"`, nilainya adalah `motorku-session`, `motorku-cache-`, dan `motorku-database-`. Ini menjaga sesi login serta namespace cache yang sudah digunakan. Instalasi baru tidak memerlukan nilai lama tersebut.
+
+Jalankan `php artisan config:cache` setelah mengubah `.env`. Bangun ulang frontend dengan `npm run build` atau mulai ulang Vite saat development. Worker antrean yang berjalan perlu dimulai ulang dengan `php artisan queue:restart` agar memakai nama pengirim baru. Alamat email, password SMTP, dan OAuth tidak perlu diubah untuk penggantian merek ini.
+
+Build CI tanpa `.env` menggunakan nama bawaan TokoM. Nama PWA yang sudah terpasang mengikuti pembaruan manifest oleh browser dan mungkin tidak berubah seketika.
 
 ## Menjalankan Development
 

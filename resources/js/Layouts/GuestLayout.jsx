@@ -14,7 +14,7 @@ export default function Guest({ children, title = 'Selamat Datang Kembali', subt
     const logo_url = platform ? null : page.props.logo_url;
     const [logoFailed, setLogoFailed] = useState(false);
     const [photoFailed, setPhotoFailed] = useState(false);
-    const storeName = platform ? 'Motorku' : app_settings?.store_name || 'Motorku';
+    const storeName = platform ? 'TokoM' : app_settings?.store_name || 'TokoM';
 
     return (
         <div className="auth-workspace">
@@ -39,7 +39,7 @@ export default function Guest({ children, title = 'Selamat Datang Kembali', subt
                     <h1>{title}</h1>
                     <p className="auth-subtitle">{subtitle || <>Masuk ke Portal Manajemen <strong>{storeName}</strong></>}</p>
                     <div className="auth-form-content">{children}</div>
-                    <p className="auth-help">Butuh bantuan teknis? Hubungi tim support Motorku</p>
+                    <p className="auth-help">Butuh bantuan teknis? Hubungi tim support TokoM</p>
                 </div>
             </main>
         </div>

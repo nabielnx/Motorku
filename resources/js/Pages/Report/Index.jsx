@@ -179,7 +179,7 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
     return (
         <AuthenticatedLayout pageTitle={locale === 'en' ? 'Financial Reports' : 'Laporan Keuangan'}>
             <Head title={`${locale === 'en' ? 'Financial Reports' : 'Laporan Keuangan'}`}>
-                <meta name="description" content="Laporan dan analisis statistik penjualan, pendapatan, dan produk terlaris Motorku." />
+                <meta name="description" content="Laporan dan analisis statistik penjualan, pendapatan, dan produk terlaris TokoM." />
             </Head>
 
             <style>{`
@@ -415,7 +415,7 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
                 <div style={{ borderBottom: '2px solid #0f172a', paddingBottom: '12px', marginBottom: '20px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                         <div>
-                            <h1 style={{ fontSize: '22px', fontWeight: '900', color: '#0f172a', margin: 0 }}>MOTORKU</h1>
+                            <h1 style={{ fontSize: '22px', fontWeight: '900', color: '#0f172a', margin: 0 }}>{app_settings?.store_name || 'TokoM'}</h1>
                             <p style={{ fontSize: '11px', color: '#475569', margin: '2px 0 0 0', fontWeight: 600 }}>Sistem Manajemen Toko</p>
                         </div>
                         <div style={{ textAlign: 'right' }}>
@@ -517,11 +517,11 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
                         <div style={{ textAlign: 'center', width: '180px' }}>
                             <p style={{ color: '#475569', margin: '0 0 50px 0' }}>Disetujui Oleh,</p>
                             <p style={{ fontWeight: '800', color: '#0f172a', borderBottom: '1px solid #94a3b8', paddingBottom: '2px', margin: 0 }}>( Manager / Owner )</p>
-                            <p style={{ fontSize: '10px', color: '#64748b', margin: '4px 0 0 0' }}>Motorku Management</p>
+                            <p style={{ fontSize: '10px', color: '#64748b', margin: '4px 0 0 0' }}>{app_settings?.store_name || 'TokoM'}</p>
                         </div>
                     </div>
                     <p style={{ fontSize: '9px', textAlign: 'center', color: '#94a3b8', marginTop: '24px' }}>
-                        *** Dokumen ini dicetak otomatis dari Sistem POS Motorku pada {todayFormatted} ***
+                        *** Dokumen ini dicetak otomatis dari Sistem POS TokoM pada {todayFormatted} ***
                     </p>
                 </div>
             </div>

@@ -25,7 +25,7 @@ class SettingSeeder extends Seeder
             [
                 'group' => 'store',
                 'key' => 'name',
-                'value' => 'Motorku',
+                'value' => 'TokoM',
                 'type' => 'string',
             ],
 

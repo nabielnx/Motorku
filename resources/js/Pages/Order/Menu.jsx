@@ -334,7 +334,7 @@ export default function CustomerMenu({
 
     const promoSlots = React.useMemo(() => [1, 2, 3].map(slot => promoBanners?.[slot]).filter(Boolean), [promoBanners]);
 
-    const storeName = settings['store.name'] || 'Motorku';
+    const storeName = settings['store.name'] || 'TokoM';
     const storeAddress = String(settings['store.address'] ?? props.app_settings?.store_address ?? '').trim();
     const phone = settings['store.phone'] || settings['phone'] || '';
     const whatsapp = phone ? 'https://wa.me/' + phone.replace(/[^0-9]/g, '').replace(/^0/, '62') : null;

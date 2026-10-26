@@ -3,7 +3,7 @@ import Skeleton, { SkeletonWrapper } from '@/Components/Skeleton';
 import clsx from 'clsx';
 
 /**
- * Product Card Skeleton matching Motorku storefront card 1:1.
+ * Product Card Skeleton matching TokoM storefront card 1:1.
  * Monochromatic neutral grayscale.
  */
 function CardSkeleton({ isGrid = false }) {
