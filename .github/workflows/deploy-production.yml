@@ -32,12 +32,16 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
       - name: Require successful CI for this commit
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?head_sha=$GITHUB_SHA&event=push&branch=main&per_page=100" > ci-runs.json
-          jq -e 'any(.workflow_runs[]; .head_sha == env.GITHUB_SHA and .head_branch == "main" and .status == "completed" and .conclusion == "success")' ci-runs.json
+          gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?head_sha=$GITHUB_SHA&branch=main&per_page=100" > ci-runs.json
+          node scripts/check-ci-run.mjs ci-runs.json "$GITHUB_SHA" main
       - name: Check deployment configuration
         env:
           SSH_HOST: ${{ secrets.PRODUCTION_SSH_HOST }}
@@ -58,10 +62,6 @@ jobs:
           php-version: '8.3'
           extensions: mbstring, xml, ctype, iconv, intl, pdo_mysql, bcmath, gd, zip
           coverage: none
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: npm
       - name: Build release
         run: |
           composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
