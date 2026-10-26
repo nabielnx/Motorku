@@ -70,6 +70,8 @@ Untuk HTTP 403 yang menetap di Hostinger, periksa aturan CDN/firewall dan gunaka
 
 ## Instalasi pertama
 
+Untuk instalasi production baru tanpa akun dan data usaha, gunakan alur `first_install=true` dan panduan [production kosong](EMPTY_PRODUCTION_INSTALLATION.md). Mode ini hanya menerima database tanpa tabel/view dan folder aplikasi baru. Owner pertama mendaftar sendiri; jangan menjalankan perintah pembuatan owner di bawah jika memilih alur tersebut. Deploy berikutnya kembali memakai `first_install=false`.
+
 Siapkan `.env` terpisah untuk staging/production, `APP_KEY` tetap, URL HTTPS, debug nonaktif, session cookie aman, database, dan storage yang dapat ditulis. Batas upload PHP: `upload_max_filesize=4M`, `post_max_size=8M`; samakan batas request web server/proxy dengan dokumentasi upload.
 
 Setelah kode/dependency dan skema tersedia pada instalasi pertama:
