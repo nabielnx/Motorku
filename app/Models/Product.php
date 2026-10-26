@@ -1,7 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToBusiness;
+use App\Services\BusinessContext;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -11,7 +15,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Product extends Model
 {
+    use BelongsToBusiness;
     use HasFactory, HasUuids;
+
+    protected $attributes = ['sync_version' => 1];
 
     protected $fillable = [
         'category_id',
@@ -57,6 +64,7 @@ class Product extends Model
     {
         return $this->belongsToMany(Motorcycle::class, 'motorcycle_parts')
             ->withPivot('part_category', 'notes', 'is_recommended')
+            ->withPivotValue('business_id', app(BusinessContext::class)->id())
             ->withTimestamps();
     }
 

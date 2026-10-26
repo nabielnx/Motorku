@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex, nofollow">
-    <title>Halaman tidak ditemukan - Motorku</title>
+    <title>Halaman tidak ditemukan - TokoM</title>
     <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
     <style>
         body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px; box-sizing: border-box; background: #f7f9fc; color: #0b2f67; font: 500 16px/1.5 system-ui, sans-serif; }

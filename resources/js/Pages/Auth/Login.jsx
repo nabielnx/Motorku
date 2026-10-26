@@ -3,7 +3,8 @@ import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import TextInput from '@/Components/TextInput';
 import GuestLayout from '@/Layouts/GuestLayout';
-import { Head, useForm, usePage } from '@inertiajs/react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import GoogleButton from '@/Components/Auth/GoogleButton';
 import { FiMail, FiLock, FiLogOut, FiX, FiEye, FiEyeOff } from 'react-icons/fi';
 
 export default function Login({ status }) {
@@ -36,7 +37,7 @@ export default function Login({ status }) {
     return (
         <GuestLayout>
             <Head title="Masuk">
-                <meta name="description" content="Halaman login akun pegawai dan pemilik toko Motorku." />
+                <meta name="description" content="Halaman login akun pegawai dan pemilik toko TokoM." />
             </Head>
 
             {/* ALERT SESSION EXPIRED BANNER */}
@@ -60,6 +61,7 @@ export default function Login({ status }) {
                 </div>
             )}
 
+            <div className="mb-5"><GoogleButton /><InputError message={errors.google} className="mt-2" /></div>
             <form onSubmit={submit} className="space-y-5">
                 {/* Input Email */}
                 <div>
@@ -122,11 +124,12 @@ export default function Login({ status }) {
                         disabled={processing}
                         className={`w-full flex justify-center items-center gap-2 auth-primary font-semibold py-3 px-4 rounded-lg transition-colors ${processing && 'cursor-wait'}`}
                     >
-                        <FiLogOut className="rotate-180" size={18} /> {processing ? 'Memproses...' : 'Masuk ke Dashboard Motorku'}
+                        <FiLogOut className="rotate-180" size={18} /> {processing ? 'Memproses...' : 'Masuk ke Dashboard TokoM'}
                     </button>
                 </div>
 
             </form>
+            <p className="mt-5 text-center text-xs text-slate-600">Punya usaha sendiri? <Link href={route('register')} className="font-semibold text-[#19231f] underline">Daftarkan usaha</Link></p>
         </GuestLayout>
     );
 }

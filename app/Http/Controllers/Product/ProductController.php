@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Product;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\PaginationRequest;
+use App\Http\Requests\Product\BulkDeleteProductsRequest;
+use App\Http\Requests\Product\PreviewBulkDeleteProductsRequest;
 use App\Http\Requests\Product\StoreProductRequest;
 use App\Http\Requests\Product\UpdateProductRequest;
 use App\Http\Resources\ProductResource;
@@ -33,7 +36,7 @@ class ProductController extends Controller implements HasMiddleware
     public static function middleware(): array
     {
         return [
-            new Middleware('role:owner', only: ['indexWeb', 'createWeb', 'store', 'update', 'destroy']),
+            new Middleware('role:owner', only: ['indexWeb', 'createWeb', 'store', 'update', 'destroy', 'previewBulkDelete', 'bulkDestroy']),
             new Middleware('permission:product.view', only: ['index', 'show']),
         ];
     }
@@ -46,7 +49,8 @@ class ProductController extends Controller implements HasMiddleware
         $availability = $request->string('availability')->value();
         $sort = $request->string('sort')->value();
         $group = $request->string('group')->value();
-        abort_if($group && ! array_key_exists($group, Category::CATALOG_GROUPS), 422, 'Kelompok produk tidak valid.');
+        $catalogGroups = Category::catalogGroups();
+        abort_if($group && ! array_key_exists($group, $catalogGroups), 422, 'Kelompok produk tidak valid.');
 
         $products = $this->productService->getProductsForWeb($search, $category, $stockStatus, $availability, $sort, $group ?: null, $request->integer('per_page', 16));
 
@@ -54,13 +58,10 @@ class ProductController extends Controller implements HasMiddleware
             return redirect()->route('products.index', $request->except('page'));
         }
 
-        $lowStockCount = Product::inCatalogGroup($group ?: null)->where('stock', '>', 0)->whereColumn('stock', '<=', 'minimum_stock')->count();
-        $outOfStockCount = Product::inCatalogGroup($group ?: null)->where('stock', '<=', 0)->count();
-
         return Inertia::render('Product/Index', [
-            'catalogGroups' => Category::CATALOG_GROUPS,
+            'catalogGroups' => $catalogGroups,
             'initialProducts' => $products,
-            'initialCategories' => Category::with(['children' => function ($q) {
+            'initialCategories' => fn () => Category::with(['children' => function ($q) {
                 $q->withCount('products');
             }])->whereNull('parent_id')->when($group, fn ($query) => $query->where('catalog_group', $group))->withCount('products')->get(),
             'filters' => [
@@ -71,8 +72,8 @@ class ProductController extends Controller implements HasMiddleware
                 'availability' => $availability ?: 'all',
                 'sort' => $sort ?: 'latest',
             ],
-            'lowStockCount' => $lowStockCount,
-            'outOfStockCount' => $outOfStockCount,
+            'lowStockCount' => fn () => Product::inCatalogGroup($group ?: null)->where('stock', '>', 0)->whereColumn('stock', '<=', 'minimum_stock')->count(),
+            'outOfStockCount' => fn () => Product::inCatalogGroup($group ?: null)->where('stock', '<=', 0)->count(),
         ]);
     }
 
@@ -81,7 +82,7 @@ class ProductController extends Controller implements HasMiddleware
         return redirect()->route('products.index');
     }
 
-    public function index(Request $request): JsonResponse
+    public function index(PaginationRequest $request): JsonResponse
     {
         Gate::authorize('viewAny', Product::class);
 
@@ -163,5 +164,19 @@ class ProductController extends Controller implements HasMiddleware
         CacheService::flushMotorcycleParts();
 
         return $this->successResponse('Produk berhasil dihapus!');
+    }
+
+    public function previewBulkDelete(PreviewBulkDeleteProductsRequest $request): JsonResponse
+    {
+        return $this->successResponse('Periksa pilihan produk sebelum menghapus.',
+            $this->productService->previewBulkDelete($request->validated(), $request->user()))
+            ->header('Cache-Control', 'no-store, private');
+    }
+
+    public function bulkDestroy(BulkDeleteProductsRequest $request): JsonResponse
+    {
+        $count = $this->productService->bulkDelete($request->validated('token'), $request->user());
+
+        return $this->successResponse($count.' produk berhasil dihapus.', ['deleted_count' => $count]);
     }
 }

@@ -1,5 +1,8 @@
 <?php
 
+declare(strict_types=1);
+
+use App\Models\CustomerAccount;
 use App\Models\User;
 
 return [
@@ -38,6 +41,7 @@ return [
     */
 
     'guards' => [
+        'customer' => ['driver' => 'session', 'provider' => 'customers'],
         'web' => [
             'driver' => 'session',
             'provider' => 'users',
@@ -62,8 +66,9 @@ return [
     */
 
     'providers' => [
+        'customers' => ['driver' => 'eloquent', 'model' => CustomerAccount::class],
         'users' => [
-            'driver' => 'eloquent',
+            'driver' => 'business-eloquent',
             'model' => env('AUTH_MODEL', User::class),
         ],
 
@@ -93,6 +98,9 @@ return [
     */
 
     'passwords' => [
+        'customers' => [
+            'provider' => 'customers', 'table' => 'customer_password_reset_tokens', 'expire' => 60, 'throttle' => 60,
+        ],
         'staff_invitations' => [
             'provider' => 'users',
             'table' => env('AUTH_PASSWORD_RESET_TOKEN_TABLE', 'password_reset_tokens'),

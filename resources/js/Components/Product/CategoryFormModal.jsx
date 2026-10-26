@@ -1,4 +1,5 @@
 import AdminButton from '@/Components/Admin/Button';
+import DeleteButton from '@/Components/Admin/DeleteButton';
 import AdminDialog, { DialogTitle } from '@/Components/Admin/Dialog';
 import { FiX, FiPlus, FiTrash2 } from 'react-icons/fi';
 
@@ -65,6 +66,7 @@ export default function CategoryFormModal({
                                 <span>Tambah</span>
                             </button>
                         </div>
+                        {editingCategory && <p className="mb-2 text-xs text-red-700 dark:text-red-300">Menghapus subkategori juga menghapus produk, mapping, dan fotonya secara permanen saat disimpan.</p>}
 
                         <div className="space-y-2">
                             {(categoryFormData.sub_categories || []).map((sub, idx) => (
@@ -81,7 +83,7 @@ export default function CategoryFormModal({
                                         aria-label={`Nama subkategori ${idx + 1}`}
                                         className="min-w-0 flex-1 px-3 py-2 font-semibold admin-control"
                                     />
-                                    <button disabled={isLoading}
+                                    <DeleteButton disabled={isLoading} draft={!sub.id}
                                         type="button"
                                         onClick={() => {
                                             const updated = categoryFormData.sub_categories.filter((_, i) => i !== idx);
@@ -91,7 +93,7 @@ export default function CategoryFormModal({
                                         aria-label={`Hapus subkategori ${idx + 1}`}
                                     >
                                         <FiTrash2 size={15} />
-                                    </button>
+                                    </DeleteButton>
                                 </div>
                             ))}
 

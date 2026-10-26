@@ -24,6 +24,8 @@ Database: **MySQL `sparepart`**. Struktur dibaca langsung dari database lokal pa
 
 ### Penjualan, stok dan kas
 
+Tambahan modul master: `suppliers` menyimpan UUID, nama, nama kontak, telepon, email, alamat, catatan, JSON `links` (nama platform dan URL), serta timestamps. Tabel ini berdiri sendiri dan belum memiliki FK ke produk atau transaksi. Detail penerapannya ada di `docs/SUPPLIERS.md`.
+
 | Tabel | Kegunaan |
 |---|---|
 | `orders` | Kepala nota/pesanan: nomor order, pelanggan, kasir, subtotal, diskon, pajak, total, status pesanan/pembayaran dan batas kedaluwarsa. Token pelanggan mengizinkan akses ke pesanan online tanpa akun staf. |
@@ -206,8 +208,8 @@ Garis penuh pada diagram ini adalah FK database. Garis putus-putus adalah hubung
 ## 5. Catatan penting untuk project ini
 
 - Core model memakai **hard delete**; database lokal yang dibaca tidak memiliki kolom `deleted_at`. Snapshot item nota dan nama produk pada log persediaan disediakan agar riwayat tetap terbaca setelah master produk dihapus.
-- `SET NULL` berarti baris riwayat tetap ada tetapi hubungan ke entitas yang dihapus menjadi kosong. `CASCADE` menghapus baris anak ketika induknya dihapus. `RESTRICT` menolak penghapusan induk selama masih dirujuk. Pemeriksaan business rule pada service dapat lebih ketat daripada FK, misalnya melindungi pesanan yang sudah dibayar dan produk dalam pesanan aktif.
-- Penghapusan motor/produk menghapus mapping `motorcycle_parts`. Kategori yang masih memiliki produk/anak tidak bisa langsung dihapus lewat aplikasi. Baris retur mencegah penghapusan nota/item asal melalui FK `RESTRICT`.
+- `SET NULL` berarti baris riwayat tetap ada tetapi hubungan ke entitas yang dihapus menjadi kosong. `CASCADE` menghapus baris anak ketika induknya dihapus. `RESTRICT` menolak penghapusan induk selama masih dirujuk. Pemeriksaan business rule pada service dapat lebih ketat daripada FK, misalnya melindungi pesanan yang sudah dibayar.
+- Penghapusan motor/produk menghapus mapping `motorcycle_parts`. Saat penghapusan admin diizinkan, jenis/kategori bisa dihapus beserta seluruh isinya melalui service transaksional; snapshot nota dan log stok tetap tersimpan. File milik data yang dihapus dibersihkan setelah commit. Baris retur mencegah penghapusan nota/item asal melalui FK `RESTRICT`. Detail sakelar dan cakupannya ada di `docs/ADMIN_DELETION.md`.
 - `users.remember_token` masih ada sebagai kolom schema lama, tetapi autentikasi Ingat saya sudah dinonaktifkan. `password_reset_tokens` digunakan kembali untuk undangan staf; endpoint reset password publik tetap dihapus.
 - `sync_version` tersedia di beberapa tabel sebagai penanda versi; keberadaannya belum berarti offline sync sudah diimplementasikan.
 - Tidak ada tabel pelanggan terpisah, juga tidak ada tabel transaksi/stok terpisah untuk Elektronik, Alat Bangunan atau Sepeda. Pemisahan kelompok dilakukan lewat kategori.
@@ -870,7 +872,19 @@ Tidak mempunyai foreign key database.
 
 Tidak mempunyai foreign key database.
 
-## 7. Sumber verifikasi
+## 7. Jenis data dan referensi fleksibel
+
+Ditambahkan oleh migration `2026_10_23_000001` dan `2026_10_23_000002`; struktur baru diverifikasi memakai MySQL uji terisolasi, bukan database operasional pada inventaris awal dokumen ini.
+
+- `data_types`: UUID PK, `kind` (product/reference), key tetap, nama yang dapat diganti, definisi kolom JSON, `driver` untuk modul bawaan, posisi navigasi, penanda bawaan, dan `sync_version`. Unik pada `(kind, key)` serta `(kind, name)`.
+- `categories.catalog_group` tetap memakai key jenis produk. Alur create/update kategori dan impor mengunci baris jenis terkait agar tidak terhapus bersamaan dengan penambahan kategori. Nama jenis berasal dari `data_types`, sementara alias lama tetap diterima oleh impor.
+- `reference_entries`: UUID PK, FK `data_type_id → data_types.id` dengan `restrictOnDelete`, nama, deskripsi, path foto, nilai kolom JSON, dan `sync_version`. Index `(data_type_id, name)` untuk pencarian/pagination.
+- `reference_entry_product`: UUID PK dan relasi banyak-ke-banyak antara `reference_entries` dan `products`; unik per pasangan, `cascadeOnDelete` pada kedua FK. Penghapusan entri/produk melepas mapping ini tanpa mengubah stok atau transaksi.
+- `motorcycles` dan `motorcycle_parts` tetap terpisah. Jenis referensi bawaan Motor mengarahkan navigasi ke modul tersebut; data lama tidak disalin ke entri generik.
+
+Panduan pengelolaan kolom dan deployment ada di [docs/REFERENCE_DATA.md](D:/Project/Webs/Motorku/docs/REFERENCE_DATA.md).
+
+## 8. Sumber verifikasi
 
 - Metadata `information_schema.TABLES`, `COLUMNS`, `STATISTICS`, `KEY_COLUMN_USAGE`, dan `REFERENTIAL_CONSTRAINTS` pada database lokal `sparepart`.
 - Model: [app/Models](D:/Project/Webs/Motorku/app/Models). Alur penjualan: [OrderService.php](D:/Project/Webs/Motorku/app/Services/OrderService.php), [PaymentService.php](D:/Project/Webs/Motorku/app/Services/PaymentService.php), [OrderReturnService.php](D:/Project/Webs/Motorku/app/Services/OrderReturnService.php), [CashClosingService.php](D:/Project/Webs/Motorku/app/Services/CashClosingService.php), [DocumentNumberService.php](D:/Project/Webs/Motorku/app/Services/DocumentNumberService.php).

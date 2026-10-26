@@ -7,6 +7,7 @@ namespace App\Services\ProductSheet;
 use App\Models\Category;
 use App\Models\Product;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Validation\ValidationException;
 use OpenSpout\Common\Entity\Cell;
 use OpenSpout\Common\Entity\Cell\StringCell;
 use OpenSpout\Common\Entity\Row;
@@ -21,8 +22,9 @@ class ProductSheetExporter
     {
         // Keep the familiar sheet order, but label exported cost as actual purchase price.
         $headers = ['Grup Barang', 'Kategori', 'Merek', 'Nama Barang', 'Spesifikasi / Keterangan', 'Harga Beli (Rp)', 'Harga Jual (Rp)', 'Stok', 'Satuan', 'Margin (Rp)', 'Kode Barang'];
-        $path = tempnam(sys_get_temp_dir(), 'motorku-sheet-');
+        $path = tempnam(sys_get_temp_dir(), 'tokom-sheet-');
         $name = ($template ? 'template-barang' : 'daftar-barang-'.now()->format('Ymd')).'.'.$format;
+        $catalogGroups = Category::catalogGroups();
         try {
             if ($format === 'xlsx') {
                 $options = new WriterOptions;
@@ -41,7 +43,7 @@ class ProductSheetExporter
 
                 if (! $template) {
                     foreach (Product::with('category.parent')->inCatalogGroup($group)->orderBy('name')->lazy(200) as $product) {
-                        $values = [Category::CATALOG_GROUPS[$this->group($product->category)], $product->category->name, $product->brand ?? '', $product->name, $product->description ?? '', $product->cost_price === null ? null : (float) $product->cost_price, (float) $product->price, (int) $product->stock, $product->unit, $product->cost_price === null ? null : (float) $product->price - (float) $product->cost_price, $product->sku];
+                        $values = [$catalogGroups[$this->group($product->category)], $product->category->name, $product->brand ?? '', $product->name, $product->description ?? '', $product->cost_price === null ? null : (float) $product->cost_price, (float) $product->price, (int) $product->stock, $product->unit, $product->cost_price === null ? null : (float) $product->price - (float) $product->cost_price, $product->sku];
                         $writer->addRow($this->exportRow($values));
                     }
                 }
@@ -53,19 +55,23 @@ class ProductSheetExporter
 
                 if (! $template) {
                     foreach (Product::with('category.parent')->inCatalogGroup($group)->orderBy('name')->lazy(200) as $product) {
-                        $values = [Category::CATALOG_GROUPS[$this->group($product->category)], $product->category->name, $product->brand ?? '', $product->name, $product->description ?? '', $product->cost_price === null ? null : (float) $product->cost_price, (float) $product->price, (int) $product->stock, $product->unit, $product->cost_price === null ? null : (float) $product->price - (float) $product->cost_price, $product->sku];
+                        $values = [$catalogGroups[$this->group($product->category)], $product->category->name, $product->brand ?? '', $product->name, $product->description ?? '', $product->cost_price === null ? null : (float) $product->cost_price, (float) $product->price, (int) $product->stock, $product->unit, $product->cost_price === null ? null : (float) $product->price - (float) $product->cost_price, $product->sku];
                         fputcsv($stream, array_map(fn ($v) => is_string($v) && preg_match('/^[\s]*[=+\-@]/u', $v) ? "'".$v : $v, $values), ',', '"', '');
                     }
                 }
                 fclose($stream);
             } elseif ($format === 'pdf') {
+                if (! $template && Product::inCatalogGroup($group)->count() > 1000) {
+                    throw ValidationException::withMessages(['format' => 'PDF maksimal 1.000 produk. Pilih kelompok yang lebih kecil atau gunakan XLSX/CSV.']);
+                }
                 $products = $template ? collect() : Product::query()
                     ->select(['id', 'category_id', 'sku', 'name', 'description', 'brand', 'price', 'cost_price', 'stock', 'unit'])
                     ->with('category:id,name')
                     ->inCatalogGroup($group)
                     ->orderBy('name')
+                    ->limit(1000)
                     ->get();
-                $groupLabel = $group ? (Category::CATALOG_GROUPS[$group] ?? $group) : 'Seluruh Katalog';
+                $groupLabel = $group ? ($catalogGroups[$group] ?? $group) : 'Seluruh Katalog';
                 $pdf = Pdf::loadView('pdf.products', [
                     'products' => $products,
                     'group' => $group,

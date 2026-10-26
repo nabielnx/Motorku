@@ -1,11 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature\Product;
 
 use App\Models\Category;
 use App\Models\Motorcycle;
 use App\Models\Product;
 use App\Models\User;
+use App\Services\BusinessContext;
 use App\Services\ProductService;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -75,6 +78,7 @@ class ProductSearchTest extends TestCase
             'year_start' => 2020, 'engine_cc' => 125, 'engine_type' => 'matic',
         ]);
         DB::table('motorcycle_parts')->insert([
+            'business_id' => BusinessContext::LEGACY_ID,
             'id' => (string) Str::uuid(), 'product_id' => $product->id,
             'motorcycle_id' => $motorcycle->id, 'part_category' => 'oli',
             'created_at' => now(), 'updated_at' => now(),

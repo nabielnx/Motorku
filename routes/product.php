@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Http\Controllers\Product\ProductController;
 use App\Http\Controllers\Product\ProductSheetController;
 use Illuminate\Support\Facades\Route;
@@ -16,6 +18,8 @@ Route::prefix('products')->name('api.products.')->group(function () {
     Route::get('/{id}', [ProductController::class, 'show'])->name('show');
 
     Route::middleware('role:owner')->group(function () {
+        Route::post('/bulk-delete/preview', [ProductController::class, 'previewBulkDelete'])->middleware('throttle:20,1')->name('bulk-delete.preview');
+        Route::delete('/bulk', [ProductController::class, 'bulkDestroy'])->middleware('throttle:20,1')->name('bulk-destroy');
         Route::post('/', [ProductController::class, 'store'])->name('store');
         Route::put('/{id}', [ProductController::class, 'update'])->name('update');
         Route::delete('/{id}', [ProductController::class, 'destroy'])->name('destroy');

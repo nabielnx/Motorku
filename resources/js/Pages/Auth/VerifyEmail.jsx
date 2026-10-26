@@ -16,7 +16,7 @@ export default function VerifyEmail({ status, mailDeliveryIsLocal = false }) {
     return (
         <GuestLayout title="Verifikasi Email" subtitle="Konfirmasi alamat email untuk mengakses toko.">
             <Head title="Verifikasi Email">
-                <meta name="description" content="Verifikasi alamat email akun Motorku Anda." />
+                <meta name="description" content="Verifikasi alamat email akun TokoM Anda." />
             </Head>
 
             <p className="mb-4 text-sm text-slate-600">Verifikasi <strong>{auth.user.email}</strong> sebelum mengakses toko. Kirim tautan verifikasi, lalu buka tautannya dari email Anda.</p>

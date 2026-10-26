@@ -24,7 +24,9 @@ class OrderService
         protected InventoryService $inventoryService,
         protected PaymentService $paymentService,
         protected DocumentNumberService $documentNumbers,
-        protected OrderCancellationService $cancellation
+        protected OrderCancellationService $cancellation,
+        protected OrderPricingService $pricing,
+        protected QrisService $qris
     ) {}
 
     public function createPosSale(array $data): array
@@ -32,6 +34,9 @@ class OrderService
         $order = $this->checkoutOnce($data, 'pos', function () use ($data) {
             unset($data['request_id']);
             $order = $this->createOrder($data);
+            if (($data['payment_method'] ?? 'cash') === 'qris_manual') {
+                $this->qris->assertSaleQuote($data['qris_quote'] ?? null, $data['items'], (float) $order->total, (string) auth()->id());
+            }
             $order->update([
                 'order_status' => OrderStatus::Completed,
                 'expires_at' => null,
@@ -65,10 +70,10 @@ class OrderService
 
         return DB::transaction(function () use ($id, $fingerprint, $create) {
             // The primary key serializes even two first-time submissions.
-            $inserted = DB::table('checkout_requests')->insertOrIgnore([
-                'id' => $id, 'fingerprint' => $fingerprint, 'created_at' => now(), 'updated_at' => now(),
+            $inserted = app(BusinessContext::class)->table('checkout_requests')->insertOrIgnore([
+                ...app(BusinessContext::class)->attributes([]), 'id' => $id, 'fingerprint' => $fingerprint, 'created_at' => now(), 'updated_at' => now(),
             ]);
-            $request = DB::table('checkout_requests')->where('id', $id)->lockForUpdate()->first();
+            $request = app(BusinessContext::class)->table('checkout_requests')->where('id', $id)->lockForUpdate()->first();
             if (! hash_equals($request->fingerprint, $fingerprint)) {
                 throw ValidationException::withMessages(['request_id' => 'Identitas checkout sudah digunakan untuk pesanan berbeda.']);
             }
@@ -81,7 +86,7 @@ class OrderService
                 return $order;
             }
             $order = $create();
-            DB::table('checkout_requests')->where('id', $id)->update(['order_id' => $order->id, 'updated_at' => now()]);
+            app(BusinessContext::class)->table('checkout_requests')->where('id', $id)->update(['order_id' => $order->id, 'updated_at' => now()]);
 
             return $order;
         }, 3);
@@ -163,6 +168,9 @@ class OrderService
                     'status' => $order->order_status,
                     'payment_status' => $order->payment_status,
                     'payment_method' => $payment?->payment_method,
+                    'payment_preference' => $order->payment_preference,
+                    'payment_review_requested_at' => $order->payment_review_requested_at?->toIso8601String(),
+                    'payment_reference' => $order->payment_reference,
                     'returned_amount' => (float) ($order->returns_sum_amount ?? 0),
                     'paid_at' => $paidPayment?->paid_at?->toIso8601String(),
                     'created_at' => $order->created_at?->toIso8601String(),
@@ -242,6 +250,7 @@ class OrderService
                 ];
 
                 $orderItemsData[] = [
+                    'business_id' => app(BusinessContext::class)->id(),
                     'id' => (string) Str::uuid(),
                     'product_id' => $product->id,
                     'product_name' => $product->name,
@@ -255,20 +264,25 @@ class OrderService
                 ];
             }
 
-            $taxEnabled = filter_var($this->setting('tax', 'enabled', 'true'), FILTER_VALIDATE_BOOLEAN);
-            $taxRate = (float) $this->setting('tax', 'percentage', 0) / 100;
-
-            $taxAmount = $taxEnabled ? round($subtotal * $taxRate) : 0;
             $discountAmount = (float) ($data['discount_amount'] ?? 0);
-            $total = max(0, $subtotal - $discountAmount + $taxAmount);
+            ['tax_amount' => $taxAmount, 'total' => $total] = $this->pricing->totals($subtotal, $discountAmount);
+            if (array_key_exists('expected_total', $data) && abs((float) $data['expected_total'] - $total) > 0.001) {
+                throw ValidationException::withMessages(['expected_total' => 'Harga atau pajak berubah. Periksa kembali keranjang sebelum membuat pesanan.']);
+            }
+            if ($isPublicOrder && ($data['payment_preference'] ?? 'kasir') === 'qris') {
+                app(CustomerOrderService::class)->assertQrisAvailable($total);
+            }
             $orderNumber = $this->nextOrderNumber();
 
             $order = Order::create([
                 'order_number' => $orderNumber,
                 'cashier_id' => $isPublicOrder ? null : auth()->id(),
+                'customer_account_id' => $isPublicOrder ? ($data['customer_account_id'] ?? null) : null,
                 'customer_name' => $data['customer_name'] ?? null,
+                'customer_phone' => $data['customer_phone'] ?? null,
                 'customer_access_token' => $isPublicOrder ? Str::random(64) : null,
                 'notes' => $data['notes'] ?? null,
+                'payment_preference' => $isPublicOrder ? ($data['payment_preference'] ?? 'kasir') : null,
                 'subtotal' => $subtotal,
                 'discount_amount' => $discountAmount,
                 'tax_amount' => $taxAmount,
@@ -330,7 +344,7 @@ class OrderService
                 return;
             }
 
-            if ($order->payment_status !== PaymentStatus::Unpaid
+            if ($order->payment_review_requested_at || $order->payment_status !== PaymentStatus::Unpaid
                 || ! in_array($order->order_status, [OrderStatus::Pending, OrderStatus::Cancelled], true)) {
                 throw ValidationException::withMessages(['order' => 'Transaksi yang sudah dibayar tidak dapat dihapus.']);
             }
@@ -361,6 +375,9 @@ class OrderService
                     abort(403, 'Hanya owner yang dapat membatalkan pesanan.');
                 }
 
+                if ($order->payment_review_requested_at) {
+                    throw ValidationException::withMessages(['order_status' => 'Periksa laporan pembayaran sebelum membatalkan pesanan.']);
+                }
                 if ($order->payment_status === PaymentStatus::Paid) {
                     throw ValidationException::withMessages([
                         'order_status' => 'Pesanan yang sudah dibayar tidak dapat dibatalkan.',
@@ -397,6 +414,9 @@ class OrderService
 
             // Convert enum to string for the update array
             $updateData = $data;
+            if ($nextStatus === OrderStatus::Cancelled) {
+                $updateData['cancel_reason'] = 'store';
+            }
             if (isset($updateData['order_status']) && $updateData['order_status'] instanceof OrderStatus) {
                 $updateData['order_status'] = $updateData['order_status']->value;
             }

@@ -1,28 +1,22 @@
+import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
+import Pagination from '@/Components/Pagination';
 import ThermalReceipt from '@/Components/ThermalReceipt';
 import MoneyInput from '@/Components/MoneyInput';
 import React, { useEffect, useState, useRef } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import OrderTableSkeleton from '@/Components/Skeletons/OrderTableSkeleton';
-import MaskedCurrency from '@/Components/MaskedCurrency';
+import OrderToolbar from '@/Components/Orders/OrderToolbar';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import { toast } from 'sonner';
-import DateRangePicker from '@/Components/DateRangePicker';
-import { 
-    FiSearch, 
-    FiEye, 
-    FiEdit2, 
-    FiPrinter, 
-    FiRefreshCw, 
-    FiChevronLeft, 
-    FiChevronRight,
-    FiClock, 
-    FiCheckCircle, 
-    FiAlertCircle, 
+import {
+    FiEye,
+    FiEdit2,
+    FiPrinter,
+    FiClock,
+    FiCheckCircle,
+    FiAlertCircle,
     FiXCircle,
-    FiCalendar,
-    FiEyeOff,
-    FiChevronDown
 } from 'react-icons/fi';
 
 export default function OrderIndex({ initialOrders = {}, summary = {}, filters = {} }) {
@@ -48,8 +42,6 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
     const { auth, app_settings, summary: sharedSummary } = usePage().props;
     const locale = app_settings?.locale || 'id';
     const userName = auth?.user?.name || 'Kasir';
-    // auth.roles is a flat string array (e.g. ['owner']) shared by HandleInertiaRequests
-    const userRole = (auth?.roles ?? []).includes('owner') ? 'Owner' : 'Kasir';
 
     const extractPaginator = (data) => {
         if (data && typeof data === 'object' && !Array.isArray(data) && Array.isArray(data.data)) {
@@ -62,6 +54,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
     const paginator = extractPaginator(initialOrders);
     const [orders, setOrders] = useState(() => paginator.data);
     const ordersSourceRef = useRef(initialOrders);
+    const orderScrollRef = useRef(null);
     const statusFilter = filters.status || 'All';
     const periodFilter = filters.period || (filters.date === 'week' ? '7_days' : (filters.date || 'all'));
     const [startDate, setStartDate] = useState(filters.start_date || '');
@@ -69,8 +62,12 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
     const [searchQuery, setSearchQuery] = useState(filters.search || '');
     const [paymentOrder, setPaymentOrder] = useState(null);
     const [isRevenueVisible, setIsRevenueVisible] = useState(false);
-    const [showMobileDateFilters, setShowMobileDateFilters] = useState(false);
+    const [showDateFilters, setShowDateFilters] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState('cash');
+    const [fundsChecked, setFundsChecked] = useState(false);
+    const [paymentReference, setPaymentReference] = useState('');
+    const [rejectingReview, setRejectingReview] = useState(false);
+    const [rejectionReason, setRejectionReason] = useState('');
     const [amountReceived, setAmountReceived] = useState('');
     const [isProcessingPayment, setIsProcessingPayment] = useState(false);
     const [updatingStatusId, setUpdatingStatusId] = useState(null);
@@ -112,6 +109,10 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
     const totalPages = paginator.last_page || 1;
     const totalItems = paginator.total ?? orders.length;
     const perPage = paginator.per_page || 10;
+
+    useEffect(() => {
+        if (orderScrollRef.current) orderScrollRef.current.scrollTop = 0;
+    }, [currentPage, statusFilter, periodFilter, filters.start_date, filters.end_date, filters.search]);
 
     const periodFilterRef = useRef(periodFilter);
     const startDateRef = useRef(startDate);
@@ -161,7 +162,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
     const handlePeriodChange = (newPeriod) => {
         if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
         periodFilterRef.current = newPeriod;
-        setShowMobileDateFilters(false);
+        setShowDateFilters(false);
         router.get('/orders', {
             page: 1,
             status: statusFilter,
@@ -173,7 +174,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
     const handleApplyDateRange = (start, end) => {
         if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
         periodFilterRef.current = 'custom';
-        setShowMobileDateFilters(false);
+        setShowDateFilters(false);
         startDateRef.current = start;
         endDateRef.current = end;
         setStartDate(start);
@@ -239,7 +240,8 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
         cancelled:  { label: 'Dibatalkan',   icon: FiXCircle,      color: 'bg-rose-600 text-white' },
     };
 
-    const getStatusDisplay = (orderStatus, paymentStatus, returnedAmount = 0) => {
+    const getStatusDisplay = (orderStatus, paymentStatus, returnedAmount = 0, review = false) => {
+        if (review && paymentStatus === 'unpaid' && orderStatus === 'pending') return { primary: { label: 'Periksa QRIS', color: 'bg-accentYellow text-primaryDark', icon: FiClock }, secondary: null, tooltip: 'Pelanggan melaporkan sudah membayar; periksa dana masuk' };
         const isPaid = paymentStatus === 'paid';
 
         if (paymentStatus === 'refunded') {
@@ -310,8 +312,6 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
         };
     };
 
-    const statuses = ['action', 'All'];
-    const statusLabel = (status) => status === 'action' ? 'Perlu Ditangani' : 'Semua Transaksi';
 
     const PENDING_BUCKET = ['pending'];
     const PROCESSING_BUCKET = ['preparing', 'processing'];
@@ -374,13 +374,34 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
     };
 
     const openPayment = (order) => {
+        if (app_settings?.cash_enabled === false && !app_settings?.customer_qris_enabled && !order.payment_review_requested_at) {
+            toast.error('Metode pembayaran belum tersedia. Hubungi owner.');
+            return;
+        }
         setPaymentOrder(order);
-        setPaymentMethod('cash');
+        setPaymentMethod(order.payment_review_requested_at || (order.payment_preference === 'qris' && app_settings?.customer_qris_enabled) || app_settings?.cash_enabled === false ? 'qris_manual' : 'cash');
         setAmountReceived(String(order.total));
+        setFundsChecked(false);
+        setPaymentReference(order.payment_reference || '');
+        setRejectingReview(false);
+        setRejectionReason('');
+    };
+
+    const rejectReview = async () => {
+        if (rejectionReason.trim().length < 5) { toast.error('Isi alasan pemeriksaan minimal 5 karakter.'); return; }
+        setIsProcessingPayment(true);
+        try {
+            await axios.post(`/api/payments/order/${paymentOrder.real_id || paymentOrder.id}/reject-review`, { reason: rejectionReason.trim() });
+            setPaymentOrder(null);
+            refreshOrders();
+            toast.success('Hasil pemeriksaan dikirim ke pelanggan.');
+        } catch (error) { toast.error(error.response?.data?.message || 'Gagal mengirim hasil pemeriksaan.'); }
+        finally { setIsProcessingPayment(false); }
     };
 
     const confirmPayment = async () => {
-        if (!paymentOrder) return;
+        if (!paymentOrder || isProcessingPayment) return;
+        if (paymentMethod === 'qris_manual' && !fundsChecked) { toast.error('Periksa dana masuk terlebih dahulu.'); return; }
 
         const received = paymentMethod === 'cash' ? Number(amountReceived) : Number(paymentOrder.total);
         if (!Number.isFinite(received) || received < Number(paymentOrder.total)) {
@@ -393,6 +414,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
             const response = await axios.post('/api/payments', {
                 order_id: paymentOrder.real_id || paymentOrder.id,
                 payment_method: paymentMethod,
+                reference_number: paymentMethod === 'qris_manual' ? paymentReference.trim() || null : null,
                 amount_received: received,
                 notes: `Pembayaran dikonfirmasi kasir - ${paymentMethod.toUpperCase()}`,
             });
@@ -401,6 +423,7 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
                 ...order,
                 status: payment?.order?.order_status || order.status,
                 payment_status: 'paid',
+                payment_review_requested_at: null,
                 payment_method: payment?.payment_method || paymentMethod,
                 paid_at: payment?.paid_at || new Date().toISOString(),
             } : order));
@@ -449,478 +472,269 @@ export default function OrderIndex({ initialOrders = {}, summary = {}, filters =
         return null;
     };
 
-    const cleanUserName = (auth?.user?.name || 'Kasir').replace(/\s*\(.*?\)/g, '');
     const revenueText = formatRp(periodOrderValue);
-    const renderRevenueValue = () => (
-        <MaskedCurrency
-            as="strong"
-            text={revenueText}
-            visible={isRevenueVisible}
-            maskGroupingSeparators
-            className="relative text-sm text-primaryDark dark:text-white"
-        />
-    );
-
     const skeletonParam = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('skeleton') : null;
 
     return (
-        <AuthenticatedLayout pageTitle={locale === 'en' ? 'Orders List' : 'Daftar Pesanan'}>
+        <AuthenticatedLayout pageTitle={locale === 'en' ? 'Orders List' : 'Daftar Pesanan'} noPadding>
             <Head title={`${locale === 'en' ? 'Orders List' : 'Daftar Pesanan'}`}>
-                <meta name="description" content="Kelola dan pantau seluruh daftar pesanan pelanggan Motorku secara real-time." />
+                <meta name="description" content="Kelola dan pantau seluruh daftar pesanan pelanggan TokoM secara real-time." />
             </Head>
 
-            {(isNavigating || skeletonParam) ? (
+            {skeletonParam ? (
                 <OrderTableSkeleton />
             ) : (
-            <div className="mx-auto w-full max-w-[1440px] space-y-3 p-2 sm:space-y-4 sm:px-5 sm:pb-5 sm:pt-0">
+            <div className="mx-auto flex h-full min-h-0 w-full max-w-[1440px] flex-col gap-2 p-3 sm:p-6 lg:p-8">
+                <OrderToolbar
+                    periodLabel={summaryPeriodLabel}
+                    orderCount={periodOrderCount}
+                    revenueText={revenueText}
+                    revenueVisible={isRevenueVisible}
+                    onToggleRevenue={() => setIsRevenueVisible(visible => !visible)}
+                    activeCount={activeCount}
+                    status={statusFilter}
+                    onStatusChange={handleFilterChange}
+                    search={searchQuery}
+                    onSearchChange={setSearchQuery}
+                    onRefresh={refreshOrders}
+                    refreshing={isNavigating}
+                    period={periodFilter}
+                    startDate={startDate}
+                    endDate={endDate}
+                    datesOpen={showDateFilters}
+                    onToggleDates={() => setShowDateFilters(visible => !visible)}
+                    onPeriodChange={handlePeriodChange}
+                    onDateRangeApply={handleApplyDateRange}
+                />
+                <div aria-busy={isNavigating} className="order-results flex min-h-0 flex-1 flex-col xl:overflow-hidden xl:rounded-[12px] xl:border xl:border-slate-200 dark:xl:border-slate-800">
+                    <div ref={orderScrollRef} role="region" aria-label="Daftar pesanan" tabIndex={0} className="order-scroll-region min-h-0 flex-1 overflow-auto overscroll-contain">
+                        {/* Mobile order list */}
+                        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:hidden">
+                            {pageOrders.map(order => {
+                                if (!order) return null;
+                                const display = getStatusDisplay(order.status, order.payment_status, Number(order.returned_amount || 0), order.payment_review_requested_at);
+                                const StatusIcon = display.primary.icon;
+                                const nextAction = getNextStatusAction(order);
+                                const orderId = order.real_id || order.id;
 
-                <div className="px-1 py-1 text-xs text-slate-600 dark:text-slate-300 sm:hidden">
-                    <div className="flex items-center justify-between gap-2">
-                        <div className="min-w-0">
-                            <span className="block truncate text-[10px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">{summaryPeriodLabel}</span>
-                            <strong className="text-sm text-primaryDark dark:text-white">{periodOrderCount} pesanan</strong>
-                        </div>
-                        <div className="flex shrink-0 items-center gap-1.5">
-                            <button
-                                type="button"
-                                onClick={() => setIsRevenueVisible((visible) => !visible)}
-                                aria-label={isRevenueVisible ? 'Sembunyikan pendapatan' : 'Tampilkan pendapatan'}
-                                title={isRevenueVisible ? 'Sembunyikan pendapatan' : 'Tampilkan pendapatan'}
-                                className="flex h-8 w-8 items-center justify-center rounded-lg text-primaryDark hover:bg-slate-100 dark:text-accentYellow dark:hover:bg-slate-800"
-                            >
-                                {isRevenueVisible ? <FiEye size={16} /> : <FiEyeOff size={16} />}
-                            </button>
-                            {renderRevenueValue()}
-                        </div>
-                    </div>
-                    <div className="mt-1">Perlu ditangani <strong className="text-slate-900 dark:text-white">{activeCount}</strong></div>
-                </div>
-
-                {/* Desktop summary */}
-                <div className="hidden sm:flex flex-wrap items-center gap-x-8 gap-y-2 border-b border-slate-200 dark:border-slate-800 px-1 pb-3 text-sm text-slate-500 dark:text-slate-400">
-                    <span>{summaryPeriodLabel} <strong className="ml-1 text-primaryDark dark:text-white">{periodOrderCount} pesanan</strong></span>
-                    <span className="inline-flex items-center gap-1">Pendapatan
-                        <button
-                            type="button"
-                            onClick={() => setIsRevenueVisible((visible) => !visible)}
-                            aria-label={isRevenueVisible ? 'Sembunyikan pendapatan' : 'Tampilkan pendapatan'}
-                            title={isRevenueVisible ? 'Sembunyikan pendapatan' : 'Tampilkan pendapatan'}
-                            className="ml-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-primaryDark hover:bg-slate-100 dark:text-accentYellow dark:hover:bg-slate-800"
-                        >
-                            {isRevenueVisible ? <FiEye size={15} /> : <FiEyeOff size={15} />}
-                        </button>
-                        {renderRevenueValue()}
-                    </span>
-                    <span>Perlu ditangani <strong className="ml-1 text-slate-900 dark:text-white">{activeCount}</strong></span>
-                </div>
-
-                {/* Main Transaction Panel */}
-                <div className="bg-white dark:bg-slate-900 sm:rounded-xl sm:shadow-2xs sm:border sm:border-slate-200 dark:sm:border-slate-800 overflow-hidden transition-colors">
-
-                    {/* Unified Control Bar */}
-                    <div className="p-3 sm:p-4 border-b border-slate-200 dark:border-slate-800 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-2 sm:gap-3 sm:bg-slate-50 dark:sm:bg-slate-800">
-                        <div className="flex w-full items-center justify-between gap-2 lg:w-auto">
-                            <h3 className="text-sm sm:text-base font-black text-primaryDark dark:text-white shrink-0">Pesanan</h3>
-                            <button type="button" onClick={refreshOrders} aria-label="Muat ulang pesanan" title="Muat ulang pesanan" className="rounded-md p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white">
-                                <FiRefreshCw size={15} />
-                            </button>
-                        </div>
-
-                        <div className="flex w-full flex-wrap items-center gap-2 lg:w-auto">
-                            {/* Filter Tabs */}
-                            <div className="hidden sm:flex min-w-0 max-w-full items-center gap-1 overflow-x-auto no-scrollbar">
-                                {statuses.map(s => {
-                                    const isActive = statusFilter === s;
-                                    const label = statusLabel(s);
-                                    return (
-                                        <button
-                                            key={s}
-                                            onClick={() => handleFilterChange(s)}
-                                            className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap ${
-                                                isActive 
-                                                    ? 'bg-primary text-white shadow-2xs'
-                                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-                                            }`}
-                                        >
-                                            {label}
-                                        </button>
-                                    );
-                                })}
-                            </div>
-
-                            <select
-                                value={statusFilter}
-                                onChange={(e) => handleFilterChange(e.target.value)}
-                                aria-label="Filter status pesanan"
-                                className="sm:hidden h-[34px] min-w-0 flex-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-0 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-0 focus:border-slate-400"
-                            >
-                                {statuses.map(s => <option key={s} value={s}>{statusLabel(s)}</option>)}
-                            </select>
-
-                            {/* Search Input */}
-                            <div className="relative order-first w-full min-w-0 sm:order-none sm:w-64 lg:w-72">
-                                <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" size={15} />
-                                <input
-                                    id="order-search-input"
-                                    type="text"
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    placeholder="Cari nomor, pelanggan, atau barang..."
-                                    className="w-full min-w-0 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg pl-9 pr-3 py-1.5 text-xs text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-500 transition-all"
-                                />
-                            </div>
-
-                            {statusFilter === 'All' && (
-                                <>
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowMobileDateFilters((visible) => !visible)}
-                                        aria-expanded={showMobileDateFilters}
-                                        aria-label={showMobileDateFilters ? 'Tutup filter tanggal' : 'Tampilkan filter tanggal'}
-                                        className="flex h-[34px] min-w-0 flex-1 items-center justify-between gap-2 rounded-lg border border-slate-300 bg-white px-2.5 text-xs font-semibold text-slate-700 sm:hidden dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
-                                    >
-                                        <span className="flex min-w-0 items-center gap-1.5 truncate"><FiCalendar className="shrink-0 text-accentYellow" size={14} />{periodFilter === 'custom' ? 'Rentang khusus' : summaryPeriodLabel}</span>
-                                        <FiChevronDown className={`shrink-0 transition-transform ${showMobileDateFilters ? 'rotate-180' : ''}`} size={14} />
-                                    </button>
-
-                                    {showMobileDateFilters && (
-                                        <div className="grid w-full grid-cols-2 gap-2 sm:hidden">
-                                            <div className="relative min-w-0">
-                                                <FiCalendar aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-accentYellow" size={15} />
-                                                <select
-                                                    value={periodFilter === 'custom' ? '' : periodFilter}
-                                                    onChange={(e) => handlePeriodChange(e.target.value)}
-                                                    aria-label="Pilih periode pesanan"
-                                                    className="h-[34px] w-full min-w-0 appearance-none rounded-lg border border-primary bg-primary py-0 pl-9 pr-8 text-xs font-bold text-white cursor-pointer focus:outline-none focus:ring-0"
-                                                    style={{ appearance: 'none', WebkitAppearance: 'none', backgroundImage: 'none' }}
-                                                >
-                                                    <option className="bg-white text-slate-900" value="" disabled hidden>Pilihan cepat</option>
-                                                    <option className="bg-white text-slate-900" value="all">Semua tanggal</option>
-                                                    <option className="bg-white text-slate-900" value="today">Hari ini</option>
-                                                    <option className="bg-white text-slate-900" value="7_days">7 hari</option>
-                                                    <option className="bg-white text-slate-900" value="30_days">30 hari</option>
-                                                    <option className="bg-white text-slate-900" value="this_month">Bulan ini</option>
-                                                    <option className="bg-white text-slate-900" value="this_year">Tahun ini</option>
-                                                </select>
-                                                <FiChevronDown aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-white" size={14} />
+                                return (
+                                    <article key={orderId} className="admin-surface order-card relative min-w-0 border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
+                                        <Link href={`/orders/${orderId}`} aria-label={`Lihat detail pesanan ${order.id}`} className="absolute inset-0 z-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] rounded-[inherit] focus-visible:outline-primary" />
+                                        <div className="flex items-start justify-between gap-3">
+                                            <div className="min-w-0">
+                                                <p className="truncate font-mono text-xs font-bold text-primaryDark dark:text-blue-300">{order.id}</p>
+                                                <p className="mt-0.5 truncate text-sm font-semibold text-slate-900 dark:text-white">{order.customer}</p>
                                             </div>
-                                            <DateRangePicker
-                                                initialStart={startDate}
-                                                initialEnd={endDate}
-                                                activePeriod={periodFilter}
-                                                fullWidth
-                                                onApply={handleApplyDateRange}
-                                            />
+                                            <strong className="shrink-0 text-sm text-slate-900 dark:text-white">{formatRp(order.total)}</strong>
                                         </div>
-                                    )}
-
-                                    <div className="hidden min-w-0 sm:grid sm:w-[26rem] sm:max-w-full sm:grid-cols-2 sm:items-center sm:gap-2">
-                                        <div className="relative min-w-0 sm:w-full">
-                                            <FiCalendar aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-accentYellow" size={15} />
-                                            <select
-                                                value={periodFilter === 'custom' ? '' : periodFilter}
-                                                onChange={(e) => handlePeriodChange(e.target.value)}
-                                                aria-label="Pilih periode pesanan"
-                                                className="w-full min-w-0 appearance-none rounded-xl border border-primary bg-primary py-2 pl-9 pr-8 text-xs font-bold text-white cursor-pointer transition hover:bg-primaryDark focus:outline-none focus:ring-0 focus:border-primaryDark"
-                                                style={{ appearance: 'none', WebkitAppearance: 'none', backgroundImage: 'none' }}
-                                            >
-                                                <option className="bg-white text-slate-900" value="" disabled hidden>Pilihan Cepat...</option>
-                                                <option className="bg-white text-slate-900" value="all">Semua tanggal</option>
-                                                <option className="bg-white text-slate-900" value="today">Hari Ini</option>
-                                                <option className="bg-white text-slate-900" value="7_days">7 Hari Terakhir</option>
-                                                <option className="bg-white text-slate-900" value="30_days">30 Hari Terakhir</option>
-                                                <option className="bg-white text-slate-900" value="this_month">Bulan Ini</option>
-                                                <option className="bg-white text-slate-900" value="this_year">Tahun Ini</option>
-                                            </select>
-                                            <FiChevronDown aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-white" size={14} />
+                                        <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">{order.channel} · {order.date} · {order.time} · {order.items} item</p>
+                                        {order.item_details?.length > 0 ? (
+                                            <div className="mt-1 text-[11px] text-slate-600 dark:text-slate-300">
+                                                {order.item_details.slice(0, 2).map((item, index) => (
+                                                    <p key={index} className="truncate">{item.quantity}× {item.name}</p>
+                                                ))}
+                                                {order.item_details.length > 2 && <p className="text-slate-500 dark:text-slate-400">+{order.item_details.length - 2} barang lainnya</p>}
+                                            </div>
+                                        ) : <p className="mt-1 text-[11px] text-slate-500">Belum ada rincian barang</p>}
+                                        <div className="mt-2 flex flex-wrap items-center gap-1.5" title={display.tooltip}>
+                                            <span className={`inline-flex items-center gap-1 text-[11px] font-bold ${display.primary.plain ? '' : 'rounded-md px-2 py-0.5'} ${display.primary.color}`}>
+                                                <StatusIcon size={12} />{display.primary.label}
+                                            </span>
+                                            {display.secondary && <span className={`rounded-md px-1.5 py-0.5 text-[10px] font-bold ${display.secondary.color}`}>{display.secondary.label}</span>}
                                         </div>
-                                        <DateRangePicker
-                                            initialStart={startDate}
-                                            initialEnd={endDate}
-                                            activePeriod={periodFilter}
-                                            fullWidth
-                                            onApply={handleApplyDateRange}
-                                        />
-                                    </div>
-                                </>
-                            )}
+                                        <div className="mt-3 flex flex-wrap items-center justify-end gap-2 border-t border-slate-100 dark:border-slate-800 pt-2 text-xs font-bold">
+                                            <span className="mr-auto text-slate-600 dark:text-slate-300">Metode: {paymentMethodLabel(order.payment_method)}</span>
+                                            <div className="relative z-20 flex items-center gap-2">
+                                                {order.payment_status === 'unpaid' && order.status !== 'cancelled' && (
+                                                    <button type="button" onClick={() => openPayment(order)} className="admin-button min-h-10 bg-accentYellow px-2.5 py-2 text-primaryDark font-bold">{order.payment_review_requested_at ? 'Periksa QRIS' : 'Konfirmasi Bayar'}</button>
+                                                )}
+                                                {order.payment_status === 'paid' && nextAction && (
+                                                    <button type="button" onClick={() => handleUpdateStatus(order, nextAction.nextStatus)} disabled={updatingStatusId === orderId} className="admin-button min-h-10 bg-primary px-2.5 py-2 text-white disabled:bg-slate-600">{nextAction.label}</button>
+                                                )}
+                                                <button type="button" onClick={() => handlePrintOrder(order)} disabled={isPrintingId === orderId} aria-label={`Cetak struk ${order.id}`} className="flex h-10 w-10 items-center justify-center admin-button text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 disabled:text-slate-400">
+                                                    <FiPrinter size={16} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </article>
+                                );
+                            })}
+                            {pageOrders.length === 0 && <p className="admin-surface col-span-full border border-slate-200 bg-white px-3 py-10 text-center text-sm text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">{statusFilter === 'action' ? 'Belum ada pesanan yang perlu ditangani.' : 'Tidak ada transaksi yang sesuai.'}</p>}
                         </div>
-                    </div>
 
-                    {/* Mobile order list */}
-                    <div className="sm:hidden divide-y divide-slate-100 dark:divide-slate-800">
-                        {pageOrders.map(order => {
-                            if (!order) return null;
-                            const display = getStatusDisplay(order.status, order.payment_status, Number(order.returned_amount || 0));
-                            const StatusIcon = display.primary.icon;
-                            const nextAction = getNextStatusAction(order);
-                            const orderId = order.real_id || order.id;
+                        {/* Desktop data table */}
+                        <div className="hidden xl:block">
+                            <table className="w-full min-w-[840px] table-fixed text-left border-collapse">
+                                <colgroup>
+                                    <col className="w-[21%]" />
+                                    <col className="w-[16%]" />
+                                    <col className="w-[8%]" />
+                                    <col className="w-[15%]" />
+                                    <col className="w-[14%]" />
+                                    <col className="w-[13%]" />
+                                    <col className="w-[13%]" />
+                                </colgroup>
+                                <thead>
+                                    <tr className="bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-800 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider sticky top-0 z-10">
+                                        <th className="px-3.5 py-3.5">PESANAN</th>
+                                        <th className="px-3.5 py-3.5">PELANGGAN</th>
+                                        <th className="px-3.5 py-3.5 text-center">ITEM</th>
+                                        <th className="px-3.5 py-3.5 text-right">TOTAL</th>
+                                        <th className="px-3.5 py-3.5 text-center">STATUS</th>
+                                        <th className="px-3.5 py-3.5 text-center">METODE PEMBAYARAN</th>
+                                        <th className="px-3.5 py-3.5 text-center">AKSI</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-200 dark:divide-slate-800 border-b border-slate-200 dark:border-slate-800">
+                                    {pageOrders.map(order => {
+                                        if (!order) return null;
+                                        const nextAction = getNextStatusAction(order);
 
-                            return (
-                                <article key={orderId} className="relative px-3 py-3 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800">
-                                    <Link href={`/orders/${orderId}`} aria-label={`Lihat detail pesanan ${order.id}`} className="absolute inset-0 z-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-blue-600" />
-                                    <div className="flex items-start justify-between gap-3">
-                                        <div className="min-w-0">
-                                            <p className="truncate font-mono text-xs font-bold text-primaryDark dark:text-blue-300">{order.id}</p>
-                                            <p className="mt-0.5 truncate text-sm font-semibold text-slate-900 dark:text-white">{order.customer}</p>
-                                        </div>
-                                        <strong className="shrink-0 text-sm text-slate-900 dark:text-white">{formatRp(order.total)}</strong>
-                                    </div>
-                                    <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">{order.channel} · {order.date} · {order.time} · {order.items} item</p>
-                                    {order.item_details?.length > 0 ? (
-                                        <div className="mt-1 text-[11px] text-slate-600 dark:text-slate-300">
-                                            {order.item_details.slice(0, 2).map((item, index) => (
-                                                <p key={index} className="truncate">{item.quantity}× {item.name}</p>
-                                            ))}
-                                            {order.item_details.length > 2 && <p className="text-slate-500 dark:text-slate-400">+{order.item_details.length - 2} barang lainnya</p>}
-                                        </div>
-                                    ) : <p className="mt-1 text-[11px] text-slate-500">Belum ada rincian barang</p>}
-                                    <div className="mt-2 flex flex-wrap items-center gap-1.5" title={display.tooltip}>
-                                        <span className={`inline-flex items-center gap-1 text-[11px] font-bold ${display.primary.plain ? '' : 'rounded-md px-2 py-0.5'} ${display.primary.color}`}>
-                                            <StatusIcon size={12} />{display.primary.label}
-                                        </span>
-                                        {display.secondary && <span className={`rounded-md px-1.5 py-0.5 text-[10px] font-bold ${display.secondary.color}`}>{display.secondary.label}</span>}
-                                    </div>
-                                    <div className="mt-2 flex items-center justify-end gap-2 border-t border-slate-100 dark:border-slate-800 pt-2 text-xs font-bold">
-                                        <span className="mr-auto text-slate-600 dark:text-slate-300">Metode: {paymentMethodLabel(order.payment_method)}</span>
-                                        <div className="relative z-20 flex items-center gap-2">
-                                            {order.payment_status === 'unpaid' && order.status !== 'cancelled' && (
-                                                <button type="button" onClick={() => openPayment(order)} className="rounded-md bg-accentYellow px-2.5 py-1.5 text-primaryDark font-bold">Konfirmasi Bayar</button>
-                                            )}
-                                            {order.payment_status === 'paid' && nextAction && (
-                                                <button type="button" onClick={() => handleUpdateStatus(order, nextAction.nextStatus)} disabled={updatingStatusId === orderId} className="rounded-md bg-primary px-2.5 py-1.5 text-white disabled:opacity-50">{nextAction.label}</button>
-                                            )}
-                                            <button type="button" onClick={() => handlePrintOrder(order)} disabled={isPrintingId === orderId} aria-label={`Cetak struk ${order.id}`} className="p-1.5 text-slate-500 dark:text-slate-400 disabled:opacity-50">
-                                                <FiPrinter size={16} />
-                                            </button>
-                                        </div>
-                                    </div>
-                                </article>
-                            );
-                        })}
-                        {pageOrders.length === 0 && <p className="px-3 py-10 text-center text-sm text-slate-500 dark:text-slate-400">{statusFilter === 'action' ? 'Belum ada pesanan yang perlu ditangani.' : 'Tidak ada transaksi yang sesuai.'}</p>}
-                    </div>
+                                        return (
+                                            <tr key={order.id} className="hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                                                {/* ID and time */}
+                                                <td className="px-3.5 py-3.5">
+                                                    <span className="block whitespace-nowrap font-mono text-xs font-bold text-slate-700 dark:text-slate-300">{order.id}</span>
+                                                    <span className="mt-0.5 block whitespace-nowrap text-[11px] text-slate-500 dark:text-slate-400">{order.channel} · {order.date} · {order.time}</span>
+                                                </td>
 
-                    {/* Desktop data table */}
-                    <div className="hidden sm:block overflow-x-auto overflow-y-auto max-h-[calc(100vh-380px)] no-scrollbar">
-                        <table className="w-full min-w-[840px] table-fixed text-left border-collapse">
-                            <colgroup>
-                                <col className="w-[21%]" />
-                                <col className="w-[16%]" />
-                                <col className="w-[8%]" />
-                                <col className="w-[15%]" />
-                                <col className="w-[14%]" />
-                                <col className="w-[13%]" />
-                                <col className="w-[13%]" />
-                            </colgroup>
-                            <thead>
-                                <tr className="bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-800 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider sticky top-0 z-10">
-                                    <th className="px-3.5 py-2.5">PESANAN</th>
-                                    <th className="px-3.5 py-2.5">PELANGGAN</th>
-                                    <th className="px-3.5 py-2.5 text-center">ITEM</th>
-                                    <th className="px-3.5 py-2.5 text-right">TOTAL</th>
-                                    <th className="px-3.5 py-2.5 text-center">STATUS</th>
-                                    <th className="px-3.5 py-2.5 text-center">METODE PEMBAYARAN</th>
-                                    <th className="px-3.5 py-2.5 text-center">AKSI</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-200 dark:divide-slate-800 border-b border-slate-200 dark:border-slate-800">
-                                {pageOrders.map(order => {
-                                    if (!order) return null;
-                                    const nextAction = getNextStatusAction(order);
+                                                {/* PELANGGAN */}
+                                                <td className="break-words px-3.5 py-3.5 text-xs font-bold text-slate-800 dark:text-slate-200">
+                                                    {order.customer}
+                                                    {order.matching_item && <span className="mt-0.5 block truncate text-[11px] font-medium text-blue-700 dark:text-blue-300">Barang: {order.matching_item}</span>}
+                                                </td>
 
-                                    return (
-                                        <tr key={order.id} className="hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
-                                            {/* ID and time */}
-                                            <td className="px-3.5 py-2.5">
-                                                <span className="block whitespace-nowrap font-mono text-xs font-bold text-slate-700 dark:text-slate-300">{order.id}</span>
-                                                <span className="mt-0.5 block whitespace-nowrap text-[11px] text-slate-500 dark:text-slate-400">{order.channel} · {order.date} · {order.time}</span>
-                                            </td>
+                                                {/* JUMLAH ITEM */}
+                                                <td className="whitespace-nowrap px-3.5 py-3.5 text-center text-xs font-bold text-slate-700 dark:text-slate-300">{order.items} item</td>
 
-                                            {/* PELANGGAN */}
-                                            <td className="break-words px-3.5 py-2.5 text-xs font-bold text-slate-800 dark:text-slate-200">
-                                                {order.customer}
-                                                {order.matching_item && <span className="mt-0.5 block truncate text-[11px] font-medium text-blue-700 dark:text-blue-300">Barang: {order.matching_item}</span>}
-                                            </td>
+                                                {/* TOTAL TAGIHAN */}
+                                                <td className="whitespace-nowrap px-3.5 py-3.5 text-right font-black text-slate-900 dark:text-white text-xs">
+                                                    {formatRp(order.total)}
+                                                </td>
 
-                                            {/* JUMLAH ITEM */}
-                                            <td className="whitespace-nowrap px-3.5 py-2.5 text-center text-xs font-bold text-slate-700 dark:text-slate-300">{order.items} item</td>
-
-                                            {/* TOTAL TAGIHAN */}
-                                            <td className="whitespace-nowrap px-3.5 py-2.5 text-right font-black text-slate-900 dark:text-white text-xs">
-                                                {formatRp(order.total)}
-                                            </td>
-
-                                             {/* STATUS PESANAN */}
-                                             <td className="px-3.5 py-2.5">
-                                                 {(() => {
-                                                     const display = getStatusDisplay(order.status, order.payment_status, Number(order.returned_amount || 0));
-                                                     const PrimaryIcon = display.primary.icon;
-                                                     return (
-                                                         <div className="flex flex-wrap items-center justify-center gap-1.5 text-center" title={display.tooltip}>
-                                                             <span className={`inline-flex items-center gap-1 text-[11px] font-bold ${display.primary.plain ? '' : 'rounded-md px-2 py-0.5'} ${display.primary.color}`}>
-                                                                 <PrimaryIcon size={12} className="shrink-0" />
-                                                                 {display.primary.label}
-                                                             </span>
-                                                             {display.secondary && (
-                                                                 <span className={`px-1.5 py-0.5 rounded-md text-[10px] font-black tracking-wider ${display.secondary.color}`}>
-                                                                     {display.secondary.label}
+                                                 {/* STATUS PESANAN */}
+                                                 <td className="px-3.5 py-3.5">
+                                                     {(() => {
+                                                         const display = getStatusDisplay(order.status, order.payment_status, Number(order.returned_amount || 0), order.payment_review_requested_at);
+                                                         const PrimaryIcon = display.primary.icon;
+                                                         return (
+                                                             <div className="flex flex-wrap items-center justify-center gap-1.5 text-center" title={display.tooltip}>
+                                                                 <span className={`inline-flex items-center gap-1 text-[11px] font-bold ${display.primary.plain ? '' : 'rounded-md px-2 py-0.5'} ${display.primary.color}`}>
+                                                                     <PrimaryIcon size={12} className="shrink-0" />
+                                                                     {display.primary.label}
                                                                  </span>
-                                                             )}
-                                                         </div>
-                                                     );
-                                                 })()}
-                                             </td>
+                                                                 {display.secondary && (
+                                                                     <span className={`px-1.5 py-0.5 rounded-md text-[10px] font-black tracking-wider ${display.secondary.color}`}>
+                                                                         {display.secondary.label}
+                                                                     </span>
+                                                                 )}
+                                                             </div>
+                                                         );
+                                                     })()}
+                                                 </td>
 
-                                            {/* METODE PEMBAYARAN */}
-                                            <td className="px-3.5 py-2.5 text-center text-xs font-bold text-slate-700 dark:text-slate-300">
-                                                {paymentMethodLabel(order.payment_method)}
-                                            </td>
-                                            {/* AKSI */}
-                                            <td className="px-3.5 py-2.5">
-                                                <div className="flex flex-wrap items-center justify-center gap-1">
-                                                    {/* Highlighted Konfirmasi Pembayaran Button for Unpaid Orders */}
-                                                    {order.payment_status === 'unpaid' && order.status !== 'cancelled' && (
-                                                        <button
-                                                            onClick={() => openPayment(order)}
-                                                            className="max-w-full px-2.5 py-1 text-[11px] font-extrabold text-primaryDark bg-accentYellow hover:bg-yellow-300 active:scale-95 shadow-2xs rounded-lg border border-accentYellow transition-all cursor-pointer"
-                                                            title="Konfirmasi Pembayaran Kasir"
+                                                {/* METODE PEMBAYARAN */}
+                                                <td className="px-3.5 py-3.5 text-center text-xs font-bold text-slate-700 dark:text-slate-300">
+                                                    {paymentMethodLabel(order.payment_method)}
+                                                </td>
+                                                {/* AKSI */}
+                                                <td className="px-3.5 py-3.5">
+                                                    <div className="flex flex-wrap items-center justify-center gap-1">
+                                                        {/* Highlighted Konfirmasi Pembayaran Button for Unpaid Orders */}
+                                                        {order.payment_status === 'unpaid' && order.status !== 'cancelled' && (
+                                                            <button
+                                                                onClick={() => openPayment(order)}
+                                                                className="max-w-full px-2.5 py-1 text-[11px] font-extrabold text-primaryDark bg-accentYellow hover:bg-yellow-300 active:scale-95 shadow-2xs rounded-lg border border-accentYellow transition-all cursor-pointer"
+                                                                title="Konfirmasi Pembayaran Kasir"
+                                                            >
+                                                                {order.payment_review_requested_at ? 'Periksa QRIS' : 'Konfirmasi Bayar'}
+                                                            </button>
+                                                        )}
+
+                                                        {/* View Details */}
+                                                        <Link
+                                                            href={`/orders/${order.real_id || order.id}`}
+                                                            className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors inline-flex"
+                                                            title="Lihat Detail Pesanan"
                                                         >
-                                                            Konfirmasi Bayar
-                                                        </button>
-                                                    )}
+                                                            <FiEye size={15} />
+                                                        </Link>
 
-                                                    {/* View Details */}
-                                                    <Link 
-                                                        href={`/orders/${order.real_id || order.id}`}
-                                                        className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors inline-flex"
-                                                        title="Lihat Detail Pesanan"
-                                                    >
-                                                        <FiEye size={15} />
-                                                    </Link>
+                                                        {/* Status Action / Edit */}
+                                                        {order.payment_status === 'paid' && nextAction && (
+                                                            <button
+                                                                onClick={() => handleUpdateStatus(order, nextAction.nextStatus)}
+                                                                disabled={updatingStatusId === (order.real_id || order.id)}
+                                                                className="p-1.5 text-primary dark:text-yellow-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors inline-flex disabled:opacity-50"
+                                                                title={`Ubah status ke ${nextAction.label}`}
+                                                            >
+                                                                <FiEdit2 size={15} />
+                                                            </button>
+                                                        )}
 
-                                                    {/* Status Action / Edit */}
-                                                    {order.payment_status === 'paid' && nextAction && (
+                                                        {/* Print Receipt */}
                                                         <button
-                                                            onClick={() => handleUpdateStatus(order, nextAction.nextStatus)}
-                                                            disabled={updatingStatusId === (order.real_id || order.id)}
-                                                            className="p-1.5 text-primary dark:text-yellow-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors inline-flex disabled:opacity-50"
-                                                            title={`Ubah status ke ${nextAction.label}`}
+                                                            onClick={() => handlePrintOrder(order)}
+                                                            disabled={isPrintingId === (order.real_id || order.id)}
+                                                            className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors inline-flex disabled:opacity-50 cursor-pointer"
+                                                            title="Cetak Struk"
                                                         >
-                                                            <FiEdit2 size={15} />
+                                                            <FiPrinter size={15} />
                                                         </button>
-                                                    )}
-
-                                                    {/* Print Receipt */}
-                                                    <button
-                                                        onClick={() => handlePrintOrder(order)}
-                                                        disabled={isPrintingId === (order.real_id || order.id)}
-                                                        className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors inline-flex disabled:opacity-50 cursor-pointer"
-                                                        title="Cetak Struk"
-                                                    >
-                                                        <FiPrinter size={15} />
-                                                    </button>
-                                                </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                    {pageOrders.length === 0 && (
+                                        <tr>
+                                            <td colSpan={7} className="px-5 py-12 text-center text-sm text-slate-400 dark:text-slate-500 font-semibold">
+                                                {statusFilter === 'action' ? 'Belum ada pesanan yang perlu ditangani.' : 'Tidak ada transaksi yang sesuai.'}
                                             </td>
                                         </tr>
-                                    );
-                                })}
-                                {pageOrders.length === 0 && (
-                                    <tr>
-                                        <td colSpan={7} className="px-5 py-12 text-center text-sm text-slate-400 dark:text-slate-500 font-semibold">
-                                            {statusFilter === 'action' ? 'Belum ada pesanan yang perlu ditangani.' : 'Tidak ada transaksi yang sesuai.'}
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
 
                     {/* Standardized Table Pagination Footer */}
-                    <div className="p-2.5 sm:p-4 bg-slate-50 dark:bg-slate-800 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2 text-xs font-semibold text-slate-600 dark:text-slate-400">
+                    <div className="mt-2 flex shrink-0 flex-wrap items-center justify-between gap-2 rounded-[12px] border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] font-normal text-slate-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400 xl:mt-0 xl:rounded-none xl:border-0 xl:border-t">
                         <span className="min-w-0">
                             <span className="sm:hidden">{totalItems > 0 ? `${(currentPage - 1) * perPage + 1}–${Math.min(currentPage * perPage, totalItems)}` : '0'} / {totalItems}</span>
                             <span className="hidden sm:inline">{totalItems > 0 ? `${(currentPage - 1) * perPage + 1}–${Math.min(currentPage * perPage, totalItems)}` : '0'} dari {totalItems} pesanan</span>
                         </span>
 
-                        <div className="flex shrink-0 items-center gap-1 sm:gap-2">
-                            <button
-                                onClick={() => changePage(currentPage - 1)}
-                                disabled={currentPage <= 1}
-                                aria-label="Halaman sebelumnya"
-                                className="p-1.5 sm:px-3.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 disabled:hover:bg-white border border-slate-300 dark:border-slate-700 rounded-lg font-bold text-slate-700 dark:text-slate-200 transition flex items-center gap-1 sm:shadow-2xs text-xs"
-                            >
-                                <FiChevronLeft size={14} strokeWidth={2.5} />
-                                <span className="hidden sm:inline">Sebelumnya</span>
-                            </button>
-
-                            <span className="px-1.5 sm:px-3 py-1.5 font-bold text-slate-800 dark:text-slate-200 text-xs">
-                                {currentPage} / {totalPages}
-                            </span>
-
-                            <button
-                                onClick={() => changePage(currentPage + 1)}
-                                disabled={currentPage >= totalPages}
-                                aria-label="Halaman selanjutnya"
-                                className="p-1.5 sm:px-3.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 disabled:hover:bg-white border border-slate-300 dark:border-slate-700 rounded-lg font-bold text-slate-700 dark:text-slate-200 transition flex items-center gap-1 sm:shadow-2xs text-xs"
-                            >
-                                <span className="hidden sm:inline">Selanjutnya</span>
-                                <FiChevronRight size={14} strokeWidth={2.5} />
-                            </button>
-                        </div>
+                        <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={changePage} label="Halaman pesanan" />
                     </div>
                 </div>
             </div>
             )}
 
-            {/* Payment Confirmation Modal */}
-            {paymentOrder && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950 p-4">
-                    <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-slate-900 p-6 shadow-2xl border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white">
-                        <h3 className="text-lg font-black text-slate-900 dark:text-white">Konfirmasi Pembayaran</h3>
-                        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{paymentOrder.id} · {paymentOrder.customer}</p>
-                        <p className="mt-4 text-2xl font-black text-emerald-600 dark:text-emerald-400">{formatRp(paymentOrder.total)}</p>
-
-                        <div className="mt-5 space-y-4">
-                            <p className="text-xs font-bold text-slate-700 dark:text-slate-300">Metode pembayaran: Tunai</p>
-
-                            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
-                                Nominal diterima
-                                <MoneyInput
-                                    min={paymentOrder.total}
-                                    value={paymentMethod === 'cash' ? amountReceived : paymentOrder.total}
-                                    onChange={(event) => setAmountReceived(event.target.value)}
-                                    disabled={paymentMethod !== 'cash'}
-                                    className="mt-1.5 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 p-2.5 text-sm disabled:bg-slate-100 dark:disabled:bg-slate-850 outline-none focus:ring-0 focus:border-primary"
-                                />
-                            </label>
-
-                            {paymentMethod === 'cash' && Number(amountReceived) >= Number(paymentOrder.total) && (
-                                <p className="text-xs font-bold text-slate-500 dark:text-slate-400">
-                                    Kembalian: {formatRp(Number(amountReceived) - Number(paymentOrder.total))}
-                                </p>
-                            )}
+            {/* Confirm actual funds before recording a manual payment. */}
+            <Dialog open={Boolean(paymentOrder)} onClose={() => !isProcessingPayment && setPaymentOrder(null)} className="relative z-50">
+                <div className="fixed inset-0 bg-[#19231f]" aria-hidden="true" />
+                <div className="fixed inset-0 flex items-center justify-center overflow-y-auto p-4">
+                    {paymentOrder && <DialogPanel className="w-full max-w-md max-h-[calc(100dvh-32px)] overflow-y-auto rounded-lg border border-[#dddfd5] bg-white p-6 text-[#19231f]">
+                        <DialogTitle className="font-heading text-xl font-semibold">{rejectingReview ? 'Hasil pemeriksaan QRIS' : 'Konfirmasi pembayaran'}</DialogTitle>
+                        <p className="mt-1 text-xs text-[#58645e]">{paymentOrder.id} · {paymentOrder.customer}</p>
+                        <p className="mt-4 font-heading text-3xl font-semibold">{formatRp(paymentOrder.total)}</p>
+                        {paymentOrder.payment_review_requested_at && <p className="mt-4 rounded-md border border-[#e3cf71] bg-[#fff4bd] p-3 text-xs leading-relaxed">Pelanggan melaporkan sudah membayar melalui QRIS. Periksa transaksi di aplikasi merchant sebelum melanjutkan.{paymentOrder.payment_reference && <span className="mt-1 block font-semibold">Referensi pelanggan: {paymentOrder.payment_reference}</span>}</p>}
+                        {rejectingReview ? <label className="mt-5 block text-xs font-semibold">Keterangan untuk pelanggan<textarea className="mt-2 w-full rounded-md border border-[#c8cdc1] p-3 text-sm" rows={3} maxLength={255} value={rejectionReason} onChange={event => setRejectionReason(event.target.value)} placeholder="Jelaskan hasil pengecekan dana masuk" /><span className="mt-1 block text-xs font-normal text-[#58645e]">Status kembali belum dibayar dan batas pembayaran diperpanjang. Pastikan dana memang belum diterima.</span></label> : <div className="mt-5 space-y-4">
+                            <label className="block text-xs font-semibold">Metode pembayaran<select className="mt-2 min-h-11 w-full rounded-md border border-[#c8cdc1] text-sm" value={paymentMethod} onChange={event => { setPaymentMethod(event.target.value); setFundsChecked(false); }} disabled={Boolean(paymentOrder.payment_review_requested_at)}>
+                                {app_settings?.cash_enabled !== false && <option value="cash">Tunai</option>}
+                                {(app_settings?.customer_qris_enabled || paymentOrder.payment_review_requested_at) && <option value="qris_manual">QRIS</option>}
+                            </select></label>
+                            {paymentMethod === 'cash' ? <><label className="block text-xs font-semibold">Nominal diterima<MoneyInput min={paymentOrder.total} value={amountReceived} onChange={event => setAmountReceived(event.target.value)} className="mt-2 min-h-11 w-full rounded-md border border-[#c8cdc1] p-3 text-sm" /></label><p className="text-xs text-[#58645e]">Kembalian: {formatRp(Math.max(0, Number(amountReceived) - Number(paymentOrder.total)))}</p></> : <><label className="block text-xs font-semibold">Referensi transaksi (opsional)<input type="text" maxLength={100} value={paymentReference} onChange={event => setPaymentReference(event.target.value)} className="mt-2 min-h-11 w-full rounded-md border border-[#c8cdc1] p-3 text-sm" /></label><label className="flex min-h-11 cursor-pointer items-start gap-3 rounded-md border border-[#dddfd5] bg-[#f3f3ed] p-3 text-xs leading-relaxed"><input type="checkbox" checked={fundsChecked} onChange={event => setFundsChecked(event.target.checked)} className="mt-1 rounded text-[#19231f]" /><span>Saya sudah memeriksa aplikasi merchant dan dana sebesar {formatRp(paymentOrder.total)} benar-benar masuk.</span></label></>}
+                        </div>}
+                        <div className="mt-6 flex flex-wrap justify-end gap-2">
+                            <button onClick={() => rejectingReview ? setRejectingReview(false) : setPaymentOrder(null)} disabled={isProcessingPayment} className="min-h-11 rounded-md border border-[#c8cdc1] px-4 text-xs font-semibold">Kembali</button>
+                            {paymentOrder.payment_review_requested_at && !rejectingReview && <button onClick={() => setRejectingReview(true)} disabled={isProcessingPayment} className="min-h-11 rounded-md border border-[#c8cdc1] px-4 text-xs font-semibold">Dana belum masuk</button>}
+                            <button onClick={rejectingReview ? rejectReview : confirmPayment} disabled={isProcessingPayment || (rejectingReview ? rejectionReason.trim().length < 5 : paymentMethod === 'qris_manual' && !fundsChecked)} className="min-h-11 rounded-md bg-[#FFDD00] px-4 text-xs font-bold disabled:bg-[#e5e7df] disabled:text-[#58645e]">{isProcessingPayment ? 'Memproses…' : rejectingReview ? 'Kirim keterangan' : 'Konfirmasi lunas'}</button>
                         </div>
-
-                        <div className="mt-6 flex justify-end gap-3">
-                            <button
-                                onClick={() => setPaymentOrder(null)}
-                                disabled={isProcessingPayment}
-                                className="rounded-xl px-4 py-2.5 text-xs font-bold text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
-                            >
-                                Batal
-                            </button>
-                            <button
-                                onClick={confirmPayment}
-                                disabled={isProcessingPayment}
-                                className="rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white hover:bg-emerald-700 disabled:bg-slate-300 shadow-xs"
-                            >
-                                {isProcessingPayment ? 'Memproses...' : 'Konfirmasi Lunas'}
-                            </button>
-                        </div>
-                    </div>
+                    </DialogPanel>}
                 </div>
-            )}
+            </Dialog>
 
             {/* THERMAL PRINTABLE RECEIPT TEMPLATE FOR ORDER LIST */}
             {printOrderData && (

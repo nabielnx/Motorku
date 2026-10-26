@@ -5,6 +5,8 @@ incoming=$(realpath "$2")
 case "$root" in /|/var|/var/www|/home|/srv) echo 'Unsafe deployment path'; exit 1;; esac
 case "$incoming" in "$root"/.incoming-*) ;; *) echo 'Invalid incoming release path'; exit 1;; esac
 test -f "$root/.env" && test -d "$root/storage" && test -f "$incoming/artisan"
+exec 9>"$root/.deploy.lock"
+flock -n 9 || { echo 'Another deployment or cleanup is active' >&2; exit 1; }
 command -v rsync >/dev/null
 command -v mysqldump >/dev/null
 php -r 'exit(extension_loaded("gd") && (gd_info()["WebP Support"] ?? false) ? 0 : 1);'

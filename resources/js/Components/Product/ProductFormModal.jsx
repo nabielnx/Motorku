@@ -1,3 +1,4 @@
+import DeleteButton from '@/Components/Admin/DeleteButton';
 import AdminButton from '@/Components/Admin/Button';
 import ImagePicker from '@/Components/ImagePicker';
 import AdminDialog, { DialogTitle } from '@/Components/Admin/Dialog';
@@ -187,7 +188,8 @@ export default function ProductFormModal({
                                     if (validImage(file)) setProductFormData({ ...productFormData, imageFile: file, imagePreview: URL.createObjectURL(file), removeImage: false });
                                 }} />
                                 {(productFormData.imagePreview || productFormData.image) && (
-                                    <button
+                                    <DeleteButton
+                                        draft={Boolean(productFormData.imageFile) || !editingItem}
                                         type="button"
                                         disabled={isLoading}
                                         onClick={() => productFormData.imageFile
@@ -196,7 +198,7 @@ export default function ProductFormModal({
                                         className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:opacity-50 dark:border-red-900 dark:text-red-300 dark:hover:bg-red-950"
                                     >
                                         <FiTrash2 size={14} aria-hidden="true" /> {productFormData.imageFile ? 'Batal pilih foto' : 'Hapus gambar'}
-                                    </button>
+                                    </DeleteButton>
                                 )}
                                 {productFormData.removeImage && <p className="text-xs font-medium text-red-600 dark:text-red-400">File gambar lama akan dihapus permanen saat perubahan disimpan.</p>}
                                 <p className="admin-help">{IMAGE_HELP}</p>

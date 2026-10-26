@@ -5,7 +5,7 @@ export const MAX_POS_QTY = 200;
 export const MAX_POS_ITEMS = 20;
 
 export function formatPosProduct(product) {
-    const category = product.category?.name || 'Sparepart';
+    const category = product.category?.name || 'Produk';
     return {
         id: product.id,
         sku: product.sku || '',
@@ -33,6 +33,27 @@ export function readPosCart(storage) {
     } catch {
         return [];
     }
+}
+
+export function reconcilePosCart(cart, products, checkedIds = null) {
+    const catalog = new Map(products.map(formatPosProduct).map(product => [product.id, product]));
+    const requested = checkedIds ? new Set(checkedIds) : null;
+    let changed = false;
+    let needsReview = false;
+    const updated = cart.flatMap(item => {
+        const product = catalog.get(item.id);
+        if (!product && requested && !requested.has(item.id)) return [item];
+        if (!product || product.is_available === false) {
+            changed = true;
+            needsReview = true;
+            return [];
+        }
+        const differs = ['price', 'stock', 'name', 'image'].some(key => item[key] !== product[key]);
+        changed ||= differs;
+        needsReview ||= Number(item.price) !== product.price || item.qty > product.stock;
+        return [differs ? { ...item, ...product } : item];
+    });
+    return { cart: changed ? updated : cart, needsReview };
 }
 
 export function addToPosCart(cart, item) {

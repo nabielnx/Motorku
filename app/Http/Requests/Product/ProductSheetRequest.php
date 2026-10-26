@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\Product;
 
 use App\Services\ProductSheetService;
+use App\Support\BusinessRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -28,8 +29,9 @@ class ProductSheetRequest extends FormRequest
                 'sheets.*.mapping' => ['required', 'array:'.implode(',', array_keys(ProductSheetService::FIELDS))],
                 'sheets.*.mapping.*' => ['nullable', 'integer', 'min:0', 'max:39'],
                 'mode' => ['required', Rule::in(['add', 'upsert', 'update'])],
-                'default_group' => ['required', Rule::in(['automotive', 'bicycle', 'electronics', 'hardware'])],
+                'default_group' => ['required', BusinessRule::exists('data_types', 'key')->where('kind', 'product')],
                 'use_estimated_cost' => ['required', 'boolean'],
+                'update_stock' => ['sometimes', 'boolean'],
             ],
             'commit' => [
                 'token' => ['required', 'uuid'],
@@ -39,7 +41,7 @@ class ProductSheetRequest extends FormRequest
             ],
             default => [
                 'format' => ['sometimes', Rule::in(['xlsx', 'csv', 'pdf'])],
-                'group' => ['nullable', Rule::in(['automotive', 'bicycle', 'electronics', 'hardware'])],
+                'group' => ['nullable', BusinessRule::exists('data_types', 'key')->where('kind', 'product')],
             ],
         };
     }

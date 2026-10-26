@@ -1,3 +1,5 @@
+import DeleteButton from '@/Components/Admin/DeleteButton';
+import Pagination from '@/Components/Pagination';
 import AdminDialog, { DialogTitle } from '@/Components/Admin/Dialog';
 import AdminButton from '@/Components/Admin/Button';
 import { useState, useEffect, useRef } from 'react';
@@ -6,7 +8,7 @@ import UserTableSkeleton from '@/Components/Skeletons/UserTableSkeleton';
 import { Head, usePage, router } from '@inertiajs/react';
 import axios from 'axios';
 import { toast } from 'sonner';
-import { FiPlus, FiEdit2, FiTrash2, FiSearch, FiShield, FiUserCheck, FiUserX, FiX, FiAlertCircle, FiMail, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2, FiSearch, FiShield, FiUserCheck, FiUserX, FiX, FiAlertCircle, FiMail, } from 'react-icons/fi';
 
 const ROLE_BADGES = {
     owner: { label: 'Owner', color: 'bg-primary text-white border-primary' },
@@ -239,7 +241,7 @@ export default function UserIndex({ initialUsers = {}, activeOwnersCount = 0, ma
     return (
         <AuthenticatedLayout pageTitle={locale === 'en' ? 'Staff Management' : 'Kelola Staf'}>
             <Head title={`${locale === 'en' ? 'Staff Management' : 'Kelola Staf'}`}>
-                <meta name="description" content="Kelola akun pengguna, peran hak akses (Owner / Kasir), dan status staf pegawai Motorku." />
+                <meta name="description" content="Kelola akun pengguna, peran hak akses (Owner / Kasir), dan status staf pegawai TokoM." />
             </Head>
             <div className="admin-staff space-y-4">
                 <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
@@ -340,7 +342,7 @@ export default function UserIndex({ initialUsers = {}, activeOwnersCount = 0, ma
                                                         <button onClick={() => resendInvitation(user)} disabled={loading} className="p-2 text-primary hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg disabled:opacity-40 admin-icon-button" title="Kirim ulang undangan" aria-label={`Kirim ulang undangan untuk ${user.name}`}><FiMail size={16} /></button>
                                                     )}
                                                     <button onClick={() => openEdit(user)} className="p-2 text-slate-500 hover:text-primaryDark dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg cursor-pointer admin-icon-button" title="Edit Staf" aria-label={`Edit staf ${user.name}`}><FiEdit2 size={16} /></button>
-                                                    <button 
+                                                    <DeleteButton
                                                         onClick={() => confirmDelete(user.id)} 
                                                         disabled={deleteDisabled}
                                                         className={`p-2 rounded-lg transition-colors cursor-pointer admin-icon-button ${deleteDisabled ? 'text-slate-200 dark:text-slate-700 cursor-not-allowed' : 'text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950'}`}
@@ -348,7 +350,7 @@ export default function UserIndex({ initialUsers = {}, activeOwnersCount = 0, ma
                                                         aria-label={`Hapus staf ${user.name}`}
                                                     >
                                                         <FiTrash2 size={16} />
-                                                    </button>
+                                                    </DeleteButton>
                                                 </div>
                                             </td>
                                         </tr>
@@ -367,27 +369,7 @@ export default function UserIndex({ initialUsers = {}, activeOwnersCount = 0, ma
                             <span>
                                 <span className="hidden sm:inline">Menampilkan </span>{((currentPage - 1) * perPage) + 1}–{Math.min(currentPage * perPage, totalUsers)} / {totalUsers} staf
                             </span>
-                            <div className="flex items-center space-x-2">
-                                <button
-                                    onClick={() => changeUserPage(currentPage - 1)}
-                                    disabled={currentPage <= 1}
-                                    aria-label="Halaman staf sebelumnya"
-                                    className="px-3 py-1.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 rounded-lg border border-slate-300 dark:border-slate-700 font-bold transition text-slate-700 dark:text-slate-200 cursor-pointer"
-                                >
-                                    <FiChevronLeft className="sm:hidden" /><span className="hidden sm:inline">Sebelumnya</span>
-                                </button>
-                                <span className="whitespace-nowrap px-3 py-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg text-slate-800 dark:text-slate-200 font-bold">
-                                    {currentPage} / {totalPages}
-                                </span>
-                                <button
-                                    onClick={() => changeUserPage(currentPage + 1)}
-                                    disabled={currentPage >= totalPages}
-                                    aria-label="Halaman staf berikutnya"
-                                    className="px-3 py-1.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 rounded-lg border border-slate-300 dark:border-slate-700 font-bold transition text-slate-700 dark:text-slate-200 cursor-pointer"
-                                >
-                                    <FiChevronRight className="sm:hidden" /><span className="hidden sm:inline">Selanjutnya</span>
-                                </button>
-                            </div>
+                            <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={changeUserPage} label="Halaman staf" />
                         </div>
                     )}
                 </div>
@@ -475,9 +457,9 @@ export default function UserIndex({ initialUsers = {}, activeOwnersCount = 0, ma
                             <AdminButton disabled={loading} onClick={() => setModal(null)} variant="secondary" className="flex-1">
                                 Batal
                             </AdminButton>
-                            <AdminButton onClick={executeDelete} disabled={loading} variant="danger" className="flex-1">
+                            <DeleteButton as={AdminButton} onClick={executeDelete} disabled={loading} variant="danger" className="flex-1">
                                 {loading ? 'Menghapus...' : 'Ya, Hapus!'}
-                            </AdminButton>
+                            </DeleteButton>
                         </div>
                     </div>
                 </AdminDialog>

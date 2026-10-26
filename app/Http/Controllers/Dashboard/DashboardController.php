@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\PaginationRequest;
 use App\Models\Order;
 use App\Services\DashboardService;
 use Carbon\Carbon;
@@ -60,7 +63,7 @@ class DashboardController extends Controller implements HasMiddleware
         return response()->json($stats);
     }
 
-    public function recentOrders(Request $request): JsonResponse
+    public function recentOrders(PaginationRequest $request): JsonResponse
     {
         $perPage = $request->integer('per_page', 7);
         $period = $request->query('period');

@@ -1,11 +1,18 @@
 <?php
 
-use App\Http\Middleware\ApplySystemSettings;
+declare(strict_types=1);
+
+use App\Http\Middleware\AddRobotsHeader;
+use App\Http\Middleware\ControlAdminDeletion;
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\MigrateSessionCookie;
+use App\Http\Middleware\ResolveBusiness;
+use App\Http\Middleware\ResolveCustomerSession;
 use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
+use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -13,6 +20,7 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Middleware\FrameGuard;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Middleware\PermissionMiddleware;
 use Spatie\Permission\Middleware\RoleMiddleware;
@@ -56,12 +64,17 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         $middleware->prepend(SecurityHeaders::class);
-        $middleware->append([ApplySystemSettings::class, FrameGuard::class]);
-        $middleware->web(append: [
+        $middleware->append([FrameGuard::class, AddRobotsHeader::class]);
+        $middleware->web(prepend: [MigrateSessionCookie::class], append: [
+            ResolveBusiness::class,
+            ResolveCustomerSession::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
             EnsureUserIsActive::class,
+            ControlAdminDeletion::class,
         ]);
+        $middleware->appendToPriorityList(EncryptCookies::class, MigrateSessionCookie::class);
+        $middleware->prependToPriorityList(SubstituteBindings::class, ResolveBusiness::class);
         $middleware->alias([
             'role' => RoleMiddleware::class,
             'permission' => PermissionMiddleware::class,
@@ -132,7 +145,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 return response()->json([
                     'success' => false,
                     'message' => $message,
-                ], $statusCode);
+                ], $statusCode, $e instanceof HttpExceptionInterface ? $e->getHeaders() : []);
             }
         });
     })->create();

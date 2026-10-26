@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Enums\InventoryLogType;
 use App\Models\Category;
+use App\Models\DataType;
 use App\Models\Product;
 use App\Services\ProductSheet\ProductSheetExporter;
 use App\Services\ProductSheet\ProductSheetReader;
@@ -38,10 +40,10 @@ class ProductSheetService
     {
         $sheets = $this->reader->read($file);
         // Expired drafts contain private prices and are discarded, including when cron is not running.
-        DB::table('product_sheet_imports')->where('expires_at', '<', now())->delete();
+        app(BusinessContext::class)->table('product_sheet_imports')->where('expires_at', '<', now())->delete();
         $token = (string) Str::uuid();
-        DB::table('product_sheet_imports')->insert([
-            'id' => $token, 'user_id' => $userId, 'payload' => json_encode($sheets, JSON_THROW_ON_ERROR),
+        app(BusinessContext::class)->table('product_sheet_imports')->insert([
+            ...app(BusinessContext::class)->attributes([]), 'id' => $token, 'user_id' => $userId, 'payload' => json_encode($sheets, JSON_THROW_ON_ERROR),
             'expires_at' => now()->addMinutes(30),
         ]);
 
@@ -61,6 +63,7 @@ class ProductSheetService
             $sheets = json_decode($draft->payload, true, flags: JSON_THROW_ON_ERROR);
             $catalog = $this->catalogIndex();
             $categories = Category::with('parent')->get();
+            $input['catalog_groups'] = Category::catalogGroups();
             $rows = [];
             foreach ($input['sheets'] as $selection) {
                 $sheet = collect($sheets)->firstWhere('id', $selection['id']);
@@ -91,11 +94,14 @@ class ProductSheetService
                     $row['version'] = $product?->sync_version;
                     $row['fingerprint'] = $product ? $this->fingerprint($product) : null;
                     $row['old_price'] = $product?->price;
+                    $row['old_stock'] = $product?->stock;
                     $row['matched_name'] = $product?->name;
                     $row['action'] = $product ? 'update' : 'create';
                     if (($product && $input['mode'] === 'add') || (! $product && $input['mode'] === 'update')) {
                         $row['action'] = 'skip';
                     }
+                    $row['update_stock'] = $product !== null && $row['action'] === 'update'
+                        && (bool) ($input['update_stock'] ?? false) && $row['data']['stock'] !== null;
                     if ($product && $this->group($product->category) !== $row['group']) {
                         $row['errors'][] = 'Kode Barang berada di grup berbeda.';
                     }
@@ -116,7 +122,12 @@ class ProductSheetService
                         }
                     }
                     if ($product) {
-                        $row['warnings'][] = 'Hanya harga jual dan modal terpilih diperbarui. Stok, gambar, nama, dan kategori tetap.';
+                        $row['warnings'][] = 'Harga jual dan modal terpilih diperbarui. Gambar, nama, kategori, dan satuan tetap.';
+                        $row['warnings'][] = $row['update_stock']
+                            ? 'Stok disetel sesuai file, bukan ditambahkan.'
+                            : 'Stok tetap. Pembaruan stok harus dicentang dan kolom Stok harus terisi.';
+                    } elseif ($row['data']['stock'] === null) {
+                        $row['warnings'][] = 'Stok kosong: barang baru mulai dari 0.';
                     }
                     $rows[] = $row;
                 }
@@ -154,7 +165,7 @@ class ProductSheetService
             }
             unset($row);
             $preview = ['revision' => (string) Str::uuid(), 'rows' => $rows];
-            DB::table('product_sheet_imports')->where('id', $draft->id)->update(['preview' => json_encode($preview, JSON_THROW_ON_ERROR)]);
+            app(BusinessContext::class)->table('product_sheet_imports')->where('id', $draft->id)->update(['preview' => json_encode($preview, JSON_THROW_ON_ERROR)]);
 
             return $preview;
         });
@@ -162,7 +173,7 @@ class ProductSheetService
 
     public function commit(array $input, string $userId): array
     {
-        return Cache::lock('products:sheet-import', 120)->block(5, function () use ($input, $userId) {
+        return Cache::lock(app(BusinessContext::class)->key('products:sheet-import'), 120)->block(5, function () use ($input, $userId) {
             $result = DB::transaction(function () use ($input, $userId) {
                 $draft = $this->draft($input['token'], $userId, true);
                 $preview = json_decode($draft->preview ?? '{}', true, flags: JSON_THROW_ON_ERROR);
@@ -184,6 +195,10 @@ class ProductSheetService
                     $this->fail('Pilih hanya baris yang valid dan tidak dilewati.');
                 }
                 $counts = ['created' => 0, 'updated' => 0];
+                $groups = $rows->pluck('group')->unique()->values();
+                if (DataType::where('kind', 'product')->whereIn('key', $groups)->orderBy('key')->lockForUpdate()->get()->count() !== $groups->count()) {
+                    $this->fail('Jenis produk berubah. Buat pratinjau ulang.');
+                }
                 $catalog = $this->catalogIndex();
                 foreach ($rows as $row) {
                     $data = $row['data'];
@@ -192,11 +207,22 @@ class ProductSheetService
                         if (! $product || $this->fingerprint($product) !== $row['fingerprint'] || $this->group($product->category) !== $row['group']) {
                             $this->fail('Data barang berubah setelah pratinjau. Buat pratinjau ulang.');
                         }
-                        $changes = ['price' => $data['price'], 'sync_version' => $product->sync_version + 1];
+                        $stockWillChange = ($row['update_stock'] ?? false) && $data['stock'] !== $product->stock;
+                        $changes = ['price' => $data['price']];
+                        if (! $stockWillChange) {
+                            $changes['sync_version'] = $product->sync_version + 1;
+                        }
                         if ($data['cost_price'] !== null) {
                             $changes['cost_price'] = $data['cost_price'];
                         }
                         $product->update($changes);
+                        if ($stockWillChange) {
+                            app(InventoryService::class)->adjustStock([
+                                'product_id' => $product->id,
+                                'type' => InventoryLogType::Adjustment,
+                                'quantity' => $data['stock'],
+                            ], $userId, 'Penyesuaian stok dari impor: '.$row['sheet'].' baris '.$row['number']);
+                        }
                         $counts['updated']++;
                     } else {
                         $existing = isset($catalog['skus'][mb_strtolower($data['sku'])]) || $this->nameMatches($data, $row['group'], $catalog)->isNotEmpty();
@@ -218,13 +244,13 @@ class ProductSheetService
                             $category = Category::create(['name' => $row['category'], 'catalog_group' => $row['group']]);
                         }
                         $data['sku'] = $data['sku'] ?: 'IMP-'.strtoupper(substr(hash('sha256', $draft->id.':'.$row['id']), 0, 16));
-                        $created = app(ProductService::class)->createProduct([...$data, 'category_id' => $category->id, 'minimum_stock' => 0, 'is_available' => true]);
+                        $created = app(ProductService::class)->createProduct([...$data, 'stock' => $data['stock'] ?? 0, 'category_id' => $category->id, 'minimum_stock' => 0, 'is_available' => true]);
                         $this->indexProduct($created->load('category.parent'), $catalog);
                         $counts['created']++;
                     }
                 }
                 // Receipt and product writes commit together, so a retry cannot import twice.
-                DB::table('product_sheet_imports')->where('id', $draft->id)->update([
+                app(BusinessContext::class)->table('product_sheet_imports')->where('id', $draft->id)->update([
                     'payload' => '[]', 'result' => json_encode(['selection' => $selection, 'counts' => $counts], JSON_THROW_ON_ERROR),
                 ]);
 
@@ -255,16 +281,21 @@ class ProductSheetService
             return trim((string) $value);
         };
         $groupText = $text('group');
-        $group = $groupText === '' ? $options['default_group'] : array_search($this->key($groupText), array_map(fn ($label) => $this->key($label), Category::CATALOG_GROUPS), true);
-        if ($group === false && array_key_exists($groupText, Category::CATALOG_GROUPS)) {
+        $catalogGroups = $options['catalog_groups'];
+        $group = $groupText === '' ? $options['default_group'] : array_search($this->key($groupText), array_map(fn ($label) => $this->key($label), $catalogGroups), true);
+        if ($group === false) {
+            $legacy = array_search($this->key($groupText), array_map(fn ($label) => $this->key($label), Category::CATALOG_GROUPS), true);
+            $group = $legacy !== false && isset($catalogGroups[$legacy]) ? $legacy : false;
+        }
+        if ($group === false && array_key_exists($groupText, $catalogGroups)) {
             $group = $groupText;
         }
         if ($group === false) {
-            $errors[] = 'Grup harus Otomotif, Sepeda, Elektronik, atau Alat Bangunan.';
+            $errors[] = 'Grup tidak ditemukan. Tambahkan jenis produk di Kelola Jenis terlebih dahulu.';
             $group = $options['default_group'];
         }
         if ($groupText === '') {
-            $warnings[] = 'Grup kosong: memakai '.Category::CATALOG_GROUPS[$group].'.';
+            $warnings[] = 'Grup kosong: memakai '.$catalogGroups[$group].'.';
         }
         $data = ['name' => $text('name'), 'brand' => $text('brand'), 'sku' => $text('sku'), 'description' => $text('description', 2000), 'unit' => $text('unit', 50)];
         $category = $text('category');
@@ -279,10 +310,7 @@ class ProductSheetService
             $cost = $read('estimated_cost');
         }
         $data['cost_price'] = $this->number($cost, 'Harga Beli / Modal', $errors);
-        $data['stock'] = $this->number($read('stock'), 'Stok', $errors, max: 99999999) ?? 0;
-        if ($read('stock') === null || $read('stock') === '') {
-            $warnings[] = 'Stok kosong: barang baru mulai dari 0.';
-        }
+        $data['stock'] = $this->number($read('stock'), 'Stok', $errors, max: 99999999);
         if ($data['unit'] === '') {
             $data['unit'] = 'pcs';
             $warnings[] = 'Satuan kosong: barang baru memakai pcs.';
@@ -325,7 +353,7 @@ class ProductSheetService
 
     private function draft(string $token, string $userId, bool $lock = false): object
     {
-        $query = DB::table('product_sheet_imports')->where('id', $token)->where('user_id', $userId)->where('expires_at', '>', now());
+        $query = app(BusinessContext::class)->table('product_sheet_imports')->where('id', $token)->where('user_id', $userId)->where('expires_at', '>', now());
         $draft = ($lock ? $query->lockForUpdate() : $query)->first();
         if (! $draft) {
             $this->fail('Pratinjau kedaluwarsa (30 menit) atau tidak ditemukan. Upload ulang file.');
@@ -399,7 +427,7 @@ class ProductSheetService
 
     private function fingerprint(Product $product): string
     {
-        return hash('sha256', json_encode([$product->sku, $product->name, $product->category_id, $product->price, $product->cost_price, $product->sync_version, $product->updated_at?->format('Y-m-d H:i:s.u')]));
+        return hash('sha256', json_encode([$product->sku, $product->name, $product->category_id, $product->price, $product->cost_price, $product->stock, $product->sync_version, $product->updated_at?->format('Y-m-d H:i:s.u')]));
     }
 
     private function fail(string $message): never

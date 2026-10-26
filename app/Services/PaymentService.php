@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services;
 
 use App\Enums\OrderStatus;
@@ -7,6 +9,7 @@ use App\Enums\PaymentStatus;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\Setting;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -23,13 +26,17 @@ class PaymentService
             $order = Order::whereKey($data['order_id'])->lockForUpdate()->firstOrFail();
 
             $method = $data['payment_method'] ?? null;
+            $this->assertCashEnabled($method);
             if (! in_array($method, ['cash', 'qris_manual'], true)) {
                 throw ValidationException::withMessages([
                     'payment_method' => 'Metode pembayaran tidak didukung.',
                 ]);
             }
 
-            if ($method === 'qris_manual' && (
+            if ($order->payment_review_requested_at && $method !== 'qris_manual') {
+                throw ValidationException::withMessages(['payment_method' => 'Periksa laporan QRIS terlebih dahulu sebelum menerima pembayaran lain.']);
+            }
+            if ($method === 'qris_manual' && ! $order->payment_review_requested_at && (
                 Setting::where('group', 'payment')->where('key', 'qris_enabled')->value('value') === 'false'
                 || blank(Setting::where('group', 'store')->where('key', 'qris_image')->value('value'))
             )) {
@@ -124,6 +131,7 @@ class PaymentService
             }
 
             if ($status === 'paid') {
+                $this->assertCashEnabled($payment->payment_method);
                 if ($order->order_status === OrderStatus::Cancelled) {
                     throw ValidationException::withMessages(['order_id' => 'Pesanan yang dibatalkan tidak bisa dibayar.']);
                 }
@@ -164,15 +172,26 @@ class PaymentService
         });
     }
 
+    private function assertCashEnabled(?string $method): void
+    {
+        if ($method === 'cash' && Setting::where('group', 'payment')->where('key', 'cash_enabled')->value('value') === 'false') {
+            throw ValidationException::withMessages(['payment_method' => 'Pembayaran tunai sedang dinonaktifkan. Pilih metode pembayaran lain.']);
+        }
+    }
+
     /**
-     * Finalize an order when payment is marked as paid:
-     * 1. Update Order: payment_status = 'paid'
-     * (Order status remains pending/preparing/ready until staff complete the order flow)
+     * Finalize an order when payment is marked as paid.
+     * Staff still complete the order flow separately.
      */
     public function finalizePaidOrder(Order $order): void
     {
+        $salesKey = CacheService::key('catalog:sales:v1');
+        DB::afterCommit(fn () => Cache::forget($salesKey));
         $order->update([
             'payment_status' => PaymentStatus::Paid,
+            'payment_review_requested_at' => null,
+            'payment_review_note' => null,
+            'expires_at' => null,
             'order_status' => $order->customer_access_token && $order->order_status === OrderStatus::Pending
                 ? OrderStatus::Preparing
                 : $order->order_status,

@@ -1,9 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Middleware;
 
+use App\Models\DataType;
 use App\Models\Setting;
 use App\Services\CacheService;
+use App\Services\CustomerAccountService;
+use App\Services\GoogleLoginService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Middleware;
@@ -20,10 +25,14 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
         $user = $request->user();
+        $business = $request->attributes->get('business');
+        if ($request->attributes->get('public_store') && $user?->business_id !== $business?->id) {
+            $user = null;
+        }
 
         // 1 query untuk semua settings — cached for 60 min, flushed on save
-        $s = Cache::remember(CacheService::SETTINGS_SHARED, CacheService::TTL_SETTINGS, function () {
-            return Setting::whereIn('group', ['store', 'system', 'printer', 'catalog'])
+        $s = Cache::remember(CacheService::key(CacheService::SETTINGS_SHARED), CacheService::TTL_SETTINGS, function () {
+            return Setting::whereIn('group', ['store', 'system', 'printer', 'catalog', 'payment', 'references'])
                 ->get()
                 ->mapWithKeys(fn ($row) => ["{$row->group}.{$row->key}" => $row->value])
                 ->toArray();
@@ -33,6 +42,12 @@ class HandleInertiaRequests extends Middleware
 
         return [
             ...parent::share($request),
+            'customer' => fn () => $request->attributes->get('public_store') ? app(CustomerAccountService::class)->shared() : null,
+            'google_login_enabled' => app(GoogleLoginService::class)->enabled(),
+            'business' => $business ? ['id' => $business->id, 'name' => $business->name, 'slug' => $business->slug, 'public_url' => $business->publicUrl()] : null,
+            'shop_slug' => $request->attributes->get('shop_slug'),
+            'catalog_groups' => fn () => DataType::productGroups($user?->business_id ?? $business?->id),
+            'reference_modules' => fn () => ($s['references.enabled'] ?? 'true') !== 'false' && $user?->hasRole('owner') ? DataType::referenceModules($user->business_id) : [],
 
             'auth' => [
                 'user' => $user ? [
@@ -60,10 +75,14 @@ class HandleInertiaRequests extends Middleware
             'login_image_url' => ! empty($s['store.login_image']) ? (str_starts_with($s['store.login_image'], 'http') ? $s['store.login_image'] : '/storage/'.ltrim($s['store.login_image'], '/')) : null,
 
             'app_settings' => [
+                'deletion_enabled' => ! array_key_exists('system.deletion_enabled', $s) || $s['system.deletion_enabled'] === 'true',
+                'references_enabled' => ($s['references.enabled'] ?? 'true') !== 'false',
+                'cash_enabled' => ($s['payment.cash_enabled'] ?? 'true') !== 'false',
+                'customer_qris_enabled' => ($s['payment.qris_enabled'] ?? 'true') !== 'false' && ! empty($s['store.qris_image']),
                 'timezone' => $timezone,
                 'locale' => $s['system.locale'] ?? 'id',
                 'store_tagline' => $s['store.tagline'] ?? 'POS & ORDER',
-                'store_name' => $s['store.name'] ?? 'Motorku',
+                'store_name' => $s['store.name'] ?? 'TokoM',
                 'store_address' => $s['store.address'] ?? null,
                 'store_phone' => $s['store.phone'] ?? null,
                 'auto_print_receipt' => ($s['printer.auto_print_receipt'] ?? 'true') !== 'false',

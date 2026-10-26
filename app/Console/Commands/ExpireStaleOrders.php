@@ -1,8 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Console\Commands;
 
+use App\Models\Business;
 use App\Models\Order;
+use App\Services\BusinessContext;
 use App\Services\OrderCancellationService;
 use App\Services\SettingService;
 use Illuminate\Console\Command;
@@ -16,6 +20,25 @@ class ExpireStaleOrders extends Command
     protected $description = 'Batalkan order pending + unpaid yang sudah melewati batas waktu (expires_at).';
 
     public function handle(OrderCancellationService $cancellation): int
+    {
+        $failed = false;
+        foreach (Business::cursor() as $business) {
+            $timezone = config('app.timezone');
+            $locale = app()->getLocale();
+            try {
+                $status = app(BusinessContext::class)->run($business->id, fn () => $this->expireBusiness($cancellation));
+                $failed = $failed || $status !== self::SUCCESS;
+            } finally {
+                config(['app.timezone' => $timezone]);
+                date_default_timezone_set($timezone);
+                app()->setLocale($locale);
+            }
+        }
+
+        return $failed ? self::FAILURE : self::SUCCESS;
+    }
+
+    private function expireBusiness(OrderCancellationService $cancellation): int
     {
         app(SettingService::class)->applyRuntimeSettings();
         $staleOrders = Order::stale()->with('items')->get();

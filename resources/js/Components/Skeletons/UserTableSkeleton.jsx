@@ -1,3 +1,4 @@
+import { PaginationSkeleton } from '@/Components/Pagination';
 import Skeleton from '@/Components/Skeleton';
 
 /**
@@ -75,11 +76,7 @@ export default function UserTableSkeleton({ rows = 5, fullPage = false }) {
             {/* Pagination Footer */}
             <div className="p-4 bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2 text-xs font-semibold text-slate-600 dark:text-slate-400">
                 <Skeleton className="h-3.5 w-52" />
-                <div className="flex items-center space-x-2">
-                    <Skeleton className="h-8 w-16 sm:w-24 rounded-lg" />
-                    <Skeleton className="h-8 w-12 sm:w-16 rounded-lg" />
-                    <Skeleton className="h-8 w-16 sm:w-24 rounded-lg" />
-                </div>
+                <PaginationSkeleton />
             </div>
         </div>
     );

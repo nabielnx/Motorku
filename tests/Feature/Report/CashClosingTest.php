@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature\Report;
 
 use App\Models\Order;
@@ -23,7 +25,7 @@ class CashClosingTest extends TestCase
 
         $this->actingAs($owner)->postJson('/api/orders/pos-sale', [
             'items' => [['product_id' => $product->id, 'quantity' => 1]],
-            'amount_received' => 50000,
+            'expected_total' => 30000, 'amount_received' => 50000,
         ])->assertCreated();
         $order = Order::with('items')->firstOrFail();
 
@@ -90,7 +92,7 @@ class CashClosingTest extends TestCase
 
         $this->postJson('/api/orders/pos-sale', [
             'items' => [['product_id' => $product->id, 'quantity' => 1]],
-            'amount_received' => 30000,
+            'expected_total' => 30000, 'amount_received' => 30000,
         ])->assertUnprocessable();
 
         $this->assertEquals(3, $product->fresh()->stock);

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services;
 
 use App\Models\Order;
@@ -16,9 +18,9 @@ class DocumentNumberService
         }
         $date = $matches[1].'-'.$matches[2].'-'.$matches[3];
         DB::transaction(function () use ($type, $date, $matches) {
-            DB::table('document_sequences')->insertOrIgnore(['type' => $type, 'sequence_date' => $date, 'last_number' => 0]);
-            $sequence = DB::table('document_sequences')->where('type', $type)->where('sequence_date', $date)->lockForUpdate()->first();
-            DB::table('document_sequences')->where('type', $type)->where('sequence_date', $date)
+            app(BusinessContext::class)->table('document_sequences')->insertOrIgnore([...app(BusinessContext::class)->attributes([]), 'type' => $type, 'sequence_date' => $date, 'last_number' => 0]);
+            $sequence = app(BusinessContext::class)->table('document_sequences')->where('type', $type)->where('sequence_date', $date)->lockForUpdate()->first();
+            app(BusinessContext::class)->table('document_sequences')->where('type', $type)->where('sequence_date', $date)
                 ->update(['last_number' => max((int) $sequence->last_number, (int) $matches[4])]);
         });
     }
@@ -36,15 +38,15 @@ class DocumentNumberService
         };
 
         $date = now()->toDateString();
-        if (! DB::table('document_sequences')->where('type', $type)->where('sequence_date', $date)->exists()) {
-            DB::table('document_sequences')->insertOrIgnore([
-                'type' => $type,
+        if (! app(BusinessContext::class)->table('document_sequences')->where('type', $type)->where('sequence_date', $date)->exists()) {
+            app(BusinessContext::class)->table('document_sequences')->insertOrIgnore([
+                ...app(BusinessContext::class)->attributes([]), 'type' => $type,
                 'sequence_date' => $date,
                 'last_number' => 0,
             ]);
         }
 
-        $sequence = DB::table('document_sequences')
+        $sequence = app(BusinessContext::class)->table('document_sequences')
             ->where('type', $type)
             ->where('sequence_date', $date)
             ->lockForUpdate()
@@ -62,7 +64,7 @@ class DocumentNumberService
             $documentNumber = $prefix.'-'.str_replace('-', '', $date).'-'.str_pad((string) $number++, 4, '0', STR_PAD_LEFT);
         } while ($model::query()->where($column, $documentNumber)->exists());
 
-        DB::table('document_sequences')
+        app(BusinessContext::class)->table('document_sequences')
             ->where('type', $type)
             ->where('sequence_date', $date)
             ->update(['last_number' => $number - 1]);

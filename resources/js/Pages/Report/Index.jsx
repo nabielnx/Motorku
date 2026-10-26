@@ -3,6 +3,7 @@ import { cashSummary as fetchCashSummary, closeCash } from '@/Api/cashReports';
 import { storeDate, dashboardDateRange } from '@/Utils/dates';
 import MoneyInput from '@/Components/MoneyInput';
 import DateRangePicker from '@/Components/DateRangePicker';
+import PeriodSelectDropdown from '@/Components/PeriodSelectDropdown';
 import { useState, useEffect } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import ReportSkeleton from '@/Components/Skeletons/ReportSkeleton';
@@ -37,7 +38,7 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
             } else if (rawUrl?.pathname) {
                 targetPath = rawUrl.pathname;
             }
-            if (targetPath && targetPath.startsWith('/reports')) {
+            if (targetPath && targetPath.startsWith('/reports') && !event.detail.visit.preserveState) {
                 setIsNavigating(true);
             }
         });
@@ -148,7 +149,8 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
     };
 
     const handlePeriodChange = (event) => {
-        const period = event.target.value;
+        const period = typeof event === 'string' ? event : event?.target?.value;
+        if (!period) return;
         const range = dashboardDateRange(period, today);
         setStartDate(range.start);
         setEndDate(range.end);
@@ -177,7 +179,7 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
     return (
         <AuthenticatedLayout pageTitle={locale === 'en' ? 'Financial Reports' : 'Laporan Keuangan'}>
             <Head title={`${locale === 'en' ? 'Financial Reports' : 'Laporan Keuangan'}`}>
-                <meta name="description" content="Laporan dan analisis statistik penjualan, pendapatan, dan produk terlaris Motorku." />
+                <meta name="description" content="Laporan dan analisis statistik penjualan, pendapatan, dan produk terlaris TokoM." />
             </Head>
 
             <style>{`
@@ -206,24 +208,10 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
                 {/* Toolbar: Period + Export */}
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                     <div className="grid w-full min-w-0 grid-cols-2 gap-2 sm:w-auto sm:flex sm:flex-wrap sm:items-center">
-                        <div className="relative min-w-0 w-full sm:w-auto">
-                            <FiCalendar aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-accentYellow" size={15} />
-                            <select
-                                value={periodFilter === 'custom' ? '' : periodFilter}
-                                onChange={handlePeriodChange}
-                                aria-label="Pilih periode laporan"
-                                className="w-full appearance-none rounded-xl border border-primary bg-primary py-2 pl-9 pr-8 text-xs font-bold text-white shadow-2xs cursor-pointer transition hover:bg-primaryDark focus:outline-none focus:ring-0 focus:border-primaryDark"
-                                style={{ appearance: 'none', WebkitAppearance: 'none', backgroundImage: 'none' }}
-                            >
-                                <option className="bg-white text-slate-900" value="" disabled hidden>Pilihan Cepat...</option>
-                                <option className="bg-white text-slate-900" value="today">Hari Ini</option>
-                                <option className="bg-white text-slate-900" value="7_days">7 Hari Terakhir</option>
-                                <option className="bg-white text-slate-900" value="30_days">30 Hari Terakhir</option>
-                                <option className="bg-white text-slate-900" value="this_month">Bulan Ini</option>
-                                <option className="bg-white text-slate-900" value="this_year">Tahun Ini</option>
-                            </select>
-                            <FiChevronDown aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-white" size={14} />
-                        </div>
+                        <PeriodSelectDropdown
+                            value={periodFilter === 'custom' ? '' : periodFilter}
+                            onChange={handlePeriodChange}
+                        />
                         <DateRangePicker
                             initialStart={startDate}
                             initialEnd={endDate}
@@ -427,7 +415,7 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
                 <div style={{ borderBottom: '2px solid #0f172a', paddingBottom: '12px', marginBottom: '20px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                         <div>
-                            <h1 style={{ fontSize: '22px', fontWeight: '900', color: '#0f172a', margin: 0 }}>MOTORKU</h1>
+                            <h1 style={{ fontSize: '22px', fontWeight: '900', color: '#0f172a', margin: 0 }}>{app_settings?.store_name || 'TokoM'}</h1>
                             <p style={{ fontSize: '11px', color: '#475569', margin: '2px 0 0 0', fontWeight: 600 }}>Sistem Manajemen Toko</p>
                         </div>
                         <div style={{ textAlign: 'right' }}>
@@ -529,11 +517,11 @@ export default function ReportIndex({ reportStats = {}, filters = {} }) {
                         <div style={{ textAlign: 'center', width: '180px' }}>
                             <p style={{ color: '#475569', margin: '0 0 50px 0' }}>Disetujui Oleh,</p>
                             <p style={{ fontWeight: '800', color: '#0f172a', borderBottom: '1px solid #94a3b8', paddingBottom: '2px', margin: 0 }}>( Manager / Owner )</p>
-                            <p style={{ fontSize: '10px', color: '#64748b', margin: '4px 0 0 0' }}>Motorku Management</p>
+                            <p style={{ fontSize: '10px', color: '#64748b', margin: '4px 0 0 0' }}>{app_settings?.store_name || 'TokoM'}</p>
                         </div>
                     </div>
                     <p style={{ fontSize: '9px', textAlign: 'center', color: '#94a3b8', marginTop: '24px' }}>
-                        *** Dokumen ini dicetak otomatis dari Sistem POS Motorku pada {todayFormatted} ***
+                        *** Dokumen ini dicetak otomatis dari Sistem POS TokoM pada {todayFormatted} ***
                     </p>
                 </div>
             </div>

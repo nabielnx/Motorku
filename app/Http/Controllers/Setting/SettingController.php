@@ -1,15 +1,23 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Setting;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ImageUploadRequest;
+use App\Http\Requests\Setting\ActivateQrisRequest;
+use App\Http\Requests\Setting\ResetTransactionDataRequest;
 use App\Http\Requests\Setting\SaveSettingsRequest;
 use App\Http\Requests\Setting\UpdateSettingRequest;
+use App\Http\Requests\Setting\UploadQrisRequest;
 use App\Models\Setting;
 use App\Services\CacheService;
 use App\Services\ImageUploadService;
+use App\Services\QrisService;
 use App\Services\SettingService;
+use App\Services\TransactionResetService;
+use App\Support\BusinessFiles;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
@@ -45,6 +53,7 @@ class SettingController extends Controller implements HasMiddleware
             'initialSettings' => $settings,
             'logoUrl' => $imageUrl('logo'),
             'qrisUrl' => $imageUrl('qris_image'),
+            'qrisConfig' => app(QrisService::class)->configuration(),
             'loginImageUrl' => $imageUrl('login_image'),
             'bannerUrls' => collect(range(1, 3))->mapWithKeys(fn ($slot) => [
                 $slot => $imageUrl('promo_banner_'.$slot),
@@ -95,6 +104,16 @@ class SettingController extends Controller implements HasMiddleware
         return response()->json(['message' => 'Pengaturan berhasil disimpan!']);
     }
 
+    public function resetTransactions(ResetTransactionDataRequest $request, TransactionResetService $transactions): JsonResponse
+    {
+        $deleted = $transactions->reset();
+
+        return response()->json([
+            'message' => 'Data transaksi usaha berhasil direset secara permanen.',
+            'deleted' => $deleted,
+        ]);
+    }
+
     public function uploadLogo(ImageUploadRequest $request): JsonResponse
     {
         $old = Setting::where('group', 'store')->where('key', 'logo')->value('value');
@@ -129,7 +148,7 @@ class SettingController extends Controller implements HasMiddleware
             $old = $setting->value;
             $setting->update(['value' => null]);
             if ($old) {
-                Storage::disk('public')->delete($old);
+                BusinessFiles::delete($old);
             }
         }
 
@@ -140,41 +159,27 @@ class SettingController extends Controller implements HasMiddleware
         ]);
     }
 
-    public function uploadQrisImage(ImageUploadRequest $request): JsonResponse
+    public function uploadQrisImage(UploadQrisRequest $request, QrisService $qris): JsonResponse
     {
-        $old = Setting::where('group', 'store')->where('key', 'qris_image')->value('value');
-        $path = app(ImageUploadService::class)->replace($request->file('qris_image'), 'qris', $old,
-            function ($path) {
-                $this->settingService->upsertSetting('store', 'qris_image', $path);
-
-                return $path;
-            }, 'qris_image');
-        CacheService::flushSettings();
-
         return response()->json([
             'message' => 'Gambar QRIS berhasil diupload!',
-            'url' => Storage::url($path),
+            ...$qris->storeImage($request->file('qris_image'), $request->validated('qris_payload')),
         ]);
     }
 
-    public function getQrisImage(): JsonResponse
+    public function activateQris(ActivateQrisRequest $request, QrisService $qris): JsonResponse
     {
-        $path = Setting::where('group', 'store')->where('key', 'qris_image')->value('value');
-
-        return response()->json(['url' => $path ? Storage::url($path) : null]);
+        return response()->json($qris->activate($request->validated('qris_payload'), $request->validated('image_revision')));
     }
 
-    public function deleteQrisImage(): JsonResponse
+    public function getQrisImage(QrisService $qris): JsonResponse
     {
-        $setting = Setting::where('group', 'store')->where('key', 'qris_image')->first();
-        if ($setting) {
-            $old = $setting->value;
-            $setting->update(['value' => null]);
-            if ($old) {
-                Storage::disk('public')->delete($old);
-            }
-        }
-        CacheService::flushSettings();
+        return response()->json($qris->configuration())->header('Cache-Control', 'no-store');
+    }
+
+    public function deleteQrisImage(QrisService $qris): JsonResponse
+    {
+        $qris->deleteImage();
 
         return response()->json(['message' => 'Gambar QRIS berhasil dihapus!']);
     }
@@ -203,7 +208,7 @@ class SettingController extends Controller implements HasMiddleware
             $old = $setting->value;
             $setting->update(['value' => null]);
             if ($old) {
-                Storage::disk('public')->delete($old);
+                BusinessFiles::delete($old);
             }
         }
         CacheService::flushSettings();
@@ -252,7 +257,7 @@ class SettingController extends Controller implements HasMiddleware
             $old = $setting->value;
             $setting->update(['value' => null]);
             if ($old) {
-                Storage::disk('public')->delete($old);
+                BusinessFiles::delete($old);
             }
         }
 

@@ -80,6 +80,7 @@ jobs:
         run: |
           tar --exclude=bootstrap/cache --exclude=public/storage -czf release.tgz app bootstrap config database public resources routes artisan composer.json composer.lock vendor scripts
       - name: Upload release
+        id: upload
         uses: appleboy/scp-action@v1
         with:
           host: ${{ secrets.PRODUCTION_SSH_HOST }}
@@ -123,6 +124,27 @@ jobs:
             set -e
             cd "$DEPLOY_PATH"
             php artisan down
+      - name: Clean temporary release after deployment finishes
+        if: always() && steps.upload.outcome == 'success'
+        continue-on-error: true
+        uses: appleboy/ssh-action@v1
+        env:
+          DEPLOY_PATH: ${{ vars.PRODUCTION_DEPLOY_PATH }}
+          RELEASE_SHA: ${{ github.sha }}
+        with:
+          host: ${{ secrets.PRODUCTION_SSH_HOST }}
+          username: ${{ secrets.PRODUCTION_SSH_USER }}
+          key: ${{ secrets.PRODUCTION_SSH_KEY }}
+          port: ${{ vars.PRODUCTION_SSH_PORT || '22' }}
+          envs: DEPLOY_PATH,RELEASE_SHA
+          script: |
+            set -e
+            cleanup="$DEPLOY_PATH/.incoming-$RELEASE_SHA/scripts/cleanup-incoming-release.sh"
+            if [ -f "$cleanup" ]; then
+              bash "$cleanup" "$DEPLOY_PATH" "$RELEASE_SHA" --apply
+            else
+              echo '::warning::Incomplete extraction; temporary release retained for review.'
+            fi
       - name: Tag release
         run: |
           git config user.name 'github-actions[bot]'

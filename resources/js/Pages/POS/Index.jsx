@@ -1,3 +1,6 @@
+import useCatalogFeed from '@/Hooks/useCatalogFeed';
+import CatalogFeedControl from '@/Components/Customer/CatalogFeedControl';
+import useStorefront from '@/Hooks/useStorefront';
 import { createPosSale } from '@/Api/posSales';
 import PaymentModal from '@/Components/POS/PaymentModal';
 import ShortcutModal from '@/Components/POS/ShortcutModal';
@@ -5,7 +8,8 @@ import PartPreviewModal from '@/Components/Motorcycle/PartPreviewModal';
 import ThermalReceipt from '@/Components/ThermalReceipt';
 
 import { checkoutRequestId } from '@/Utils/checkout';
-import { POS_CART_KEY, MAX_POS_QTY as MAX_QTY, formatPosProduct, readPosCart, addToPosCart } from '@/Utils/posCart';
+import useQrisPayment from '@/Utils/useQrisPayment';
+import { POS_CART_KEY, MAX_POS_QTY as MAX_QTY, formatPosProduct, readPosCart, addToPosCart, reconcilePosCart } from '@/Utils/posCart';
 import React, { useState, useEffect, useRef } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import Modal from '@/Components/Modal';
@@ -23,8 +27,9 @@ import { FiSearch, FiGrid, FiList, FiPlus, FiMinus, FiTrash2, FiShoppingBag, FiC
 import ProductBookView from '@/Components/Product/ProductBookView';
 
 
-export default function POSIndex({ initialProducts = [], initialCategories = [], settings = {} }) {
+export default function POSIndex({ initialProducts = [], initialPagination = null, initialCategories = [], settings = {} }) {
     const { auth } = usePage().props;
+    const { storage } = useStorefront({ admin: true });
     // Format Products from Database or Fallback
     const formatProducts = (rawProducts) => {
         if (!rawProducts || rawProducts.length === 0) return [];
@@ -55,7 +60,7 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
     }, []);
 
     useEffect(() => {
-        setMenuItems(formatProducts(initialProducts));
+
         setCategories(initialCategories);
     }, [initialProducts, initialCategories]);
 
@@ -81,7 +86,7 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
     const viewMenuRef = useRef(null);
     const [bookPage, setBookPage] = useState(1);
     const BOOK_PER_PAGE = 24;
-    const [customerName, setCustomerName] = useState(() => localStorage.getItem('pos_customer_name') || '');
+    const [customerName, setCustomerName] = useState(() => storage.getItem('pos_customer_name') || '');
 
     useEffect(() => {
         localStorage.setItem('pos_view_mode', viewMode);
@@ -106,12 +111,35 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
     }, [viewMenuOpen]);
 
     // Cart State
-    const [cart, setCart] = useState(() => readPosCart(localStorage));
+    const [cart, setCart] = useState(() => readPosCart(storage));
+
+    const cartIds = JSON.stringify([...new Set(cart.map(item => item.id))]);
+    useEffect(() => {
+        const ids = JSON.parse(cartIds);
+        if (!ids.length) return;
+        const controller = new AbortController();
+        axios.get('/pos/catalog', { params: { ids }, signal: controller.signal }).then(response => {
+            if (!controller.signal.aborted && Array.isArray(response.data?.data?.cart_products)) {
+                setCart(current => reconcilePosCart(current, response.data.data.cart_products, ids).cart);
+            }
+        }).catch(() => {});
+        return () => controller.abort();
+    }, [initialProducts, cartIds]);
+
+    useEffect(() => {
+        const refresh = () => {
+            if (document.visibilityState === 'visible' && !submittingRef.current) {
+                router.reload({ only: ['initialProducts', 'settings'], async: true, preserveScroll: true });
+            }
+        };
+        window.addEventListener('focus', refresh);
+        return () => window.removeEventListener('focus', refresh);
+    }, []);
 
     useEffect(() => {
         const syncCart = event => {
-            if (event.storageArea === localStorage && (event.key === POS_CART_KEY || event.key === null)) {
-                setCart(readPosCart(localStorage));
+            if (event.storageArea === localStorage && (event.key === storage.key(POS_CART_KEY) || event.key === null)) {
+                setCart(readPosCart(storage));
             }
         };
         window.addEventListener('storage', syncCart);
@@ -120,8 +148,8 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
 
     // Sync State to LocalStorage
     useEffect(() => {
-        localStorage.setItem(POS_CART_KEY, JSON.stringify(cart));
-        localStorage.setItem('pos_customer_name', customerName);
+        storage.setItem(POS_CART_KEY, JSON.stringify(cart));
+        storage.setItem('pos_customer_name', customerName);
     }, [cart, customerName]);
 
     // Payment Modal State
@@ -129,7 +157,7 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
     const [isShortcutModalOpen, setIsShortcutModalOpen] = useState(false);
     const [itemToDelete, setItemToDelete] = useState(null);
     // Canonical payment method values accepted by the backend.
-    const [paymentMethod, setPaymentMethod] = useState('cash');
+    const [paymentMethod, setPaymentMethod] = useState(() => settings['payment.cash_enabled'] === 'false' ? 'qris_manual' : 'cash');
     const [cashReceived, setCashReceived] = useState('');
     const [isSubmittingOrder, setIsSubmittingOrder] = useState(false);
     const [isOrderComplete, setIsOrderComplete] = useState(false);
@@ -137,8 +165,6 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
 
     const [validationError, setValidationError] = useState('');
 
-    const [qrisImageUrl, setQrisImageUrl] = useState(null);
-    const [qrisImageLoading, setQrisImageLoading] = useState(false);
     const [qrisVerified, setQrisVerified] = useState(false);
     const [qrisReference, setQrisReference] = useState('');
 
@@ -146,17 +172,6 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
         setQrisVerified(false);
         setQrisReference('');
     };
-
-    useEffect(() => {
-        if (!isPaymentModalOpen || isOrderComplete) return;
-        let active = true;
-        setQrisImageLoading(true);
-        axios.get('/api/settings/qris-image')
-            .then(({ data }) => { if (active) setQrisImageUrl(data?.url || null); })
-            .catch(() => { if (active) setQrisImageUrl(null); })
-            .finally(() => { if (active) setQrisImageLoading(false); });
-        return () => { active = false; };
-    }, [isPaymentModalOpen, isOrderComplete]);
 
     // Centralized Validation Function before Payment
     const validateBeforePayment = () => {
@@ -191,6 +206,16 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
     const taxRate = parseFloat(settings['tax.percentage'] || '0') / 100;
     const tax = taxEnabled ? Math.round(subtotal * taxRate) : 0;
     const total = subtotal + tax;
+    const qris = useQrisPayment({
+        open: isPaymentModalOpen && !isOrderComplete,
+        active: paymentMethod === 'qris_manual',
+        items: cart.map(item => ({ product_id: item.id, quantity: item.qty })),
+        amount: total,
+    });
+    const qrisImageUrl = qris.imageUrl;
+    const qrisImageLoading = qris.loading;
+    const qrisCartKey = JSON.stringify(cart.map(item => [item.id, item.qty]));
+    useEffect(() => { setQrisVerified(false); }, [qrisCartKey, total, paymentMethod, isPaymentModalOpen, qris.loading]);
 
     const changeAmount = Number(cashReceived) >= total ? Number(cashReceived) - total : 0;
     const cashShortfall = Number(cashReceived) < total ? total - Number(cashReceived) : 0;
@@ -227,6 +252,10 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
     const childCategories = categories.filter(category => category.parent_id === selectedParentId);
     const visibleCategoryIds = getVisibleCategoryIds(categories, selectedParentId, selectedChildId);
     const categoryFilterPredicate = (item) => !visibleCategoryIds || visibleCategoryIds.has(item.categoryId);
+
+    const catalogCategory = categories.find(category => category.id === (selectedChildId || selectedParentId))?.name || '';
+    const feed = useCatalogFeed({ url: '/pos/catalog', initialProducts, initialPagination, search: searchQuery, category: catalogCategory });
+    useEffect(() => setMenuItems(formatProducts(feed.products)), [feed.products]);
 
     const filteredMenu = fuzzyFilterProducts(menuItems, searchQuery, {
         filterPredicate: categoryFilterPredicate
@@ -329,6 +358,10 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
 
     const handleProcessOrder = async () => {
         if (submittingRef.current) return;
+        if (paymentMethod === 'cash' && settings['payment.cash_enabled'] === 'false') {
+            toast.error('Pembayaran tunai sedang dinonaktifkan. Pilih metode pembayaran lain.');
+            return;
+        }
         const { isValid, message } = validateBeforePayment();
         if (!isValid) {
             toast.error(message);
@@ -343,8 +376,8 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
             return;
         }
 
-        if (paymentMethod === 'qris_manual' && (!qrisImageUrl || !qrisVerified)) {
-            toast.error(!qrisImageUrl ? 'Gambar QRIS toko belum tersedia.' : 'Pastikan dana sudah masuk sebelum mengonfirmasi.');
+        if (paymentMethod === 'qris_manual' && (qrisImageLoading || qris.error || !qrisImageUrl || !qrisVerified)) {
+            toast.error(qris.error || (qrisImageLoading ? 'Tunggu QRIS selesai disiapkan.' : !qrisImageUrl ? 'Gambar QRIS toko belum tersedia.' : 'Pastikan dana sudah masuk sebelum mengonfirmasi.'));
             return;
         }
 
@@ -355,10 +388,11 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
             // Simpan order dan pembayaran bersama setelah kasir mengonfirmasi dana masuk.
             const payload = {
                 ...buildOrderData(),
+                expected_total: total,
                 payment_method: paymentMethod,
                 ...(paymentMethod === 'cash'
                     ? { amount_received: Number(cashReceived) }
-                    : { reference_number: qrisReference.trim() || null }),
+                    : { reference_number: qrisReference.trim() || null, qris_quote: qris.quote?.quote_token || null }),
             };
             const requestId = checkoutRequestId(localStorage, `pos_checkout:${auth.user.id}`, payload);
             const sale = await createPosSale({ ...payload, request_id: requestId });
@@ -386,6 +420,9 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
             const errMsg = validationErr || (errRes?.message && errRes.message !== 'The given data was invalid.' ? errRes.message : null) || err.message || 'Terjadi kesalahan sistem.';
             toast.error('Gagal: ' + errMsg);
             setValidationError(errMsg);
+            if (errRes?.errors?.expected_total || errRes?.errors?.items) {
+                router.reload({ only: ['initialProducts', 'settings'], preserveScroll: true });
+            }
         } finally {
             submittingRef.current = false;
             setIsSubmittingOrder(false);
@@ -409,6 +446,7 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
         setCashReceived('');
         setLastCreatedOrder(null);
         setValidationError('');
+        router.reload({ only: ['initialProducts', 'settings'], preserveScroll: true });
     };
 
     // Auto-focus Cash Input when Modal Opens
@@ -440,7 +478,7 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
             // IF PAYMENT MODAL IS OPEN & ORDER NOT COMPLETE:
             if (isPaymentModalOpen && !isOrderComplete) {
                 // 1 / Alt+1: Select Cash
-                if (e.key === '1' && (e.altKey || document.activeElement !== cashInputRef.current)) {
+                if (settings['payment.cash_enabled'] !== 'false' && e.key === '1' && (e.altKey || document.activeElement !== cashInputRef.current)) {
                     e.preventDefault();
                     resetQrisFlow();
                     setPaymentMethod('cash');
@@ -533,11 +571,11 @@ export default function POSIndex({ initialProducts = [], initialCategories = [],
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [cart, isPaymentModalOpen, isOrderComplete, paymentMethod, cashReceived, total, customerName, isSubmittingOrder, isShortcutModalOpen, searchQuery, filteredMenu, itemToDelete, previewProduct]);
+    }, [cart, isPaymentModalOpen, isOrderComplete, paymentMethod, cashReceived, total, customerName, isSubmittingOrder, isShortcutModalOpen, searchQuery, filteredMenu, itemToDelete, previewProduct, settings]);
 return (
         <AuthenticatedLayout pageTitle="POS Kasir" noPadding={true}>
             <Head title="POS Kasir">
-                <meta name="description" content="Sistem kasir POS cepat dan responsif untuk penjualan sparepart, pencetakan struk, dan pembayaran instan." />
+                <meta name="description" content="Sistem kasir TokoM untuk penjualan produk, pencetakan struk, dan pencatatan pembayaran." />
             </Head>
 
             <div className="admin-pos flex min-h-0 flex-1 flex-col md:flex-row w-full overflow-hidden bg-slate-100 dark:bg-slate-950">
@@ -789,6 +827,7 @@ return (
                         )}
                     </div>
                     )}
+                    <CatalogFeedControl feed={feed} />
                     <div className="pos-mobile-cart-bar shrink-0 border-t border-slate-200 bg-white p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] dark:border-slate-800 dark:bg-slate-900 md:hidden">
                         <button
                             type="button"
@@ -1055,6 +1094,13 @@ return (
                 paymentMethod={paymentMethod}
                 qrisImageLoading={qrisImageLoading}
                 qrisImageUrl={qrisImageUrl}
+                qrisAvailable={qris.available}
+                qrisEnabled={qris.enabled}
+                qrisConfigured={qris.configured}
+                qrisDynamic={qris.dynamic}
+                qrisMerchant={qris.merchant}
+                qrisError={qris.error}
+                retryQris={qris.retry}
                 settings={settings}
                 cashShortfall={cashShortfall}
                 cashReceived={cashReceived}

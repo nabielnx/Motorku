@@ -8,6 +8,7 @@ use App\Enums\InventoryLogType;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
 use App\Models\Order;
+use App\Models\Product;
 use Illuminate\Support\Facades\DB;
 
 class OrderCancellationService
@@ -24,11 +25,14 @@ class OrderCancellationService
             if ($order->order_status === OrderStatus::Cancelled) {
                 return ['outcome' => 'already_cancelled'];
             }
+            if ($order->payment_review_requested_at) {
+                return ['outcome' => 'under_review'];
+            }
             if ($order->payment_status === PaymentStatus::Paid || $order->order_status !== OrderStatus::Pending) {
                 return ['outcome' => 'not_pending'];
             }
 
-            $this->markCancelled($order);
+            $this->markCancelled($order, 'customer');
             $this->releaseReservation($order, null,
                 'Stok dikembalikan — order '.$order->order_number.' dibatalkan oleh customer');
 
@@ -46,7 +50,14 @@ class OrderCancellationService
 
             $this->restoreReservedStock($order, null,
                 'Stok dikembalikan — order '.$order->order_number.' kadaluarsa otomatis');
-            $this->markCancelled($order);
+            $reviewExpired = $order->payment_review_requested_at !== null;
+            $this->markCancelled($order, $reviewExpired ? 'payment_review_expired' : 'expired');
+            if ($reviewExpired) {
+                $order->update([
+                    'payment_review_requested_at' => null,
+                    'payment_review_note' => 'Pemeriksaan QRIS melewati 24 jam. Pesanan dibatalkan dan stok dikembalikan. Jika dana sudah masuk, hubungi toko untuk rekonsiliasi.',
+                ]);
+            }
             $order->payments()->where('status', 'pending')->update(['status' => 'expired']);
 
             return true;
@@ -64,6 +75,10 @@ class OrderCancellationService
     {
         $order->loadMissing('items');
         foreach ($order->items as $item) {
+            // Deleted catalogue items retain their invoice snapshot, but have no stock to restore.
+            if (! $item->product_id || ! Product::whereKey($item->product_id)->lockForUpdate()->first(['id'])) {
+                continue;
+            }
             $this->inventoryService->adjustStock([
                 'product_id' => $item->product_id,
                 'type' => InventoryLogType::StockReturn,
@@ -74,10 +89,11 @@ class OrderCancellationService
         }
     }
 
-    private function markCancelled(Order $order): void
+    private function markCancelled(Order $order, string $reason): void
     {
         $order->update([
             'order_status' => OrderStatus::Cancelled,
+            'cancel_reason' => $reason,
             'sync_version' => $order->sync_version + 1,
         ]);
     }

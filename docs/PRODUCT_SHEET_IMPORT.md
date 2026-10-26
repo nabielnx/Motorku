@@ -8,13 +8,16 @@ Menu **Produk → Impor / Ekspor**, hanya untuk owner yang sudah verifikasi emai
 2. Pilih **File → Download → Microsoft Excel (.xlsx)**. Seluruh tab ikut dalam file.
 3. Buka **Produk → Impor**, pilih file, lalu **Baca file**.
 4. Pilih tab dan periksa pencocokan kolom. Kolom berbeda bisa dicocokkan melalui dropdown.
-5. Pilih cara impor: tambah baru, tambah + perbarui harga, atau perbarui harga saja.
-6. Klik **Lihat pratinjau**, periksa nama hasil pencocokan, harga, dan catatan tiap baris.
-7. Pilih baris valid yang ingin disimpan, lalu klik **Simpan**.
+5. Pilih cara impor: tambah baru, tambah + perbarui barang lama, atau perbarui barang lama saja.
+6. Untuk memperbarui stok barang lama, centang **Perbarui stok barang lama sesuai file**. Pastikan kolom **Stok** sudah dicocokkan. Secara bawaan opsi ini tidak dicentang.
+7. Klik **Lihat pratinjau**, periksa nama hasil pencocokan, harga, stok sebelum → sesudah, dan catatan tiap baris.
+8. Pilih baris valid yang ingin disimpan, lalu klik **Simpan**.
 
 Excel `.xlsx` membaca semua tab yang terlihat; CSV UTF-8 membaca satu tab. Format lama `.xls` harus disimpan ulang sebagai `.xlsx`. Batas file 10 MB, 16 tab, 40 kolom, dan 2.000 barang. Baris kosong diabaikan. Nama/kategori/harga jual wajib dicocokkan.
 
 ## Kolom bahasa Indonesia
+
+Jenis produk dapat ditambahkan melalui **Produk → Kelola Jenis**. Impor dan ekspor memakai daftar jenis dari database; tambahkan jenis terlebih dahulu jika belum tersedia. Label lama seperti Otomotif dan Alat Bangunan tetap dikenali sebagai alias jenis bawaan.
 
 | Kolom | Penggunaan |
 |---|---|
@@ -26,7 +29,7 @@ Excel `.xlsx` membaca semua tab yang terlihat; CSV UTF-8 membaca satu tab. Forma
 | Estimasi Modal (Rp) | Diabaikan kecuali pilihan penggunaan estimasi dicentang. |
 | Harga Beli (Rp) | Modal yang sudah dipastikan. Lebih diutamakan daripada estimasi modal. |
 | Harga Jual (Rp) | Nominal rupiah bulat. Sel numerik paling aman; teks `Rp 80.000` dan `Rp 80,000` juga diterima. |
-| Stok | Stok awal barang baru; kosong berarti 0. Stok barang lama tidak berubah. |
+| Stok | Stok awal barang baru; kosong berarti 0. Stok barang lama hanya diperbarui jika opsi pembaruan stok dicentang dan nilainya terisi. |
 | Satuan | Misalnya pcs, buah, botol, set, meter, sak. Kosong memakai pcs untuk barang baru. |
 | Kode Barang | SKU dari sistem untuk pembaruan yang pasti. Barang baru boleh kosong; kode dibuat otomatis. |
 | Margin (Rp) | Tidak diimpor. Ekspor menghitung harga jual dikurangi harga beli. |
@@ -41,10 +44,12 @@ Nama kategori pendek pada daftar pengereman otomatis memakai subkategori yang su
 
 - SKU dicocokkan terlebih dahulu. Jika kosong, pencocokan memakai nama lengkap dalam grup yang sama, termasuk variasi nama dengan merek di depannya. Merek yang berbeda tetap dipisahkan. Urutan kata/tanda baca diabaikan; ukuran dan volume tetap diperhitungkan.
 - Hasil pencocokan ditampilkan di pratinjau. Jika nama cocok dengan beberapa barang, isi SKU yang benar dari ekspor.
-- Barang lama hanya diperbarui **harga jual dan harga beli yang terisi/diizinkan**. Stok, nama, kategori, satuan, gambar, dan kecocokan motor tetap.
+- Barang lama diperbarui **harga jual dan harga beli yang terisi/diizinkan**. Nama, kategori, satuan, gambar, dan kecocokan motor tetap.
+- **Stok barang lama** tetap secara bawaan. Jika opsi pembaruan stok dicentang, angka pada file menjadi stok akhir, bukan tambahan stok. Stok kosong atau kolom yang tidak dicocokkan mempertahankan stok lama; angka **0** berarti stok habis. Stok harus bilangan bulat 0–99.999.999.
+- Perubahan stok dicatat melalui layanan inventori sebagai penyesuaian, termasuk stok sebelum/sesudah, owner, tab, dan nomor baris file. Impor angka yang sama tidak membuat log penyesuaian baru.
 - Nama barang yang sama muncul dua kali dalam tab terpilih ditandai bermasalah.
 - Baris bermasalah tidak dipilih otomatis. Perbaiki file dan upload ulang jika diperlukan.
-- Jika data di sistem berubah setelah pratinjau, penyimpanan dibatalkan seluruhnya dan perlu pratinjau ulang.
+- Jika data di sistem, termasuk stok, berubah setelah pratinjau, penyimpanan dibatalkan seluruhnya dan perlu pratinjau ulang. Perubahan harga dan log stok dalam batch tersebut ikut dibatalkan.
 - Penyimpanan dan tanda terima berada dalam satu transaksi. Pengulangan permintaan yang sama tidak membuat barang ganda.
 
 ## Ekspor

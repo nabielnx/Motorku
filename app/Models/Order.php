@@ -1,9 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
+use App\Models\Concerns\BelongsToBusiness;
 use App\Services\DocumentNumberService;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
@@ -15,6 +18,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Order extends Model
 {
+    use BelongsToBusiness;
     use HasFactory, HasUuids;
 
     protected static function booted(): void
@@ -23,6 +27,7 @@ class Order extends Model
     }
 
     protected $fillable = [
+        'customer_account_id',
         'cashier_id',
         'order_number',
         'customer_name',
@@ -38,6 +43,11 @@ class Order extends Model
         'sync_version',
         'ordered_at',
         'expires_at',
+        'payment_preference',
+        'payment_review_requested_at',
+        'payment_reference',
+        'payment_review_note',
+        'cancel_reason',
     ];
 
     protected $hidden = [
@@ -53,6 +63,7 @@ class Order extends Model
         'payment_status' => PaymentStatus::class,
         'ordered_at' => 'datetime',
         'expires_at' => 'datetime',
+        'payment_review_requested_at' => 'datetime',
         'created_at' => 'datetime',
     ];
 
@@ -126,6 +137,8 @@ class Order extends Model
     {
         return $query->where('order_status', OrderStatus::Pending)
             ->where('payment_status', PaymentStatus::Unpaid)
+            ->where(fn ($query) => $query->whereNull('payment_review_requested_at')
+                ->orWhere('payment_review_requested_at', '<=', now()->subHours(config('order.payment_review_expiry_hours', 24))))
             ->whereNotNull('expires_at')
             ->where('expires_at', '<=', now());
     }

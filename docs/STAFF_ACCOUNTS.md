@@ -45,4 +45,4 @@ Setelah merge/deploy, jalankan `php artisan migrate --force` sebelum menerima re
 
 ## Pemeriksaan manual
 
-Uji pengiriman nyata ke inbox/spam, aktivasi dari perangkat lain, tautan kedaluwarsa dan kirim ulang, serta alur owner pertama. Pengujian otomatis menggunakan notifikasi palsu dan database `sparepart_testing`, sehingga tidak mengirim email ke pengguna sungguhan.
+Uji pengiriman nyata ke inbox/spam, aktivasi dari perangkat lain, tautan kedaluwarsa dan kirim ulang, serta alur owner pertama. Pengujian otomatis menggunakan notifikasi palsu dan database `tokom_testing`, sehingga tidak mengirim email ke pengguna sungguhan.

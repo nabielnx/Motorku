@@ -4,18 +4,19 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Models\Business;
+use App\Models\Scopes\BusinessScope;
 use App\Models\User;
 use App\Notifications\StaffInvitation;
+use App\Support\BusinessFiles;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
-use Spatie\Permission\Models\Role;
 
 class UserService
 {
@@ -80,7 +81,7 @@ class UserService
 
     public function isInvitationValid(string $email, string $token): bool
     {
-        $user = User::where('email', $email)->first();
+        $user = User::withoutGlobalScope(BusinessScope::class)->where('email', $email)->first();
 
         return $user && $user->invitation_pending && $user->is_active
             && Password::broker('staff_invitations')->tokenExists($user, $token);
@@ -89,18 +90,20 @@ class UserService
     public function acceptInvitation(array $credentials): void
     {
         DB::transaction(function () use ($credentials) {
-            $this->lockOwnerRole();
             $status = Password::broker('staff_invitations')->reset($credentials, function (User $user, string $password) {
-                $user = User::whereKey($user->id)->lockForUpdate()->firstOrFail();
-                if (! $user->invitation_pending || ! $user->is_active) {
-                    throw ValidationException::withMessages(['email' => 'Undangan sudah tidak berlaku. Hubungi owner toko.']);
-                }
-                $user->forceFill([
-                    'password' => Hash::make($password), 'invitation_pending' => false,
-                    'email_verified_at' => now(),
-                ])->save();
-                event(new Verified($user));
-                app(NotificationService::class)->send('staff', 'Staf mengaktifkan akun', $user->name.' telah menerima undangan dan memverifikasi email.', '/users', true);
+                app(BusinessContext::class)->run($user->business_id, function () use ($user, $password): void {
+                    $this->lockOwnerRole();
+                    $user = User::whereKey($user->id)->lockForUpdate()->firstOrFail();
+                    if (! $user->invitation_pending || ! $user->is_active) {
+                        throw ValidationException::withMessages(['email' => 'Undangan sudah tidak berlaku. Hubungi owner toko.']);
+                    }
+                    $user->forceFill([
+                        'password' => Hash::make($password), 'invitation_pending' => false,
+                        'email_verified_at' => now(),
+                    ])->save();
+                    event(new Verified($user));
+                    app(NotificationService::class)->send('staff', 'Staf mengaktifkan akun', $user->name.' telah menerima undangan dan memverifikasi email.', '/users', true);
+                });
             });
             if ($status !== Password::PASSWORD_RESET) {
                 throw ValidationException::withMessages(['email' => 'Tautan undangan tidak valid atau kedaluwarsa. Minta owner mengirim ulang undangan.']);
@@ -197,10 +200,14 @@ class UserService
             }
 
             $roleChanged = ! empty($data['role']) && ! $user->hasRole($data['role']);
+            if (($emailChanged || ! empty($data['password'])) && auth()->id() !== $user->id) {
+                $updateData['google_id'] = null;
+                $updateData['google_email'] = null;
+            }
             $user->forceFill($updateData)->save();
             $accountChanged = $user->wasChanged(['name', 'email', 'password', 'is_active']);
 
-            if ($emailChanged || ! empty($data['password'])) {
+            if ($emailChanged || ! empty($data['password']) || ! $user->is_active) {
                 $this->revokeOldAccess($user);
             }
 
@@ -236,7 +243,7 @@ class UserService
             $avatar = $user->avatar;
             $deleted = $user->delete();
             if ($deleted && $avatar && str_starts_with($avatar, 'avatars/')) {
-                DB::afterCommit(fn () => Storage::disk('public')->delete($avatar));
+                DB::afterCommit(fn () => BusinessFiles::delete($avatar));
             }
             if ($deleted) {
                 app(NotificationService::class)->send('staff', 'Akun staf dihapus', $user->name.' telah dihapus dari daftar staf.', '/users', true);
@@ -248,8 +255,7 @@ class UserService
 
     private function lockOwnerRole(): void
     {
-        // ponytail: one owner-role lock for staff edits; refine if staff management becomes highly concurrent.
-        Role::where('name', 'owner')->where('guard_name', 'web')->lockForUpdate()->first();
+        Business::whereKey(app(BusinessContext::class)->id())->lockForUpdate()->firstOrFail();
     }
 
     private function assertAnotherOwner(User $user, string $field): void

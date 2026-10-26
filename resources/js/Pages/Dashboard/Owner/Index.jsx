@@ -1,6 +1,8 @@
+import Pagination from '@/Components/Pagination';
 import React, { useState, useEffect, useRef } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import DateRangePicker from '@/Components/DateRangePicker';
+import PeriodSelectDropdown from '@/Components/PeriodSelectDropdown';
 import DashboardSkeleton from '@/Components/Skeletons/DashboardSkeleton';
 import MaskedCurrency from '@/Components/MaskedCurrency';
 import { Head, Link, router } from '@inertiajs/react';
@@ -16,8 +18,6 @@ import {
     FiCheckCircle, 
     FiArrowRight,
     FiChevronDown,
-    FiChevronLeft,
-    FiChevronRight,
     FiCalendar
 } from 'react-icons/fi';
 
@@ -37,7 +37,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
             } else if (rawUrl?.pathname) {
                 targetPath = rawUrl.pathname;
             }
-            if (targetPath === '/dashboard') {
+            if (targetPath === '/dashboard' && !event.detail.visit.preserveState) {
                 setIsNavigating(true);
             }
         });
@@ -50,7 +50,8 @@ export default function Dashboard({ stats = {}, filters = {} }) {
     const [endDate, setEndDate] = useState(filters.end_date || '');
 
     const handlePeriodChange = (e) => {
-        const val = e.target.value;
+        const val = typeof e === 'string' ? e : e?.target?.value;
+        if (!val) return;
         router.get('/dashboard', { period: val }, { preserveState: true, preserveScroll: true });
     };
 
@@ -155,7 +156,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
     return (
         <AuthenticatedLayout pageTitle="Dashboard">
             <Head title="Dashboard Overview">
-                <meta name="description" content="Ringkasan performa penjualan, total pendapatan, statistik pesanan, dan produk terlaris toko Motorku." />
+                <meta name="description" content="Ringkasan performa penjualan, total pendapatan, statistik pesanan, dan produk terlaris toko TokoM." />
             </Head>
 
             {isNavigating ? <DashboardSkeleton /> : <div className="admin-dashboard grid w-full grid-cols-12 items-start gap-3 sm:gap-4">
@@ -165,23 +166,10 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                     <h2 className="text-base sm:text-lg font-semibold text-primaryDark dark:text-white">Ringkasan Toko</h2>
                     <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
                         {/* Preset Select Dropdown */}
-                        <div className="relative min-w-0 w-full sm:w-auto">
-                            <FiCalendar aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-accentYellow" size={15} />
-                            <select
-                                value={currentPeriod === 'custom' ? '' : currentPeriod}
-                                onChange={handlePeriodChange}
-                                aria-label="Pilih periode dashboard"
-                                className="w-full appearance-none rounded-xl border border-primary bg-primary py-2 pl-9 pr-8 text-xs font-bold text-white shadow-2xs cursor-pointer transition hover:bg-primaryDark focus:outline-none focus:ring-0 focus:border-primaryDark"
-                            >
-                                <option className="bg-white text-slate-900" value="" disabled hidden>Pilihan Cepat...</option>
-                                <option className="bg-white text-slate-900" value="today">Hari Ini</option>
-                                <option className="bg-white text-slate-900" value="7_days">7 Hari Terakhir</option>
-                                <option className="bg-white text-slate-900" value="30_days">30 Hari Terakhir</option>
-                                <option className="bg-white text-slate-900" value="this_month">Bulan Ini</option>
-                                <option className="bg-white text-slate-900" value="this_year">Tahun Ini</option>
-                            </select>
-                            <FiChevronDown aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-white" size={14} />
-                        </div>
+                        <PeriodSelectDropdown
+                            value={currentPeriod === 'custom' ? '' : currentPeriod}
+                            onChange={handlePeriodChange}
+                        />
 
                         {/* Separate Single Calendar Range Picker */}
                         <DateRangePicker 
@@ -464,15 +452,7 @@ export default function Dashboard({ stats = {}, filters = {} }) {
                     {totalOrdersCount > 0 && (
                         <div className="flex shrink-0 items-center justify-between gap-2 border-t border-slate-200 bg-slate-50 px-3 py-3 text-xs font-semibold text-slate-600 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-400">
                             <span>{(currentPage - 1) * 15 + 1}–{Math.min(currentPage * 15, totalOrdersCount)} dari {totalOrdersCount}</span>
-                            <div className="flex items-center gap-1.5">
-                                <button type="button" onClick={() => fetchOrdersPage(currentPage - 1)} disabled={currentPage === 1 || isFetchingOrders} aria-label="Halaman pesanan sebelumnya" className="flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-2 py-1 font-bold text-slate-700 disabled:opacity-40 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 sm:px-3">
-                                    <FiChevronLeft size={14} /><span className="hidden sm:inline">Sebelumnya</span>
-                                </button>
-                                <span className="rounded-lg border border-slate-300 bg-slate-200 px-2 py-1 font-bold text-slate-800 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 sm:px-3">{currentPage} / {totalPages}</span>
-                                <button type="button" onClick={() => fetchOrdersPage(currentPage + 1)} disabled={currentPage === totalPages || isFetchingOrders} aria-label="Halaman pesanan berikutnya" className="flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-2 py-1 font-bold text-slate-700 disabled:opacity-40 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 sm:px-3">
-                                    <span className="hidden sm:inline">Selanjutnya</span><FiChevronRight size={14} />
-                                </button>
-                            </div>
+                            <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={fetchOrdersPage} disabled={isFetchingOrders} label="Halaman pesanan terbaru" />
                         </div>
                     )}
 

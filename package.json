@@ -3,9 +3,10 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "build": "node -e \"try{require('fs').unlinkSync('public/hot')}catch(e){}\" && vite build && node -e \"try{require('fs').unlinkSync('public/hot')}catch(e){}\"",
+        "build": "node -e \"try{require('fs').unlinkSync('public/hot')}catch(e){}\" && vite build && node -e \"try{require('fs').unlinkSync('public/hot')}catch(e){}\" && node scripts/build-loading-skeletons.mjs",
         "dev": "vite",
-        "test": "node --test tests/js/*.test.js"
+        "test": "node --test tests/js/*.test.js",
+        "skeletons": "node scripts/build-loading-skeletons.mjs"
     },
     "devDependencies": {
         "@tailwindcss/forms": "^0.5.3",
@@ -15,13 +16,15 @@
         "laravel-vite-plugin": "^2.0.0",
         "postcss": "^8.4.31",
         "tailwindcss": "^3.2.1",
-        "vite": "^7.0.7"
+        "vite": "^7.3.7"
     },
     "dependencies": {
         "@headlessui/react": "^2.0.0",
         "@inertiajs/react": "^2.0.0",
         "axios": "^1.11.0",
         "clsx": "^2.1.1",
+        "jsqr": "^1.4.0",
+        "qrcode": "^1.5.4",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
         "react-icons": "^5.7.0",

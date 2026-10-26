@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services;
 
 use App\Models\Order;
@@ -197,7 +199,7 @@ class DashboardService
         $paymentKey = $dateKey('payments.paid_at');
         $returnKey = $dateKey('order_returns.created_at');
 
-        $sales = DB::table('orders')
+        $sales = app(BusinessContext::class)->table('orders')
             ->join('payments', 'payments.order_id', '=', 'orders.id')
             ->where('orders.order_status', '!=', 'cancelled')
             ->where('payments.status', 'paid')

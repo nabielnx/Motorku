@@ -1,9 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Http\Controllers\Motorcycle\MotorcycleController;
+use App\Http\Middleware\EnsureReferencesEnabled;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('motorcycles')->name('api.motorcycles.')->group(function () {
+Route::prefix('motorcycles')->middleware(EnsureReferencesEnabled::class)->name('api.motorcycles.')->group(function () {
     Route::get('/', [MotorcycleController::class, 'indexWeb'])->name('index');
     Route::post('/', [MotorcycleController::class, 'store'])->name('store');
     Route::post('/bulk-attach', [MotorcycleController::class, 'bulkAttach'])->name('bulk-attach');

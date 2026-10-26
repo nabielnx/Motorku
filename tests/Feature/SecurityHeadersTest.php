@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -46,5 +48,16 @@ class SecurityHeadersTest extends TestCase
         $response = $this->get('https://localhost/login')->assertOk();
         $response->assertHeader('Strict-Transport-Security', 'max-age=86400');
         $this->assertStringNotContainsString('includeSubDomains', $response->headers->get('Strict-Transport-Security'));
+    }
+
+    public function test_robots_header_protects_internal_routes_while_leaving_public_routes_indexable(): void
+    {
+        // Public route (home) should NOT have X-Robots-Tag: noindex
+        $homeResponse = $this->get('/');
+        $this->assertNull($homeResponse->headers->get('X-Robots-Tag'));
+
+        // Non-public routes (e.g. /login) should have X-Robots-Tag: noindex, nofollow
+        $loginResponse = $this->get('/login');
+        $this->assertEquals('noindex, nofollow', $loginResponse->headers->get('X-Robots-Tag'));
     }
 }

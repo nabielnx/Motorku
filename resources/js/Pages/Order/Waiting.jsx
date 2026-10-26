@@ -1,378 +1,76 @@
-import '../../../css/customer-storefront.css';
-import { cancelCustomerOrder, customerOrderStatus } from '@/Api/customerOrders';
-import { useState, useEffect, useRef } from 'react';
-import { Head, Link, router } from '@inertiajs/react';
+import { useState } from 'react';
+import { Link } from '@inertiajs/react';
+import { FiRefreshCw, FiCopy, FiShoppingBag } from 'react-icons/fi';
+import useStorefront from '@/Hooks/useStorefront';
+import useCustomerOrders from '@/Hooks/useCustomerOrders';
+import { customerOrderState, orderDate, rupiah } from '@/Utils/customerOrderState';
+import { OrderWorkspace, ConnectionNotice, OrderItems, PickupDetails, RefundDetails } from '@/Components/Customer/OrderWorkspace';
+import OrderPaymentActions from '@/Components/Customer/OrderPaymentActions';
 
-import useForceLightTheme from '@/Utils/useForceLightTheme';
-import WaitingSkeleton from '@/Components/Skeletons/WaitingSkeleton';
-
-import { FiCheck, FiClock, FiMapPin, FiShoppingBag, FiUser, FiArrowRight, FiAlertCircle, FiFileText, FiXCircle, FiAlertTriangle } from 'react-icons/fi';
-
-const PAYMENT_KEY = 'motorku_order_for_payment';
-const CURRENT_ORDER_KEY = 'motorku_current_order';
-const POLL_INTERVAL = 6000;
-
-export default function WaitingConfirmation() {
-    useForceLightTheme();
-    const [loaded, setLoaded] = useState(false);
-    const [orderInfo, setOrderInfo] = useState(null);
-    const orderRef = useRef(orderInfo);
-    orderRef.current = orderInfo;
-    const [orderStatus, setOrderStatus] = useState('pending');
-    const [paymentStatus, setPaymentStatus] = useState('pending');
-    const [cancelling, setCancelling] = useState(false);
-    const [showCancelModal, setShowCancelModal] = useState(false);
-    const [cancelError, setCancelError] = useState(null);
-
-    const openCancelModal = () => {
-        setCancelError(null);
-        setShowCancelModal(true);
+export default function Waiting() {
+    const { storage, storeUrl } = useStorefront();
+    const { orders, syncing, refresh, update, storageError, accountError } = useCustomerOrders(storage);
+    const id = new URLSearchParams(window.location.search).get('order');
+    const order = id ? orders.find(row => row.order_id === id) : orders[0];
+    const [copied, setCopied] = useState(false);
+    const state = order && customerOrderState(order);
+    const copy = async () => {
+        try { await navigator.clipboard.writeText(order.order_number); setCopied(true); }
+        catch { setCopied(false); }
     };
-
-    const handleConfirmCancel = async () => {
-        if (!orderInfo || !orderInfo.order_id || !orderInfo.customer_token) return;
-
-        setCancelling(true);
-        setCancelError(null);
-        try {
-            await cancelCustomerOrder(orderInfo.order_id, orderInfo.customer_token);
-
-            const updatedInfo = { ...orderInfo, order_status: 'cancelled' };
-            setOrderInfo(updatedInfo);
-            setOrderStatus('cancelled');
-            setShowCancelModal(false);
-
-            try {
-                const historyKey = 'motorku_orders_history';
-                const rawHistory = localStorage.getItem(historyKey);
-                let history = rawHistory ? JSON.parse(rawHistory) : [];
-                if (Array.isArray(history)) {
-                    const idx = history.findIndex(o => o.order_id === orderInfo.order_id);
-                    if (idx > -1) history[idx] = updatedInfo;
-                    localStorage.setItem(historyKey, JSON.stringify(history));
-                }
-            } catch {}
-        } catch (err) {
-            setCancelError(err.response?.data?.message || 'Gagal membatalkan pesanan.');
-        } finally {
-            setCancelling(false);
-        }
-    };
-
-    useEffect(() => {
-        try {
-            const raw = localStorage.getItem(PAYMENT_KEY);
-            if (!raw) { router.visit('/'); return; }
-            const parsed = JSON.parse(raw);
-            if (!parsed?.order_id || !parsed?.customer_token) { router.visit('/order/status'); return; }
-            setOrderInfo(parsed);
-        } catch { router.visit('/'); } finally { setLoaded(true); }
-    }, []);
-
-    useEffect(() => {
-        if (!orderInfo) return;
-
-        const controller = new AbortController();
-        let busy = false;
-        const pollOrder = async () => {
-            if (busy || document.hidden || ['completed', 'cancelled'].includes(orderRef.current?.order_status)) return;
-            busy = true;
-            try {
-                const d = await customerOrderStatus(orderInfo.order_id, orderInfo.customer_token, controller.signal);
-                if (!d?.order_status || controller.signal.aborted || orderRef.current?.order_status === 'cancelled') return;
-                const info = {
-                    ...orderRef.current,
-                    order_status: d.order_status,
-                    payment_status: d.payment_status,
-                    total: d.total,
-                    subtotal: d.subtotal,
-                    tax_amount: d.tax_amount,
-                    discount_amount: d.discount_amount,
-                    items: d.items,
-                    customer_name: d.customer_name || orderInfo.customer_name,
-                    pickup_label: d.pickup_label || orderInfo.pickup_label || 'Ambil di Toko',
-                    ordered_at: d.ordered_at,
-                };
-                setOrderInfo(info);
-                localStorage.setItem(CURRENT_ORDER_KEY, JSON.stringify(info));
-                try {
-                    const historyKey = 'motorku_orders_history';
-                    const rawHistory = localStorage.getItem(historyKey);
-                    let history = rawHistory ? JSON.parse(rawHistory) : [];
-                    if (Array.isArray(history)) {
-                        const idx = history.findIndex(o => o.order_id === info.order_id);
-                        if (idx > -1) {
-                            history[idx] = info;
-                        } else {
-                            history.push(info);
-                        }
-                        localStorage.setItem(historyKey, JSON.stringify(history));
-                    }
-                } catch {}
-                setOrderStatus(d.order_status);
-                if (d.payment_status === 'paid') { setPaymentStatus('paid'); }
-                setPaymentStatus(d.payment_status);
-            } catch (err) {
-                if (!controller.signal.aborted && err.response?.status === 404) {
-                    try {
-                        localStorage.removeItem(PAYMENT_KEY);
-                        localStorage.removeItem(CURRENT_ORDER_KEY);
-                    } catch {}
-                    router.visit('/');
-                }
-            } finally { busy = false; }
-        };
-
-        // Polling status pesanan secara berkala dengan perlindungan customer_token
-        pollOrder();
-        const interval = setInterval(() => { pollOrder(); }, POLL_INTERVAL);
-
-        return () => {
-            controller.abort();
-            clearInterval(interval);
-        };
-    }, [orderInfo?.order_id, orderInfo?.customer_token]);
-
-    const formatRp = (val) => `Rp ${Number(val).toLocaleString('id-ID')}`;
-
-    if (loaded && !orderInfo) return <div className="p-6 text-center">Data pesanan tidak tersedia. <Link href="/" className="text-stone-700 underline">Kembali ke katalog</Link></div>;
-
-    if (!orderInfo) {
-        return <WaitingSkeleton />;
-    }
 
     return (
-        <div className="customer-storefront customer-flow h-full w-full bg-slate-100 font-sans text-slate-800 flex justify-center overflow-y-auto">
-            <Head title="Pesanan Diterima">
-                <meta name="description" content="Status penerimaan pesanan Motorku. Lacak pembayaran dan konfirmasi kasir." />
-            </Head>
-
-            <div className="customer-frame w-full max-w-md bg-white min-h-full shadow-2xl flex flex-col items-center p-6 space-y-6">
-
-                {/* HEADER ICON & TITLE */}
-                <div className="text-center space-y-2 pt-6">
-                    <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
-                        <FiCheck size={32} />
-                    </div>
-                    <h1 className="text-xl font-black text-slate-900">Pesanan Berhasil Terkirim!</h1>
-                    <p className="text-sm text-slate-500">Harap tunggu, pesanan Anda sedang diproses</p>
-                </div>
-
-                {/* ORDER DETAILS */}
-                <div className="w-full bg-slate-50 rounded-lg p-5 space-y-3">
-                    <div className="flex items-center justify-between text-xs">
-                        <div className="flex items-center gap-2 text-slate-400">
-                            <FiShoppingBag size={14} />
-                            <span>No. Order</span>
-                        </div>
-                        <span className="font-mono font-bold text-slate-800">{orderInfo.order_number}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-xs">
-                        <div className="flex items-center gap-2 text-slate-400">
-                            <FiMapPin size={14} />
-                            <span>Tipe Pesanan</span>
-                        </div>
-                        <span className="font-bold text-stone-600">Ambil di Toko</span>
-                    </div>
-                    <div className="flex items-center justify-between text-xs">
-                        <div className="flex items-center gap-2 text-slate-400">
-                            <FiUser size={14} />
-                            <span>Pemesan</span>
-                        </div>
-                        <span className="font-bold text-slate-800">{orderInfo.customer_name || '-'}</span>
-                    </div>
-                    <div className="border-t border-slate-200 pt-3 flex items-center justify-between">
-                        <span className="text-xs font-bold text-slate-500">Total</span>
-                        <span className="font-black text-lg text-stone-600">{formatRp(orderInfo.total)}</span>
-                    </div>
-                </div>
-
-                {/* INVOICE / RINCIAN PESANAN */}
-                {orderInfo.items && orderInfo.items.length > 0 && (
-                    <div className="w-full bg-slate-50 border border-slate-200 rounded-lg p-4 space-y-3">
-                        <div className="flex items-center justify-between border-b border-slate-200 pb-2">
-                            <h3 className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                                <FiFileText size={14} className="text-stone-500" />
-                                Rincian Pesanan
-                            </h3>
-                            <span className="text-[10px] text-slate-400 font-medium">{orderInfo.ordered_at || 'Baru Saja'}</span>
-                        </div>
-                        <div className="space-y-2.5">
-                            {orderInfo.items.map((item, idx) => (
-                                <div key={item.id || idx} className="flex justify-between items-start text-xs">
-                                    <div className="flex-1 min-w-0 pr-2">
-                                        <div className="flex items-center gap-1.5">
-                                            <span className="font-bold text-slate-800">{item.product_name}</span>
-                                            <span className="text-[10px] font-bold text-stone-600 bg-stone-100 px-1.5 py-0.5 rounded">x{item.quantity}</span>
-                                        </div>
-                                        {item.notes && <p className="text-[10px] text-stone-600 mt-0.5 italic">Catatan: {item.notes}</p>}
-                                    </div>
-                                    <span className="font-bold text-slate-700 shrink-0">{formatRp(item.subtotal)}</span>
-                                </div>
-                            ))}
-                        </div>
-                        <div className="border-t border-dashed border-slate-300 pt-2.5 space-y-1 text-xs">
-                            {Number(orderInfo.subtotal) > 0 && (
-                                <div className="flex justify-between text-slate-500">
-                                    <span>Subtotal</span>
-                                    <span>{formatRp(orderInfo.subtotal)}</span>
-                                </div>
-                            )}
-                            {Number(orderInfo.tax_amount) > 0 && (
-                                <div className="flex justify-between text-slate-500">
-                                    <span>Pajak</span>
-                                    <span>{formatRp(orderInfo.tax_amount)}</span>
-                                </div>
-                            )}
-                            {Number(orderInfo.discount_amount) > 0 && (
-                                <div className="flex justify-between text-emerald-600">
-                                    <span>Diskon</span>
-                                    <span>-{formatRp(orderInfo.discount_amount)}</span>
-                                </div>
-                            )}
-                            <div className="flex justify-between font-black text-sm text-slate-900 pt-2 border-t border-slate-200">
-                                <span>Total Pembayaran</span>
-                                <span className="text-stone-600">{formatRp(orderInfo.total)}</span>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* PAYMENT STATUS */}
-                {paymentStatus === 'paid' ? (
-                    <div className="w-full bg-emerald-50 border border-emerald-200 rounded-lg p-4 flex items-center gap-3">
-                        <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center shrink-0">
-                            <FiCheck size={16} className="text-emerald-600" />
-                        </div>
-                        <div>
-                            <p className="text-xs font-bold text-emerald-800">Pembayaran Berhasil!</p>
-                            <p className="text-[10px] text-emerald-600">Rp {Number(orderInfo.total).toLocaleString('id-ID')}</p>
-                        </div>
-                    </div>
-                ) : null}
-
-                {/* PAYMENT & ORDER STATUS BANNER */}
-                {(paymentStatus === 'pending' || paymentStatus === 'unpaid') ? (
-                    <div className="w-full bg-yellow-50 border border-yellow-200 rounded-lg p-4 flex items-center gap-3">
-                        <FiClock size={20} className="text-yellow-500 shrink-0" />
-                        <div>
-                            <p className="text-xs font-bold text-yellow-800">Menunggu Konfirmasi Kasir</p>
-                            <p className="text-[11px] text-yellow-600 leading-tight">
-                                Tunjukkan nomor pesanan di atas ke kasir toko untuk pembayaran.
-                            </p>
-                        </div>
-                    </div>
-                ) : (
-                    <div className={`w-full rounded-lg border p-4 flex items-center gap-3 ${
-                        orderStatus === 'ready' ? 'bg-emerald-50 border-emerald-200' :
-                        orderStatus === 'completed' ? 'bg-green-50 border-green-200' :
-                        orderStatus === 'cancelled' ? 'bg-red-50 border-red-200' :
-                        'bg-stone-50 border-stone-200'
-                    }`}>
-                        <div className={`w-3.5 h-3.5 rounded-full shrink-0 ${
-                            orderStatus === 'ready' ? 'bg-emerald-500' :
-                            orderStatus === 'completed' ? 'bg-green-500' :
-                            orderStatus === 'cancelled' ? 'bg-red-500' :
-                            'bg-[#19231f] animate-pulse'
-                        }`}></div>
-                        <div>
-                            <p className="text-xs font-bold text-slate-800">
-                                {{
-                                    pending: 'Menunggu Toko Menyiapkan',
-                                    preparing: 'Toko Sedang Menyiapkan',
-                                    ready: 'Pesanan Siap Diambil',
-                                    completed: 'Pesanan Selesai',
-                                    cancelled: 'Pesanan Dibatalkan',
-                                }[orderStatus] || 'Status Pesanan Diperbarui'}
-                            </p>
-                            <p className="text-[10px] text-slate-500">Status terhubung langsung ke sistem kasir.</p>
-                        </div>
-                    </div>
-                )}
-
-                {/* CANCEL ORDER BUTTON (for unpaid pending orders only) */}
-                {orderStatus === 'pending' && paymentStatus !== 'paid' && (
-                    <button
-                        onClick={openCancelModal}
-                        disabled={cancelling}
-                        className="w-full py-3 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 active:scale-98"
-                    >
-                        <FiXCircle size={14} />
-                        <span>Batalkan Pesanan</span>
-                    </button>
-                )}
-
-                {/* PROCEED BUTTON */}
-                <Link
-                    href="/order/status"
-                    onClick={() => {
-                        localStorage.setItem(CURRENT_ORDER_KEY, JSON.stringify(orderInfo));
-                    }}
-                    className="w-full py-3.5 bg-[#19231f] hover:bg-[#19231f] text-white font-bold rounded-xl text-xs shadow-md transition-all flex items-center justify-center gap-2 active:scale-98"
-                >
-                    <span>Lihat Status Pesanan</span>
-                    <FiArrowRight size={14} />
-                </Link>
-
-                {/* BACK TO MENU */}
-                <Link
-                    href="/"
-                    className="text-xs text-slate-400 hover:text-slate-600 font-medium"
-                >
-                    Kembali ke Menu
-                </Link>
+        <OrderWorkspace title="Detail pesanan" back="/order/status" backLabel="Pesanan saya" compact>
+            <div className="order-page-title">
+                <h1>Detail pesanan</h1>
+                <button type="button" className="order-icon-button" onClick={() => refresh()} disabled={syncing} aria-label={syncing ? 'Memeriksa status pesanan' : 'Perbarui status pesanan'} title="Perbarui">
+                    <FiRefreshCw size={18} />
+                </button>
             </div>
-
-            {/* CUSTOM CANCEL CONFIRMATION MODAL */}
-            {showCancelModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900 animate-fade-in">
-                    <div className="bg-white rounded-xl p-6 max-w-xs w-full shadow-2xl space-y-4 text-center border border-slate-100 transform transition-all">
-                        <div className="w-14 h-14 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
-                            <FiAlertTriangle size={28} />
-                        </div>
-                        <div className="space-y-1">
-                            <h3 className="text-base font-black text-slate-900">Batalkan Pesanan?</h3>
-                            <p className="text-xs text-slate-500 leading-relaxed">
-                                Apakah Anda yakin ingin membatalkan <span className="font-bold text-slate-800">Pesanan #{orderInfo.order_number}</span>? Tindakan ini tidak dapat dibatalkan.
-                            </p>
-                        </div>
-
-                        {cancelError && (
-                            <div className="bg-red-50 border border-red-200 text-red-600 text-xs p-3 rounded-xl font-medium text-left flex items-center gap-2">
-                                <FiAlertCircle size={14} className="shrink-0" />
-                                <span>{cancelError}</span>
-                            </div>
-                        )}
-
-                        <div className="flex gap-2 pt-1">
-                            <button
-                                onClick={() => {
-                                    setShowCancelModal(false);
-                                    setCancelError(null);
-                                }}
-                                disabled={cancelling}
-                                className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition-colors cursor-pointer disabled:opacity-50"
-                            >
-                                Kembali
-                            </button>
-                            <button
-                                onClick={handleConfirmCancel}
-                                disabled={cancelling}
-                                className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-xs shadow-md transition-colors flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 active:scale-98"
-                            >
-                                {cancelling ? (
-                                    <span>Membatalkan...</span>
-                                ) : (
-                                    <>
-                                        <FiXCircle size={14} />
-                                        <span>Ya, Batalkan</span>
-                                    </>
-                                )}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-        </div>
+            {accountError && <div className="order-notice order-error" role="alert">{accountError}</div>}
+            {!order ? (
+                <section className="order-panel order-empty">
+                    <FiShoppingBag size={32} /><h2>Pesanan belum tersedia</h2>
+                    <p>Buka riwayat di perangkat yang digunakan saat memesan.</p>
+                    <Link href={storeUrl('/order/status')} className="order-button">Lihat pesanan saya</Link>
+                </section>
+            ) : <>
+                {(storageError || new URLSearchParams(window.location.search).get('receipt') === 'temporary') && <div className="order-notice order-error" role="alert">Pesanan sudah dibuat, tetapi belum tersimpan di browser. Salin nomor pesanan sebelum menutup halaman ini.</div>}
+                <ConnectionNotice order={order} />
+                <article className="order-receipt">
+                    <header className="order-receipt-header">
+                        <div><strong>{order.order_number}</strong><p>{orderDate(order.ordered_at || order.created_at)} · {order.customer_name}</p></div>
+                        <button type="button" className="order-icon-button" onClick={copy} aria-label={copied ? 'Nomor disalin' : 'Salin nomor pesanan'} title={copied ? 'Disalin' : 'Salin nomor'}><FiCopy size={16} /></button>
+                    </header>
+                    <section className="order-receipt-status">
+                        <h2>{state.title}</h2>
+                        <p>{state.description}</p>
+                        <OrderPaymentActions order={order} onUpdate={update} refresh={refresh} />
+                    </section>
+                    <section className="order-receipt-items">
+                        <h2>Barang pesanan</h2>
+                        <OrderItems items={order.items} />
+                        <div className="order-receipt-total"><span>Total pesanan</span><strong>{rupiah(order.total)}</strong></div>
+                        <details className="order-disclosure">
+                            <summary>Rincian pembayaran</summary>
+                            <dl>
+                                <div><dt>Subtotal</dt><dd>{rupiah(order.subtotal)}</dd></div>
+                                {Number(order.discount_amount) > 0 && <div><dt>Diskon</dt><dd>−{rupiah(order.discount_amount)}</dd></div>}
+                                <div><dt>Pajak</dt><dd>{rupiah(order.tax_amount)}</dd></div>
+                                <div><dt>Pembayaran</dt><dd>{state.payment}</dd></div>
+                                <div><dt>Metode</dt><dd>{order.payment_method === 'qris_manual' || order.payment_preference === 'qris' ? 'QRIS' : 'Bayar di kasir'}</dd></div>
+                                {order.paid_at && <div><dt>Dibayar</dt><dd>{orderDate(order.paid_at)}</dd></div>}
+                                {order.invoice_number && <div><dt>Invoice</dt><dd>{order.invoice_number}</dd></div>}
+                                {order.payment_reference && <div><dt>Referensi</dt><dd>{order.payment_reference}</dd></div>}
+                                {state.review && <div><dt>Konfirmasi dikirim</dt><dd>{orderDate(order.payment_review_requested_at)}</dd></div>}
+                            </dl>
+                        </details>
+                    </section>
+                    <RefundDetails order={order} flat />
+                    <PickupDetails flat />
+                </article>
+                {(state.cancelled || state.expired || order.order_status === 'completed') && <Link href={storeUrl('/')} className="order-button order-button-primary order-shop-again">Belanja lagi</Link>}
+            </>}
+        </OrderWorkspace>
     );
 }

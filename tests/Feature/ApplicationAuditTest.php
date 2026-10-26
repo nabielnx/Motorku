@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use App\Models\Category;
@@ -94,12 +96,14 @@ class ApplicationAuditTest extends TestCase
         $this->assertSame([], Storage::disk('public')->allFiles());
     }
 
-    public function test_reset_endpoint_is_removed_and_tagline_is_configurable(): void
+    public function test_reset_endpoint_requires_owner_password_and_tagline_is_configurable(): void
     {
         $this->seed(RoleSeeder::class);
         $owner = User::factory()->create();
         $owner->assignRole('owner');
-        $this->actingAs($owner)->postJson('/api/settings/reset-transactions')->assertStatus(405);
+        $this->actingAs($owner)->postJson('/api/settings/reset-transactions')
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('owner_password');
         $this->postJson('/api/settings', ['settings' => [['group' => 'store', 'key' => 'tagline', 'value' => 'Toko campuran dekat Anda']]])->assertOk();
         $this->get('/settings')->assertInertia(fn ($page) => $page->where('app_settings.store_tagline', 'Toko campuran dekat Anda'));
     }

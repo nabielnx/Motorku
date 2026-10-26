@@ -1,3 +1,5 @@
+import DeleteButton from '@/Components/Admin/DeleteButton';
+import Pagination from '@/Components/Pagination';
 import AdminButton from '@/Components/Admin/Button';
 import useProductNavigation from '@/Hooks/useProductNavigation';
 import ProductFormModal from '@/Components/Product/ProductFormModal';
@@ -5,6 +7,11 @@ import CategoryFormModal from '@/Components/Product/CategoryFormModal';
 import DeleteProductModal from '@/Components/Product/DeleteProductModal';
 import ProductPreviewModal from '@/Components/Product/ProductPreviewModal';
 import StockAdjustmentModal from '@/Components/Product/StockAdjustmentModal';
+import ProductSelectionCheckbox from '@/Components/Product/ProductSelectionCheckbox';
+import ProductSelectionToolbar from '@/Components/Product/ProductSelectionToolbar';
+import BulkDeleteProductsModal from '@/Components/Product/BulkDeleteProductsModal';
+import { deletionsAllowed } from '@/Utils/deletion';
+import { emptyProductSelection, isProductSelected, toggleProductSelection, selectProductPage, productDeleteSelectionSchema, productSelectionScope } from '@/Utils/productSelection';
 
 
 import { productPageSize } from '@/Utils/productPagination';
@@ -20,7 +27,7 @@ import { ProductPhoto } from '@/Components/Customer/Storefront';
 import ProductBookView from '@/Components/Product/ProductBookView';
 import axios from 'axios';
 import { toast } from 'sonner';
-import { FiPlus, FiEdit2, FiTrash2, FiChevronDown, FiChevronLeft, FiChevronRight, FiX, FiPackage, FiSearch, FiAlertTriangle, FiGrid, FiList, FiBookOpen, FiFilter, FiFolder } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2, FiChevronDown, FiChevronRight, FiX, FiPackage, FiSearch, FiAlertTriangle, FiGrid, FiList, FiBookOpen, FiFilter, FiFolder } from 'react-icons/fi';
 
 
 
@@ -35,7 +42,7 @@ export default function MenuManagement({
     const { props } = usePage();
     const locale = props.app_settings?.locale || 'id';
     const selectedGroup = filters.group || '';
-    const displayCatalogGroups = { ...catalogGroups, ...catalogGroupLabels };
+    const displayCatalogGroups = props.catalog_groups ?? (Object.keys(catalogGroups).length ? catalogGroups : catalogGroupLabels);
     const groupName = displayCatalogGroups[selectedGroup];
     const hasProductFilters = Boolean(
         filters.search?.trim()
@@ -83,6 +90,7 @@ export default function MenuManagement({
             const catName = p.category ? p.category.name : 'Umum';
             return {
                 id: p.id,
+                sync_version: Number(p.sync_version),
                 sku: p.sku || '',
                 brand: p.brand || '',
                 rack_location: p.rack_location || '',
@@ -284,6 +292,30 @@ export default function MenuManagement({
     // Loading State
     const [isLoading, setIsLoading] = useState(false);
     const [deleteTarget, setDeleteTarget] = useState(null);
+    const [productSelection, setProductSelection] = useState(emptyProductSelection);
+    const [bulkDeleteTarget, setBulkDeleteTarget] = useState(null);
+    const selectionEnabled = deletionsAllowed(props.app_settings);
+    const liveSelectionScope = productSelectionScope({ group: selectedGroup, search: searchQuery, category: selectedCategoryFilter, stock_status: selectedStockFilter, availability: statusFilter });
+    const selectionScope = `${activeTab}:${liveSelectionScope}`;
+    const selectionBusy = isNavigating || isPageSizeSyncing || isLoading || liveSelectionScope !== productSelectionScope(filters);
+    useEffect(() => {
+        setProductSelection(emptyProductSelection());
+        setBulkDeleteTarget(null);
+    }, [selectionScope]);
+    const toggleProduct = id => setProductSelection(previous => toggleProductSelection(previous, id));
+    const openBulkDelete = () => {
+        if (selectionBusy || !selectionEnabled) return;
+        const result = productDeleteSelectionSchema.safeParse(productSelection.mode === 'filtered' ? {
+            ...productSelection,
+            filters: { group: selectedGroup, search: filters.search || '', category: filters.category || 'All',
+                stock_status: filters.stock_status || 'all', availability: filters.availability || 'all' },
+        } : productSelection);
+        if (!result.success) { toast.error('Pilihan produk tidak valid. Periksa filter dan pilih kembali.'); return; }
+        setBulkDeleteTarget(result.data);
+    };
+    const productSelectionCheckbox = item => <ProductSelectionCheckbox label={`Pilih ${item.name}`}
+        checked={isProductSelected(productSelection, item.id)} disabled={!selectionEnabled || selectionBusy}
+        onChange={() => toggleProduct(item.id)} />;
 
     // Product Image Lightbox State
     const [previewProduct, setPreviewProduct] = useState(null);
@@ -407,6 +439,7 @@ export default function MenuManagement({
 
         try {
             if (editingItem) {
+                fd.append('sync_version', String(editingItem.sync_version));
                 fd.append('_method', 'PUT');
                 await axios.post(`/api/products/${editingItem.id}`, fd);
                 toast.success(`Data produk "${productFormData.name}" berhasil diperbarui!`);
@@ -414,9 +447,11 @@ export default function MenuManagement({
                 await axios.post('/api/products', fd);
                 toast.success(`Produk "${productFormData.name}" berhasil ditambahkan!`);
             }
+            setProductSelection(emptyProductSelection());
             router.reload({ preserveScroll: true });
             setIsProductModalOpen(false);
         } catch (err) {
+            if (err.response?.status === 409) router.reload({ only: ['initialProducts'], preserveScroll: true });
             toast.error(err.response?.data?.message || 'Gagal menyimpan produk');
         } finally {
             setIsLoading(false);
@@ -490,6 +525,7 @@ export default function MenuManagement({
                 await axios.delete(`/api/categories/${deleteTarget.id}`);
                 toast.success(`Kategori "${deleteTarget.name}" berhasil dihapus!`);
             }
+            setProductSelection(emptyProductSelection());
             router.reload({ preserveScroll: true });
         } catch (err) {
             toast.error(err.response?.data?.message || `Gagal menghapus ${deleteTarget.type}`);
@@ -511,7 +547,7 @@ export default function MenuManagement({
     return (
         <AuthenticatedLayout pageTitle={groupName || 'Produk'} noPadding={true}>
             <Head title={`${locale === 'en' ? 'Products & Stock' : 'Produk & Stok'}`}>
-                <meta name="description" content="Kelola katalog produk sparepart, oli, aki, ban, harga, dan ketersediaan stok Motorku." />
+                <meta name="description" content="Kelola katalog produk, kategori, harga, dan ketersediaan stok usaha Anda di TokoM." />
             </Head>
 
             <div className="p-0 sm:p-4 lg:p-5 flex-1 min-h-0 flex flex-col overflow-hidden">
@@ -780,6 +816,12 @@ export default function MenuManagement({
                         </div>
                     )}
 
+                    {activeTab === 'products' && <ProductSelectionToolbar selection={productSelection} items={items} total={totalProducts}
+                        enabled={selectionEnabled} busy={selectionBusy}
+                        onPageSelect={checked => setProductSelection(previous => selectProductPage(previous, items.map(item => item.id), checked))}
+                        onSelectAll={() => setProductSelection({ mode: 'filtered', excluded_ids: [] })}
+                        onClear={() => setProductSelection(emptyProductSelection())} onDelete={openBulkDelete} />}
+
                     {/* CATEGORY TAB UTILITY BAR */}
                     {activeTab === 'categories' && (
                         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-0.5">
@@ -835,6 +877,7 @@ export default function MenuManagement({
                                             return (
                                                 <article key={item.id} className="px-3 py-2">
                                                     <div className="flex items-start gap-2.5">
+                                                        {productSelectionCheckbox(item)}
                                                         <button
                                                             type="button"
                                                             onClick={() => setPreviewProduct(item)}
@@ -872,7 +915,7 @@ export default function MenuManagement({
                                                             <div className="flex flex-wrap items-center gap-1 pt-1 font-semibold">
                                                                 <button type="button" onClick={() => openAdjustModal(item)} className="inline-flex min-h-8 items-center gap-1 px-2 rounded-md text-primary dark:text-blue-300"><FiPlus size={14} /> Stok</button>
                                                                 <button type="button" onClick={() => openEditProductModal(item)} className="inline-flex min-h-8 items-center gap-1 px-2 rounded-md text-slate-700 dark:text-slate-200"><FiEdit2 size={13} /> Edit</button>
-                                                                <button type="button" onClick={() => handleDeleteProduct(item)} className="inline-flex min-h-8 items-center gap-1 px-2 rounded-md text-red-600 dark:text-red-400"><FiTrash2 size={13} /> Hapus</button>
+                                                                <DeleteButton type="button" onClick={() => handleDeleteProduct(item)} className="inline-flex min-h-8 items-center gap-1 px-2 rounded-md text-red-600 dark:text-red-400"><FiTrash2 size={13} /> Hapus</DeleteButton>
                                                             </div>
                                                         </div>
                                                     )}
@@ -892,6 +935,7 @@ export default function MenuManagement({
                                             onOpenAdjust={openAdjustModal}
                                             onOpenEdit={openEditProductModal}
                                             onDeleteProduct={handleDeleteProduct}
+                                            renderSelection={productSelectionCheckbox}
                                             onPreviewProduct={setPreviewProduct}
                                             categories={categories}
                                             selectedCategory={selectedCategoryFilter}
@@ -903,6 +947,7 @@ export default function MenuManagement({
                                     <div className="catalog-grid grid grid-cols-2 gap-3 p-3 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 min-[1700px]:grid-cols-5 md:gap-4 md:p-4">
                                         {filteredItems.map(item => (
                                             <div key={item.id} className="admin-surface admin-catalog-card bg-white dark:bg-slate-800 rounded-md md:rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden md:shadow-xs hover:shadow-md hover:border-slate-400 dark:hover:border-slate-500 transition-all flex flex-col relative group">
+                                                <div className="absolute left-1 top-1 z-10 rounded-md bg-white dark:bg-slate-900">{productSelectionCheckbox(item)}</div>
                                                 {/* Image Container */}
                                                 <div
                                                     className="catalog-image relative w-full aspect-square bg-slate-50 dark:bg-slate-900 cursor-pointer overflow-hidden border-b border-slate-100 dark:border-slate-700"
@@ -964,14 +1009,14 @@ export default function MenuManagement({
                                                     >
                                                         <FiEdit2 size={13} /> <span className="hidden xl:inline text-[11px] font-semibold">Edit</span>
                                                     </button>
-                                                    <button
+                                                    <DeleteButton
                                                         type="button"
                                                         onClick={() => handleDeleteProduct(item)}
                                                         className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-white dark:hover:bg-slate-800 rounded-lg transition cursor-pointer admin-icon-button"
                                                         title="Hapus Produk"
                                                     >
                                                         <FiTrash2 size={13} /> <span className="hidden xl:inline text-[11px] font-semibold">Hapus</span>
-                                                    </button>
+                                                    </DeleteButton>
                                                 </div>
                                             </div>
                                         ))}
@@ -981,6 +1026,7 @@ export default function MenuManagement({
                                         {/* Table Header */}
                                         <thead className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-10 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                             <tr>
+                                                <th className="w-10 px-1 py-1"><span className="sr-only">Pilih produk</span></th>
                                                 <th className="w-8 pl-3 pr-0 py-2.5 text-center"></th>
                                                 <th className="pl-2 pr-4 py-2.5 font-bold min-w-[260px]">
                                                     <button type="button" onClick={() => handleSortChange('name')} className="flex items-center gap-1.5 hover:text-slate-900 dark:hover:text-white" aria-label="Urutkan nama produk">
@@ -1021,6 +1067,7 @@ export default function MenuManagement({
                                                             }`}
                                                         >
                                                             {/* Expand Button */}
+                                                            <td className="w-10 px-1 py-1">{productSelectionCheckbox(item)}</td>
                                                             <td className="w-8 pl-3 pr-0 py-2.5 text-center">
                                                                 <button
                                                                     type="button"
@@ -1116,14 +1163,14 @@ export default function MenuManagement({
                                                                     >
                                                                         <FiEdit2 size={14} />
                                                                     </button>
-                                                                    <button
+                                                                    <DeleteButton
                                                                         type="button"
                                                                         onClick={() => handleDeleteProduct(item)}
                                                                         className="p-1 text-red-500 hover:text-red-600 transition cursor-pointer admin-icon-button"
                                                                         title="Hapus Produk"
                                                                     >
                                                                         <FiTrash2 size={14} />
-                                                                    </button>
+                                                                    </DeleteButton>
                                                                 </div>
                                                             </td>
                                                         </tr>
@@ -1131,7 +1178,7 @@ export default function MenuManagement({
                                                         {/* Accordion Detail Sub-panel */}
                                                         {isExpanded && (
                                                             <tr className="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-800 animate-in fade-in duration-150">
-                                                                <td colSpan={8} className="p-4 sm:p-5">
+                                                                <td colSpan={9} className="p-4 sm:p-5">
                                                                     <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6">
                                                                         {/* Product Image in Accordion */}
                                                                         <div 
@@ -1185,13 +1232,13 @@ export default function MenuManagement({
                                                                             >
                                                                                 <FiEdit2 size={13} /> Edit
                                                                             </button>
-                                                                            <button
+                                                                            <DeleteButton
                                                                                 type="button"
                                                                                 onClick={() => handleDeleteProduct(item)}
                                                                                 className="px-3 py-1.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-red-600 dark:text-red-400 text-xs font-bold rounded-md border border-slate-300 dark:border-slate-700 transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
                                                                             >
                                                                                 <FiTrash2 size={13} /> Hapus
-                                                                            </button>
+                                                                            </DeleteButton>
                                                                         </div>
                                                                     </div>
                                                                 </td>
@@ -1214,29 +1261,7 @@ export default function MenuManagement({
                                         <span className="sm:hidden">{((currentPage - 1) * perPage) + 1}–{Math.min(currentPage * perPage, totalProducts)} / {totalProducts}</span>
                                         <span className="hidden sm:inline">Menampilkan {((currentPage - 1) * perPage) + 1} - {Math.min(currentPage * perPage, totalProducts)} dari {totalProducts} produk · {perPage} per halaman</span>
                                     </span>
-                                    <div className="flex items-center gap-2">
-                                        <button
-                                            type="button"
-                                            onClick={() => changeProductPage(currentPage - 1)}
-                                            disabled={currentPage <= 1}
-                                            aria-label="Halaman sebelumnya"
-                                            className="p-1 sm:px-3.5 sm:py-1.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-200 transition sm:border border-slate-300 dark:border-slate-700 sm:shadow-2xs cursor-pointer"
-                                        >
-                                            <FiChevronLeft size={16} className="sm:hidden" /><span className="hidden sm:inline">Sebelumnya</span>
-                                        </button>
-                                        <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
-                                            {currentPage} / {totalPages}
-                                        </span>
-                                        <button
-                                            type="button"
-                                            onClick={() => changeProductPage(currentPage + 1)}
-                                            disabled={currentPage >= totalPages}
-                                            aria-label="Halaman berikutnya"
-                                            className="p-1 sm:px-3.5 sm:py-1.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-200 transition sm:border border-slate-300 dark:border-slate-700 sm:shadow-2xs cursor-pointer"
-                                        >
-                                            <FiChevronRight size={16} className="sm:hidden" /><span className="hidden sm:inline">Selanjutnya</span>
-                                        </button>
-                                    </div>
+                                    <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={changeProductPage} label="Halaman produk" />
                                 </div>
                             )}
                         </>
@@ -1257,7 +1282,7 @@ export default function MenuManagement({
                                     <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mb-4">
                                         {categorySearch
                                             ? `Tidak ada kategori atau sub-kategori yang cocok dengan "${categorySearch}".`
-                                            : 'Kelola kategori suku cadang untuk memudahkan pencarian dan pengelompokan produk kasir.'}
+                                            : 'Kelola kategori produk untuk memudahkan pencarian dan pengelompokan barang.'}
                                     </p>
                                     {categorySearch ? (
                                         <button
@@ -1302,7 +1327,7 @@ export default function MenuManagement({
                                                     </div>
                                                     <button type="button" onClick={() => { setActiveTab('products'); handleCategoryFilterChange(cat.name); }} className="min-h-8 px-1 text-xs font-semibold text-primary dark:text-blue-300 hover:underline whitespace-nowrap">Lihat produk</button>
                                                     <button type="button" onClick={() => openEditCategoryModal(cat)} className="p-2 text-slate-500 hover:text-slate-900 dark:hover:text-white admin-icon-button" title="Edit kategori dan subkategori" aria-label={`Edit ${cat.name}`}><FiEdit2 size={15} /></button>
-                                                    <button type="button" onClick={() => handleDeleteCategory(cat)} className="p-2 text-slate-400 hover:text-red-600 admin-icon-button" title="Hapus kategori" aria-label={`Hapus ${cat.name}`}><FiTrash2 size={15} /></button>
+                                                    <DeleteButton type="button" onClick={() => handleDeleteCategory(cat)} className="p-2 text-slate-400 hover:text-red-600 admin-icon-button" title="Hapus kategori" aria-label={`Hapus ${cat.name}`}><FiTrash2 size={15} /></DeleteButton>
                                                 </div>
                                                 {isExpanded && (
                                                     <div className="pl-11 pr-4 pb-2">
@@ -1351,6 +1376,13 @@ export default function MenuManagement({
             )}
 
             {/* CUSTOM VISUAL DELETE CONFIRMATION MODAL */}
+            {bulkDeleteTarget && <BulkDeleteProductsModal selection={bulkDeleteTarget} onClose={() => setBulkDeleteTarget(null)}
+                onDeleted={count => {
+                    setBulkDeleteTarget(null);
+                    setProductSelection(emptyProductSelection());
+                    toast.success(`${count} produk berhasil dihapus.`);
+                    router.reload({ preserveScroll: true });
+                }} />}
             {deleteTarget && (
                 <DeleteProductModal
                 deleteTarget={deleteTarget}

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Profile;
 
 use App\Http\Controllers\Controller;
@@ -8,6 +10,7 @@ use App\Http\Requests\ProfileUpdateRequest;
 use App\Models\User;
 use App\Services\ImageUploadService;
 use App\Services\UserService;
+use App\Support\BusinessFiles;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -28,6 +31,7 @@ class ProfileController extends Controller
         return Inertia::render('Profile/Edit', [
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => session('status'),
+            'google_account' => $request->user()->google_email,
         ]);
     }
 
@@ -64,7 +68,7 @@ class ProfileController extends Controller
         $old = $user->avatar;
         $user->update(['avatar' => null]);
         if ($old) {
-            Storage::disk('public')->delete($old);
+            BusinessFiles::delete($old);
         }
 
         return response()->json([

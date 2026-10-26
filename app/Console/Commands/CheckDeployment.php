@@ -1,9 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Console\Commands;
 
 use App\Models\User;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
@@ -29,17 +32,31 @@ class CheckDeployment extends Command
             'Public storage link' => is_link(public_path('storage')),
             'Uploads allow 4 MB' => $this->megabytes(ini_get('upload_max_filesize')) >= 4 && $this->megabytes(ini_get('post_max_size')) >= 8,
         ];
+        $mailDriver = config('mail.mailers.'.config('mail.default').'.transport');
+        if (app()->environment('production')) {
+            $checks['Real email delivery transport configured'] = ! in_array($mailDriver, [null, 'log', 'array'], true);
+        } elseif (in_array($mailDriver, [null, 'log', 'array'], true)) {
+            $this->warn('Mail is not delivered: configure SMTP/API before testing verification, invitations or password recovery.');
+        }
         try {
             DB::select('SELECT 1');
             $checks['Database reachable'] = true;
             $checks['Active owner exists'] = User::role('owner')->where('is_active', true)->exists();
-            $checks['No demo passwords'] = ! User::whereIn('email', ['owner@tokosparepart.com', 'andi@tokosparepart.com', 'siti@tokosparepart.com'])->get()
+            // Detect both current and legacy demo accounts on existing installs.
+            $checks['No demo passwords'] = ! User::whereIn('email', [
+                'owner@example.com', 'andi@example.com', 'siti@example.com',
+                'owner@tokosparepart.com', 'andi@tokosparepart.com', 'siti@tokosparepart.com',
+            ])->get()
                 ->contains(fn ($user) => Hash::check('password', $user->password));
         } catch (\Throwable) {
             $checks['Database/schema available'] = false;
         }
         foreach ($checks as $name => $passed) {
             $passed ? $this->info('OK: '.$name) : $this->error('FAIL: '.$name);
+        }
+        $lastSchedule = Cache::get('system:scheduler:last-run');
+        if (! is_numeric($lastSchedule) || (int) $lastSchedule < now()->subMinutes(5)->timestamp) {
+            $this->warn('Scheduler heartbeat missing/stale. Verify the every-minute hosting cron before relying on order expiry.');
         }
         $this->line('Scheduler, HTTPS/proxy upload limits, mail delivery, and backup restore must also be tested on the host.');
 

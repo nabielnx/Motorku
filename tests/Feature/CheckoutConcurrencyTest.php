@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use App\Models\Product;
@@ -16,6 +18,9 @@ class CheckoutConcurrencyTest extends TestCase
     // Workers need committed fixtures, rather than RefreshDatabase's transaction.
     use DatabaseTruncation;
 
+    // These rows are application configuration seeded by migrations, not checkout fixtures.
+    protected array $exceptTables = ['data_types', 'businesses'];
+
     protected function tearDown(): void
     {
         // This schema includes irreversible hard-delete migrations; do not roll it back.
@@ -25,21 +30,21 @@ class CheckoutConcurrencyTest extends TestCase
 
     public function test_two_processes_create_one_paid_sale_and_deduct_stock_once(): void
     {
-        $this->assertSame('sparepart_testing', DB::connection()->getDatabaseName());
+        $this->assertSame('tokom_testing', DB::connection()->getDatabaseName());
         $this->seed(RoleSeeder::class);
         $owner = User::factory()->create();
         $owner->assignRole('owner');
         $product = Product::factory()->create(['price' => 10000, 'stock' => 5]);
         $payload = json_encode([
             'request_id' => (string) Str::uuid(), 'customer_name' => 'Concurrent sale',
-            'items' => [['product_id' => $product->id, 'quantity' => 1]], 'amount_received' => 10000,
+            'items' => [['product_id' => $product->id, 'quantity' => 1]], 'expected_total' => 10000, 'amount_received' => 10000,
         ], JSON_THROW_ON_ERROR);
         $directory = storage_path('app/testing/'.Str::uuid());
         mkdir($directory, 0700, true);
         $connection = DB::connection()->getConfig();
         $env = [
             'APP_ENV' => 'testing', 'APP_CONFIG_CACHE' => $directory.'/unused-config.php',
-            'DB_CONNECTION' => 'mysql', 'DB_URL' => '', 'DB_DATABASE' => 'sparepart_testing',
+            'DB_CONNECTION' => 'mysql', 'DB_URL' => '', 'DB_DATABASE' => 'tokom_testing',
             'DB_HOST' => $connection['host'], 'DB_PORT' => (string) $connection['port'],
             'DB_USERNAME' => $connection['username'], 'DB_PASSWORD' => $connection['password'],
             'CACHE_STORE' => 'array', 'SESSION_DRIVER' => 'array', 'QUEUE_CONNECTION' => 'sync',

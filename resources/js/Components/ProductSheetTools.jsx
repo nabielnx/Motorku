@@ -1,19 +1,20 @@
 import { useState } from 'react';
 import { catalogGroupLabels } from '@/Utils/catalogGroupLabels';
 import AdminDialog, { DialogTitle } from '@/Components/Admin/Dialog';
-import { router } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { FiDownload, FiUpload, FiX } from 'react-icons/fi';
 import { sheetError, sheetFileSchema, sheetPreviewSchema, selectableSheetRows } from '@/Utils/productSheet';
 
-const groups = catalogGroupLabels;
 const money = value => value == null ? '—' : new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(value);
+const quantity = value => new Intl.NumberFormat('id-ID').format(value);
 const control = 'admin-control w-full';
 const secondary = 'admin-button admin-button-secondary';
 const primary = 'admin-button admin-button-primary';
 
 export default function ProductSheetTools({ selectedGroup, compact = false }) {
+    const groups = usePage().props.catalog_groups ?? catalogGroupLabels;
     const [dialog, setDialog] = useState(null);
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState('');
@@ -25,12 +26,13 @@ export default function ProductSheetTools({ selectedGroup, compact = false }) {
     const [mode, setMode] = useState('add');
     const [defaultGroup, setDefaultGroup] = useState(selectedGroup || 'automotive');
     const [estimated, setEstimated] = useState(false);
+    const [updateStock, setUpdateStock] = useState(false);
     const [exportGroup, setExportGroup] = useState(selectedGroup || '');
     const [format, setFormat] = useState('xlsx');
     const close = () => {
         if (busy) return;
         setDialog(null); setDraft(null); setPreview(null); setFile(null); setError(''); setSelected([]);
-        setMode('add'); setEstimated(false);
+        setMode('add'); setEstimated(false); setUpdateStock(false);
     };
     const run = async action => {
         setBusy(true); setError('');
@@ -44,7 +46,7 @@ export default function ProductSheetTools({ selectedGroup, compact = false }) {
         setDraft(data); setSheets(data.sheets.map(sheet => ({ ...sheet, enabled: true })));
     });
     const buildPreview = () => run(async () => {
-        const input = { token: draft.token, mode, default_group: defaultGroup, use_estimated_cost: estimated,
+        const input = { token: draft.token, mode, default_group: defaultGroup, use_estimated_cost: estimated, update_stock: mode !== 'add' && updateStock,
             sheets: sheets.filter(sheet => sheet.enabled).map(({ id, mapping }) => ({ id, mapping })) };
         const valid = sheetPreviewSchema.safeParse(input);
         if (!valid.success) throw new Error(valid.error.issues[0].message);
@@ -53,9 +55,9 @@ export default function ProductSheetTools({ selectedGroup, compact = false }) {
     });
     const commit = () => run(async () => {
         const { data } = await axios.post(route('api.products.sheets.commit'), { token: draft.token, revision: preview.revision, rows: selected });
-        toast.success(`${data.created} barang ditambahkan, ${data.updated} harga diperbarui.`);
+        toast.success(`${data.created} barang ditambahkan, ${data.updated} barang diperbarui.`);
         setDialog(null); setDraft(null); setPreview(null); setFile(null); setSelected([]);
-        setMode('add'); setEstimated(false);
+        setMode('add'); setEstimated(false); setUpdateStock(false);
         router.reload({ only: ['initialProducts', 'initialCategories', 'lowStockCount', 'outOfStockCount'] });
     });
     const changeSheet = (id, change) => setSheets(current => current.map(sheet => sheet.id === id ? { ...sheet, ...change } : sheet));
@@ -89,9 +91,10 @@ export default function ProductSheetTools({ selectedGroup, compact = false }) {
                 </div> : !preview ? <div className="space-y-4">
                     <p className="text-sm">Periksa pencocokan kolom. Tab yang tidak ingin diimpor bisa dilepas centangnya. Margin dihitung dari harga jual dan modal, sehingga tidak perlu dicocokkan.</p>
                     <div className="grid gap-3 sm:grid-cols-2">
-                        <label className="text-sm">Cara impor<select className={`${control} mt-1`} value={mode} onChange={event => setMode(event.target.value)}><option value="add">Tambah barang baru saja</option><option value="upsert">Tambah baru + perbarui harga barang lama</option><option value="update">Perbarui harga barang lama saja</option></select></label>
+                        <label className="text-sm">Cara impor<select className={`${control} mt-1`} value={mode} onChange={event => { setMode(event.target.value); if (event.target.value === 'add') setUpdateStock(false); }}><option value="add">Tambah barang baru saja</option><option value="upsert">Tambah baru + perbarui barang lama</option><option value="update">Perbarui barang lama saja</option></select></label>
                         <label className="text-sm">Grup jika kolom Grup Barang kosong<select className={`${control} mt-1`} value={defaultGroup} onChange={event => setDefaultGroup(event.target.value)}>{Object.entries(groups).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label>
                     </div>
+                    {mode !== 'add' && <label className="flex items-start gap-2 rounded-lg bg-stone-100 p-3 text-sm text-stone-800 dark:bg-slate-800 dark:text-slate-200"><input type="checkbox" checked={updateStock} onChange={event => setUpdateStock(event.target.checked)} className="mt-1 rounded" /><span><strong>Perbarui stok barang lama sesuai file.</strong> Stok diganti dengan angka di file, bukan ditambahkan. Kolom kosong atau tidak digunakan mempertahankan stok lama; angka 0 membuat stok habis. Perubahan dicatat di riwayat stok.</span></label>}
                     <label className="flex items-start gap-2 rounded-lg bg-amber-50 p-3 text-sm text-slate-800"><input type="checkbox" checked={estimated} onChange={event => setEstimated(event.target.checked)} className="mt-1 rounded" /><span>Gunakan <strong>Estimasi Modal</strong> sebagai harga beli. Centang hanya jika angkanya sudah kamu periksa. Harga Beli yang terisi lebih diutamakan.</span></label>
                     {sheets.map(sheet => <details key={sheet.id} open={sheets.length === 1} className="rounded-lg border border-slate-200 p-3 dark:border-slate-700">
                         <summary className="cursor-pointer text-sm font-semibold">{sheet.name} · {sheet.count} baris</summary>
@@ -101,13 +104,13 @@ export default function ProductSheetTools({ selectedGroup, compact = false }) {
                     <div className="flex flex-wrap gap-2"><button className={secondary} type="button" disabled={busy} onClick={() => { setDraft(null); setError(''); }}>Ganti file</button><button className={primary} type="button" disabled={busy} onClick={buildPreview}>{busy ? 'Memeriksa…' : 'Lihat pratinjau'}</button></div>
                 </div> : <div className="space-y-4">
                     <p className="text-sm">{preview.rows.length} baris diperiksa · {eligible.length} dapat disimpan · {preview.rows.filter(row => row.errors.length > 0).length} bermasalah · {preview.rows.filter(row => row.action === 'skip').length} dilewati.</p>
-                    <p className="rounded-lg bg-blue-50 p-3 text-sm text-blue-900">Barang lama dicocokkan menggunakan Kode Barang, atau nama lengkap dan merek jika kode kosong. Periksa nama hasil pencocokan sebelum menyimpan. Pembaruan harga tidak mengubah stok, gambar, nama, kategori, dan satuan.</p>
+                    <p className="rounded-lg bg-stone-100 p-3 text-sm text-stone-800 dark:bg-slate-800 dark:text-slate-200">Barang lama dicocokkan menggunakan Kode Barang, atau nama lengkap dan merek jika kode kosong. Periksa nama hasil pencocokan sebelum menyimpan. Stok hanya diperbarui jika opsi pembaruan stok dicentang dan kolom Stok terisi. Gambar, nama, kategori, dan satuan tetap.</p>
                     <label className="flex items-center gap-2 text-sm"><input type="checkbox" className="rounded" checked={eligible.length > 0 && selected.length === eligible.length} onChange={event => setSelected(event.target.checked ? eligible : [])} />Pilih semua baris valid ({selected.length} dipilih)</label>
                     <div className="max-h-[45vh] overflow-auto rounded-lg border dark:border-slate-700">
                         <table className="w-full min-w-[650px] text-left text-sm"><thead className="sticky top-0 bg-slate-100 text-slate-700"><tr><th className="p-3">Pilih</th><th className="p-3">Barang / asal</th><th className="p-3">Tindakan & harga</th><th className="p-3">Catatan</th></tr></thead><tbody>{preview.rows.map(row => <tr key={row.id} className="border-t align-top dark:border-slate-700">
                             <td className="p-3"><input type="checkbox" className="rounded" aria-label={`Pilih ${row.data.name || `baris ${row.number}`}`} disabled={row.errors.length > 0 || row.action === 'skip' || busy} checked={selected.includes(row.id)} onChange={event => setSelected(current => event.target.checked ? [...current, row.id] : current.filter(id => id !== row.id))} /></td>
                             <td className="max-w-xs p-3"><p className="font-semibold">{row.data.name || '(nama kosong)'}</p><p className="mt-1 text-xs">Merek: {row.data.brand || '—'}{row.data.sku && <><br />Kode: {row.data.sku}</>}</p><p className="mt-1 text-xs text-slate-500">{row.sheet} · Baris {row.number}<br />{groups[row.group]} · {row.category_name || row.category}</p>{row.matched_name && <p className="mt-1 text-xs">Cocok: {row.matched_name}</p>}</td>
-                            <td className="p-3"><p className="font-semibold">{{ create: 'Tambah baru', update: 'Perbarui harga', skip: 'Dilewati' }[row.action]}</p>{row.old_price != null && <p className="text-xs">{money(row.old_price)} →</p>}<p>{money(row.data.price)}</p><p className="mt-1 text-xs">Modal: {money(row.data.cost_price)}</p></td>
+                            <td className="p-3"><p className="font-semibold">{{ create: 'Tambah baru', update: row.update_stock ? 'Perbarui harga & stok' : 'Perbarui harga', skip: 'Dilewati' }[row.action]}</p>{row.old_price != null && <p className="text-xs">{money(row.old_price)} →</p>}<p>{money(row.data.price)}</p><p className="mt-1 text-xs">Modal: {money(row.data.cost_price)}</p><p className="mt-1 text-xs">Stok: {row.action === 'create' ? quantity(row.data.stock ?? 0) : row.update_stock ? <>{quantity(row.old_stock)} → <strong>{quantity(row.data.stock)}</strong></> : <>{quantity(row.old_stock)} (tetap)</>}</p></td>
                             <td className="max-w-xs p-3 text-xs">{row.errors.map((message, i) => <p key={`error-${i}`} className="mb-1 text-red-600">{message}</p>)}{row.warnings.map((message, i) => <p key={`warning-${i}`} className="mb-1 text-slate-500 dark:text-slate-400">{message}</p>)}</td>
                         </tr>)}</tbody></table>
                     </div>

@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services;
 
+use App\Support\BusinessFiles;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -23,7 +26,7 @@ class ImageUploadService
 
     public function store(UploadedFile $file, string $directory, string $field = 'image'): string
     {
-        $path = $directory.'/'.Str::uuid().'.webp';
+        $path = $directory.'/'.app(BusinessContext::class)->id().'/'.Str::uuid().'.webp';
         try {
             $image = ImageManager::gd()->read($file->getRealPath());
             $image->scaleDown(width: 2400, height: 2400);
@@ -41,7 +44,7 @@ class ImageUploadService
                 $image->scaleDown(width: max(1, (int) ($image->width() * 0.8)), height: max(1, (int) ($image->height() * 0.8)));
             } while (max($image->width(), $image->height()) >= 128);
         } catch (Throwable $exception) {
-            Storage::disk('public')->delete($path);
+            BusinessFiles::delete($path);
             report($exception);
         }
 
@@ -57,11 +60,11 @@ class ImageUploadService
                 throw new \RuntimeException('Referensi gambar gagal disimpan.');
             }
         } catch (Throwable $exception) {
-            Storage::disk('public')->delete($path);
+            BusinessFiles::delete($path);
             throw $exception;
         }
         if ($oldPath && ! str_starts_with($oldPath, 'http')) {
-            Storage::disk('public')->delete($oldPath);
+            BusinessFiles::delete($oldPath);
         }
 
         return $result;

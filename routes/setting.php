@@ -1,15 +1,21 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Http\Controllers\Setting\SettingController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('settings')->name('api.settings.')->group(function () {
     Route::get('/', [SettingController::class, 'index'])->name('index');
     Route::post('/', [SettingController::class, 'saveAll'])->name('saveAll');
+    Route::post('/reset-transactions', [SettingController::class, 'resetTransactions'])
+        ->middleware('throttle:password-confirmation')
+        ->name('reset-transactions');
     Route::post('/logo', [SettingController::class, 'uploadLogo'])->name('logo');
     Route::delete('/logo', [SettingController::class, 'deleteLogo'])->name('logo.delete');
     Route::get('/logo', [SettingController::class, 'getLogo'])->name('logo.get');
     Route::post('/qris-image', [SettingController::class, 'uploadQrisImage'])->name('qris-image');
+    Route::post('/qris-payload', [SettingController::class, 'activateQris'])->name('qris-payload');
     Route::delete('/qris-image', [SettingController::class, 'deleteQrisImage'])->name('qris-image.delete');
     Route::post('/login-image', [SettingController::class, 'uploadLoginImage'])->name('login-image');
     Route::delete('/login-image', [SettingController::class, 'deleteLoginImage'])->name('login-image.delete');

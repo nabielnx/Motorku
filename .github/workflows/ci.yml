@@ -16,7 +16,7 @@ jobs:
       mysql:
         image: mysql:8.0
         env:
-          MYSQL_DATABASE: sparepart_testing
+          MYSQL_DATABASE: tokom_testing
           MYSQL_ROOT_PASSWORD: root
         ports:
           - 3306:3306
@@ -60,6 +60,8 @@ jobs:
           php artisan key:generate
       - name: Deployment health-check regression tests
         run: bash tests/shell/deploy-health-check-test.sh
+      - name: Deployment cleanup regression tests
+        run: bash tests/shell/deploy-cleanup-test.sh
       - name: Build frontend
         run: npm run build
       - name: PHP style and dependency checks
@@ -67,14 +69,14 @@ jobs:
           vendor/bin/pint --test app bootstrap/*.php config database routes scripts tests
           composer validate --strict
           composer audit
-      - name: Audit production npm dependencies
+      - name: Audit all npm dependencies including build tooling
         shell: bash
         run: |
           output_file=npm-audit.json
 
           for attempt in 1 2 3; do
-            if npm audit --omit=dev --json --fetch-retries=0 --fetch-timeout=30000 >"$output_file" 2>&1; then
-              node -e "const report=JSON.parse(require('fs').readFileSync(process.argv[1], 'utf8')); console.log('Production dependency vulnerabilities:', JSON.stringify(report.metadata?.vulnerabilities ?? {}))" "$output_file"
+            if npm audit --json --fetch-retries=0 --fetch-timeout=30000 >"$output_file" 2>&1; then
+              node -e "const report=JSON.parse(require('fs').readFileSync(process.argv[1], 'utf8')); console.log('Dependency vulnerabilities:', JSON.stringify(report.metadata?.vulnerabilities ?? {}))" "$output_file"
               exit 0
             else
               exit_code=$?
@@ -92,7 +94,7 @@ jobs:
           done
       - uses: actions/upload-artifact@v4
         with:
-          name: production-dependency-advisories
+          name: dependency-advisories
           path: npm-audit.json
       - name: JavaScript regression tests
         run: node --test tests/js/*.test.js

@@ -3,7 +3,7 @@ import Skeleton, { SkeletonWrapper } from '@/Components/Skeleton';
 import clsx from 'clsx';
 
 /**
- * Product Card Skeleton matching Motorku storefront card 1:1.
+ * Product Card Skeleton matching TokoM storefront card 1:1.
  * Monochromatic neutral grayscale.
  */
 function CardSkeleton({ isGrid = false }) {
@@ -47,7 +47,7 @@ function CardSkeleton({ isGrid = false }) {
 }
 
 /**
- * Customer storefront skeleton — matches Order/Menu (Katalog Sparepart) 1:1.
+ * Customer storefront skeleton — matches Order/Menu (Katalog Produk) 1:1.
  * Accurate on both mobile and widescreen desktop (sidebar categories grid).
  *
  * @param {boolean} fullPage - When true renders the complete storefront.
@@ -91,30 +91,15 @@ export default function MenuSkeleton({ fullPage = true, isGrid = false, showProm
             <header className="store-header">
                 <div className="store-header-shell">
                     <div className="store-brand"><Skeleton className="h-7 w-7 shrink-0" /><Skeleton className="h-5 w-20" /></div>
-                    <div className="store-nav"><Skeleton className="h-4 w-12" /><Skeleton className="h-4 w-16" /></div>
+                    <div className="store-actions"><Skeleton className="h-10 w-10" /><Skeleton className="h-10 w-24" /><Skeleton className="h-10 w-10" /><Skeleton className="h-10 w-10" /></div>
                     <div className="store-tools">
-                        <Skeleton className="h-10 flex-1 min-w-0" />
-                        <div className="store-actions"><Skeleton className="h-10 w-10" /><Skeleton className="h-10 w-10" /></div>
+                        <Skeleton className="h-10 w-full" />
                     </div>
                 </div>
             </header>
 
-            {/* ═══ 2. MOTOR SAYA BANNER ═══ */}
-            <section className="store-motor-banner">
-                <div className="mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8 py-3 sm:py-3.5">
-                    <div className="flex items-center gap-3 sm:gap-4 pl-3 sm:pl-4 md:pl-5 pr-3.5 sm:pr-5 md:pr-6">
-                        <Skeleton className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl shrink-0" />
-                        <div className="min-w-0 flex-1 space-y-1.5">
-                            <Skeleton className="h-3.5 sm:h-4 w-24 rounded" />
-                            <Skeleton className="h-2.5 sm:h-3 w-full max-w-72 rounded" />
-                        </div>
-                        <Skeleton className="w-4 h-4 rounded shrink-0" />
-                    </div>
-                </div>
-            </section>
-
             {/* ═══ 3. MAIN STOREFRONT CONTENT ═══ */}
-            <div className={`mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8 ${hasCart ? 'pb-32' : 'pb-12'}`}>
+            <div className={`store-catalog mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8 ${hasCart ? 'pb-32' : 'pb-12'}`}>
                 {/* Promo Banner Section */}
                 {showPromo && <section className="pb-1">
                     <div className="relative rounded-lg sm:rounded-xl bg-slate-100 border border-slate-200 overflow-hidden p-2.5 sm:p-3 shadow-2xs">

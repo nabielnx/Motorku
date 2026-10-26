@@ -14,7 +14,7 @@ probe() {
     curl_exit=0
     http_code=$(curl --disable --silent --show-error --location --max-redirs 3 \
         --proto '=https' --proto-redir '=https' --connect-timeout 10 --max-time 25 \
-        --max-filesize 1048576 --user-agent 'Motorku-Deployment-Health/1.0' \
+        --max-filesize 1048576 --user-agent 'TokoM-Deployment-Health/1.0' \
         --header 'Cache-Control: no-cache' --dump-header "$work/headers" \
         --output "$work/body" --write-out '%{http_code}' "$1") || curl_exit=$?
 }

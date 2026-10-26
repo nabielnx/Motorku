@@ -30,4 +30,4 @@ Komponen modal memakai controlled props; kondisi mount, callback, class CSS dan 
 
 ## Verifikasi
 
-Jalankan tes Laravel pada `sparepart_testing`, tes JavaScript, `posCategoryFilter.test.mjs`, build Vite dan Pint. Perubahan halaman juga diperiksa melalui browser: filter gabungan, parts motor atas/bawah, modal produk/pemetaan, keranjang, pembayaran dan shortcut pada mobile/tablet/desktop. Tes backend dan build tidak menggantikan pemeriksaan interaksi tersebut.
+Jalankan tes Laravel pada `tokom_testing`, tes JavaScript, `posCategoryFilter.test.mjs`, build Vite dan Pint. Perubahan halaman juga diperiksa melalui browser: filter gabungan, parts motor atas/bawah, modal produk/pemetaan, keranjang, pembayaran dan shortcut pada mobile/tablet/desktop. Tes backend dan build tidak menggantikan pemeriksaan interaksi tersebut.

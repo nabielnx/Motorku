@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature\Product;
 
 use App\Models\Category;
@@ -80,7 +82,7 @@ class ProductCrudTest extends TestCase
         $product = Product::factory()->create(['image_path' => 'products/old.jpg']);
 
         $this->actingAs($this->owner)->post("/api/products/{$product->id}", [
-            '_method' => 'PUT',
+            '_method' => 'PUT', 'sync_version' => $product->sync_version,
             'image' => UploadedFile::fake()->image('replacement.png', 40, 30),
         ], ['Accept' => 'application/json'])->assertOk();
 
@@ -104,7 +106,7 @@ class ProductCrudTest extends TestCase
     {
         $product = Product::factory()->create();
         $response = $this->actingAs($this->owner)
-            ->putJson("/api/products/{$product->id}", ['name' => 'Ayam Bakar']);
+            ->putJson("/api/products/{$product->id}", ['name' => 'Ayam Bakar', 'sync_version' => $product->sync_version]);
 
         $response->assertStatus(200);
         $this->assertDatabaseHas('products', ['name' => 'Ayam Bakar']);

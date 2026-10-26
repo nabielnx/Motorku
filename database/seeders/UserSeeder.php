@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Seeders;
 
 use App\Models\User;
@@ -24,7 +26,7 @@ class UserSeeder extends Seeder
 
         $owner = User::updateOrCreate(
             [
-                'email' => 'owner@tokosparepart.com',
+                'email' => 'owner@example.com',
             ],
             [
                 'name' => 'Owner',
@@ -43,7 +45,7 @@ class UserSeeder extends Seeder
 
         $cashier1 = User::updateOrCreate(
             [
-                'email' => 'andi@tokosparepart.com',
+                'email' => 'andi@example.com',
             ],
             [
                 'name' => 'Andi (Kasir)',
@@ -56,7 +58,7 @@ class UserSeeder extends Seeder
 
         $cashier2 = User::updateOrCreate(
             [
-                'email' => 'siti@tokosparepart.com',
+                'email' => 'siti@example.com',
             ],
             [
                 'name' => 'Siti (Kasir)',

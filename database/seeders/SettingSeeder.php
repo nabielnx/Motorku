@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Seeders;
 
 use App\Models\Setting;
@@ -23,7 +25,7 @@ class SettingSeeder extends Seeder
             [
                 'group' => 'store',
                 'key' => 'name',
-                'value' => 'Motorku',
+                'value' => 'TokoM',
                 'type' => 'string',
             ],
 
@@ -44,7 +46,7 @@ class SettingSeeder extends Seeder
             [
                 'group' => 'store',
                 'key' => 'email',
-                'value' => 'info@tokosparepart.com',
+                'value' => '',
                 'type' => 'string',
             ],
 
@@ -147,6 +149,13 @@ class SettingSeeder extends Seeder
             | Catalog Settings
             |--------------------------------------------------------------------------
             */
+
+            [
+                'group' => 'references',
+                'key' => 'enabled',
+                'value' => 'true',
+                'type' => 'boolean',
+            ],
 
             [
                 'group' => 'catalog',

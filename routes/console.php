@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schedule;
 
@@ -23,3 +26,8 @@ Artisan::command('products:prune-imports', function () {
 })->purpose('Delete expired private product import drafts');
 
 Schedule::command('products:prune-imports')->hourly()->withoutOverlapping();
+
+Schedule::command('cache:prune-expired')->hourly()->withoutOverlapping();
+
+Schedule::call(fn () => Cache::put('system:scheduler:last-run', now()->timestamp, 3600))
+    ->name('scheduler-heartbeat')->everyMinute();
