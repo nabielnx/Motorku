@@ -7,6 +7,11 @@ import CategoryFormModal from '@/Components/Product/CategoryFormModal';
 import DeleteProductModal from '@/Components/Product/DeleteProductModal';
 import ProductPreviewModal from '@/Components/Product/ProductPreviewModal';
 import StockAdjustmentModal from '@/Components/Product/StockAdjustmentModal';
+import ProductSelectionCheckbox from '@/Components/Product/ProductSelectionCheckbox';
+import ProductSelectionToolbar from '@/Components/Product/ProductSelectionToolbar';
+import BulkDeleteProductsModal from '@/Components/Product/BulkDeleteProductsModal';
+import { deletionsAllowed } from '@/Utils/deletion';
+import { emptyProductSelection, isProductSelected, toggleProductSelection, selectProductPage, productDeleteSelectionSchema, productSelectionScope } from '@/Utils/productSelection';
 
 
 import { productPageSize } from '@/Utils/productPagination';
@@ -287,6 +292,30 @@ export default function MenuManagement({
     // Loading State
     const [isLoading, setIsLoading] = useState(false);
     const [deleteTarget, setDeleteTarget] = useState(null);
+    const [productSelection, setProductSelection] = useState(emptyProductSelection);
+    const [bulkDeleteTarget, setBulkDeleteTarget] = useState(null);
+    const selectionEnabled = deletionsAllowed(props.app_settings);
+    const liveSelectionScope = productSelectionScope({ group: selectedGroup, search: searchQuery, category: selectedCategoryFilter, stock_status: selectedStockFilter, availability: statusFilter });
+    const selectionScope = `${activeTab}:${liveSelectionScope}`;
+    const selectionBusy = isNavigating || isPageSizeSyncing || isLoading || liveSelectionScope !== productSelectionScope(filters);
+    useEffect(() => {
+        setProductSelection(emptyProductSelection());
+        setBulkDeleteTarget(null);
+    }, [selectionScope]);
+    const toggleProduct = id => setProductSelection(previous => toggleProductSelection(previous, id));
+    const openBulkDelete = () => {
+        if (selectionBusy || !selectionEnabled) return;
+        const result = productDeleteSelectionSchema.safeParse(productSelection.mode === 'filtered' ? {
+            ...productSelection,
+            filters: { group: selectedGroup, search: filters.search || '', category: filters.category || 'All',
+                stock_status: filters.stock_status || 'all', availability: filters.availability || 'all' },
+        } : productSelection);
+        if (!result.success) { toast.error('Pilihan produk tidak valid. Periksa filter dan pilih kembali.'); return; }
+        setBulkDeleteTarget(result.data);
+    };
+    const productSelectionCheckbox = item => <ProductSelectionCheckbox label={`Pilih ${item.name}`}
+        checked={isProductSelected(productSelection, item.id)} disabled={!selectionEnabled || selectionBusy}
+        onChange={() => toggleProduct(item.id)} />;
 
     // Product Image Lightbox State
     const [previewProduct, setPreviewProduct] = useState(null);
@@ -418,6 +447,7 @@ export default function MenuManagement({
                 await axios.post('/api/products', fd);
                 toast.success(`Produk "${productFormData.name}" berhasil ditambahkan!`);
             }
+            setProductSelection(emptyProductSelection());
             router.reload({ preserveScroll: true });
             setIsProductModalOpen(false);
         } catch (err) {
@@ -495,6 +525,7 @@ export default function MenuManagement({
                 await axios.delete(`/api/categories/${deleteTarget.id}`);
                 toast.success(`Kategori "${deleteTarget.name}" berhasil dihapus!`);
             }
+            setProductSelection(emptyProductSelection());
             router.reload({ preserveScroll: true });
         } catch (err) {
             toast.error(err.response?.data?.message || `Gagal menghapus ${deleteTarget.type}`);
@@ -785,6 +816,12 @@ export default function MenuManagement({
                         </div>
                     )}
 
+                    {activeTab === 'products' && <ProductSelectionToolbar selection={productSelection} items={items} total={totalProducts}
+                        enabled={selectionEnabled} busy={selectionBusy}
+                        onPageSelect={checked => setProductSelection(previous => selectProductPage(previous, items.map(item => item.id), checked))}
+                        onSelectAll={() => setProductSelection({ mode: 'filtered', excluded_ids: [] })}
+                        onClear={() => setProductSelection(emptyProductSelection())} onDelete={openBulkDelete} />}
+
                     {/* CATEGORY TAB UTILITY BAR */}
                     {activeTab === 'categories' && (
                         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-0.5">
@@ -840,6 +877,7 @@ export default function MenuManagement({
                                             return (
                                                 <article key={item.id} className="px-3 py-2">
                                                     <div className="flex items-start gap-2.5">
+                                                        {productSelectionCheckbox(item)}
                                                         <button
                                                             type="button"
                                                             onClick={() => setPreviewProduct(item)}
@@ -897,6 +935,7 @@ export default function MenuManagement({
                                             onOpenAdjust={openAdjustModal}
                                             onOpenEdit={openEditProductModal}
                                             onDeleteProduct={handleDeleteProduct}
+                                            renderSelection={productSelectionCheckbox}
                                             onPreviewProduct={setPreviewProduct}
                                             categories={categories}
                                             selectedCategory={selectedCategoryFilter}
@@ -908,6 +947,7 @@ export default function MenuManagement({
                                     <div className="catalog-grid grid grid-cols-2 gap-3 p-3 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 min-[1700px]:grid-cols-5 md:gap-4 md:p-4">
                                         {filteredItems.map(item => (
                                             <div key={item.id} className="admin-surface admin-catalog-card bg-white dark:bg-slate-800 rounded-md md:rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden md:shadow-xs hover:shadow-md hover:border-slate-400 dark:hover:border-slate-500 transition-all flex flex-col relative group">
+                                                <div className="absolute left-1 top-1 z-10 rounded-md bg-white dark:bg-slate-900">{productSelectionCheckbox(item)}</div>
                                                 {/* Image Container */}
                                                 <div
                                                     className="catalog-image relative w-full aspect-square bg-slate-50 dark:bg-slate-900 cursor-pointer overflow-hidden border-b border-slate-100 dark:border-slate-700"
@@ -986,6 +1026,7 @@ export default function MenuManagement({
                                         {/* Table Header */}
                                         <thead className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-10 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                             <tr>
+                                                <th className="w-10 px-1 py-1"><span className="sr-only">Pilih produk</span></th>
                                                 <th className="w-8 pl-3 pr-0 py-2.5 text-center"></th>
                                                 <th className="pl-2 pr-4 py-2.5 font-bold min-w-[260px]">
                                                     <button type="button" onClick={() => handleSortChange('name')} className="flex items-center gap-1.5 hover:text-slate-900 dark:hover:text-white" aria-label="Urutkan nama produk">
@@ -1026,6 +1067,7 @@ export default function MenuManagement({
                                                             }`}
                                                         >
                                                             {/* Expand Button */}
+                                                            <td className="w-10 px-1 py-1">{productSelectionCheckbox(item)}</td>
                                                             <td className="w-8 pl-3 pr-0 py-2.5 text-center">
                                                                 <button
                                                                     type="button"
@@ -1136,7 +1178,7 @@ export default function MenuManagement({
                                                         {/* Accordion Detail Sub-panel */}
                                                         {isExpanded && (
                                                             <tr className="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-800 animate-in fade-in duration-150">
-                                                                <td colSpan={8} className="p-4 sm:p-5">
+                                                                <td colSpan={9} className="p-4 sm:p-5">
                                                                     <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6">
                                                                         {/* Product Image in Accordion */}
                                                                         <div 
@@ -1334,6 +1376,13 @@ export default function MenuManagement({
             )}
 
             {/* CUSTOM VISUAL DELETE CONFIRMATION MODAL */}
+            {bulkDeleteTarget && <BulkDeleteProductsModal selection={bulkDeleteTarget} onClose={() => setBulkDeleteTarget(null)}
+                onDeleted={count => {
+                    setBulkDeleteTarget(null);
+                    setProductSelection(emptyProductSelection());
+                    toast.success(`${count} produk berhasil dihapus.`);
+                    router.reload({ preserveScroll: true });
+                }} />}
             {deleteTarget && (
                 <DeleteProductModal
                 deleteTarget={deleteTarget}
