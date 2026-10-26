@@ -46,8 +46,8 @@ graph TD
     
 ```
 
-- **Backend**: Laravel 12 (PHP 8.2+) dengan pola arsitektur **Controller → Service → Model**. Seluruh aturan bisnis, kalkulasi harga/pajak, transaksi database, dan mutasi stok diisolasi di `app/Services/`.
-- **Database**: MySQL dengan primary key UUID (`HasUuids`), Soft Deletes pada entitas utama (`Product`, `Order`, `Motorcycle`, `Category`), dan indeks pada kolom pencarian dan tanggal.
+- **Backend**: Laravel 12 (PHP 8.3+) dengan pola arsitektur **Controller → Service → Model**. Seluruh aturan bisnis, kalkulasi harga/pajak, transaksi database, dan mutasi stok diisolasi di `app/Services/`.
+- **Database**: MySQL dengan primary key UUID (`HasUuids`), Permanent Deletes dengan integritas referensial (`nullOnDelete` pada log transaksi/order historis), dan indeks komposit pada kolom query bisnis, pencarian, dan tanggal.
 - **Frontend**: Single Page Application (SPA) menggunakan **Inertia.js** + **React 18** + **Vite** + **Tailwind CSS**.
 - **State & UI**: Ikon Feather (`react-icons/fi`) dan Game Icons (`react-icons/gi`), auto-refresh reactive state, responsive mobile-first untuk customer dan desktop-optimized untuk POS kasir.
 
