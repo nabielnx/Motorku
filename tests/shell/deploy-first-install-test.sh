@@ -34,6 +34,7 @@ prepare() {
     root="$fixture/$1"
     incoming="$root/.incoming-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
     mkdir -p "$root/storage" "$incoming"
+    chmod 750 "$root" "$root/storage"
     touch "$root/.env" "$incoming/artisan" "$incoming/composer.json" "$incoming/composer.lock"
     for directory in app bootstrap config database public resources routes vendor scripts; do mkdir "$incoming/$directory"; done
     : > "$INSTALL_TEST_LOG"
@@ -45,8 +46,15 @@ grep -qx 'artisan app:initialize-production empty_install_test' "$INSTALL_TEST_L
 grep -qx 'artisan app:check-deployment --allow-empty-installation' "$INSTALL_TEST_LOG"
 grep -qx 'artisan up' "$INSTALL_TEST_LOG"
 test -L "$root/public/storage"
+test "$(stat -c %a "$root")" = 751
+test "$(stat -c %a "$root/storage")" = 751
+for directory in storage/app/private storage/framework storage/logs; do
+    mode=$(stat -c %a "$root/$directory")
+    test "$((8#$mode & 7))" -eq 0
+done
 if grep -Eq 'backup-database|artisan migrate --force|artisan storage:link|db:wipe|migrate:fresh' "$INSTALL_TEST_LOG"; then exit 1; fi
 echo 'PASS: first install initializes empty database, verifies registration readiness, and skips update/backup commands'
+echo 'PASS: public uploads are traversable while private trees remain protected'
 
 prepare failed
 if INSTALL_TEST_FAIL=1 bash "$repo/scripts/deploy-release.sh" "$root" "$incoming" --first-install; then exit 1; fi

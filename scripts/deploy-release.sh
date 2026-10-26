@@ -39,6 +39,10 @@ for directory in app bootstrap config database public resources routes vendor sc
 done
 for file in artisan composer.json composer.lock; do cp "$incoming/$file" "$root/$file"; done
 mkdir -p bootstrap/cache storage/app/private storage/app/public storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs
+# Static asset requests may use a different web-server user on shared hosting.
+# Protect private trees before allowing traversal to public uploads.
+chmod o-rwx storage/app/private storage/framework storage/logs
+chmod o+x "$root" storage storage/app storage/app/public
 # Old provider manifests may reference packages removed in this release.
 rm -f bootstrap/cache/packages.php bootstrap/cache/services.php bootstrap/cache/config.php bootstrap/cache/events.php bootstrap/cache/routes-v7.php
 if [ "$mode" = --first-install ]; then
