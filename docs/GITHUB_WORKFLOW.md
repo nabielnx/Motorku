@@ -74,7 +74,7 @@ Untuk HTTP 403 yang menetap di Hostinger, periksa aturan CDN/firewall dan gunaka
 
 Untuk instalasi production baru tanpa akun dan data usaha, gunakan alur `first_install=true` dan panduan [production kosong](EMPTY_PRODUCTION_INSTALLATION.md). Mode ini hanya menerima database tanpa tabel/view dan folder aplikasi baru. Owner pertama mendaftar sendiri; jangan menjalankan perintah pembuatan owner di bawah jika memilih alur tersebut. Deploy berikutnya kembali memakai `first_install=false`.
 
-Siapkan `.env` terpisah untuk staging/production, `APP_KEY` tetap, URL HTTPS, debug nonaktif, session cookie aman, database, dan storage yang dapat ditulis. Batas upload PHP: `upload_max_filesize=4M`, `post_max_size=8M`; samakan batas request web server/proxy dengan dokumentasi upload.
+Siapkan `.env` terpisah untuk staging/production, `APP_KEY` tetap, URL HTTPS, debug nonaktif, session cookie aman, database, dan storage yang dapat ditulis. Untuk impor produk 10 MB, batas PHP web per domain perlu minimal `upload_max_filesize=10M`, `post_max_size=16M`; validasi gambar aplikasi tetap 4 MB. Samakan batas request web server/proxy dengan dokumentasi upload. Nilai PHP CLI belum membuktikan nilai PHP web.
 
 Setelah kode/dependency dan skema tersedia pada instalasi pertama:
 
@@ -83,7 +83,10 @@ php artisan migrate --force
 php artisan db:seed --class=RoleSeeder --force
 php artisan db:seed --class=SettingSeeder --force
 php artisan app:create-owner owner@domain-toko.example --name="Owner"
+# Host yang mendukung symlink() PHP:
 php artisan storage:link
+# Pada Hostinger bila fungsi tersebut dinonaktifkan, gunakan ln -s melalui SSH
+# setelah memastikan public/storage belum ada dan targetnya storage/app/public.
 php artisan app:check-deployment
 ```
 
@@ -99,4 +102,4 @@ Aktifkan scheduler setiap menit untuk melepaskan stok pesanan kedaluwarsa, worke
 4. Bila skema perlu dipulihkan, uji restore `*.sql` ke database sementara dahulu, lalu putuskan rekonsiliasi transaksi setelah waktu backup. Migrasi hard delete lama memang tidak dapat di-rollback dengan `migrate:rollback`.
 5. Sesudah versi kode dan skema cocok, bersihkan cache, periksa konfigurasi, restart worker, jalankan `php artisan up`, dan cek `/up` serta alur penjualan secara manual.
 
-Prosedur SSH/backup/restore ini masih harus diuji di staging sebelum deploy production diaktifkan.
+Uji backup/restore pada database dan folder sementara yang terisolasi sebelum mengandalkannya untuk pemulihan. Hosted staging bersifat opsional. Jangan melakukan latihan restore pada database usaha aktif.

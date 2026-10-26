@@ -7,7 +7,7 @@ Semua upload produk, motor, avatar, logo, QRIS, gambar login, dan banner menerim
 ## Server
 
 - Aktifkan ekstensi PHP GD dengan dukungan WebP (`php -r "var_export(gd_info());"`).
-- Gunakan `upload_max_filesize = 4M` atau lebih besar dan `post_max_size = 8M` atau lebih besar agar multipart tidak ditolak sebelum validasi Laravel. Restart proses PHP setelah mengubah `php.ini`.
+- Gambar tetap dibatasi 4 MB oleh aplikasi. Karena impor produk menerima berkas hingga 10 MB, gunakan `upload_max_filesize = 10M` dan `post_max_size = 16M` atau lebih besar agar multipart impor tidak ditolak sebelum validasi Laravel. Periksa nilai PHP web per domain, bukan hanya PHP CLI, dan samakan batas proxy/web server. Restart proses PHP bila konfigurasi server memerlukannya.
 - Jika memakai Nginx, gunakan `client_max_body_size 8m` atau lebih besar. Jika memakai Apache/proxy lain, pastikan batas body setidaknya 8 MiB.
 - Sediakan memori PHP yang cukup untuk decoding gambar; 512M digunakan pada lingkungan lokal. Batas resolusi tetap divalidasi aplikasi.
 - Pastikan disk `public` dapat ditulis dan tautan `php artisan storage:link` tersedia.

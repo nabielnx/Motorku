@@ -14,6 +14,10 @@ use Normalizer;
 /** Same vocabulary and matching contract as the client; no external search API or stale persistent index. */
 class CatalogSearchService
 {
+    private const METADATA_BATCH_SIZE = 1000;
+
+    private const CACHE_READ_BATCH_SIZE = 100;
+
     private array $rules = [];
 
     private array $units = [];
@@ -279,7 +283,7 @@ class CatalogSearchService
         return $score;
     }
 
-    private function searchableItem(?Product $product): array
+    private function searchableItem(?Product $product, array $motorcycles): array
     {
         if (! $product) {
             return [];
@@ -287,8 +291,29 @@ class CatalogSearchService
 
         return [...$product->getAttributes(),
             'category' => $product->category ? ['name' => $product->category->name, 'parent' => ['name' => $product->category->parent?->name]] : null,
-            'motorcycles' => $product->motorcycles->map(fn ($motorcycle) => $motorcycle->getAttributes())->all(),
+            'motorcycles' => $motorcycles,
         ];
+    }
+
+    private function fitments(array $productIds): array
+    {
+        if (! $productIds) {
+            return [];
+        }
+        $context = app(BusinessContext::class);
+
+        // Search needs motor names only. Avoid hydrating a pivot/model for every mapping.
+        // Scope both sides of the join just as the Eloquent relationship does.
+        return $context->table('motorcycle_parts')
+            ->join('motorcycles', 'motorcycle_parts.motorcycle_id', '=', 'motorcycles.id')
+            ->when($context->ready(), fn ($query) => $query->where('motorcycles.business_id', $context->id()))
+            ->whereIn('motorcycle_parts.product_id', $productIds)
+            ->get(['motorcycle_parts.product_id', 'motorcycles.id', 'motorcycles.brand', 'motorcycles.model', 'motorcycles.engine_type'])
+            ->groupBy('product_id')
+            ->map(fn ($rows) => $rows->map(fn ($motor) => [
+                'id' => $motor->id, 'brand' => $motor->brand,
+                'model' => $motor->model, 'engine_type' => $motor->engine_type,
+            ])->all())->all();
     }
 
     public function apply(Builder $query, string $search, bool $rank = true, bool $parts = false): void
@@ -305,27 +330,38 @@ class CatalogSearchService
         if ($parts) {
             $candidates->select(['id', 'product_id', 'notes'])->with([
                 'product' => fn ($product) => $product->select($fields),
-                'product.category.parent', 'product.motorcycles:id,brand,model,engine_type',
+                'product.category.parent',
             ]);
         } else {
             $candidates->select($fields)
-                ->with(['category.parent', 'motorcycles:id,brand,model,engine_type']);
+                ->with(['category.parent']);
         }
         if ($prepared['valid'] && $prepared['tokens']) {
             if ((clone $candidates)->toBase()->getCountForPagination() > 10000) {
                 throw ValidationException::withMessages(['search' => 'Katalog lebih dari 10.000 produk. Pilih kategori untuk mempersempit pencarian.']);
             }
-            $candidates->chunkById(250, function ($rows) use (&$scores, $prepared, $parts): void {
+            $candidates->chunkById(self::METADATA_BATCH_SIZE, function ($rows) use (&$scores, $prepared, $parts): void {
                 $items = [];
                 $keys = [];
+                $products = $parts ? $rows->pluck('product')->filter() : $rows;
+                $fitments = $this->fitments($products->pluck('id')->unique()->all());
                 $vocabulary = hash('sha256', json_encode(config('catalog_search'), JSON_THROW_ON_ERROR));
+                $prefix = CacheService::key('search:document:v2:'.$vocabulary.':');
                 foreach ($rows as $row) {
-                    $item = $parts ? [...$this->searchableItem($row->product), 'notes' => $row->notes] : $this->searchableItem($row);
+                    $product = $parts ? $row->product : $row;
+                    $item = $this->searchableItem($product, $fitments[$product?->id] ?? []);
+                    if ($parts) {
+                        $item['notes'] = $row->notes;
+                    }
                     $items[$row->id] = $item;
-                    $keys[$row->id] = CacheService::key('search:document:v2:'.$vocabulary.':'.hash('sha256', json_encode($item, JSON_THROW_ON_ERROR)));
+                    $keys[$row->id] = $prefix.hash('sha256', json_encode($item, JSON_THROW_ON_ERROR));
                 }
                 // Content-addressed metadata only; prices/stock are never selected or cached here.
-                $documents = Cache::many(array_values(array_unique($keys)));
+                $documents = [];
+                // Keep database-cache IN lookups bounded independently of the metadata batch.
+                foreach (array_chunk(array_values(array_unique($keys)), self::CACHE_READ_BATCH_SIZE) as $batch) {
+                    $documents += Cache::many($batch);
+                }
                 $missing = [];
                 foreach ($items as $id => $item) {
                     $key = $keys[$id];
@@ -344,7 +380,6 @@ class CatalogSearchService
             });
         }
         $column = $query->getModel()->qualifyColumn('id');
-        $query->whereIn($column, array_keys($scores));
         if ($rank && $scores) {
             $connection = $query->getConnection();
             $version = (string) $connection->getPdo()->getAttribute(\PDO::ATTR_SERVER_VERSION);
@@ -364,9 +399,11 @@ class CatalogSearchService
                 foreach ($scores as $id => $score) {
                     $rows[] = ['id' => $id, 'score' => $score];
                 }
+                // Match the text UUID column so MySQL can use its primary-key index.
+                // A binary match_id forces conversion and can scan products once per match.
                 // LIMIT keeps this derived relation materialized so JSON_TABLE is not rerun for each product.
                 $matches = $connection->query()->select(['match_id', 'match_score'])->fromRaw(
-                    "JSON_TABLE(?, '$[*]' COLUMNS(match_id VARBINARY(36) PATH '$.id', match_score DOUBLE PATH '$.score')) AS score_rows",
+                    "JSON_TABLE(?, '$[*]' COLUMNS(match_id VARCHAR(36) PATH '$.id', match_score DOUBLE PATH '$.score')) AS score_rows",
                     [json_encode($rows, JSON_THROW_ON_ERROR)]
                 )->limit(count($rows));
                 if ($query->getQuery()->columns === null) {
@@ -385,5 +422,8 @@ class CatalogSearchService
             }
             $query->orderByRaw('CAST(CASE '.$column.' '.implode(' ', $clauses).' ELSE 0 END AS DECIMAL(16, 8)) DESC', $bindings);
         }
+        // JSON_TABLE's inner join already restricts rows to matching IDs.
+        // Keep the ID filter for unranked searches and the older-server fallback.
+        $query->whereIn($column, array_keys($scores));
     }
 }

@@ -10,6 +10,8 @@ use App\Models\Product;
 use App\Services\BusinessContext;
 use App\Services\ProductService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 final class CatalogPagingTest extends TestCase
@@ -47,5 +49,43 @@ final class CatalogPagingTest extends TestCase
         $this->assertFalse($service->getAllProducts(search: 'Alpha')->contains('id', $product->id));
         $found = $service->getAllProducts(search: 'Omega')->firstWhere('id', $product->id);
         $this->assertEquals(2000, (float) $found->price);
+    }
+
+    public function test_ranked_search_paginates_thousands_of_matches_without_a_runaway_join(): void
+    {
+        if (str_contains((string) DB::getPdo()->getAttribute(\PDO::ATTR_SERVER_VERSION), 'MariaDB')) {
+            $this->markTestSkipped('This execution-time guard uses MySQL session syntax.');
+        }
+
+        $category = Category::factory()->create();
+        $rows = [];
+        foreach (range(1, 2000) as $index) {
+            $id = (string) Str::uuid();
+            $rows[] = [
+                'id' => $id, 'business_id' => app(BusinessContext::class)->id(),
+                'category_id' => $category->id, 'sku' => 'SCALE-'.$id,
+                'name' => 'Benchmark item '.$index, 'price' => 1000, 'stock' => 50,
+                'is_available' => true, 'created_at' => now(), 'updated_at' => now(),
+            ];
+        }
+        foreach (array_chunk($rows, 250) as $chunk) {
+            DB::table('products')->insert($chunk);
+        }
+        $exact = Product::factory()->create([
+            'name' => 'Benchmark', 'category_id' => $category->id,
+            'description' => null, 'created_at' => now()->subDay(),
+        ]);
+        Product::factory()->create(['name' => 'Unrelated fixture', 'description' => null, 'category_id' => $category->id]);
+
+        $previousLimit = (int) DB::selectOne('SELECT @@SESSION.max_execution_time AS value')->value;
+        DB::statement('SET SESSION MAX_EXECUTION_TIME=5000');
+        try {
+            $results = app(ProductService::class)->getProductsForWeb('benchmark', perPage: 16);
+            $this->assertSame(2001, $results->total());
+            $this->assertCount(16, $results->items());
+            $this->assertSame($exact->id, $results->items()[0]->id);
+        } finally {
+            DB::statement('SET SESSION MAX_EXECUTION_TIME='.$previousLimit);
+        }
     }
 }

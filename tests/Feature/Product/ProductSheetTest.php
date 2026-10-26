@@ -11,6 +11,7 @@ use App\Models\Product;
 use App\Models\User;
 use App\Services\InventoryService;
 use App\Services\ProductSheetService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Database\Seeders\CategorySeeder;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -584,6 +585,27 @@ class ProductSheetTest extends TestCase
         $content = file_get_contents($path);
         $this->assertStringStartsWith('%PDF-', $content);
         $this->assertGreaterThan(1000, strlen($content));
+    }
+
+    public function test_pdf_export_disables_embedded_php_and_keeps_numbered_footers_on_every_page(): void
+    {
+        $pdf = app('dompdf.wrapper');
+        $pdf->setOption('isPhpEnabled', true);
+        Pdf::swap($pdf);
+        $category = Category::factory()->create();
+        Product::factory()->count(50)->create(['category_id' => $category->id]);
+
+        $response = $this->get('/api/products/sheets/export?format=pdf')->assertOk();
+        $this->temporary[] = $response->baseResponse->getFile()->getPathname();
+
+        $this->assertFalse($pdf->getDomPDF()->getOptions()->getIsPhpEnabled());
+        $pages = $pdf->getDomPDF()->getCanvas()->get_page_count();
+        $this->assertGreaterThan(1, $pages);
+        $content = $pdf->output(['compress' => 0]);
+        for ($page = 1; $page <= $pages; $page++) {
+            $this->assertStringContainsString(mb_convert_encoding("Halaman {$page} dari {$pages}", 'UTF-16BE', 'UTF-8'), $content);
+        }
+        $this->assertSame($pages, substr_count($content, mb_convert_encoding('TokoM · Dokumen Rahasia Perusahaan', 'UTF-16BE', 'UTF-8')));
     }
 
     public function test_actual_cost_has_priority_and_update_only_skips_new_items(): void
