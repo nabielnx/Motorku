@@ -57,7 +57,7 @@ function ProductImage({ src, alt, className = 'w-full h-full object-contain p-1'
     return <ProductPhoto src={src} name={alt} compact className={className} />;
 }
 
-const CART_KEY = 'motorku_cart';
+const CART_KEY = 'tokom_cart';
 
 function loadCart(storage) {
     try {
@@ -164,7 +164,7 @@ export default function MotorSaya({
     const totalQty = cart.reduce((s, i) => s + i.qty, 0);
     const cartTotalAmount = cart.reduce((s, i) => s + (i.price * i.qty), 0);
 
-    const storeName = settings['store.name'] || 'Motorku';
+    const storeName = settings['store.name'] || 'TokoM';
     const storePhone = settings['store.phone'] || settings['phone'] || '';
     const whatsappUrl = storePhone
         ? `https://wa.me/${storePhone.replace(/[^0-9]/g, '').replace(/^0/, '62')}`
@@ -274,7 +274,7 @@ export default function MotorSaya({
 
         return (
             <div className="customer-storefront customer-motor min-h-screen bg-[#f3f3ed] font-sans text-slate-800 flex justify-center">
-                <Head title="Cari Sparepart Motor - Motorku" />
+                <Head title="Cari Sparepart Motor - TokoM" />
 
                 <div className="customer-frame w-full max-w-md md:max-w-2xl lg:max-w-4xl bg-white min-h-screen shadow-xl flex flex-col pb-24">
                     {/* STICKY TOP CONTAINER */}
@@ -575,7 +575,7 @@ export default function MotorSaya({
                                 <Link
                                     href={storeUrl('/')}
                                     className="flex items-center shrink-0 group"
-                                    aria-label="Kembali ke Beranda Motorku"
+                                    aria-label="Kembali ke Beranda TokoM"
                                     title="Kembali ke Beranda"
                                 >
                                     {formattedLogoSrc ? (

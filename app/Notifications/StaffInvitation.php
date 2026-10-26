@@ -19,9 +19,9 @@ class StaffInvitation extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('Undangan akun Motorku')
+            ->subject('Undangan akun TokoM')
             ->greeting('Halo '.$notifiable->name.',')
-            ->line('Anda diundang untuk mengakses Motorku sebagai '.($notifiable->hasRole('owner') ? 'Owner (akses penuh pengelolaan toko)' : 'Kasir').'.')
+            ->line('Anda diundang untuk mengakses TokoM sebagai '.($notifiable->hasRole('owner') ? 'Owner (akses penuh pengelolaan toko)' : 'Kasir').'.')
             ->line('Buat password Anda sendiri untuk mengaktifkan akun dan memverifikasi alamat email ini.')
             ->action('Aktifkan akun', route('staff.invitation.show', ['token' => $this->token, 'email' => $notifiable->email]))
             ->line('Tautan berlaku selama 24 jam dan hanya dapat digunakan sekali. Jika kedaluwarsa, minta owner mengirim ulang undangan.');

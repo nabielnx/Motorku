@@ -18,8 +18,8 @@ use Illuminate\Support\Facades\DB;
 require __DIR__.'/../vendor/autoload.php';
 $app = require __DIR__.'/../bootstrap/app.php';
 $app->make(Kernel::class)->bootstrap();
-if (! $app->environment('testing') || DB::connection()->getDriverName() !== 'mysql' || DB::connection()->getDatabaseName() !== 'sparepart_testing') {
-    fwrite(STDERR, "This benchmark only runs against MySQL sparepart_testing.\n");
+if (! $app->environment('testing') || DB::connection()->getDriverName() !== 'mysql' || DB::connection()->getDatabaseName() !== 'tokom_testing') {
+    fwrite(STDERR, "This benchmark only runs against MySQL tokom_testing.\n");
     exit(1);
 }
 

@@ -30,7 +30,7 @@ class FullAuditRemediationTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->assertSame('sparepart_testing', DB::connection()->getDatabaseName());
+        $this->assertSame('tokom_testing', DB::connection()->getDatabaseName());
         $this->seed(RoleSeeder::class);
         $this->owner = User::factory()->create();
         $this->owner->assignRole('owner');

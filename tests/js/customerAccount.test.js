@@ -9,18 +9,18 @@ test('customer receipts and retry identities are isolated while the shopping car
     const guest = customerStorage(LEGACY_BUSINESS_ID, native);
     const a = customerStorage(LEGACY_BUSINESS_ID, native, 'a');
     const b = customerStorage(LEGACY_BUSINESS_ID, native, 'b');
-    guest.setItem('motorku_cart', 'cart');
-    guest.setItem('motorku_order:guest', 'guest token');
-    a.setItem('motorku_order:private', 'account token');
-    a.setItem('motorku_checkout_attempt', 'private retry');
-    assert.equal(a.getItem('motorku_cart'), 'cart');
-    assert.equal(b.getItem('motorku_cart'), 'cart');
-    assert.equal(guest.getItem('motorku_order:private'), null);
-    assert.equal(b.getItem('motorku_order:private'), null);
-    assert.equal(b.getItem('motorku_checkout_attempt'), null);
-    assert.equal(a.getItem('motorku_order:guest'), null);
-    assert.ok(a.keys().includes('motorku_order:private'));
-    assert.ok(!b.keys().includes('motorku_order:private'));
+    guest.setItem('tokom_cart', 'cart');
+    guest.setItem('tokom_order:guest', 'guest token');
+    a.setItem('tokom_order:private', 'account token');
+    a.setItem('tokom_checkout_attempt', 'private retry');
+    assert.equal(a.getItem('tokom_cart'), 'cart');
+    assert.equal(b.getItem('tokom_cart'), 'cart');
+    assert.equal(guest.getItem('tokom_order:private'), null);
+    assert.equal(b.getItem('tokom_order:private'), null);
+    assert.equal(b.getItem('tokom_checkout_attempt'), null);
+    assert.equal(a.getItem('tokom_order:guest'), null);
+    assert.ok(a.keys().includes('tokom_order:private'));
+    assert.ok(!b.keys().includes('tokom_order:private'));
 });
 
 test('customer registration and password recovery validate confirmation independently', () => {

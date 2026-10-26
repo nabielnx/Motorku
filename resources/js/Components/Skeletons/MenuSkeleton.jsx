@@ -3,7 +3,7 @@ import Skeleton, { SkeletonWrapper } from '@/Components/Skeleton';
 import clsx from 'clsx';
 
 /**
- * Product Card Skeleton matching Motorku storefront card 1:1.
+ * Product Card Skeleton matching TokoM storefront card 1:1.
  * Monochromatic neutral grayscale.
  */
 function CardSkeleton({ isGrid = false }) {
@@ -47,7 +47,7 @@ function CardSkeleton({ isGrid = false }) {
 }
 
 /**
- * Customer storefront skeleton — matches Order/Menu (Katalog Sparepart) 1:1.
+ * Customer storefront skeleton — matches Order/Menu (Katalog Produk) 1:1.
  * Accurate on both mobile and widescreen desktop (sidebar categories grid).
  *
  * @param {boolean} fullPage - When true renders the complete storefront.

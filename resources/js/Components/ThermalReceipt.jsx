@@ -4,8 +4,8 @@ export default function ThermalReceipt({ order, settings = {}, fallbackCashier =
     return (
         <div id="thermal-printable-receipt" className="hidden" style={{ '--receipt-width': settings?.paper_size === '58' ? '58mm' : '80mm' }}>
             <div className="text-center pb-2 border-b border-dashed border-black mb-2">
-                <h2 className="font-bold text-sm uppercase tracking-wider">{settings?.store_name || 'MOTORKU'}</h2>
-                <p className="text-[10px]">{settings?.store_name || 'Motorku'}</p>
+                <h2 className="font-bold text-sm uppercase tracking-wider">{settings?.store_name || 'TokoM'}</h2>
+                <p className="text-[10px]">{settings?.store_name || 'TokoM'}</p>
                 {settings?.store_address && <p className="text-[9px]">{settings.store_address}</p>}
                 {settings?.store_phone && <p className="text-[9px]">Telp: {settings.store_phone}</p>}
             </div>
@@ -103,7 +103,7 @@ export default function ThermalReceipt({ order, settings = {}, fallbackCashier =
             {/* FOOTER */}
             <div className="pt-2 text-center text-[9px] space-y-0.5">
                 <p className="font-bold">*** TERIMA KASIH ***</p>
-                <p>Terima kasih sudah berbelanja di Motorku</p>
+                <p>Terima kasih sudah berbelanja di {settings?.store_name || 'TokoM'}</p>
                 <p>Simpan Struk Ini Sebagai Bukti Pembayaran</p>
             </div>
         </div>

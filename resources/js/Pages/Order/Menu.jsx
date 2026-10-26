@@ -20,8 +20,8 @@ import { FaWhatsapp } from 'react-icons/fa';
 import { fuzzyFilterProducts } from '@/Utils/fuzzySearch';
 import { customerCartTotals, reconcileCustomerCart } from '@/Utils/customerCart';
 
-const CART_KEY = 'motorku_cart';
-const ORDER_KEY = 'motorku_pending_order';
+const CART_KEY = 'tokom_cart';
+const ORDER_KEY = 'tokom_pending_order';
 
 
 function loadCart(storage) {
@@ -222,7 +222,7 @@ export default function CustomerMenu({
                     setShowCart(true);
                 }
             }
-            storage.removeItem('motorku_active_motorcycle');
+            storage.removeItem('tokom_active_motorcycle');
             const history = readCustomerOrders(storage);
             if (Array.isArray(history) && history.length > 0) {
                 const activeOrders = history.filter(o => ['pending', 'preparing', 'ready'].includes(o.order_status));
@@ -334,7 +334,7 @@ export default function CustomerMenu({
 
     const promoSlots = React.useMemo(() => [1, 2, 3].map(slot => promoBanners?.[slot]).filter(Boolean), [promoBanners]);
 
-    const storeName = settings['store.name'] || 'Motorku';
+    const storeName = settings['store.name'] || 'TokoM';
     const storeAddress = String(settings['store.address'] ?? props.app_settings?.store_address ?? '').trim();
     const phone = settings['store.phone'] || settings['phone'] || '';
     const whatsapp = phone ? 'https://wa.me/' + phone.replace(/[^0-9]/g, '').replace(/^0/, '62') : null;
@@ -377,8 +377,8 @@ export default function CustomerMenu({
 
     return (
         <div className="customer-storefront min-h-screen bg-[#f3f3ed] text-slate-900">
-            <Head title="Katalog Sparepart">
-                <meta name="description" content="Cari suku cadang motor, periksa stok, dan pesan untuk diambil di toko." />
+            <Head title="Katalog Produk">
+                <meta name="description" content="Jelajahi produk toko, periksa stok, dan pesan untuk diambil di toko." />
             </Head>
             <a href="#catalog-products" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[70] focus:bg-white focus:p-4">
                 Langsung ke produk
@@ -472,7 +472,7 @@ export default function CustomerMenu({
                             {whatsapp && (
                                 <div className="mt-6 hidden rounded-lg border border-slate-200 bg-white p-4 shadow-2xs lg:block">
                                     <p className="text-sm font-bold text-slate-900">Perlu bantuan?</p>
-                                    <p className="mt-1 text-xs leading-relaxed text-slate-500">Tanyakan stok atau kecocokan sparepart kepada tim toko.</p>
+                                    <p className="mt-1 text-xs leading-relaxed text-slate-500">Tanyakan stok atau informasi produk kepada tim toko.</p>
                                     <a href={whatsapp} target="_blank" rel="noopener noreferrer"
                                         className="mt-3 inline-flex min-h-8 items-center gap-2 rounded-xl bg-emerald-50 text-emerald-700 hover:bg-emerald-100 px-3.5 py-1.5 text-xs font-bold transition-colors">
                                         <FaWhatsapp size={15} aria-hidden="true" />Hubungi WhatsApp
@@ -521,7 +521,7 @@ export default function CustomerMenu({
                                 <FiSearch size={28} strokeWidth={1.5} className="mx-auto mb-3 text-slate-300" aria-hidden="true" />
                                 <h2 className="text-base font-bold text-slate-900">{menuItems.length ? 'Produk tidak ditemukan' : 'Katalog sedang disiapkan'}</h2>
                                 <p className="mx-auto mt-1 max-w-sm text-xs leading-relaxed text-slate-500">
-                                    {menuItems.length ? 'Coba kata kunci lain atau hapus filter untuk melihat produk yang tersedia.' : 'Silakan kembali nanti atau hubungi toko untuk menanyakan ketersediaan sparepart.'}
+                                    {menuItems.length ? 'Coba kata kunci lain atau hapus filter untuk melihat produk yang tersedia.' : 'Silakan kembali nanti atau hubungi toko untuk menanyakan ketersediaan produk.'}
                                 </p>
                                 {hasFilters && <button type="button" onClick={resetFilters} className="mt-4 min-h-8 rounded-xl bg-[#19231f] hover:bg-[#29372f] px-4 text-xs font-black text-white transition-colors shadow-2xs cursor-pointer">Lihat semua produk</button>}
                             </div>
@@ -613,7 +613,7 @@ export default function CustomerMenu({
                                 <div className="py-20 text-center">
                                     <FiShoppingCart size={32} strokeWidth={1.4} className="mx-auto text-slate-300" />
                                     <h3 className="mt-4 text-base font-bold text-slate-900">Keranjang masih kosong</h3>
-                                    <p className="mt-1 text-xs text-slate-500">Tambahkan sparepart yang Anda butuhkan.</p>
+                                    <p className="mt-1 text-xs text-slate-500">Tambahkan produk yang Anda butuhkan.</p>
                                     <button type="button" onClick={() => setShowCart(false)} className="mt-5 min-h-9 rounded-xl bg-[#19231f] hover:bg-slate-800 px-5 text-xs font-bold text-white transition-colors">Mulai belanja</button>
                                 </div>
                             )}

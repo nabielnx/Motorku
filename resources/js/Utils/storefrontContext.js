@@ -1,9 +1,11 @@
+import { currentStorageKey, scopedBrandStorage } from './brandStorage.js';
+
 export const LEGACY_BUSINESS_ID = '00000000-0000-4000-8000-000000000001';
 
 export function storefrontUrl(path, slug) {
     if (!slug) return path;
-    const url = new URL(path, 'https://motorku.invalid');
-    if (url.origin !== 'https://motorku.invalid') return path;
+    const url = new URL(path, 'https://tokom.invalid');
+    if (url.origin !== 'https://tokom.invalid') return path;
     url.searchParams.set('shop', slug);
     if (url.pathname === '/') {
         url.pathname = `/s/${encodeURIComponent(slug)}`;
@@ -19,14 +21,7 @@ export function currentShopSlug(location = globalThis.location) {
 
 export function businessStorage(businessId, storage, userId = null) {
     const prefix = userId ? `business:${businessId}:user:${userId}:` : businessId && businessId !== LEGACY_BUSINESS_ID ? `business:${businessId}:` : '';
-    return {
-        key: key => prefix + key,
-        keys: () => Array.from({ length: storage.length }, (_, index) => storage.key(index))
-            .filter(key => key?.startsWith(prefix)).map(key => key.slice(prefix.length)),
-        getItem: key => storage.getItem(prefix + key),
-        setItem: (key, value) => storage.setItem(prefix + key, value),
-        removeItem: key => storage.removeItem(prefix + key),
-    };
+    return scopedBrandStorage(prefix, storage);
 }
 
 // Keep the shopping cart across login, while receipts and checkout retry data
@@ -35,11 +30,16 @@ export function customerStorage(businessId, storage, customerId) {
     const guest = businessStorage(businessId, storage);
     if (!customerId) return guest;
     const account = businessStorage(businessId, storage, `customer:${customerId}`);
-    const accountKey = key => key.startsWith('motorku_order') || ['motorku_current_order', 'motorku_archived_order_ids', 'motorku_legacy_history_cleaned_v1', 'motorku_checkout_attempt', 'motorku_checkout_draft'].includes(key);
+    const accountKey = key => {
+        const current = currentStorageKey(key);
+        return current.startsWith('tokom_order') || ['tokom_current_order', 'tokom_archived_order_ids', 'tokom_legacy_history_cleaned_v1', 'tokom_checkout_attempt', 'tokom_checkout_draft'].includes(current);
+    };
     const target = key => accountKey(key) ? account : guest;
     return {
         key: key => target(key).key(key),
         keys: () => [...guest.keys().filter(key => !accountKey(key)), ...account.keys().filter(accountKey)],
+        matchesEventKey: key => (guest.matchesEventKey(key) && !accountKey(key.slice(guest.key('').length)))
+            || (account.matchesEventKey(key) && accountKey(key.slice(account.key('').length))),
         getItem: key => target(key).getItem(key),
         setItem: (key, value) => target(key).setItem(key, value),
         removeItem: key => target(key).removeItem(key),

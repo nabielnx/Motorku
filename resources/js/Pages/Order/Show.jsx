@@ -71,7 +71,7 @@ export default function OrderShow({ order: initialOrder }) {
     return (
         <AuthenticatedLayout pageTitle="Detail Pesanan">
             <Head title={`Order ${order.order_number}`}>
-                <meta name="description" content={`Detail rincian transaksi dan status pesanan ${order.order_number} di Motorku.`} />
+                <meta name="description" content={`Detail rincian transaksi dan status pesanan ${order.order_number} di TokoM.`} />
             </Head>
             <div className="min-w-0 max-w-4xl mx-auto space-y-4 sm:space-y-6">
                 <Link href="/orders" className="inline-flex min-h-8 items-center gap-2 text-sm font-bold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">

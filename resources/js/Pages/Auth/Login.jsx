@@ -37,7 +37,7 @@ export default function Login({ status }) {
     return (
         <GuestLayout>
             <Head title="Masuk">
-                <meta name="description" content="Halaman login akun pegawai dan pemilik toko Motorku." />
+                <meta name="description" content="Halaman login akun pegawai dan pemilik toko TokoM." />
             </Head>
 
             {/* ALERT SESSION EXPIRED BANNER */}
@@ -124,7 +124,7 @@ export default function Login({ status }) {
                         disabled={processing}
                         className={`w-full flex justify-center items-center gap-2 auth-primary font-semibold py-3 px-4 rounded-lg transition-colors ${processing && 'cursor-wait'}`}
                     >
-                        <FiLogOut className="rotate-180" size={18} /> {processing ? 'Memproses...' : 'Masuk ke Dashboard Motorku'}
+                        <FiLogOut className="rotate-180" size={18} /> {processing ? 'Memproses...' : 'Masuk ke Dashboard TokoM'}
                     </button>
                 </div>
 

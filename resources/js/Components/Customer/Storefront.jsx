@@ -1,7 +1,7 @@
 import useStorefront from '@/Hooks/useStorefront';
 import React, { useEffect, useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
-import { FiTool, FiShoppingBag, FiShoppingCart, FiSearch, FiX, FiDisc, FiDroplet, FiZap, FiShield, FiLayers, FiSun, FiSliders, FiCpu } from 'react-icons/fi';
+import { FiPackage, FiShoppingBag, FiShoppingCart, FiSearch, FiX, FiDisc, FiDroplet, FiZap, FiShield, FiLayers, FiSun, FiSliders, FiCpu } from 'react-icons/fi';
 import AccountAvatar from './AccountAvatar';
 import clsx from 'clsx';
 import { getProductImage } from '@/Utils/productImage';
@@ -20,7 +20,7 @@ function categoryVisual(category = '') {
     if (['lampu', 'saklar'].some(word => name.includes(word))) return { Icon: FiSun, label: 'Lampu' };
     if (['filter', 'injektor', 'piston', 'mesin'].some(word => name.includes(word))) return { Icon: FiCpu, label: 'Mesin' };
     if (['spion', 'handle', 'kabel'].some(word => name.includes(word))) return { Icon: FiSliders, label: 'Aksesori' };
-    return { Icon: FiTool, label: 'Sparepart' };
+    return { Icon: FiPackage, label: 'Produk' };
 }
 
 export function ProductCategoryIcon({ category, size = 14, className = '' }) {
@@ -65,7 +65,7 @@ export function StoreHeader({
 }) {
     const { storeUrl } = useStorefront();
     const { props } = usePage();
-    const storeName = settings['store.name'] || settings['name'] || props?.app_settings?.store_name || 'Motorku';
+    const storeName = settings['store.name'] || settings['name'] || props?.app_settings?.store_name || 'TokoM';
     const rawLogo = settings['store.logo'] || settings['logo'] || props?.logo_url;
     const [logoFailed, setLogoFailed] = useState(false);
     const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -95,7 +95,7 @@ export function StoreHeader({
                             />
                         ) : (
                             <span className="flex h-7 w-7 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-lg bg-[#FFDD00] text-[#19231f] font-bold shadow-xs">
-                                <FiTool size={16} strokeWidth={2.2} aria-hidden="true" />
+                                <FiShoppingBag size={16} strokeWidth={2.2} aria-hidden="true" />
                             </span>
                         )}
                         <span className="store-brand-name">{storeName}</span>
@@ -191,7 +191,7 @@ export function StoreHeader({
                                 )}
                             >
                                 <FiSearch size={13} className="pointer-events-none absolute left-2.5 sm:left-3 text-slate-400" />
-                                <label htmlFor="header-catalog-search" className="sr-only">Cari sparepart</label>
+                                <label htmlFor="header-catalog-search" className="sr-only">Cari produk</label>
                                 <input
                                     id="header-catalog-search"
                                     ref={searchInputRef}
@@ -205,8 +205,8 @@ export function StoreHeader({
                                             searchInputRef?.current?.blur();
                                         }
                                     }}
-                                    placeholder="Cari sparepart…"
-                                    aria-label="Cari produk sparepart"
+                                    placeholder="Cari produk…"
+                                    aria-label="Cari produk"
                                     className="store-search-input"
                                 />
                                 {(searchQuery || isSearchFocused) && (

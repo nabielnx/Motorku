@@ -21,7 +21,7 @@ use App\Services\SettingService;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-// Public QR Customer Menu (katalog sparepart)
+// Public customer product catalog
 Route::get('/', [CustomerMenuController::class, 'index'])->name('home');
 Route::get('/s/{businessSlug}', [CustomerMenuController::class, 'index'])->name('shop.home');
 Route::get('/pwa/manifest', PwaManifestController::class)->name('pwa.manifest');

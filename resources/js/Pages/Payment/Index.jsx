@@ -38,7 +38,7 @@ export default function Payment() {
         try {
             const pending = parse(storage.getItem(ATTEMPT));
             const draft = parse(storage.getItem(DRAFT));
-            setData(pending?.display || parse(storage.getItem('motorku_pending_order')));
+            setData(pending?.display || parse(storage.getItem('tokom_pending_order')));
             setAttempt(pending?.payload ? pending : null);
             setName(pending?.payload?.customer_name || draft?.name || page.props.customer?.name || '');
             setPhone(pending?.payload?.customer_phone || draft?.phone || page.props.customer?.phone || '');
@@ -89,12 +89,12 @@ export default function Payment() {
 
     return (
         <div className="customer-storefront order-workspace checkout-page">
-            <Head title={`Checkout · ${settings.store_name || 'Motorku'}`} />
+            <Head title={`Checkout · ${settings.store_name || 'TokoM'}`} />
             <header className="checkout-header">
                 <div>
                     <Link href={storeUrl('/?openCart=1')} className="checkout-back" aria-label="Kembali ke keranjang"><FiArrowLeft size={21} /></Link>
                     <h1>Checkout</h1>
-                    <Link className="checkout-store" href={storeUrl('/')}>{settings.store_name || 'Motorku'}</Link>
+                    <Link className="checkout-store" href={storeUrl('/')}>{settings.store_name || 'TokoM'}</Link>
                 </div>
             </header>
             <main className="checkout-content">
@@ -114,7 +114,7 @@ export default function Payment() {
                                     {!attempt && <Link href={storeUrl(page.props.customer ? '/customer/account' : '/customer/login?return=/payment')}>{page.props.customer ? 'Akun pelanggan' : 'Masuk / daftar pelanggan'}</Link>}
                                 </div>
                                 <h2><FiMapPin size={18} aria-hidden="true" />Ambil di toko</h2>
-                                <p><strong>{settings.store_name || 'Motorku'}</strong>{settings.store_address && <> · {settings.store_address}</>}</p>
+                                <p><strong>{settings.store_name || 'TokoM'}</strong>{settings.store_address && <> · {settings.store_address}</>}</p>
                                 <label htmlFor="customer-name">Nama pemesan</label>
                                 <input
                                     ref={nameRef} id="customer-name" type="text" autoComplete="name"

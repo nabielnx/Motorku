@@ -14,7 +14,7 @@ class LoadingSkeletonServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->directory = sys_get_temp_dir().'/motorku-skeleton-'.bin2hex(random_bytes(8));
+        $this->directory = sys_get_temp_dir().'/tokom-skeleton-'.bin2hex(random_bytes(8));
         mkdir($this->directory);
     }
 

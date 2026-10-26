@@ -10,13 +10,13 @@ export function OrderWorkspace({ title, backLabel = 'Kembali belanja', back = '/
     const { app_settings: settings } = usePage().props;
     useForceLightTheme();
     return <div className={`customer-storefront order-workspace${compact ? ' order-workspace-simple' : ''}`}>
-        <Head title={`${title} · ${settings?.store_name || 'Motorku'}`} />
+        <Head title={`${title} · ${settings?.store_name || 'TokoM'}`} />
         <header className="order-topbar"><div>
-            <Link href={storeUrl('/')} className="order-brand"><span className="order-brand-icon"><FiPackage size={19} /></span>{settings?.store_name || 'Motorku'}</Link>
+            <Link href={storeUrl('/')} className="order-brand"><span className="order-brand-icon"><FiPackage size={19} /></span>{settings?.store_name || 'TokoM'}</Link>
             <Link href={storeUrl(back)} className="order-text-button"><FiArrowLeft size={16} />{backLabel}</Link>
         </div></header>
         <main className="order-container">{children}</main>
-        <footer className="order-footer"><span>{settings?.store_name || 'Motorku'}</span><span>Pesan online, ambil di toko.</span></footer>
+        <footer className="order-footer"><span>{settings?.store_name || 'TokoM'}</span><span>Pesan online, ambil di toko.</span></footer>
     </div>;
 }
 
@@ -57,7 +57,7 @@ export function PickupDetails({ flat = false }) {
     const { app_settings: settings } = usePage().props;
     const phone = settings?.store_phone;
     return <section className={flat ? 'order-receipt-pickup' : 'order-panel order-pickup'}><div className="order-section-title"><FiMapPin size={18} /><h2>Ambil di toko</h2></div>
-        <strong>{settings?.store_name || 'Motorku'}</strong>
+        <strong>{settings?.store_name || 'TokoM'}</strong>
         <p>{settings?.store_address || 'Tunjukkan nomor pesanan kepada kasir saat pengambilan.'}</p>
         {phone && <a className="order-text-button" href={`tel:${phone.replace(/[^+\d]/g, '')}`}><FiPhone size={15} />{phone}<FiArrowUpRight size={14} /></a>}
     </section>;

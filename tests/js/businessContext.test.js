@@ -10,19 +10,19 @@ const memory = () => {
 
 test('public cart and order tokens are isolated across shops, preserving original shop storage', () => {
     const raw = memory();
-    raw.setItem('motorku_cart', 'legacy-cart');
+    raw.setItem('tokom_cart', 'legacy-cart');
     const legacy = businessStorage(LEGACY_BUSINESS_ID, raw);
     const b = businessStorage('business-b', raw);
     const c = businessStorage('business-c', raw);
-    assert.equal(legacy.getItem('motorku_cart'), 'legacy-cart');
-    assert.equal(b.getItem('motorku_cart'), null);
-    b.setItem('motorku_cart', 'B');
-    c.setItem('motorku_cart', 'C');
-    b.setItem('motorku_current_order', 'secret-token-b');
-    assert.equal(c.getItem('motorku_current_order'), null);
-    assert.equal(b.getItem('motorku_cart'), 'B');
-    c.removeItem('motorku_cart');
-    assert.equal(b.getItem('motorku_cart'), 'B');
+    assert.equal(legacy.getItem('tokom_cart'), 'legacy-cart');
+    assert.equal(b.getItem('tokom_cart'), null);
+    b.setItem('tokom_cart', 'B');
+    c.setItem('tokom_cart', 'C');
+    b.setItem('tokom_current_order', 'secret-token-b');
+    assert.equal(c.getItem('tokom_current_order'), null);
+    assert.equal(b.getItem('tokom_cart'), 'B');
+    c.removeItem('tokom_cart');
+    assert.equal(b.getItem('tokom_cart'), 'B');
 });
 
 test('POS carts are isolated by account as well as business', () => {

@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Daftar Barang - Motorku</title>
+    <title>Daftar Barang - TokoM</title>
     <style>
         @page {
             margin: 12mm 10mm 14mm 10mm;
@@ -165,7 +165,7 @@
         <tr>
             <td style="vertical-align: bottom;">
                 <div class="header-title">Daftar Barang & Harga</div>
-                <div class="header-subtitle">Motorku Bengkel · Buku Catatan Inventaris & Harga Jual</div>
+                <div class="header-subtitle">TokoM · Buku Catatan Inventaris & Harga Jual</div>
             </td>
             <td class="header-meta" style="vertical-align: bottom;">
                 <div>Grup: <span class="header-badge">{{ $groupLabel }}</span></div>
@@ -239,7 +239,7 @@
         if (isset($pdf)) {
             $font = $fontMetrics->getFont("DejaVu Sans", "normal");
             $pdf->page_text(730, 560, "Halaman " . $PAGE_NUM . " dari " . $PAGE_COUNT, $font, 7.5, array(0.3, 0.3, 0.3));
-            $pdf->page_text(28, 560, "Motorku Bengkel · Dokumen Rahasia Perusahaan", $font, 7.5, array(0.3, 0.3, 0.3));
+            $pdf->page_text(28, 560, "TokoM · Dokumen Rahasia Perusahaan", $font, 7.5, array(0.3, 0.3, 0.3));
         }
     </script>
 </body>

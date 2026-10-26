@@ -15,7 +15,7 @@ const pagePreloader = createPagePreloader(import.meta.glob('./Pages/**/*.jsx'));
 if ('serviceWorker' in navigator && window.location.protocol === 'https:') {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('/service-worker.js').catch((error) => {
-            console.error('Motorku service worker registration failed:', error);
+            console.error('TokoM service worker registration failed:', error);
         });
     }, { once: true });
 }
@@ -52,7 +52,7 @@ router.on('invalid', (event) => {
     }
 });
 
-const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+const appName = import.meta.env.VITE_APP_NAME || 'TokoM';
 const businessPages = new Map();
 
 createInertiaApp({

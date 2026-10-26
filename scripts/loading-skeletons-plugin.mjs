@@ -2,7 +2,7 @@ import { buildLoadingSkeletons } from './build-loading-skeletons.mjs';
 
 export default function loadingSkeletonsPlugin() {
     return {
-        name: 'motorku-loading-skeletons',
+        name: 'tokom-loading-skeletons',
         apply: 'serve',
         async configureServer(server) {
             await buildLoadingSkeletons();

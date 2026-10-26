@@ -82,7 +82,7 @@ class HandleInertiaRequests extends Middleware
                 'timezone' => $timezone,
                 'locale' => $s['system.locale'] ?? 'id',
                 'store_tagline' => $s['store.tagline'] ?? 'POS & ORDER',
-                'store_name' => $s['store.name'] ?? 'Motorku',
+                'store_name' => $s['store.name'] ?? 'TokoM',
                 'store_address' => $s['store.address'] ?? null,
                 'store_phone' => $s['store.phone'] ?? null,
                 'auto_print_receipt' => ($s['printer.auto_print_receipt'] ?? 'true') !== 'false',

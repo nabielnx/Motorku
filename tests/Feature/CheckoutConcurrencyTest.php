@@ -30,7 +30,7 @@ class CheckoutConcurrencyTest extends TestCase
 
     public function test_two_processes_create_one_paid_sale_and_deduct_stock_once(): void
     {
-        $this->assertSame('sparepart_testing', DB::connection()->getDatabaseName());
+        $this->assertSame('tokom_testing', DB::connection()->getDatabaseName());
         $this->seed(RoleSeeder::class);
         $owner = User::factory()->create();
         $owner->assignRole('owner');
@@ -44,7 +44,7 @@ class CheckoutConcurrencyTest extends TestCase
         $connection = DB::connection()->getConfig();
         $env = [
             'APP_ENV' => 'testing', 'APP_CONFIG_CACHE' => $directory.'/unused-config.php',
-            'DB_CONNECTION' => 'mysql', 'DB_URL' => '', 'DB_DATABASE' => 'sparepart_testing',
+            'DB_CONNECTION' => 'mysql', 'DB_URL' => '', 'DB_DATABASE' => 'tokom_testing',
             'DB_HOST' => $connection['host'], 'DB_PORT' => (string) $connection['port'],
             'DB_USERNAME' => $connection['username'], 'DB_PASSWORD' => $connection['password'],
             'CACHE_STORE' => 'array', 'SESSION_DRIVER' => 'array', 'QUEUE_CONNECTION' => 'sync',
