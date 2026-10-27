@@ -32,6 +32,10 @@ class ProductSheetRequest extends FormRequest
                 'default_group' => ['required', BusinessRule::exists('data_types', 'key')->where('kind', 'product')],
                 'use_estimated_cost' => ['required', 'boolean'],
                 'update_stock' => ['sometimes', 'boolean'],
+                'category_parents' => ['sometimes', 'array', 'max:2000'],
+                'category_parents.*' => ['array:key,parent_id'],
+                'category_parents.*.key' => ['required', 'string', 'regex:/\A[a-f0-9]{64}\z/', 'distinct'],
+                'category_parents.*.parent_id' => ['present', 'nullable', 'uuid', BusinessRule::exists('categories', 'id')->whereNull('parent_id')],
             ],
             'commit' => [
                 'token' => ['required', 'uuid'],
