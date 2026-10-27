@@ -15,20 +15,6 @@ use ZipArchive;
 
 class ProductSheetReader
 {
-    private const ALIASES = [
-        'group' => ['grup barang', 'grup', 'kelompok', 'catalog group'],
-        'category' => ['kategori', 'jenis barang', 'category'],
-        'brand' => ['merek', 'merk', 'brand'],
-        'name' => ['nama barang', 'nama produk', 'nama', 'produk', 'product name', 'name'],
-        'description' => ['spesifikasi keterangan', 'keterangan', 'spesifikasi', 'deskripsi', 'description'],
-        'estimated_cost' => ['estimasi modal rp', 'estimasi modal', 'estimasi harga modal'],
-        'price' => ['harga jual rp', 'harga jual', 'harga rp', 'harga', 'price'],
-        'stock' => ['stok', 'stock', 'jumlah stok'],
-        'unit' => ['satuan', 'unit'],
-        'sku' => ['kode barang', 'sku', 'kode produk'],
-        'cost_price' => ['harga beli rp', 'harga beli', 'modal', 'harga modal', 'cost price'],
-    ];
-
     public function read(UploadedFile $file): array
     {
         $xlsx = strtolower($file->getClientOriginalExtension()) === 'xlsx';
@@ -108,7 +94,8 @@ class ProductSheetReader
                     $rows[] = ['number' => $rowNumber, 'values' => $values];
                 }
                 if ($headers !== null && $rows !== []) {
-                    $sheets[] = ['id' => count($sheets), 'name' => $sheet->getName() ?: 'Daftar Barang', 'headers' => $headers, 'mapping' => $mapping, 'rows' => $rows];
+                    $sheets[] = ['id' => count($sheets), 'name' => $sheet->getName() ?: 'Daftar Barang', 'headers' => $headers, 'mapping' => $mapping,
+                        'ambiguous_fields' => array_keys(array_filter($mapping, fn ($column) => $column === null)), 'rows' => $rows];
                 }
             }
         } catch (ValidationException $exception) {
@@ -134,9 +121,9 @@ class ProductSheetReader
     {
         $mapping = [];
         foreach ($headers as $index => $header) {
-            foreach (self::ALIASES as $field => $aliases) {
-                if (! isset($mapping[$field]) && in_array($this->key((string) $header), $aliases, true)) {
-                    $mapping[$field] = $index;
+            foreach (ProductSheetColumns::ALIASES as $field => $aliases) {
+                if (in_array($this->key((string) $header), $aliases, true)) {
+                    $mapping[$field] = array_key_exists($field, $mapping) ? null : $index;
                     break;
                 }
             }

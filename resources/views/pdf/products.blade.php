@@ -184,7 +184,7 @@
                 <th style="width: 12%;">Kategori</th>
                 <th style="width: 10%;">Merek</th>
                 <th class="center" style="width: 7%;">Stok</th>
-                <th class="right" style="width: 9.5%;">Harga Beli</th>
+                <th class="right" style="width: 9.5%;">Harga Modal</th>
                 <th class="right" style="width: 9.5%;">Harga Jual</th>
                 <th class="right" style="width: 9%;">Margin</th>
             </tr>

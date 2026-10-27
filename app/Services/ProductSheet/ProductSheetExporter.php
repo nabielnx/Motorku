@@ -20,8 +20,7 @@ class ProductSheetExporter
 {
     public function export(string $format, ?string $group = null, bool $template = false)
     {
-        // Keep the familiar sheet order, but label exported cost as actual purchase price.
-        $headers = ['Grup Barang', 'Kategori', 'Merek', 'Nama Barang', 'Spesifikasi / Keterangan', 'Harga Beli (Rp)', 'Harga Jual (Rp)', 'Stok', 'Satuan', 'Margin (Rp)', 'Kode Barang'];
+        $headers = ProductSheetColumns::exportHeaders();
         $path = tempnam(sys_get_temp_dir(), 'tokom-sheet-');
         $name = ($template ? 'template-barang' : 'daftar-barang-'.now()->format('Ymd')).'.'.$format;
         $catalogGroups = Category::catalogGroups();
@@ -43,7 +42,7 @@ class ProductSheetExporter
 
                 if (! $template) {
                     foreach (Product::with('category.parent')->inCatalogGroup($group)->orderBy('name')->lazy(200) as $product) {
-                        $values = [$catalogGroups[$this->group($product->category)], $product->category->name, $product->brand ?? '', $product->name, $product->description ?? '', $product->cost_price === null ? null : (float) $product->cost_price, (float) $product->price, (int) $product->stock, $product->unit, $product->cost_price === null ? null : (float) $product->price - (float) $product->cost_price, $product->sku];
+                        $values = $this->values($product, $catalogGroups);
                         $writer->addRow($this->exportRow($values));
                     }
                 }
@@ -55,7 +54,7 @@ class ProductSheetExporter
 
                 if (! $template) {
                     foreach (Product::with('category.parent')->inCatalogGroup($group)->orderBy('name')->lazy(200) as $product) {
-                        $values = [$catalogGroups[$this->group($product->category)], $product->category->name, $product->brand ?? '', $product->name, $product->description ?? '', $product->cost_price === null ? null : (float) $product->cost_price, (float) $product->price, (int) $product->stock, $product->unit, $product->cost_price === null ? null : (float) $product->price - (float) $product->cost_price, $product->sku];
+                        $values = $this->values($product, $catalogGroups);
                         fputcsv($stream, array_map(fn ($v) => is_string($v) && preg_match('/^[\s]*[=+\-@]/u', $v) ? "'".$v : $v, $values), ',', '"', '');
                     }
                 }
@@ -107,6 +106,23 @@ class ProductSheetExporter
     private function exportRow(array $values, ?Style $style = null): Row
     {
         return new Row(array_map(fn ($value) => is_string($value) ? new StringCell($value, null) : Cell::fromValue($value), $values), $style);
+    }
+
+    private function values(Product $product, array $groups): array
+    {
+        return array_map(fn ($field) => match ($field) {
+            'group' => $groups[$this->group($product->category)],
+            'category' => $product->category->name,
+            'brand' => $product->brand ?? '',
+            'name' => $product->name,
+            'description' => $product->description ?? '',
+            'cost_price' => $product->cost_price === null ? null : (float) $product->cost_price,
+            'price' => (float) $product->price,
+            'stock' => (int) $product->stock,
+            'unit' => $product->unit,
+            'margin' => $product->cost_price === null ? null : (float) $product->price - (float) $product->cost_price,
+            'sku' => $product->sku,
+        }, ProductSheetColumns::EXPORT_FIELDS);
     }
 
     private function group(Category $category): string
