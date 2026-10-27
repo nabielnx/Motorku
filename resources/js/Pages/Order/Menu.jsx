@@ -69,6 +69,7 @@ export default function CustomerMenu({
     settings: initialSettings = {},
     bestSellerProductIds = [],
     promoBanners = {},
+    promoBannerImages = {},
 }) {
     const { storage, storeUrl } = useStorefront();
     const [settings, setSettings] = useState(initialSettings);
@@ -121,6 +122,7 @@ export default function CustomerMenu({
                 stock: p.stock !== undefined && p.stock !== null ? Number(p.stock) : 0,
                 total_sold: Number(p.total_sold || 0),
                 image: p.image_path ? getProductImage(p.image_path, catName) : null,
+                thumbnail: p.image_preview_path ? getProductImage(p.image_preview_path, catName) : null,
                 motorcycles: p.motorcycles || [],
                 is_recommended: Boolean(p.is_recommended),
             };
@@ -149,7 +151,7 @@ export default function CustomerMenu({
     const [detailQty, setDetailQty] = useState(1);
     const searchInputRef = useRef(null);
 
-    const feed = useCatalogFeed({ url: catalogUrl, initialProducts, initialPagination, search: deferredSearch, category: selectedSubCategory || selectedMainCategory || '' });
+    const feed = useCatalogFeed({ url: catalogUrl, initialProducts, initialPagination, search: deferredSearch, category: selectedSubCategory || selectedMainCategory || '', bounded: true });
     useEffect(() => setMenuItems(formatProducts(feed.products)), [feed.products]);
     useEffect(() => setCategories(formatCategories(initialCategories)), [initialCategories]);
 
@@ -404,6 +406,7 @@ export default function CustomerMenu({
                         <MotoQuickPromoSection
                             products={promoProducts}
                             bannerUrls={promoSlots}
+                            bannerImages={promoBannerImages}
                             onProductClick={openDetail}
                             bestSellerProductIds={bestSellerProductIds}
                             formatRp={formatRp}
@@ -482,7 +485,7 @@ export default function CustomerMenu({
                         </div>
                     </aside>
 
-                    <main id="catalog-products" className="min-w-0 scroll-mt-24 lg:col-start-2">
+                    <main id="catalog-products" data-catalog-results aria-busy={feed.loading} className="min-w-0 scroll-mt-24 lg:col-start-2">
 
                         {(searchQuery.trim() || hasFilters) && (
                             <div className="flex min-h-[36px] flex-wrap items-center justify-between gap-x-3 gap-y-1 pb-2.5 lg:min-h-[48px] lg:py-2">
@@ -590,7 +593,7 @@ export default function CustomerMenu({
                             {cartMessage && <p role="status" className="mt-3 rounded-lg border border-[#dedfd7] bg-[#f3f3ed] p-3 text-xs text-[#19231f]">{cartMessage}</p>}
                             {cart.length ? cart.map(item => (
                                 <div key={item.cartItemId} className="flex gap-4 border-b border-slate-100 py-4">
-                                    <ProductPhoto src={item.image} name={item.name} category={item.category} compact className="h-16 w-16 sm:h-[70px] sm:w-[70px] shrink-0 rounded-xl border border-slate-100 bg-slate-50 overflow-hidden" />
+                                    <ProductPhoto src={item.thumbnail || item.image} fallbackSrc={item.image} name={item.name} category={item.category} compact className="h-16 w-16 sm:h-[70px] sm:w-[70px] shrink-0 rounded-xl border border-slate-100 bg-slate-50 overflow-hidden" />
                                     <div className="min-w-0 flex-1">
                                         <p className="text-xs sm:text-sm font-bold text-slate-900 leading-snug">{item.name}</p>
                                         <p className="mt-0.5 text-xs text-slate-400">{formatRp(item.price)} / pcs</p>

@@ -84,6 +84,15 @@ final class CatalogPagingTest extends TestCase
             $this->assertSame(2001, $results->total());
             $this->assertCount(16, $results->items());
             $this->assertSame($exact->id, $results->items()[0]->id);
+            $this->getJson($this->storeUrl('/catalog/products?search=benchmark'))->assertOk()
+                ->assertJsonCount(60, 'data.products')->assertJsonPath('data.pagination.total', 2001)
+                ->assertJsonPath('data.pagination.last_page', 34);
+            $last = $this->getJson($this->storeUrl('/catalog/products?search=benchmark&page=34'))->assertOk()
+                ->assertJsonCount(21, 'data.products')->assertJsonPath('data.pagination.next_page', null);
+            $id = $last->json('data.products.0.id');
+            Product::whereKey($id)->update(['price' => 4321, 'stock' => 7]);
+            $this->getJson($this->storeUrl('/catalog/products?ids[]='.$id))->assertOk()
+                ->assertJsonPath('data.cart_products.0.price', '4321.00')->assertJsonPath('data.cart_products.0.stock', 7);
         } finally {
             DB::statement('SET SESSION MAX_EXECUTION_TIME='.$previousLimit);
         }

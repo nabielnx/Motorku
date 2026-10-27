@@ -20,7 +20,7 @@ export default memo(function CustomerProductCard({ item, isGrid = false, onOpen 
             )}>
             <div>
                 <div className="relative block w-full overflow-hidden text-left bg-slate-50">
-                    <ProductPhoto src={item.image} name={item.name} category={item.category} compact className="aspect-square w-full transition-transform group-hover:scale-102" />
+                    <ProductPhoto src={item.thumbnail || item.image} fallbackSrc={item.image} name={item.name} category={item.category} compact className="aspect-square w-full transition-transform group-hover:scale-102" />
                     {outOfStock && (
                         <div className="absolute left-2 top-2">
                             <span className="rounded bg-[#19231f] px-1.5 py-0.5 text-[9px] font-bold text-white shadow-xs">

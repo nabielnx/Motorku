@@ -7,6 +7,7 @@ import { ProductPhoto } from './Storefront';
 export default function MotoQuickPromoSection({
     products = [],
     bannerUrls = [],
+    bannerImages = {},
     onProductClick,
     bestSellerProductIds = [],
     formatRp,
@@ -16,11 +17,17 @@ export default function MotoQuickPromoSection({
     const [canScrollLeft, setCanScrollLeft] = useState(false);
     const [canScrollRight, setCanScrollRight] = useState(true);
     const [bannerHeight, setBannerHeight] = useState(0);
-    const [bannerAspectRatio, setBannerAspectRatio] = useState(3 / 5);
+    const [bannerAspectRatio, setBannerAspectRatio] = useState(() => {
+        const first = bannerImages[bannerUrls[0]];
+        return first?.width && first?.height ? first.width / first.height : 3 / 5;
+    });
     const promoItems = products.slice(0, 8);
     const [bannerIndex, setBannerIndex] = useState(0);
+    const [failedPreview, setFailedPreview] = useState(null);
     const [bannerPaused, setBannerPaused] = useState(() => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
     const bannerUrl = bannerUrls[bannerIndex] || bannerUrls[0] || null;
+    const bannerImage = bannerImages[bannerUrl] || {};
+    const bannerSource = failedPreview === bannerUrl ? bannerUrl : bannerImage.src || bannerUrl;
     const bannerWidth = bannerHeight * bannerAspectRatio;
 
     useEffect(() => setBannerIndex(0), [bannerUrls]);
@@ -142,12 +149,15 @@ export default function MotoQuickPromoSection({
                     {bannerUrl && (
                         <div className="relative shrink-0 snap-start -my-2.5 sm:-my-3 overflow-hidden" style={{ width: bannerWidth }}>
                             <img
-                                src={bannerUrl}
+                                src={bannerSource}
+                                width={bannerImage.width || undefined}
+                                height={bannerImage.height || undefined}
                                 alt={`Banner promo ${bannerIndex + 1} dari ${bannerUrls.length}`}
                                 className="absolute inset-0 h-full w-full object-contain object-left"
                                 onLoad={event => setBannerAspectRatio(event.currentTarget.naturalWidth / event.currentTarget.naturalHeight)}
+                                onError={() => { if (bannerSource !== bannerUrl) setFailedPreview(bannerUrl); }}
                                 loading="eager"
-                                fetchPriority="high"
+                                fetchPriority={bannerIndex === 0 ? 'high' : 'auto'}
                                 draggable="false"
                             />
                         </div>
@@ -177,7 +187,8 @@ export default function MotoQuickPromoSection({
                                 <div>
                                     <div className="relative block w-full overflow-hidden text-left bg-slate-50">
                                         <ProductPhoto
-                                            src={item.image}
+                                            src={item.thumbnail || item.image}
+                                            fallbackSrc={item.image}
                                             name={item.name}
                                             category={item.category}
                                             compact

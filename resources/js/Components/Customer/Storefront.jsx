@@ -28,16 +28,18 @@ export function ProductCategoryIcon({ category, size = 14, className = '' }) {
     return <Icon size={size} className={className} aria-hidden="true" />;
 }
 
-export function ProductPhoto({ src, name, category, className = '', compact = false, fit = 'cover' }) {
+export function ProductPhoto({ src, fallbackSrc, name, category, className = '', compact = false, fit = 'cover' }) {
     const [failed, setFailed] = useState(false);
+    const [useFallback, setUseFallback] = useState(false);
     useEffect(() => setFailed(false), [src]);
+    useEffect(() => setUseFallback(false), [src]);
     const { Icon, label } = categoryVisual(category || name);
 
     return (
         <div className={clsx('product-photo relative flex items-center justify-center overflow-hidden bg-slate-50 shrink-0', className)}>
             {src && !failed ? (
-                <img src={src} alt={name} loading="lazy" decoding="async"
-                    onError={() => setFailed(true)}
+                <img src={useFallback ? fallbackSrc : src} alt={name} loading="lazy" decoding="async"
+                    onError={() => { if (!useFallback && fallbackSrc && fallbackSrc !== src) setUseFallback(true); else setFailed(true); }}
                     className={clsx('h-full w-full shrink-0 select-none pointer-events-none block', fit === 'contain' ? 'object-contain' : 'object-cover')} />
             ) : (
                 <div role="img" aria-label={`Foto ${name || label} belum tersedia`} className={clsx('flex flex-col items-center justify-center text-center select-none min-w-0', compact ? 'p-1' : 'gap-1 px-1.5')}>
@@ -68,6 +70,8 @@ export function StoreHeader({
     const storeName = settings['store.name'] || settings['name'] || props?.app_settings?.store_name || 'TokoM';
     const rawLogo = settings['store.logo'] || settings['logo'] || props?.logo_url;
     const [logoFailed, setLogoFailed] = useState(false);
+    const [logoPreviewFailed, setLogoPreviewFailed] = useState(false);
+    useEffect(() => { setLogoFailed(false); setLogoPreviewFailed(false); }, [rawLogo, props.logo_preview_url]);
     const [isSearchFocused, setIsSearchFocused] = useState(false);
     const [showMotorHint, setShowMotorHint] = useState(true);
     const referencesEnabled = props.app_settings?.references_enabled !== false;
@@ -88,9 +92,9 @@ export function StoreHeader({
                     <Link href={storeUrl('/')} aria-label={storeName + ' — beranda'} className="store-brand">
                         {rawLogo && !logoFailed ? (
                             <img
-                                src={getProductImage(rawLogo)}
+                                  src={!logoPreviewFailed && props.logo_preview_url ? props.logo_preview_url : getProductImage(rawLogo)}
                                 alt={storeName}
-                                onError={() => setLogoFailed(true)}
+                                onError={() => { if (!logoPreviewFailed && props.logo_preview_url) setLogoPreviewFailed(true); else setLogoFailed(true); }}
                                 className="h-7 w-7 sm:h-8 sm:w-8 shrink-0 object-contain rounded-lg bg-white p-0.5"
                             />
                         ) : (

@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
+import { catalogPageProducts } from '@/Utils/catalogFeedState';
 
-export default function useCatalogFeed({ url, initialProducts, initialPagination, search = '', category = '' }) {
+export default function useCatalogFeed({ url, initialProducts, initialPagination, search = '', category = '', bounded = false }) {
     const [products, setProducts] = useState(initialProducts);
     const [pagination, setPagination] = useState(initialPagination || { next_page: null, total: initialProducts.length });
     const [loading, setLoading] = useState(false);
@@ -25,8 +26,9 @@ export default function useCatalogFeed({ url, initialProducts, initialPagination
             if (requestGeneration !== generation.current || requestKey !== keyRef.current) return;
             const data = response.data?.data;
             if (!Array.isArray(data?.products) || !data?.pagination) throw new Error('Respons katalog tidak lengkap.');
-            setProducts(previous => append ? [...new Map([...previous, ...data.products].map(product => [product.id, product])).values()] : data.products);
+            setProducts(previous => catalogPageProducts(previous, data.products, append, bounded));
             setPagination(data.pagination);
+            return true;
         } catch (failure) {
             if (requestGeneration === generation.current && requestKey === keyRef.current && !controller.signal.aborted) {
                 setError(failure.response?.data?.message || 'Katalog belum dapat dimuat. Coba lagi.');
@@ -55,6 +57,8 @@ export default function useCatalogFeed({ url, initialProducts, initialPagination
     useEffect(() => () => { generation.current++; activeRequest.current?.abort(); }, []);
 
     return { products, loading, error, total: pagination.total, hasMore: pagination.next_page !== null,
+        bounded, page: pagination.page || 1, totalPages: pagination.last_page || Math.max(1, Math.ceil(pagination.total / 60)),
+        goToPage: page => { if (!loading && page >= 1) return load(page); return Promise.resolve(false); },
         loadMore: () => { if (!loading && pagination.next_page) void load(pagination.next_page, true); },
         retry: () => { void load(1); },
     };
