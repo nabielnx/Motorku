@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Support;
 
 use App\Services\BusinessContext;
+use App\Services\ImagePreviewService;
 use Illuminate\Support\Facades\Storage;
 
 final class BusinessFiles
@@ -12,16 +13,23 @@ final class BusinessFiles
     public static function delete(string|array $paths): bool
     {
         if (is_string($paths)) {
-            return self::owns($paths) && Storage::disk('public')->delete($paths);
+            $paths = [$paths];
         }
         $owned = array_values(array_filter((array) $paths, fn ($path) => is_string($path) && self::owns($path)));
+        $files = [];
+        foreach ($owned as $path) {
+            $files[] = $path;
+            if ($preview = ImagePreviewService::path($path)) {
+                $files[] = $preview;
+            }
+        }
 
-        return $owned !== [] && Storage::disk('public')->delete($owned);
+        return $files !== [] && Storage::disk('public')->delete(array_unique($files));
     }
 
     public static function owns(string $path): bool
     {
-        if (str_contains($path, '..') || str_contains($path, '\\') || str_starts_with($path, '/') || str_contains($path, '://')) {
+        if (str_contains($path, "\0") || str_contains($path, '..') || str_contains($path, '\\') || str_starts_with($path, '/') || str_contains($path, '://')) {
             return false;
         }
         $segments = explode('/', $path);

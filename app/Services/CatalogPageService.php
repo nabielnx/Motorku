@@ -35,7 +35,7 @@ final class CatalogPageService
 
         return ['products' => $this->serializeProducts($page->getCollection()), 'pagination' => [
             'page' => $page->currentPage(), 'next_page' => $page->hasMorePages() ? $page->currentPage() + 1 : null,
-            'total' => $page->total(),
+            'total' => $page->total(), 'last_page' => $page->lastPage(),
         ]];
     }
 
@@ -65,6 +65,7 @@ final class CatalogPageService
     {
         // Avoid serializing full pivot models/unused attributes for every fitment.
         return [...$product->getAttributes(), 'stock' => (int) $product->stock, 'is_available' => (bool) $product->is_available,
+            'image_preview_path' => app(ImagePreviewService::class)->existing($product->image_path),
             'category' => $product->category ? [...$product->category->getAttributes(), 'parent' => $product->category->parent?->getAttributes()] : null,
             'motorcycles' => $product->motorcycles->map(fn ($motorcycle) => $motorcycle->getAttributes())->all(),
         ];
