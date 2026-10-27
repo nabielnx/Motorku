@@ -56,9 +56,12 @@
             <link rel="preload" as="image" href="{{ $firstPromoImage['src'] ?? $firstPromoBanner }}" fetchpriority="high">
         @endif
         @viteReactRefresh
-        @vite(($page['component'] ?? '') === 'Order/Menu'
-            ? ['resources/js/app.jsx', 'resources/js/Pages/Order/Menu.jsx']
-            : ['resources/js/app.jsx'])
+        @php
+            $entrypoints = ['resources/js/app.jsx'];
+            if (($page['component'] ?? '') === 'Order/Menu') $entrypoints[] = 'resources/js/Pages/Order/Menu.jsx';
+            if ($adminLoading) $entrypoints[] = 'resources/css/admin.css';
+        @endphp
+        @vite($entrypoints)
         @inertiaHead
     </head>
     <body class="font-sans antialiased h-full bg-[#f3f3ed]">

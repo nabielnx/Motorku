@@ -1,3 +1,4 @@
+import '../../css/admin.css';
 import PageSkeleton, { resolvePageSkeleton } from '@/Loading/pageSkeletons';
 import { useEffect, useState } from 'react';
 import ApplicationLogo from '@/Components/ApplicationLogo';

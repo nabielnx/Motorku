@@ -17,7 +17,7 @@ export default defineConfig(({ mode }) => {
         rollupOptions: {
             output: {
                 manualChunks: {
-                    'vendor-inertia': ['react', 'react-dom', '@inertiajs/react'],
+                    'vendor-inertia': ['react', 'react-dom', '@inertiajs/react', 'clsx'],
                     'vendor-headless': ['@headlessui/react'],
                 },
             },
@@ -26,7 +26,7 @@ export default defineConfig(({ mode }) => {
     plugins: [
         loadingSkeletonsPlugin(),
         laravel({
-            input: 'resources/js/app.jsx',
+            input: ['resources/js/app.jsx', 'resources/css/admin.css'],
             refresh: true,
         }),
         react(),

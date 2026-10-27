@@ -5,11 +5,12 @@ import { ProductPhoto } from './Storefront';
 
 const formatRp = (val) => `Rp ${Number(val || 0).toLocaleString('id-ID')}`;
 
-export default memo(function CustomerProductCard({ item, isGrid = false, onOpen }) {
+export default memo(function CustomerProductCard({ item, isGrid = false, onOpen, onIntent }) {
     const outOfStock = item.stock <= 0;
 
     return (
         <article key={item.id} role="button" tabIndex={0} aria-label={'Lihat detail ' + item.name}
+            onPointerEnter={onIntent} onFocus={onIntent}
             onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onOpen(item); } }}
             onClick={() => onOpen(item)}
             className={clsx(
