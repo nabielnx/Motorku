@@ -14,20 +14,22 @@ use App\Http\Controllers\Product\ProductController;
 use App\Http\Controllers\PwaManifestController;
 use App\Http\Controllers\Report\ReportController;
 use App\Http\Controllers\Setting\SettingController;
+use App\Http\Controllers\StoreEntryController;
 use App\Http\Controllers\User\UserController;
 use App\Http\Middleware\EnsureReferencesEnabled;
 use App\Models\Motorcycle;
 use App\Services\SettingService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 // Public customer product catalog
-Route::get('/', [CustomerMenuController::class, 'index'])->name('home');
+Route::get('/', StoreEntryController::class)->name('home');
 Route::get('/s/{businessSlug}', [CustomerMenuController::class, 'index'])->name('shop.home');
 Route::get('/pwa/manifest', PwaManifestController::class)->name('pwa.manifest');
 Route::get('/catalog/products', CatalogPageController::class)->middleware('throttle:60,1,catalog-public:')->name('customer.catalog');
-Route::get('/sitemap.xml', function () {
-    $referencesEnabled = app(SettingService::class)->referencesEnabled();
+Route::get('/sitemap.xml', function (Request $request) {
+    $referencesEnabled = $request->attributes->has('business') && app(SettingService::class)->referencesEnabled();
 
     return response()->view('sitemap', [
         'referencesEnabled' => $referencesEnabled,

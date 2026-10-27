@@ -23,11 +23,11 @@ class CustomerQrFlowTest extends TestCase
         $product = Product::factory()->create(['is_available' => true, 'stock' => 10]);
 
         // Katalog tersedia di halaman utama
-        $this->get('/')
+        $this->get($this->storeUrl('/'))
             ->assertOk()
             ->assertInertia(fn ($page) => $page->component('Order/Menu'));
 
-        $orderResponse = $this->postJson('/api/customer/order', [
+        $orderResponse = $this->postJson($this->storeUrl('/api/customer/order'), [
             'customer_name' => 'Pelanggan Test',
             'items' => [
                 ['product_id' => $product->id, 'quantity' => 2, 'notes' => 'Besi cor'],
@@ -41,7 +41,7 @@ class CustomerQrFlowTest extends TestCase
 
         // A customer may order in the same browser where a cashier is logged in.
         $this->actingAs(User::factory()->create());
-        $authenticatedOrder = $this->postJson('/api/customer/order', [
+        $authenticatedOrder = $this->postJson($this->storeUrl('/api/customer/order'), [
             'customer_name' => 'Pelanggan Login',
             'items' => [['product_id' => $product->id, 'quantity' => 1]],
         ]);
@@ -50,13 +50,13 @@ class CustomerQrFlowTest extends TestCase
         $orderId = $orderResponse->json('data.id');
         $customerToken = $orderResponse->json('data.customer_token');
 
-        $this->getJson("/api/customer/order/{$orderId}/status?customer_token={$customerToken}")
+        $this->getJson($this->storeUrl("/api/customer/order/{$orderId}/status?customer_token={$customerToken}"))
             ->assertOk()
             ->assertJsonPath('data.order_status', 'pending');
 
         Order::whereKey($orderId)->update(['order_status' => 'preparing']);
 
-        $this->getJson("/api/customer/order/{$orderId}/status?customer_token={$customerToken}")
+        $this->getJson($this->storeUrl("/api/customer/order/{$orderId}/status?customer_token={$customerToken}"))
             ->assertOk()
             ->assertJsonPath('data.order_status', 'preparing');
     }
@@ -66,7 +66,7 @@ class CustomerQrFlowTest extends TestCase
     {
         $order = Order::factory()->create();
 
-        $this->getJson("/api/customer/order/{$order->id}/status")
+        $this->getJson($this->storeUrl("/api/customer/order/{$order->id}/status"))
             ->assertStatus(401)
             ->assertJsonPath('message', 'Akses ditolak. Token tidak ditemukan.');
     }
@@ -76,7 +76,7 @@ class CustomerQrFlowTest extends TestCase
     {
         $product = Product::factory()->create(['stock' => 100, 'is_available' => true]);
 
-        $this->postJson('/api/customer/order', [
+        $this->postJson($this->storeUrl('/api/customer/order'), [
             'customer_name' => 'Pembeli',
             'items' => [['product_id' => $product->id, 'quantity' => 11]],
         ])->assertUnprocessable();
@@ -95,16 +95,16 @@ class CustomerQrFlowTest extends TestCase
         OrderItem::factory()->create(['order_id' => $paid->id, 'product_id' => $paidProduct->id, 'quantity' => 1]);
         Payment::factory()->create(['order_id' => $paid->id, 'status' => 'paid', 'paid_at' => now()]);
 
-        $this->get('/')->assertOk()->assertInertia(fn ($page) => $page
+        $this->get($this->storeUrl('/'))->assertOk()->assertInertia(fn ($page) => $page
             ->where('bestSellerProductIds', [$paidProduct->id]));
     }
 
     #[Test]
     public function customer_checkout_only_offers_payment_at_store(): void
     {
-        $this->get('/payment')->assertOk()->assertInertia(fn ($page) => $page
+        $this->get($this->storeUrl('/payment'))->assertOk()->assertInertia(fn ($page) => $page
             ->component('Payment/Index'));
-        $this->get('/payment/qris')->assertNotFound();
+        $this->get($this->storeUrl('/payment/qris'))->assertNotFound();
     }
 
     #[Test]
@@ -112,7 +112,7 @@ class CustomerQrFlowTest extends TestCase
     {
         $product = Product::factory()->create(['stock' => 10, 'is_available' => true]);
 
-        $orderResponse = $this->postJson('/api/customer/order', [
+        $orderResponse = $this->postJson($this->storeUrl('/api/customer/order'), [
             'customer_name' => 'Pelanggan Batal',
             'items' => [['product_id' => $product->id, 'quantity' => 2]],
         ]);
@@ -123,14 +123,14 @@ class CustomerQrFlowTest extends TestCase
         $this->assertEquals(8, $product->fresh()->stock);
 
         $wrongToken = ($customerToken[0] === 'a' ? 'b' : 'a').substr($customerToken, 1);
-        $this->postJson("/api/customer/order/{$orderId}/cancel", [
+        $this->postJson($this->storeUrl("/api/customer/order/{$orderId}/cancel"), [
             'customer_token' => $wrongToken,
         ])->assertUnauthorized();
         $this->assertDatabaseHas('orders', ['id' => $orderId, 'order_status' => 'pending']);
         $this->assertEquals(8, $product->fresh()->stock);
         $this->assertDatabaseMissing('inventory_logs', ['product_id' => $product->id, 'type' => 'stock_return']);
 
-        $cancelResponse = $this->postJson("/api/customer/order/{$orderId}/cancel", [
+        $cancelResponse = $this->postJson($this->storeUrl("/api/customer/order/{$orderId}/cancel"), [
             'customer_token' => $customerToken,
         ]);
 
@@ -149,7 +149,7 @@ class CustomerQrFlowTest extends TestCase
             'quantity' => 2,
         ]);
 
-        $this->postJson("/api/customer/order/{$orderId}/cancel", [
+        $this->postJson($this->storeUrl("/api/customer/order/{$orderId}/cancel"), [
             'customer_token' => $customerToken,
         ])->assertStatus(400);
         $this->assertEquals(10, $product->fresh()->stock);

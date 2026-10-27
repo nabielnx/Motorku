@@ -17,7 +17,7 @@ class CustomerCartPriceTest extends TestCase
     {
         app(SettingService::class)->upsertSetting('tax', 'enabled', 'false');
         $product = Product::factory()->create(['price' => 10000, 'stock' => 10, 'is_available' => true]);
-        $catalog = $this->get('/')->assertOk();
+        $catalog = $this->get($this->storeUrl('/'))->assertOk();
 
         $product->update(['price' => 15000]);
 
@@ -26,7 +26,7 @@ class CustomerCartPriceTest extends TestCase
             ->reloadOnly(['initialProducts', 'initialCategories', 'settings'], fn ($reload) => $reload
                 ->where('initialProducts.0.price', fn ($price) => (float) $price === 15000.0)));
 
-        $this->postJson('/api/customer/order', [
+        $this->postJson($this->storeUrl('/api/customer/order'), [
             'customer_name' => 'Pembeli',
             'subtotal' => 20000,
             'total' => 20000,
@@ -39,7 +39,7 @@ class CustomerCartPriceTest extends TestCase
     public function test_catalog_refresh_returns_empty_when_the_last_product_is_hidden(): void
     {
         $product = Product::factory()->create(['stock' => 10, 'is_available' => true]);
-        $catalog = $this->get('/')->assertOk();
+        $catalog = $this->get($this->storeUrl('/'))->assertOk();
 
         $product->update(['is_available' => false]);
 

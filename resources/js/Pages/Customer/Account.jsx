@@ -8,7 +8,7 @@ import { FiCheckCircle, FiLogOut, FiShoppingBag } from 'react-icons/fi';
 import '../../../css/customer-account.css';
 
 export default function CustomerAccount() {
-    const { customer, flash, errors, google_login_enabled } = usePage().props;
+    const { customer, flash, errors, google_login_enabled, shop_slug } = usePage().props;
     const { storeUrl } = useStorefront();
     const form = useForm({ name: customer?.name || '', phone: customer?.phone || '', address: customer?.address || '' });
     const google = useForm({ current_password: '' });
@@ -25,7 +25,7 @@ export default function CustomerAccount() {
         form.transform(() => parsed.data);
         form.patch(storeUrl('/customer/account'), { preserveScroll: true });
     };
-    return <OrderWorkspace title="Akun pelanggan" compact>
+    return <OrderWorkspace title="Akun pelanggan" backLabel={shop_slug ? 'Kembali belanja' : 'Ke beranda'} compact>
         <section className="customer-account-card">
             <header className="customer-account-summary">
                 <AccountAvatar customer={customer} large />
@@ -38,7 +38,7 @@ export default function CustomerAccount() {
                 <div><dt>Metode login</dt><dd>{[customer?.google_linked && 'Google', customer?.has_password && 'Email & password'].filter(Boolean).join(' · ') || 'Belum tersedia'}</dd></div>
                 {joinedAt && <div><dt>Bergabung sejak</dt><dd>{joinedAt}</dd></div>}
             </dl>
-            <Link className="order-button order-button-primary" href={storeUrl('/order/status')}><FiShoppingBag aria-hidden="true" />Lihat pesanan saya</Link>
+            {shop_slug ? <Link className="order-button order-button-primary" href={storeUrl('/order/status')}><FiShoppingBag aria-hidden="true" />Lihat pesanan saya</Link> : <p className="customer-account-description">Buka tautan atau QR toko untuk melihat pesanan dan melanjutkan belanja di toko tersebut.</p>}
             {!customer?.verified && <div className="customer-account-message"><p>Email belum diverifikasi. Verifikasi untuk memastikan alamat email Anda benar.</p><button type="button" disabled={action.processing} onClick={() => action.post(storeUrl('/customer/verification-notification'))}>Kirim email verifikasi</button></div>}
             <form className="customer-account-form customer-account-profile" onSubmit={submit}>
                 <div><h2>Informasi pribadi</h2><p className="customer-account-help">Lengkapi profil akun untuk mempermudah pemesanan berikutnya.</p></div>

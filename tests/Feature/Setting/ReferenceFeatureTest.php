@@ -48,8 +48,8 @@ class ReferenceFeatureTest extends TestCase
     public function test_existing_stores_default_to_enabled_without_a_new_setting(): void
     {
         $this->assertTrue(app(SettingService::class)->referencesEnabled());
-        $this->get('/')->assertInertia(fn ($page) => $page->where('app_settings.references_enabled', true));
-        $this->get('/motor-saya')->assertOk();
+        $this->get($this->storeUrl('/'))->assertInertia(fn ($page) => $page->where('app_settings.references_enabled', true));
+        $this->get($this->storeUrl('/motor-saya'))->assertOk();
         $this->actingAs($this->owner())->get('/motorcycles')->assertOk();
     }
 
@@ -62,9 +62,9 @@ class ReferenceFeatureTest extends TestCase
         $this->get('/settings')->assertInertia(fn ($page) => $page
             ->where('initialSettings.references_enabled', 'false')
             ->where('app_settings.references_enabled', false)->where('reference_modules', []));
-        $this->get('/')->assertInertia(fn ($page) => $page
+        $this->get($this->storeUrl('/'))->assertInertia(fn ($page) => $page
             ->where('app_settings.references_enabled', false)->where('settings', fn ($settings) => ($settings['references.enabled'] ?? null) === 'false'));
-        $this->get('/payment')->assertInertia(fn ($page) => $page->where('app_settings.references_enabled', false));
+        $this->get($this->storeUrl('/payment'))->assertInertia(fn ($page) => $page->where('app_settings.references_enabled', false));
         $this->toggle('true')->assertOk();
         $this->get('/settings')->assertInertia(fn ($page) => $page
             ->where('app_settings.references_enabled', true)->where('reference_modules', fn ($modules) => collect($modules)->contains('key', $reference->key)));
@@ -79,12 +79,12 @@ class ReferenceFeatureTest extends TestCase
         MotorcyclePart::create(['motorcycle_id' => $motorcycle->id, 'product_id' => $product->id, 'part_category' => 'oli']);
         $this->actingAs($this->owner());
         $this->toggle('false')->assertOk();
-        $this->get('/motor-saya')->assertRedirect('/');
-        $this->get('/motor-saya/qa-motor')->assertRedirect('/');
+        $this->get($this->storeUrl('/motor-saya'))->assertRedirect('/s/toko-utama');
+        $this->get($this->storeUrl('/motor-saya/qa-motor'))->assertRedirect('/s/toko-utama');
         $this->get('/motorcycles')->assertRedirect('/settings');
         $this->get('/data-types?kind=reference')->assertRedirect('/settings');
         $this->get('/references/'.$reference->id)->assertRedirect('/settings');
-        foreach (['/api/motor-saya/'.$motorcycle->id.'/parts', '/motorcycles/'.$motorcycle->id.'/parts', '/references/'.$reference->id.'/products'] as $url) {
+        foreach (['/api/motor-saya/'.$motorcycle->id.'/parts?shop=toko-utama', '/motorcycles/'.$motorcycle->id.'/parts', '/references/'.$reference->id.'/products'] as $url) {
             $this->getJson($url)->assertForbidden();
         }
         $this->postJson('/motorcycles', ['brand' => 'Test', 'model' => 'New'])->assertForbidden();
@@ -94,9 +94,9 @@ class ReferenceFeatureTest extends TestCase
         $this->assertSame(9, $product->fresh()->stock);
         $this->assertSame($product->id, $motorcycle->products()->sole()->id);
         $this->toggle('true')->assertOk();
-        $this->get('/motor-saya/qa-motor')->assertOk();
+        $this->get($this->storeUrl('/motor-saya/qa-motor'))->assertOk();
         $this->get('/references/'.$reference->id)->assertOk();
-        $this->getJson('/api/motor-saya/'.$motorcycle->id.'/parts')->assertOk();
+        $this->getJson($this->storeUrl('/api/motor-saya/'.$motorcycle->id.'/parts'))->assertOk();
     }
 
     public function test_product_types_remain_editable_but_spoofing_kind_cannot_bypass_reference_gate(): void
@@ -119,12 +119,12 @@ class ReferenceFeatureTest extends TestCase
     public function test_sitemap_excludes_disabled_motor_links_and_restores_them_when_enabled(): void
     {
         Motorcycle::create(['year_start' => 2025, 'engine_cc' => 110, 'brand' => 'Honda', 'model' => 'Sitemap QA', 'slug' => 'sitemap-qa']);
-        $this->get('/sitemap.xml')->assertOk()->assertSee('motor-saya/sitemap-qa');
+        $this->get($this->storeUrl('/sitemap.xml'))->assertOk()->assertSee('motor-saya/sitemap-qa');
         $this->actingAs($this->owner());
         $this->toggle('false')->assertOk();
-        $this->get('/sitemap.xml')->assertOk()->assertDontSee('motor-saya');
+        $this->get($this->storeUrl('/sitemap.xml'))->assertOk()->assertDontSee('motor-saya');
         $this->toggle('true')->assertOk();
-        $this->get('/sitemap.xml')->assertOk()->assertSee('motor-saya/sitemap-qa');
+        $this->get($this->storeUrl('/sitemap.xml'))->assertOk()->assertSee('motor-saya/sitemap-qa');
     }
 
     public function test_guest_and_cashier_cannot_toggle_and_invalid_values_do_not_change_the_flag(): void
@@ -147,11 +147,11 @@ class ReferenceFeatureTest extends TestCase
         $this->actingAs($this->owner());
         $this->toggle('false')->assertOk();
         $this->get('/s/other-shop-qa')->assertInertia(fn ($page) => $page->where('app_settings.references_enabled', true));
-        $this->get('/motor-saya?shop=other-shop-qa')->assertOk();
+        $this->get($this->storeUrl('/motor-saya?shop=other-shop-qa'))->assertOk();
         app(BusinessContext::class)->run($other->id, fn () => app(SettingService::class)->saveAll([
             ['group' => 'references', 'key' => 'enabled', 'value' => 'false'],
         ]));
-        $this->get('/motor-saya?shop=other-shop-qa')->assertRedirect('/s/other-shop-qa');
+        $this->get($this->storeUrl('/motor-saya?shop=other-shop-qa'))->assertRedirect('/s/other-shop-qa');
         $this->toggle('true')->assertOk();
         $this->get('/s/other-shop-qa')->assertInertia(fn ($page) => $page->where('app_settings.references_enabled', false));
         $this->assertSame('true', Setting::where('group', 'references')->where('key', 'enabled')->value('value'));

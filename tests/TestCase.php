@@ -9,6 +9,19 @@ use PDO;
 
 abstract class TestCase extends BaseTestCase
 {
+    // Opt in to the seeded store explicitly; unscoped requests remain testable.
+    protected function storeUrl(string $path): string
+    {
+        if ($path === '/') {
+            return '/s/toko-utama';
+        }
+        if (preg_match('/[?&]shop(?:=|\[)/', $path)) {
+            return $path;
+        }
+
+        return $path.(str_contains($path, '?') ? '&' : '?').'shop=toko-utama';
+    }
+
     public function createApplication()
     {
         $app = parent::createApplication();

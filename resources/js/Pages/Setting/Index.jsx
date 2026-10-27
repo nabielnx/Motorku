@@ -1,5 +1,6 @@
 import DeleteButton from '@/Components/Admin/DeleteButton';
 import AdminButton from '@/Components/Admin/Button';
+import StoreLink from '@/Components/Admin/StoreLink';
 import ImagePicker from '@/Components/ImagePicker';
 import { IMAGE_HELP, validImage } from '@/Utils/imageUpload';
 import { useEffect, useState } from 'react';
@@ -636,11 +637,7 @@ export default function SettingIndex() {
             {referenceError && <p role="alert" className="text-xs text-red-700 dark:text-red-300">{referenceError}</p>}
           </div>
         </section>
-        {props.business?.public_url && <section className="admin-surface rounded-lg border border-[#dedfd7] bg-white p-4">
-          <h3 className="text-sm font-semibold text-[#19231f] dark:text-slate-100">Link katalog usaha</h3>
-          <a href={props.business.public_url} target="_blank" rel="noopener noreferrer" className="mt-2 block break-all text-xs font-semibold text-[#19231f] underline dark:text-[#FFDD00]">{props.business.public_url}</a>
-          <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">Bagikan link ini kepada pelanggan usaha Anda.</p>
-        </section>}
+        <StoreLink business={props.business} />
         {/* PROMO BANNER SECTION */}
         <div className="admin-surface admin-setting-section bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4 transition-colors">
           <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
