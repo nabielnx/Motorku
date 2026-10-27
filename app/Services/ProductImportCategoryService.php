@@ -44,6 +44,26 @@ class ProductImportCategoryService
         return app(ReconcileImportedBrakeCategories20261012::class)->run();
     }
 
+    public function suggestParent(string $name, string $group, Collection $categories): ?Category
+    {
+        $name = $this->key($name);
+        $parents = $categories->filter(function ($category) use ($name, $group) {
+            if ($category->parent_id !== null || $category->catalog_group !== $group) {
+                return false;
+            }
+            $firstWord = explode(' ', $this->key($category->name))[0];
+
+            return mb_strlen($firstWord) >= 3 && str_starts_with($name, $firstWord.' ');
+        });
+
+        return $parents->count() === 1 ? $parents->first() : null;
+    }
+
+    public function parentFingerprint(Category $category): string
+    {
+        return hash('sha256', json_encode([$category->id, $category->name, $category->catalog_group, $category->parent_id, $category->sync_version], JSON_THROW_ON_ERROR));
+    }
+
     public function displayName(Category $category): string
     {
         return $category->parent ? $category->parent->name.' / '.$category->name : $category->name;
