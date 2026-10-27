@@ -11,7 +11,6 @@ final class ProductSheetColumns
         'name' => 'Nama Barang', 'description' => 'Deskripsi / Spesifikasi',
         'cost_price' => 'Harga Modal (Rp)', 'price' => 'Harga Jual (Rp)',
         'stock' => 'Stok', 'unit' => 'Satuan', 'sku' => 'Kode Barang',
-        'estimated_cost' => 'Estimasi Modal (Rp)',
     ];
 
     public const ALIASES = [
@@ -21,7 +20,6 @@ final class ProductSheetColumns
         'name' => ['nama barang', 'nama produk', 'nama', 'produk', 'product name', 'name'],
         'description' => ['deskripsi spesifikasi', 'spesifikasi keterangan', 'keterangan', 'spesifikasi', 'deskripsi', 'description'],
         'cost_price' => ['harga modal rp', 'harga modal', 'harga beli rp', 'harga beli', 'modal rp', 'modal', 'cost price rp', 'cost price'],
-        'estimated_cost' => ['estimasi modal rp', 'estimasi modal', 'estimasi harga modal'],
         'price' => ['harga jual rp', 'harga jual', 'harga rp', 'harga', 'price'],
         'stock' => ['stok', 'stock', 'jumlah stok'],
         'unit' => ['satuan', 'unit'],

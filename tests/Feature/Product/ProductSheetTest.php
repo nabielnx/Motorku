@@ -61,7 +61,7 @@ class ProductSheetTest extends TestCase
 
     private function inspect(?UploadedFile $file = null): array
     {
-        return $this->post('/api/products/sheets/inspect', ['file' => $file ?? $this->csv("Grup Barang,Kategori,Merek,Nama Barang,Estimasi Modal (Rp),Harga Jual (Rp),Stok,Satuan,Kode Barang\nSepeda,Ban Sepeda,IRC,Ban Luar 26,60000,80000,4,buah,\n")], ['Accept' => 'application/json'])->assertOk()->json();
+        return $this->post('/api/products/sheets/inspect', ['file' => $file ?? $this->csv("Grup Barang,Kategori,Merek,Nama Barang,Harga Modal (Rp),Harga Jual (Rp),Stok,Satuan,Kode Barang\nSepeda,Ban Sepeda,IRC,Ban Luar 26,60000,80000,4,buah,\n")], ['Accept' => 'application/json'])->assertOk()->json();
     }
 
     private function preview(array $draft, array $options = []): array
@@ -72,7 +72,7 @@ class ProductSheetTest extends TestCase
     private function input(array $draft, array $options = []): array
     {
         return [...[
-            'token' => $draft['token'], 'mode' => 'add', 'default_group' => 'automotive', 'use_estimated_cost' => false,
+            'token' => $draft['token'], 'mode' => 'add', 'default_group' => 'automotive',
             'sheets' => array_map(fn ($sheet) => ['id' => $sheet['id'], 'mapping' => $sheet['mapping']], $draft['sheets']),
         ], ...$options];
     }
@@ -335,15 +335,23 @@ class ProductSheetTest extends TestCase
         $this->assertDatabaseMissing('products', ['name' => 'Rem Baru']);
     }
 
-    public function test_estimated_cost_is_only_used_when_explicitly_selected(): void
+    public function test_legacy_estimate_column_can_be_manually_selected_as_the_single_final_modal(): void
     {
-        $draft = $this->inspect();
+        $draft = $this->inspect($this->csv("Kategori,Nama Barang,Estimasi Modal (Rp),Harga Jual\nOli,Oli 4T,60000,80000\n"));
+        $this->assertArrayNotHasKey('estimated_cost', $draft['fields']);
+        $this->assertArrayNotHasKey('estimated_cost', $draft['sheets'][0]['mapping']);
+        $this->assertArrayNotHasKey('cost_price', $draft['sheets'][0]['mapping']);
+        $legacyInput = $this->input($draft, ['use_estimated_cost' => true]);
+        $legacyInput['sheets'][0]['mapping']['estimated_cost'] = 2;
+        $this->postJson('/api/products/sheets/preview', $legacyInput)->assertUnprocessable();
         $preview = $this->preview($draft);
         $this->assertNull($preview['rows'][0]['data']['cost_price']);
-        $preview = $this->preview($draft, ['use_estimated_cost' => true]);
+        $input = $this->input($draft);
+        $input['sheets'][0]['mapping']['cost_price'] = 2;
+        $preview = $this->postJson('/api/products/sheets/preview', $input)->assertOk()->json();
         $this->assertSame(60000, $preview['rows'][0]['data']['cost_price']);
         $this->postJson('/api/products/sheets/commit', $this->commitInput($draft, $preview))->assertOk();
-        $this->assertDatabaseHas('products', ['name' => 'Ban Luar 26', 'cost_price' => 60000, 'stock' => 4]);
+        $this->assertDatabaseHas('products', ['name' => 'Oli 4T', 'cost_price' => 60000]);
     }
 
     public function test_existing_product_updates_preserve_stock_images_and_other_details(): void
@@ -760,7 +768,7 @@ class ProductSheetTest extends TestCase
     {
         Product::factory()->create(['sku' => 'OLD']);
         $draft = $this->inspect($this->csv("Kategori,Nama Barang,Harga Jual,Harga Beli,Estimasi Modal,Kode Barang\nOli,Barang Lama,8000,5000,1000,OLD\nOli,Barang Baru,9000,4000,2000,NEW\n"));
-        $preview = $this->preview($draft, ['mode' => 'update', 'use_estimated_cost' => true]);
+        $preview = $this->preview($draft, ['mode' => 'update']);
         $this->assertSame(5000, $preview['rows'][0]['data']['cost_price']);
         $this->assertSame('skip', $preview['rows'][1]['action']);
         $this->postJson('/api/products/sheets/commit', $this->commitInput($draft, $preview))->assertOk()->assertJson(['updated' => 1, 'created' => 0]);
@@ -776,7 +784,6 @@ class ProductSheetTest extends TestCase
         $this->assertSame('Harga Modal (Rp)', $draft['fields']['cost_price']);
         $preview = $this->preview($draft);
         $row = $preview['rows'][0];
-        $this->assertSame('cost_price', $row['cost_source']);
         $this->assertSame(42000, $row['data']['cost_price']);
         $this->postJson('/api/products/sheets/commit', $this->commitInput($draft, $preview))->assertOk();
         $this->assertDatabaseHas('products', ['sku' => 'MODAL-001', 'brand' => 'Brand A', 'description' => '10W-40', 'cost_price' => 42000, 'price' => 55000, 'stock' => 7, 'unit' => 'botol']);
@@ -789,26 +796,24 @@ class ProductSheetTest extends TestCase
             $this->assertSame(2, $draft['sheets'][0]['mapping']['cost_price'], $header);
             $preview = $this->preview($draft);
             $this->assertSame(42000, $preview['rows'][0]['data']['cost_price'], $header);
-            $this->assertSame('cost_price', $preview['rows'][0]['cost_source'], $header);
         }
     }
 
-    public function test_unused_estimates_warn_and_preserve_old_modal_until_explicitly_enabled(): void
+    public function test_legacy_estimate_option_cannot_overwrite_modal_and_only_manual_mapping_imports_its_values(): void
     {
         $product = Product::factory()->create(['sku' => 'KEEP-MODAL', 'cost_price' => 42000]);
         $draft = $this->inspect($this->csv("Kategori,Nama Barang,Estimasi Modal (Rp),Harga Jual,Kode Barang\nOli,Oli 4T,30000,55000,KEEP-MODAL\n"));
-        $preview = $this->preview($draft, ['mode' => 'update']);
+        $preview = $this->preview($draft, ['mode' => 'update', 'use_estimated_cost' => true]);
         $row = $preview['rows'][0];
         $this->assertSame(42000, (int) $row['old_cost_price']);
         $this->assertNull($row['data']['cost_price']);
-        $this->assertNull($row['cost_source']);
-        $this->assertStringContainsString('Estimasi Modal tidak digunakan', implode(' ', $row['warnings']));
         $this->postJson('/api/products/sheets/commit', $this->commitInput($draft, $preview))->assertOk();
         $this->assertSame(42000, (int) $product->fresh()->cost_price);
 
         $draft = $this->inspect($this->csv("Kategori,Nama Barang,Estimasi Modal (Rp),Harga Jual,Kode Barang\nOli,Oli 4T,30000,55000,KEEP-MODAL\n"));
-        $preview = $this->preview($draft, ['mode' => 'update', 'use_estimated_cost' => true]);
-        $this->assertSame('estimated_cost', $preview['rows'][0]['cost_source']);
+        $input = $this->input($draft, ['mode' => 'update']);
+        $input['sheets'][0]['mapping']['cost_price'] = 2;
+        $preview = $this->postJson('/api/products/sheets/preview', $input)->assertOk()->json();
         $this->postJson('/api/products/sheets/commit', $this->commitInput($draft, $preview))->assertOk();
         $this->assertSame(30000, (int) $product->fresh()->cost_price);
     }
@@ -816,9 +821,8 @@ class ProductSheetTest extends TestCase
     public function test_zero_modal_is_a_real_value_and_never_replaced_by_an_estimate(): void
     {
         $draft = $this->inspect($this->csv("Kategori,Nama Barang,Harga Modal (Rp),Estimasi Modal (Rp),Harga Jual\nOli,Oli 4T,0,30000,55000\n"));
-        $preview = $this->preview($draft, ['use_estimated_cost' => true]);
+        $preview = $this->preview($draft);
         $this->assertSame(0, $preview['rows'][0]['data']['cost_price']);
-        $this->assertSame('cost_price', $preview['rows'][0]['cost_source']);
         $this->postJson('/api/products/sheets/commit', $this->commitInput($draft, $preview))->assertOk();
         $this->assertDatabaseHas('products', ['name' => 'Oli 4T', 'cost_price' => 0]);
     }
@@ -857,7 +861,6 @@ class ProductSheetTest extends TestCase
             $this->assertSame(42000, $rows['ACTUAL']['data']['cost_price']);
             $this->assertSame(0, $rows['ZERO']['data']['cost_price']);
             $this->assertNull($rows['EMPTY']['data']['cost_price']);
-            $this->assertSame('cost_price', $rows['ACTUAL']['cost_source']);
             $this->assertSame('10W-40', $rows['ACTUAL']['data']['description']);
             $this->postJson('/api/products/sheets/commit', $this->commitInput($draft, $preview))->assertOk()->assertJson(['created' => 0, 'updated' => 3]);
             $this->assertDatabaseHas('products', ['sku' => 'ACTUAL', 'cost_price' => 42000, 'price' => 55000, 'stock' => 7]);
