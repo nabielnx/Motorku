@@ -8,7 +8,6 @@ export const sheetPreviewSchema = z.object({
     token: z.uuid(),
     mode: z.enum(['add', 'upsert', 'update']),
     default_group: z.string().min(1, 'Pilih jenis produk untuk impor.'),
-    use_estimated_cost: z.boolean(),
     update_stock: z.boolean().default(false),
     category_parents: z.array(z.object({
         key: z.string().regex(/^[a-f0-9]{64}$/),
@@ -59,19 +58,10 @@ export function sheetParentChoices(rows, key, parentId) {
 export function sheetCostPreview(row) {
     const before = row.old_cost_price == null ? null : Number(row.old_cost_price);
     const incoming = row.data.cost_price == null ? null : Number(row.data.cost_price);
-    if (row.action === 'skip') return { before, after: before, state: 'skipped', source: null };
+    if (row.action === 'skip') return { before, after: before, state: 'skipped' };
     const after = incoming === null && row.action === 'update' ? before : incoming;
     const state = row.action === 'update' && (incoming === null || incoming === before) ? 'kept' : after === null ? 'empty' : 'set';
-    return { before, after, state, source: row.cost_source ?? null };
-}
-
-export function sheetColumnMapping(mapping, field, column) {
-    const next = { ...mapping, [field]: column };
-    if (column !== null && (field === 'cost_price' || field === 'estimated_cost')) {
-        const other = field === 'cost_price' ? 'estimated_cost' : 'cost_price';
-        if (next[other] === column) next[other] = null;
-    }
-    return next;
+    return { before, after, state };
 }
 
 export function sheetError(error) {

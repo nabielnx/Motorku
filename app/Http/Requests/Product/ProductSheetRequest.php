@@ -30,7 +30,6 @@ class ProductSheetRequest extends FormRequest
                 'sheets.*.mapping.*' => ['nullable', 'integer', 'min:0', 'max:39'],
                 'mode' => ['required', Rule::in(['add', 'upsert', 'update'])],
                 'default_group' => ['required', BusinessRule::exists('data_types', 'key')->where('kind', 'product')],
-                'use_estimated_cost' => ['required', 'boolean'],
                 'update_stock' => ['sometimes', 'boolean'],
                 'category_parents' => ['sometimes', 'array', 'max:2000'],
                 'category_parents.*' => ['array:key,parent_id'],

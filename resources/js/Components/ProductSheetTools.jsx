@@ -5,7 +5,7 @@ import { router, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { FiDownload, FiUpload, FiX } from 'react-icons/fi';
-import { sheetError, sheetFileSchema, sheetPreviewSchemaForGroups, defaultSheetGroup, selectableSheetRows, newSheetCategories, sheetParentChoices, sheetCostPreview, sheetColumnMapping } from '@/Utils/productSheet';
+import { sheetError, sheetFileSchema, sheetPreviewSchemaForGroups, defaultSheetGroup, selectableSheetRows, newSheetCategories, sheetParentChoices, sheetCostPreview } from '@/Utils/productSheet';
 
 const money = value => value == null ? '—' : new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(value);
 const quantity = value => new Intl.NumberFormat('id-ID').format(value);
@@ -18,7 +18,6 @@ function CostPreview({ row }) {
     const display = value => value === null ? 'Belum diisi' : money(value);
     return <div className="mt-1 text-xs">
         <p>Harga Modal: {row.action === 'update' && cost.state === 'set' && <>{display(cost.before)} → </>}{display(cost.after)}{cost.state === 'kept' ? ' (tetap)' : cost.state === 'skipped' ? ' (dilewati)' : ''}</p>
-        {cost.state !== 'skipped' && cost.source === 'estimated_cost' && <p className="mt-1 text-amber-800 dark:text-amber-200">Sumber: Estimasi Modal yang disetujui.</p>}
     </div>;
 }
 
@@ -35,7 +34,6 @@ export default function ProductSheetTools({ selectedGroup, compact = false }) {
     const [selected, setSelected] = useState([]);
     const [mode, setMode] = useState('add');
     const [defaultGroup, setDefaultGroup] = useState(() => defaultSheetGroup(groups, selectedGroup));
-    const [estimated, setEstimated] = useState(false);
     const [updateStock, setUpdateStock] = useState(false);
     const [exportGroup, setExportGroup] = useState(selectedGroup || '');
     const [format, setFormat] = useState('xlsx');
@@ -43,7 +41,7 @@ export default function ProductSheetTools({ selectedGroup, compact = false }) {
         if (busy) return;
         setDialog(null); setDraft(null); setPreview(null); setFile(null); setError(''); setSelected([]);
         setCategoryParents([]);
-        setMode('add'); setEstimated(false); setUpdateStock(false);
+        setMode('add'); setUpdateStock(false);
     };
     const run = async action => {
         setBusy(true); setError('');
@@ -58,7 +56,7 @@ export default function ProductSheetTools({ selectedGroup, compact = false }) {
         setCategoryParents([]);
     });
     const buildPreview = (parentChoices = categoryParents) => run(async () => {
-        const input = { token: draft.token, mode, default_group: defaultGroup, use_estimated_cost: estimated, update_stock: mode !== 'add' && updateStock,
+        const input = { token: draft.token, mode, default_group: defaultGroup, update_stock: mode !== 'add' && updateStock,
             category_parents: parentChoices,
             sheets: sheets.filter(sheet => sheet.enabled).map(({ id, mapping }) => ({ id, mapping })) };
         const valid = sheetPreviewSchemaForGroups(groups).safeParse(input);
@@ -74,13 +72,12 @@ export default function ProductSheetTools({ selectedGroup, compact = false }) {
         toast.success(`${data.created} barang ditambahkan, ${data.updated} barang diperbarui.`);
         setDialog(null); setDraft(null); setPreview(null); setFile(null); setSelected([]);
         setCategoryParents([]);
-        setMode('add'); setEstimated(false); setUpdateStock(false);
+        setMode('add'); setUpdateStock(false);
         router.reload({ only: ['initialProducts', 'initialCategories', 'lowStockCount', 'outOfStockCount'] });
     });
     const changeSheet = (id, change) => setSheets(current => current.map(sheet => sheet.id === id ? { ...sheet, ...change } : sheet));
     const eligible = preview ? selectableSheetRows(preview.rows) : [];
     const newCategories = preview ? newSheetCategories(preview.rows) : [];
-    const unusedEstimates = sheets.filter(sheet => sheet.enabled && sheet.mapping.estimated_cost != null && sheet.mapping.cost_price == null && !estimated);
 
     return <>
         <button type="button" className={secondary} aria-label="Impor daftar barang" title="Impor daftar barang" onClick={() => { setDefaultGroup(defaultSheetGroup(groups, selectedGroup)); setDialog('import'); setError(''); }}><FiUpload aria-hidden="true" /><span className={compact ? 'hidden min-[360px]:inline' : ''}>Impor</span></button>
@@ -109,19 +106,17 @@ export default function ProductSheetTools({ selectedGroup, compact = false }) {
                     <div className="flex flex-wrap items-center gap-3"><button type="button" className={primary} onClick={inspect} disabled={busy || !file}>{busy ? 'Membaca file…' : 'Baca file'}</button><a className="text-sm underline" href={route('api.products.sheets.template')}>Unduh template Excel</a></div>
                 </div> : !preview ? <div className="space-y-4">
                     <p className="text-sm">Periksa pencocokan kolom. Tab yang tidak ingin diimpor bisa dilepas centangnya. Margin dihitung dari harga jual dan modal, sehingga tidak perlu dicocokkan.</p>
-                    <p className="text-xs text-slate-600 dark:text-slate-300">Harga Modal adalah harga beli per satuan yang disimpan di produk. Judul kolom lama seperti Harga Beli tetap dikenali. Kolom kosong mempertahankan modal barang lama; angka 0 berarti modal nol.</p>
+                    <p className="text-xs text-slate-600 dark:text-slate-300">Pilih kolom berisi Harga Modal dan Harga Jual final. Harga Beli dari file lama tetap dikenali sebagai Harga Modal. Kolom modal kosong mempertahankan modal barang lama; angka 0 berarti modal nol.</p>
                     <div className="grid gap-3 sm:grid-cols-2">
                         <label className="text-sm">Cara impor<select className={`${control} mt-1`} value={mode} onChange={event => { setMode(event.target.value); if (event.target.value === 'add') setUpdateStock(false); }}><option value="add">Tambah barang baru saja</option><option value="upsert">Tambah baru + perbarui barang lama</option><option value="update">Perbarui barang lama saja</option></select></label>
                         <label className="text-sm">Grup jika kolom Grup Barang kosong<select className={`${control} mt-1`} value={defaultGroup} onChange={event => setDefaultGroup(event.target.value)}>{Object.entries(groups).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label>
                     </div>
                     {mode !== 'add' && <label className="flex items-start gap-2 rounded-lg bg-stone-100 p-3 text-sm text-stone-800 dark:bg-slate-800 dark:text-slate-200"><input type="checkbox" checked={updateStock} onChange={event => setUpdateStock(event.target.checked)} className="mt-1 rounded" /><span><strong>Perbarui stok barang lama sesuai file.</strong> Stok diganti dengan angka di file, bukan ditambahkan. Kolom kosong atau tidak digunakan mempertahankan stok lama; angka 0 membuat stok habis. Perubahan dicatat di riwayat stok.</span></label>}
-                    <label className="flex items-start gap-2 rounded-lg bg-amber-50 p-3 text-sm text-slate-800"><input type="checkbox" checked={estimated} onChange={event => setEstimated(event.target.checked)} className="mt-1 rounded" /><span>Gunakan <strong>Estimasi Modal</strong> untuk mengisi <strong>Harga Modal</strong> jika nilainya kosong pada file. Centang setelah memeriksa angkanya. Harga Modal yang terisi pada file selalu diutamakan.</span></label>
-                    {unusedEstimates.length > 0 && <p role="status" className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">Estimasi Modal terdeteksi di {unusedEstimates.map(sheet => sheet.name).join(', ')} tetapi belum digunakan. Harga Modal barang lama tetap; barang baru belum diisi. Centang opsi di atas atau pilih sumber kolom untuk Harga Modal.</p>}
                     {sheets.map(sheet => <details key={sheet.id} open={sheets.length === 1} className="rounded-lg border border-slate-200 p-3 dark:border-slate-700">
                         <summary className="cursor-pointer text-sm font-semibold">{sheet.name} · {sheet.count} baris</summary>
                         {sheet.enabled && sheet.ambiguous_fields?.some(field => sheet.mapping[field] == null) && <p className="mt-2 text-xs text-amber-800 dark:text-amber-200">Ada beberapa kolom untuk informasi yang sama: {sheet.ambiguous_fields.filter(field => sheet.mapping[field] == null).map(field => draft.fields[field]).join(', ')}. Pilih satu sumber kolom secara manual agar nilainya sesuai.</p>}
                         <label className="my-3 flex items-center gap-2 text-sm"><input type="checkbox" checked={sheet.enabled} onChange={event => changeSheet(sheet.id, { enabled: event.target.checked })} className="rounded" />Impor tab ini</label>
-                        {sheet.enabled && <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{Object.entries(draft.fields).map(([field, label]) => <label key={field} className="min-w-0 text-sm">{label}{['name', 'price', 'category'].includes(field) ? ' *' : ''}<select className={`${control} mt-1`} value={sheet.mapping[field] ?? ''} onChange={event => changeSheet(sheet.id, { mapping: sheetColumnMapping(sheet.mapping, field, event.target.value === '' ? null : Number(event.target.value)) })}><option value="">Tidak digunakan</option>{sheet.headers.map((header, index) => <option key={index} value={index}>{index + 1}. {header || '(tanpa judul)'}</option>)}</select></label>)}</div>}
+                        {sheet.enabled && <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{Object.entries(draft.fields).map(([field, label]) => <label key={field} className="min-w-0 text-sm">{label}{['name', 'price', 'category'].includes(field) ? ' *' : ''}<select className={`${control} mt-1`} value={sheet.mapping[field] ?? ''} onChange={event => changeSheet(sheet.id, { mapping: { ...sheet.mapping, [field]: event.target.value === '' ? null : Number(event.target.value) } })}><option value="">Tidak digunakan</option>{sheet.headers.map((header, index) => <option key={index} value={index}>{index + 1}. {header || '(tanpa judul)'}</option>)}</select></label>)}</div>}
                     </details>)}
                     <div className="flex flex-wrap gap-2"><button className={secondary} type="button" disabled={busy} onClick={() => { setDraft(null); setError(''); setCategoryParents([]); }}>Ganti file</button><button className={primary} type="button" disabled={busy} onClick={() => buildPreview()}>{busy ? 'Memeriksa…' : 'Lihat pratinjau'}</button></div>
                 </div> : <div className="space-y-4">

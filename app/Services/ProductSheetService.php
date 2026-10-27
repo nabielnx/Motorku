@@ -339,15 +339,6 @@ class ProductSheetService
         }
         $data['price'] = $this->number($read('price'), 'Harga Jual', $errors, required: true);
         $cost = $read('cost_price');
-        $estimatedCost = $read('estimated_cost');
-        $costSource = $cost !== null && $cost !== '' ? 'cost_price' : null;
-        if (($cost === null || $cost === '') && $options['use_estimated_cost']) {
-            $cost = $estimatedCost;
-            $costSource = $cost !== null && $cost !== '' ? 'estimated_cost' : null;
-        }
-        if ($costSource === null && $estimatedCost !== null && $estimatedCost !== '' && ! $options['use_estimated_cost']) {
-            $warnings[] = 'Estimasi Modal tidak digunakan. Harga Modal barang lama tetap; barang baru belum diisi. Centang opsi penggunaan estimasi jika ingin memakainya.';
-        }
         $data['cost_price'] = $this->number($cost, 'Harga Modal', $errors);
         $data['stock'] = $this->number($read('stock'), 'Stok', $errors, max: 99999999);
         if ($data['unit'] === '') {
@@ -355,7 +346,7 @@ class ProductSheetService
             $warnings[] = 'Satuan kosong: barang baru memakai pcs.';
         }
 
-        return ['data' => $data, 'category' => $category, 'group' => $group, 'cost_source' => $costSource, 'errors' => $errors, 'warnings' => $warnings];
+        return ['data' => $data, 'category' => $category, 'group' => $group, 'errors' => $errors, 'warnings' => $warnings];
     }
 
     private function number(mixed $value, string $label, array &$errors, bool $required = false, int $max = 9999999999999): ?int
