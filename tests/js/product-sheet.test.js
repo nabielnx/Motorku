@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { sheetFileSchema, sheetPreviewSchema, sheetPreviewSchemaForGroups, defaultSheetGroup, selectableSheetRows, newSheetCategories, sheetParentChoices } from '../../resources/js/Utils/productSheet.js';
+import { sheetFileSchema, sheetPreviewSchema, sheetPreviewSchemaForGroups, defaultSheetGroup, selectableSheetRows, newSheetCategories, sheetParentChoices, sheetCostPreview, sheetColumnMapping } from '../../resources/js/Utils/productSheet.js';
 
 test('import accepts the current custom groups and rejects absent or deleted groups', () => {
     const input = { token: '00000000-0000-4000-8000-000000000001', mode: 'add', default_group: 'makanan', use_estimated_cost: false,
@@ -73,4 +73,24 @@ test('preview validates category parent IDs and rejects duplicate category choic
     assert.equal(sheetPreviewSchema.safeParse({ ...input, category_parents: [{ ...choice, parent_id: null }] }).success, true);
     assert.equal(sheetPreviewSchema.safeParse({ ...input, category_parents: [{ ...choice, parent_id: 'other' }] }).success, false);
     assert.equal(sheetPreviewSchema.safeParse({ ...input, category_parents: [choice, choice] }).success, false);
+});
+
+test('modal preview preserves old values when no cost is imported and distinguishes zero from empty', () => {
+    const row = { action: 'update', old_cost_price: '42000.00', data: { cost_price: null }, cost_source: null };
+    assert.deepEqual(sheetCostPreview(row), { before: 42000, after: 42000, state: 'kept', source: null });
+    assert.deepEqual(sheetCostPreview({ ...row, data: { cost_price: 0 }, cost_source: 'cost_price' }), { before: 42000, after: 0, state: 'set', source: 'cost_price' });
+    assert.deepEqual(sheetCostPreview({ ...row, data: { cost_price: 30000 }, cost_source: 'estimated_cost' }), { before: 42000, after: 30000, state: 'set', source: 'estimated_cost' });
+    assert.equal(sheetCostPreview({ ...row, data: { cost_price: 42000 } }).state, 'kept');
+    assert.equal(sheetCostPreview({ action: 'create', data: { cost_price: null } }).state, 'empty');
+    assert.equal(sheetCostPreview({ action: 'create', data: { cost_price: 0 } }).state, 'set');
+    assert.deepEqual(sheetCostPreview({ ...row, action: 'skip', data: { cost_price: 30000 }, cost_source: 'cost_price' }), { before: 42000, after: 42000, state: 'skipped', source: null });
+});
+
+test('selecting an estimate column as modal moves its mapping without using one source twice', () => {
+    const mapping = { name: 0, category: 1, price: 2, estimated_cost: 3, cost_price: null };
+    assert.deepEqual(sheetColumnMapping(mapping, 'cost_price', 3), { ...mapping, cost_price: 3, estimated_cost: null });
+    assert.equal(mapping.estimated_cost, 3);
+    assert.deepEqual(sheetColumnMapping({ ...mapping, cost_price: 4 }, 'estimated_cost', 4), { ...mapping, estimated_cost: 4, cost_price: null });
+    assert.deepEqual(sheetColumnMapping(mapping, 'cost_price', 4), { ...mapping, cost_price: 4 });
+    assert.deepEqual(sheetColumnMapping(mapping, 'cost_price', null), mapping);
 });

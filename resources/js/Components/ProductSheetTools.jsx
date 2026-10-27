@@ -5,13 +5,22 @@ import { router, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { FiDownload, FiUpload, FiX } from 'react-icons/fi';
-import { sheetError, sheetFileSchema, sheetPreviewSchemaForGroups, defaultSheetGroup, selectableSheetRows, newSheetCategories, sheetParentChoices } from '@/Utils/productSheet';
+import { sheetError, sheetFileSchema, sheetPreviewSchemaForGroups, defaultSheetGroup, selectableSheetRows, newSheetCategories, sheetParentChoices, sheetCostPreview, sheetColumnMapping } from '@/Utils/productSheet';
 
 const money = value => value == null ? '—' : new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(value);
 const quantity = value => new Intl.NumberFormat('id-ID').format(value);
 const control = 'admin-control w-full';
 const secondary = 'admin-button admin-button-secondary';
 const primary = 'admin-button admin-button-primary';
+
+function CostPreview({ row }) {
+    const cost = sheetCostPreview(row);
+    const display = value => value === null ? 'Belum diisi' : money(value);
+    return <div className="mt-1 text-xs">
+        <p>Harga Modal: {row.action === 'update' && cost.state === 'set' && <>{display(cost.before)} → </>}{display(cost.after)}{cost.state === 'kept' ? ' (tetap)' : cost.state === 'skipped' ? ' (dilewati)' : ''}</p>
+        {cost.state !== 'skipped' && cost.source === 'estimated_cost' && <p className="mt-1 text-amber-800 dark:text-amber-200">Sumber: Estimasi Modal yang disetujui.</p>}
+    </div>;
+}
 
 export default function ProductSheetTools({ selectedGroup, compact = false }) {
     const groups = usePage().props.catalog_groups ?? catalogGroupLabels;
@@ -71,6 +80,7 @@ export default function ProductSheetTools({ selectedGroup, compact = false }) {
     const changeSheet = (id, change) => setSheets(current => current.map(sheet => sheet.id === id ? { ...sheet, ...change } : sheet));
     const eligible = preview ? selectableSheetRows(preview.rows) : [];
     const newCategories = preview ? newSheetCategories(preview.rows) : [];
+    const unusedEstimates = sheets.filter(sheet => sheet.enabled && sheet.mapping.estimated_cost != null && sheet.mapping.cost_price == null && !estimated);
 
     return <>
         <button type="button" className={secondary} aria-label="Impor daftar barang" title="Impor daftar barang" onClick={() => { setDefaultGroup(defaultSheetGroup(groups, selectedGroup)); setDialog('import'); setError(''); }}><FiUpload aria-hidden="true" /><span className={compact ? 'hidden min-[360px]:inline' : ''}>Impor</span></button>
@@ -83,7 +93,7 @@ export default function ProductSheetTools({ selectedGroup, compact = false }) {
                 </div>
                 {error && <p role="alert" className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700 dark:bg-red-950 dark:text-red-200">{error}</p>}
                 {dialog === 'export' ? <div className="space-y-4">
-                    <p className="text-sm text-slate-600 dark:text-slate-300">Kolom tetap bahasa Indonesia. Kode Barang membantu mencocokkan barang saat diimpor kembali. Harga beli dan stok ikut tercantum. Ekspor mengikuti grup yang dipilih di bawah.</p>
+                    <p className="text-sm text-slate-600 dark:text-slate-300">CSV dan Excel memakai nama kolom yang sama dengan impor. Harga Modal berisi nilai yang tersimpan di produk. Kode Barang dipertahankan untuk pencocokan saat impor ulang. Margin dihitung dari Harga Jual dikurangi Harga Modal.</p>
                     <div className="grid gap-4 sm:grid-cols-2">
                         <label className="text-sm">Barang yang diekspor<select className={`${control} mt-1`} value={exportGroup} onChange={event => setExportGroup(event.target.value)}><option value="">Seluruh katalog</option>{Object.entries(groups).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label>
                         <label className="text-sm">Format file<select className={`${control} mt-1`} value={format} onChange={event => setFormat(event.target.value)}><option value="xlsx">Excel (.xlsx)</option><option value="csv">CSV (.csv)</option><option value="pdf">PDF (.pdf)</option></select></label>
@@ -99,16 +109,19 @@ export default function ProductSheetTools({ selectedGroup, compact = false }) {
                     <div className="flex flex-wrap items-center gap-3"><button type="button" className={primary} onClick={inspect} disabled={busy || !file}>{busy ? 'Membaca file…' : 'Baca file'}</button><a className="text-sm underline" href={route('api.products.sheets.template')}>Unduh template Excel</a></div>
                 </div> : !preview ? <div className="space-y-4">
                     <p className="text-sm">Periksa pencocokan kolom. Tab yang tidak ingin diimpor bisa dilepas centangnya. Margin dihitung dari harga jual dan modal, sehingga tidak perlu dicocokkan.</p>
+                    <p className="text-xs text-slate-600 dark:text-slate-300">Harga Modal adalah harga beli per satuan yang disimpan di produk. Judul kolom lama seperti Harga Beli tetap dikenali. Kolom kosong mempertahankan modal barang lama; angka 0 berarti modal nol.</p>
                     <div className="grid gap-3 sm:grid-cols-2">
                         <label className="text-sm">Cara impor<select className={`${control} mt-1`} value={mode} onChange={event => { setMode(event.target.value); if (event.target.value === 'add') setUpdateStock(false); }}><option value="add">Tambah barang baru saja</option><option value="upsert">Tambah baru + perbarui barang lama</option><option value="update">Perbarui barang lama saja</option></select></label>
                         <label className="text-sm">Grup jika kolom Grup Barang kosong<select className={`${control} mt-1`} value={defaultGroup} onChange={event => setDefaultGroup(event.target.value)}>{Object.entries(groups).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label>
                     </div>
                     {mode !== 'add' && <label className="flex items-start gap-2 rounded-lg bg-stone-100 p-3 text-sm text-stone-800 dark:bg-slate-800 dark:text-slate-200"><input type="checkbox" checked={updateStock} onChange={event => setUpdateStock(event.target.checked)} className="mt-1 rounded" /><span><strong>Perbarui stok barang lama sesuai file.</strong> Stok diganti dengan angka di file, bukan ditambahkan. Kolom kosong atau tidak digunakan mempertahankan stok lama; angka 0 membuat stok habis. Perubahan dicatat di riwayat stok.</span></label>}
-                    <label className="flex items-start gap-2 rounded-lg bg-amber-50 p-3 text-sm text-slate-800"><input type="checkbox" checked={estimated} onChange={event => setEstimated(event.target.checked)} className="mt-1 rounded" /><span>Gunakan <strong>Estimasi Modal</strong> sebagai harga beli. Centang hanya jika angkanya sudah kamu periksa. Harga Beli yang terisi lebih diutamakan.</span></label>
+                    <label className="flex items-start gap-2 rounded-lg bg-amber-50 p-3 text-sm text-slate-800"><input type="checkbox" checked={estimated} onChange={event => setEstimated(event.target.checked)} className="mt-1 rounded" /><span>Gunakan <strong>Estimasi Modal</strong> untuk mengisi <strong>Harga Modal</strong> jika nilainya kosong pada file. Centang setelah memeriksa angkanya. Harga Modal yang terisi pada file selalu diutamakan.</span></label>
+                    {unusedEstimates.length > 0 && <p role="status" className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">Estimasi Modal terdeteksi di {unusedEstimates.map(sheet => sheet.name).join(', ')} tetapi belum digunakan. Harga Modal barang lama tetap; barang baru belum diisi. Centang opsi di atas atau pilih sumber kolom untuk Harga Modal.</p>}
                     {sheets.map(sheet => <details key={sheet.id} open={sheets.length === 1} className="rounded-lg border border-slate-200 p-3 dark:border-slate-700">
                         <summary className="cursor-pointer text-sm font-semibold">{sheet.name} · {sheet.count} baris</summary>
+                        {sheet.enabled && sheet.ambiguous_fields?.some(field => sheet.mapping[field] == null) && <p className="mt-2 text-xs text-amber-800 dark:text-amber-200">Ada beberapa kolom untuk informasi yang sama: {sheet.ambiguous_fields.filter(field => sheet.mapping[field] == null).map(field => draft.fields[field]).join(', ')}. Pilih satu sumber kolom secara manual agar nilainya sesuai.</p>}
                         <label className="my-3 flex items-center gap-2 text-sm"><input type="checkbox" checked={sheet.enabled} onChange={event => changeSheet(sheet.id, { enabled: event.target.checked })} className="rounded" />Impor tab ini</label>
-                        {sheet.enabled && <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{Object.entries(draft.fields).map(([field, label]) => <label key={field} className="min-w-0 text-sm">{label}{['name', 'price', 'category'].includes(field) ? ' *' : ''}<select className={`${control} mt-1`} value={sheet.mapping[field] ?? ''} onChange={event => changeSheet(sheet.id, { mapping: { ...sheet.mapping, [field]: event.target.value === '' ? null : Number(event.target.value) } })}><option value="">Tidak digunakan</option>{sheet.headers.map((header, index) => <option key={index} value={index}>{index + 1}. {header || '(tanpa judul)'}</option>)}</select></label>)}</div>}
+                        {sheet.enabled && <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{Object.entries(draft.fields).map(([field, label]) => <label key={field} className="min-w-0 text-sm">{label}{['name', 'price', 'category'].includes(field) ? ' *' : ''}<select className={`${control} mt-1`} value={sheet.mapping[field] ?? ''} onChange={event => changeSheet(sheet.id, { mapping: sheetColumnMapping(sheet.mapping, field, event.target.value === '' ? null : Number(event.target.value)) })}><option value="">Tidak digunakan</option>{sheet.headers.map((header, index) => <option key={index} value={index}>{index + 1}. {header || '(tanpa judul)'}</option>)}</select></label>)}</div>}
                     </details>)}
                     <div className="flex flex-wrap gap-2"><button className={secondary} type="button" disabled={busy} onClick={() => { setDraft(null); setError(''); setCategoryParents([]); }}>Ganti file</button><button className={primary} type="button" disabled={busy} onClick={() => buildPreview()}>{busy ? 'Memeriksa…' : 'Lihat pratinjau'}</button></div>
                 </div> : <div className="space-y-4">
@@ -132,7 +145,7 @@ export default function ProductSheetTools({ selectedGroup, compact = false }) {
                         <table className="w-full min-w-[650px] text-left text-sm"><thead className="sticky top-0 bg-slate-100 text-slate-700"><tr><th className="p-3">Pilih</th><th className="p-3">Barang / asal</th><th className="p-3">Tindakan & harga</th><th className="p-3">Catatan</th></tr></thead><tbody>{preview.rows.map(row => <tr key={row.id} className="border-t align-top dark:border-slate-700">
                             <td className="p-3"><input type="checkbox" className="rounded" aria-label={`Pilih ${row.data.name || `baris ${row.number}`}`} disabled={row.errors.length > 0 || row.action === 'skip' || busy} checked={selected.includes(row.id)} onChange={event => setSelected(current => event.target.checked ? [...current, row.id] : current.filter(id => id !== row.id))} /></td>
                             <td className="max-w-xs p-3"><p className="font-semibold">{row.data.name || '(nama kosong)'}</p><p className="mt-1 text-xs">Merek: {row.data.brand || '—'}{row.data.sku && <><br />Kode: {row.data.sku}</>}</p><p className="mt-1 text-xs text-slate-500">{row.sheet} · Baris {row.number}<br />{groups[row.group]} · {row.category_name || row.category}</p>{row.matched_name && <p className="mt-1 text-xs">Cocok: {row.matched_name}</p>}</td>
-                            <td className="p-3"><p className="font-semibold">{{ create: 'Tambah baru', update: row.update_stock ? 'Perbarui harga & stok' : 'Perbarui harga', skip: 'Dilewati' }[row.action]}</p>{row.old_price != null && <p className="text-xs">{money(row.old_price)} →</p>}<p>{money(row.data.price)}</p><p className="mt-1 text-xs">Modal: {money(row.data.cost_price)}</p><p className="mt-1 text-xs">Stok: {row.action === 'create' ? quantity(row.data.stock ?? 0) : row.update_stock ? <>{quantity(row.old_stock)} → <strong>{quantity(row.data.stock)}</strong></> : <>{quantity(row.old_stock)} (tetap)</>}</p></td>
+                            <td className="p-3"><p className="font-semibold">{{ create: 'Tambah baru', update: row.update_stock ? 'Perbarui harga & stok' : 'Perbarui harga', skip: 'Dilewati' }[row.action]}</p>{row.old_price != null && <p className="text-xs">{money(row.old_price)} →</p>}<p>{money(row.data.price)}</p><CostPreview row={row} /><p className="mt-1 text-xs">Stok: {row.action === 'create' ? quantity(row.data.stock ?? 0) : row.update_stock ? <>{quantity(row.old_stock)} → <strong>{quantity(row.data.stock)}</strong></> : <>{quantity(row.old_stock)} (tetap)</>}</p></td>
                             <td className="max-w-xs p-3 text-xs">{row.errors.map((message, i) => <p key={`error-${i}`} className="mb-1 text-red-600">{message}</p>)}{row.warnings.map((message, i) => <p key={`warning-${i}`} className="mb-1 text-slate-500 dark:text-slate-400">{message}</p>)}</td>
                         </tr>)}</tbody></table>
                     </div>

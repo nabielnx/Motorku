@@ -56,6 +56,24 @@ export function sheetParentChoices(rows, key, parentId) {
     }));
 }
 
+export function sheetCostPreview(row) {
+    const before = row.old_cost_price == null ? null : Number(row.old_cost_price);
+    const incoming = row.data.cost_price == null ? null : Number(row.data.cost_price);
+    if (row.action === 'skip') return { before, after: before, state: 'skipped', source: null };
+    const after = incoming === null && row.action === 'update' ? before : incoming;
+    const state = row.action === 'update' && (incoming === null || incoming === before) ? 'kept' : after === null ? 'empty' : 'set';
+    return { before, after, state, source: row.cost_source ?? null };
+}
+
+export function sheetColumnMapping(mapping, field, column) {
+    const next = { ...mapping, [field]: column };
+    if (column !== null && (field === 'cost_price' || field === 'estimated_cost')) {
+        const other = field === 'cost_price' ? 'estimated_cost' : 'cost_price';
+        if (next[other] === column) next[other] = null;
+    }
+    return next;
+}
+
 export function sheetError(error) {
     return Object.values(error.response?.data?.errors || {}).flat().join(' ') || error.response?.data?.message || error.message || 'Proses gagal. Coba lagi.';
 }
