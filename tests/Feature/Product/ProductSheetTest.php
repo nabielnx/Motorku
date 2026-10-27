@@ -102,6 +102,25 @@ class ProductSheetTest extends TestCase
         $this->assertDatabaseHas('categories', ['name' => 'Ban Sepeda', 'catalog_group' => 'bicycle']);
     }
 
+    public function test_custom_group_import_creates_a_missing_category_once_when_the_file_has_no_group_column(): void
+    {
+        $type = $this->postJson('/data-types', ['kind' => 'product', 'name' => 'Makanan', 'fields' => []])
+            ->assertCreated()->json('data');
+        $draft = $this->inspect($this->csv("Kategori,Nama Barang,Harga Jual,Stok\nCamilan,Keripik,10000,5\nCamilan,Kacang,15000,8\n"));
+        $preview = $this->preview($draft, ['default_group' => $type['key']]);
+        foreach ($preview['rows'] as $row) {
+            $this->assertSame([], $row['errors']);
+            $this->assertSame($type['key'], $row['group']);
+            $this->assertNull($row['category_id']);
+            $this->assertContains('Kategori baru: Camilan', $row['warnings']);
+        }
+        $this->postJson('/api/products/sheets/commit', $this->commitInput($draft, $preview))
+            ->assertOk()->assertJson(['created' => 2, 'updated' => 0]);
+        $category = Category::where('catalog_group', $type['key'])->sole();
+        $this->assertSame('Camilan', $category->name);
+        $this->assertSame(2, Product::where('category_id', $category->id)->count());
+    }
+
     public function test_short_brake_category_names_use_existing_subcategories_without_creating_roots(): void
     {
         $this->seed(CategorySeeder::class);

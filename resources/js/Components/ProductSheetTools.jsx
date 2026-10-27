@@ -5,7 +5,7 @@ import { router, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { FiDownload, FiUpload, FiX } from 'react-icons/fi';
-import { sheetError, sheetFileSchema, sheetPreviewSchema, selectableSheetRows } from '@/Utils/productSheet';
+import { sheetError, sheetFileSchema, sheetPreviewSchemaForGroups, defaultSheetGroup, selectableSheetRows } from '@/Utils/productSheet';
 
 const money = value => value == null ? '—' : new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(value);
 const quantity = value => new Intl.NumberFormat('id-ID').format(value);
@@ -24,7 +24,7 @@ export default function ProductSheetTools({ selectedGroup, compact = false }) {
     const [preview, setPreview] = useState(null);
     const [selected, setSelected] = useState([]);
     const [mode, setMode] = useState('add');
-    const [defaultGroup, setDefaultGroup] = useState(selectedGroup || 'automotive');
+    const [defaultGroup, setDefaultGroup] = useState(() => defaultSheetGroup(groups, selectedGroup));
     const [estimated, setEstimated] = useState(false);
     const [updateStock, setUpdateStock] = useState(false);
     const [exportGroup, setExportGroup] = useState(selectedGroup || '');
@@ -48,7 +48,7 @@ export default function ProductSheetTools({ selectedGroup, compact = false }) {
     const buildPreview = () => run(async () => {
         const input = { token: draft.token, mode, default_group: defaultGroup, use_estimated_cost: estimated, update_stock: mode !== 'add' && updateStock,
             sheets: sheets.filter(sheet => sheet.enabled).map(({ id, mapping }) => ({ id, mapping })) };
-        const valid = sheetPreviewSchema.safeParse(input);
+        const valid = sheetPreviewSchemaForGroups(groups).safeParse(input);
         if (!valid.success) throw new Error(valid.error.issues[0].message);
         const { data } = await axios.post(route('api.products.sheets.preview'), valid.data);
         setPreview(data); setSelected(selectableSheetRows(data.rows));
@@ -64,7 +64,7 @@ export default function ProductSheetTools({ selectedGroup, compact = false }) {
     const eligible = preview ? selectableSheetRows(preview.rows) : [];
 
     return <>
-        <button type="button" className={secondary} aria-label="Impor daftar barang" title="Impor daftar barang" onClick={() => { setDialog('import'); setError(''); }}><FiUpload aria-hidden="true" /><span className={compact ? 'hidden min-[360px]:inline' : ''}>Impor</span></button>
+        <button type="button" className={secondary} aria-label="Impor daftar barang" title="Impor daftar barang" onClick={() => { setDefaultGroup(defaultSheetGroup(groups, selectedGroup)); setDialog('import'); setError(''); }}><FiUpload aria-hidden="true" /><span className={compact ? 'hidden min-[360px]:inline' : ''}>Impor</span></button>
         <button type="button" className={secondary} aria-label="Ekspor daftar barang" title="Ekspor daftar barang" onClick={() => { setExportGroup(selectedGroup || ''); setDialog('export'); setError(''); }}><FiDownload aria-hidden="true" /><span className={compact ? 'hidden min-[360px]:inline' : ''}>Ekspor</span></button>
         <AdminDialog show={dialog !== null} onClose={close} closeable={!busy} className="max-w-5xl overflow-hidden">
             <div className="max-h-[85dvh] w-full overflow-y-auto p-4 sm:p-6">
