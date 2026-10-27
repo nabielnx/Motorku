@@ -10,6 +10,10 @@ export const sheetPreviewSchema = z.object({
     default_group: z.string().min(1, 'Pilih jenis produk untuk impor.'),
     use_estimated_cost: z.boolean(),
     update_stock: z.boolean().default(false),
+    category_parents: z.array(z.object({
+        key: z.string().regex(/^[a-f0-9]{64}$/),
+        parent_id: z.uuid().nullable(),
+    })).max(2000).refine(choices => new Set(choices.map(choice => choice.key)).size === choices.length, 'Induk kategori tidak boleh dipilih lebih dari sekali.').optional(),
     sheets: z.array(z.object({
         id: z.number().int().nonnegative(),
         mapping: z.record(z.string(), z.number().int().min(0).max(39).nullable()),
@@ -38,6 +42,18 @@ export function defaultSheetGroup(groups, selectedGroup) {
 
 export function selectableSheetRows(rows) {
     return rows.filter(row => row.errors.length === 0 && row.action !== 'skip').map(row => row.id);
+}
+
+export function newSheetCategories(rows) {
+    return [...new Map(rows.filter(row => row.action === 'create' && !row.category_id)
+        .map(row => [row.category_key, row])).values()];
+}
+
+export function sheetParentChoices(rows, key, parentId) {
+    return newSheetCategories(rows).map(row => ({
+        key: row.category_key,
+        parent_id: row.category_key === key ? parentId : row.category_parent_id ?? null,
+    }));
 }
 
 export function sheetError(error) {

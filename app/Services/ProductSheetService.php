@@ -63,6 +63,8 @@ class ProductSheetService
             $sheets = json_decode($draft->payload, true, flags: JSON_THROW_ON_ERROR);
             $catalog = $this->catalogIndex();
             $categories = Category::with('parent')->get();
+            $categoryService = app(ProductImportCategoryService::class);
+            $parentChoices = collect($input['category_parents'] ?? [])->keyBy('key');
             $input['catalog_groups'] = Category::catalogGroups();
             $rows = [];
             foreach ($input['sheets'] as $selection) {
@@ -115,8 +117,27 @@ class ProductSheetService
                     }
                     $row['category_id'] = $categoryMatches->count() === 1 ? $categoryMatches->first()->id : null;
                     $row['category_name'] = $row['category_id'] ? app(ProductImportCategoryService::class)->displayName($categoryMatches->first()) : $row['category'];
+                    $row['category_key'] = hash('sha256', $row['group']."\0".$this->key($row['category']));
+                    $row['category_parent_id'] = null;
+                    $row['category_parent_fingerprint'] = null;
                     if (! $product && ! $row['category_id']) {
-                        $row['warnings'][] = 'Kategori baru: '.$row['category'];
+                        $parent = $categoryService->suggestParent($row['category'], $row['group'], $categories);
+                        if ($parentChoices->has($row['category_key'])) {
+                            $parentId = $parentChoices[$row['category_key']]['parent_id'];
+                            $parent = $parentId ? $categories->firstWhere('id', $parentId) : null;
+                            if ($parentId && (! $parent || $parent->parent_id !== null || $parent->catalog_group !== $row['group'])) {
+                                $row['errors'][] = 'Kategori induk harus berasal dari jenis produk yang sama.';
+                                $parent = null;
+                            }
+                        }
+                        if ($parent) {
+                            $row['category_parent_id'] = $parent->id;
+                            $row['category_parent_fingerprint'] = $categoryService->parentFingerprint($parent);
+                            $row['category_name'] = $parent->name.' / '.$row['category'];
+                            $row['warnings'][] = 'Subkategori baru: '.$row['category_name'].'. Periksa induknya sebelum menyimpan.';
+                        } else {
+                            $row['warnings'][] = 'Kategori baru: '.$row['category'];
+                        }
                         if ($categories->contains(fn ($category) => $this->key($category->name) === $this->key($row['category']))) {
                             $row['errors'][] = 'Nama kategori sudah dipakai di grup lain. Gunakan nama kategori khusus untuk grup ini.';
                         }
@@ -164,7 +185,11 @@ class ProductSheetService
                 }
             }
             unset($row);
-            $preview = ['revision' => (string) Str::uuid(), 'rows' => $rows];
+            $preview = ['revision' => (string) Str::uuid(), 'rows' => $rows,
+                'category_parents' => $categories->whereNull('parent_id')->map(fn ($category) => [
+                    'id' => $category->id, 'name' => $category->name, 'group' => $category->catalog_group,
+                ])->values()->all(),
+            ];
             app(BusinessContext::class)->table('product_sheet_imports')->where('id', $draft->id)->update(['preview' => json_encode($preview, JSON_THROW_ON_ERROR)]);
 
             return $preview;
@@ -234,14 +259,25 @@ class ProductSheetService
                             $this->fail('Kategori ganda. Buat pratinjau ulang.');
                         }
                         $category = $categories->first();
+                        $parent = null;
+                        if ($row['category_parent_id'] ?? null) {
+                            $parent = Category::whereKey($row['category_parent_id'])->lockForUpdate()->first();
+                            if (! $parent || $parent->parent_id !== null || $parent->catalog_group !== $row['group']
+                                || app(ProductImportCategoryService::class)->parentFingerprint($parent) !== $row['category_parent_fingerprint']) {
+                                $this->fail('Kategori induk berubah setelah pratinjau. Buat pratinjau ulang.');
+                            }
+                        }
                         if ($row['category_id'] && (! $category || $category->id !== $row['category_id'])) {
                             $this->fail('Kategori berubah. Buat pratinjau ulang.');
+                        }
+                        if (! $row['category_id'] && $category && $category->parent_id !== $parent?->id) {
+                            $this->fail('Susunan kategori berubah setelah pratinjau. Buat pratinjau ulang.');
                         }
                         if (! $category) {
                             if (Category::where('name', $row['category'])->exists()) {
                                 $this->fail('Nama kategori sudah dipakai di grup lain. Buat pratinjau ulang.');
                             }
-                            $category = Category::create(['name' => $row['category'], 'catalog_group' => $row['group']]);
+                            $category = Category::create(['name' => $row['category'], 'catalog_group' => $row['group'], 'parent_id' => $parent?->id]);
                         }
                         $data['sku'] = $data['sku'] ?: 'IMP-'.strtoupper(substr(hash('sha256', $draft->id.':'.$row['id']), 0, 16));
                         $created = app(ProductService::class)->createProduct([...$data, 'stock' => $data['stock'] ?? 0, 'category_id' => $category->id, 'minimum_stock' => 0, 'is_available' => true]);

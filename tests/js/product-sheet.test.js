@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { sheetFileSchema, sheetPreviewSchema, sheetPreviewSchemaForGroups, defaultSheetGroup, selectableSheetRows } from '../../resources/js/Utils/productSheet.js';
+import { sheetFileSchema, sheetPreviewSchema, sheetPreviewSchemaForGroups, defaultSheetGroup, selectableSheetRows, newSheetCategories, sheetParentChoices } from '../../resources/js/Utils/productSheet.js';
 
 test('import accepts the current custom groups and rejects absent or deleted groups', () => {
     const input = { token: '00000000-0000-4000-8000-000000000001', mode: 'add', default_group: 'makanan', use_estimated_cost: false,
@@ -51,4 +51,26 @@ test('stock updates require an explicit boolean choice and default to preserving
     assert.equal(sheetPreviewSchema.parse(input).update_stock, false);
     assert.equal(sheetPreviewSchema.parse({ ...input, update_stock: true }).update_stock, true);
     assert.equal(sheetPreviewSchema.safeParse({ ...input, update_stock: 'true' }).success, false);
+});
+
+test('new category parent choices apply once per category and preserve other visible choices', () => {
+    const oil = { category_key: 'a'.repeat(64), category: 'Oli Mesin (4T)', action: 'create', category_id: null, category_parent_id: '00000000-0000-4000-8000-000000000001' };
+    const tire = { category_key: 'b'.repeat(64), category: 'Ban Dalam', action: 'create', category_id: null, category_parent_id: null };
+    const rows = [oil, { ...oil }, tire, { ...oil, action: 'update' }, { ...tire, category_id: 'existing' }];
+    assert.deepEqual(newSheetCategories(rows), [oil, tire]);
+    assert.deepEqual(sheetParentChoices(rows, tire.category_key, '00000000-0000-4000-8000-000000000002'), [
+        { key: oil.category_key, parent_id: oil.category_parent_id },
+        { key: tire.category_key, parent_id: '00000000-0000-4000-8000-000000000002' },
+    ]);
+    assert.equal(sheetParentChoices(rows, oil.category_key, null)[0].parent_id, null);
+});
+
+test('preview validates category parent IDs and rejects duplicate category choices', () => {
+    const input = { token: '00000000-0000-4000-8000-000000000001', mode: 'add', default_group: 'motor', use_estimated_cost: false,
+        sheets: [{ id: 0, mapping: { name: 0, category: 1, price: 2 } }] };
+    const choice = { key: 'a'.repeat(64), parent_id: '00000000-0000-4000-8000-000000000002' };
+    assert.equal(sheetPreviewSchema.safeParse({ ...input, category_parents: [choice] }).success, true);
+    assert.equal(sheetPreviewSchema.safeParse({ ...input, category_parents: [{ ...choice, parent_id: null }] }).success, true);
+    assert.equal(sheetPreviewSchema.safeParse({ ...input, category_parents: [{ ...choice, parent_id: 'other' }] }).success, false);
+    assert.equal(sheetPreviewSchema.safeParse({ ...input, category_parents: [choice, choice] }).success, false);
 });

@@ -6,9 +6,12 @@ namespace Tests\Feature\Product;
 
 use App\Enums\InventoryLogType;
 use App\Models\Category;
+use App\Models\DataType;
 use App\Models\InventoryLog;
 use App\Models\Product;
 use App\Models\User;
+use App\Services\BusinessContext;
+use App\Services\BusinessOnboardingService;
 use App\Services\InventoryService;
 use App\Services\ProductSheetService;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -17,6 +20,7 @@ use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\ValidationException;
 use OpenSpout\Common\Entity\Cell\FormulaCell;
 use OpenSpout\Common\Entity\Cell\StringCell;
@@ -119,6 +123,131 @@ class ProductSheetTest extends TestCase
         $category = Category::where('catalog_group', $type['key'])->sole();
         $this->assertSame('Camilan', $category->name);
         $this->assertSame(2, Product::where('category_id', $category->id)->count());
+    }
+
+    public function test_import_suggests_existing_oil_and_tire_parents_and_creates_shared_children_once(): void
+    {
+        $type = $this->postJson('/data-types', ['kind' => 'product', 'name' => 'Motor Kustom', 'fields' => []])->assertCreated()->json('data');
+        $oil = Category::factory()->create(['name' => 'Oli & Pelumas', 'catalog_group' => $type['key']]);
+        $tire = Category::factory()->create(['name' => 'Ban', 'catalog_group' => $type['key']]);
+        $draft = $this->inspect($this->csv("Kategori,Nama Barang,Harga Jual\nOli Mesin (4T),Oli A,50000\nOli Samping (2T),Oli B,30000\nOli Gardan / Transmisi,Oli C,20000\nBan Dalam,Ban A,40000\nOli Mesin (4T),Oli D,60000\n"));
+        $preview = $this->preview($draft, ['default_group' => $type['key']]);
+        foreach ($preview['rows'] as $index => $row) {
+            $parent = $index === 3 ? $tire : $oil;
+            $this->assertSame([], $row['errors']);
+            $this->assertSame($parent->id, $row['category_parent_id']);
+            $this->assertSame($parent->name.' / '.$row['category'], $row['category_name']);
+        }
+        $input = $this->commitInput($draft, $preview);
+        $this->postJson('/api/products/sheets/commit', $input)->assertOk()->assertJson(['created' => 5]);
+        $this->postJson('/api/products/sheets/commit', $input)->assertOk()->assertJson(['created' => 5]);
+        $this->assertSame(3, Category::where('parent_id', $oil->id)->count());
+        $this->assertSame(1, Category::where('parent_id', $tire->id)->count());
+        $this->assertSame(5, Product::count());
+        $this->assertSame(0, Category::whereNull('parent_id')->whereIn('name', ['Oli Mesin (4T)', 'Ban Dalam'])->count());
+    }
+
+    public function test_parent_suggestion_is_scoped_and_does_not_guess_when_names_are_ambiguous(): void
+    {
+        Category::factory()->create(['name' => 'Oli Motor', 'catalog_group' => 'automotive']);
+        Category::factory()->create(['name' => 'Oli Industri', 'catalog_group' => 'automotive']);
+        Category::factory()->create(['name' => 'Ban', 'catalog_group' => 'bicycle']);
+        Category::factory()->create(['name' => 'Ban Luar', 'catalog_group' => 'automotive']);
+        $draft = $this->inspect($this->csv("Kategori,Nama Barang,Harga Jual\nOli Mesin (4T),Oli A,50000\nBantalan,Bearing,30000\n"));
+        $preview = $this->preview($draft);
+        foreach ($preview['rows'] as $row) {
+            $this->assertNull($row['category_parent_id']);
+        }
+    }
+
+    public function test_user_can_correct_or_remove_parent_suggestions_and_stale_previews_are_rejected(): void
+    {
+        $oil = Category::factory()->create(['name' => 'Oli & Pelumas']);
+        $other = Category::factory()->create(['name' => 'Perawatan']);
+        $draft = $this->inspect($this->csv("Kategori,Nama Barang,Harga Jual\nOli Mesin (4T),Oli A,50000\n"));
+        $first = $this->preview($draft);
+        $this->assertSame($oil->id, $first['rows'][0]['category_parent_id']);
+        $choice = ['key' => $first['rows'][0]['category_key'], 'parent_id' => $other->id];
+        $corrected = $this->preview($draft, ['category_parents' => [$choice]]);
+        $this->assertSame($other->id, $corrected['rows'][0]['category_parent_id']);
+        $this->postJson('/api/products/sheets/commit', $this->commitInput($draft, $first))->assertUnprocessable();
+        $standalone = $this->preview($draft, ['category_parents' => [[...$choice, 'parent_id' => null]]]);
+        $this->assertNull($standalone['rows'][0]['category_parent_id']);
+        $this->postJson('/api/products/sheets/commit', $this->commitInput($draft, $standalone))->assertOk();
+        $this->assertDatabaseHas('categories', ['name' => 'Oli Mesin (4T)', 'parent_id' => null]);
+    }
+
+    public function test_parent_choices_reject_other_groups_and_nested_or_deleted_categories(): void
+    {
+        $root = Category::factory()->create(['name' => 'Perawatan']);
+        $other = Category::factory()->create(['name' => 'Ban', 'catalog_group' => 'bicycle']);
+        $child = Category::factory()->create(['name' => 'Pembersih', 'parent_id' => $root->id]);
+        $draft = $this->inspect($this->csv("Kategori,Nama Barang,Harga Jual\nOli Mesin (4T),Oli A,50000\n"));
+        $first = $this->preview($draft);
+        $choice = ['key' => $first['rows'][0]['category_key'], 'parent_id' => $other->id];
+        $invalid = $this->preview($draft, ['category_parents' => [$choice]]);
+        $this->assertNotEmpty($invalid['rows'][0]['errors']);
+        $this->postJson('/api/products/sheets/commit', [...$this->commitInput($draft, $invalid), 'rows' => ['0:2']])->assertUnprocessable();
+        $this->postJson('/api/products/sheets/preview', $this->input($draft, ['category_parents' => [[...$choice, 'parent_id' => $child->id]]]))->assertUnprocessable();
+        $other->delete();
+        $this->postJson('/api/products/sheets/preview', $this->input($draft, ['category_parents' => [$choice]]))->assertUnprocessable();
+    }
+
+    public function test_parent_changes_after_preview_roll_back_the_import(): void
+    {
+        $parent = Category::factory()->create(['name' => 'Oli & Pelumas']);
+        $draft = $this->inspect($this->csv("Kategori,Nama Barang,Harga Jual\nOli Mesin (4T),Oli A,50000\n"));
+        $preview = $this->preview($draft);
+        $parent->update(['name' => 'Pelumas']);
+        $this->postJson('/api/products/sheets/commit', $this->commitInput($draft, $preview))->assertUnprocessable();
+        $this->assertDatabaseMissing('categories', ['name' => 'Oli Mesin (4T)']);
+        $this->assertSame(0, Product::count());
+    }
+
+    public function test_category_created_elsewhere_after_preview_cannot_override_the_chosen_parent(): void
+    {
+        Category::factory()->create(['name' => 'Oli & Pelumas']);
+        $draft = $this->inspect($this->csv("Kategori,Nama Barang,Harga Jual\nOli Mesin (4T),Oli A,50000\n"));
+        $preview = $this->preview($draft);
+        Category::factory()->create(['name' => 'Oli Mesin (4T)']);
+        $this->postJson('/api/products/sheets/commit', $this->commitInput($draft, $preview))->assertUnprocessable();
+        $this->assertSame(0, Product::count());
+    }
+
+    public function test_import_parent_suggestions_and_manual_choices_cannot_use_another_business_category(): void
+    {
+        Notification::fake();
+        $otherOwner = app(BusinessOnboardingService::class)->register([
+            'name' => 'Owner B', 'email' => 'parent-b@example.test', 'business_name' => 'Usaha B', 'business_slug' => 'parent-usaha-b', 'password' => 'Strong@1234',
+        ], ['id' => 'parent-owner-b', 'email' => 'parent-b@example.test', 'trusted_email' => true]);
+        $foreign = app(BusinessContext::class)->run($otherOwner->business_id, function () {
+            DataType::create(['kind' => 'product', 'key' => 'automotive', 'name' => 'Motor', 'fields' => []]);
+
+            return Category::factory()->create(['name' => 'Oli & Pelumas']);
+        });
+        $draft = $this->inspect($this->csv("Kategori,Nama Barang,Harga Jual\nOli Mesin (4T),Oli A,50000\n"));
+        $preview = $this->preview($draft);
+        $this->assertNull($preview['rows'][0]['category_parent_id']);
+        $this->assertNotContains($foreign->id, array_column($preview['category_parents'], 'id'));
+        $this->postJson('/api/products/sheets/preview', $this->input($draft, ['category_parents' => [[
+            'key' => $preview['rows'][0]['category_key'], 'parent_id' => $foreign->id,
+        ]]]))->assertUnprocessable();
+    }
+
+    public function test_import_keeps_existing_product_and_category_placement(): void
+    {
+        Category::factory()->create(['name' => 'Oli & Pelumas']);
+        $standalone = Category::factory()->create(['name' => 'Oli Mesin (4T)']);
+        $product = Product::factory()->create(['category_id' => $standalone->id, 'sku' => 'KEEP-ROOT']);
+        $draft = $this->inspect($this->csv("Kategori,Nama Barang,Harga Jual,Kode Barang\nOli Mesin (4T),Barang Lama,50000,KEEP-ROOT\nOli Mesin (4T),Barang Baru,40000,NEW-ROOT\n"));
+        $preview = $this->preview($draft, ['mode' => 'upsert']);
+        foreach ($preview['rows'] as $row) {
+            $this->assertSame($standalone->id, $row['category_id']);
+            $this->assertNull($row['category_parent_id']);
+        }
+        $this->postJson('/api/products/sheets/commit', $this->commitInput($draft, $preview))->assertOk();
+        $this->assertSame($standalone->id, $product->fresh()->category_id);
+        $this->assertNull($standalone->fresh()->parent_id);
     }
 
     public function test_short_brake_category_names_use_existing_subcategories_without_creating_roots(): void

@@ -5,7 +5,7 @@ import { router, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { FiDownload, FiUpload, FiX } from 'react-icons/fi';
-import { sheetError, sheetFileSchema, sheetPreviewSchemaForGroups, defaultSheetGroup, selectableSheetRows } from '@/Utils/productSheet';
+import { sheetError, sheetFileSchema, sheetPreviewSchemaForGroups, defaultSheetGroup, selectableSheetRows, newSheetCategories, sheetParentChoices } from '@/Utils/productSheet';
 
 const money = value => value == null ? '—' : new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(value);
 const quantity = value => new Intl.NumberFormat('id-ID').format(value);
@@ -22,6 +22,7 @@ export default function ProductSheetTools({ selectedGroup, compact = false }) {
     const [draft, setDraft] = useState(null);
     const [sheets, setSheets] = useState([]);
     const [preview, setPreview] = useState(null);
+    const [categoryParents, setCategoryParents] = useState([]);
     const [selected, setSelected] = useState([]);
     const [mode, setMode] = useState('add');
     const [defaultGroup, setDefaultGroup] = useState(() => defaultSheetGroup(groups, selectedGroup));
@@ -32,6 +33,7 @@ export default function ProductSheetTools({ selectedGroup, compact = false }) {
     const close = () => {
         if (busy) return;
         setDialog(null); setDraft(null); setPreview(null); setFile(null); setError(''); setSelected([]);
+        setCategoryParents([]);
         setMode('add'); setEstimated(false); setUpdateStock(false);
     };
     const run = async action => {
@@ -44,24 +46,31 @@ export default function ProductSheetTools({ selectedGroup, compact = false }) {
         const form = new FormData(); form.append('file', file);
         const { data } = await axios.post(route('api.products.sheets.inspect'), form);
         setDraft(data); setSheets(data.sheets.map(sheet => ({ ...sheet, enabled: true })));
+        setCategoryParents([]);
     });
-    const buildPreview = () => run(async () => {
+    const buildPreview = (parentChoices = categoryParents) => run(async () => {
         const input = { token: draft.token, mode, default_group: defaultGroup, use_estimated_cost: estimated, update_stock: mode !== 'add' && updateStock,
+            category_parents: parentChoices,
             sheets: sheets.filter(sheet => sheet.enabled).map(({ id, mapping }) => ({ id, mapping })) };
         const valid = sheetPreviewSchemaForGroups(groups).safeParse(input);
         if (!valid.success) throw new Error(valid.error.issues[0].message);
         const { data } = await axios.post(route('api.products.sheets.preview'), valid.data);
-        setPreview(data); setSelected(selectableSheetRows(data.rows));
+        const validRows = selectableSheetRows(data.rows);
+        setCategoryParents(parentChoices);
+        setSelected(preview ? selected.filter(id => validRows.includes(id)) : validRows);
+        setPreview(data);
     });
     const commit = () => run(async () => {
         const { data } = await axios.post(route('api.products.sheets.commit'), { token: draft.token, revision: preview.revision, rows: selected });
         toast.success(`${data.created} barang ditambahkan, ${data.updated} barang diperbarui.`);
         setDialog(null); setDraft(null); setPreview(null); setFile(null); setSelected([]);
+        setCategoryParents([]);
         setMode('add'); setEstimated(false); setUpdateStock(false);
         router.reload({ only: ['initialProducts', 'initialCategories', 'lowStockCount', 'outOfStockCount'] });
     });
     const changeSheet = (id, change) => setSheets(current => current.map(sheet => sheet.id === id ? { ...sheet, ...change } : sheet));
     const eligible = preview ? selectableSheetRows(preview.rows) : [];
+    const newCategories = preview ? newSheetCategories(preview.rows) : [];
 
     return <>
         <button type="button" className={secondary} aria-label="Impor daftar barang" title="Impor daftar barang" onClick={() => { setDefaultGroup(defaultSheetGroup(groups, selectedGroup)); setDialog('import'); setError(''); }}><FiUpload aria-hidden="true" /><span className={compact ? 'hidden min-[360px]:inline' : ''}>Impor</span></button>
@@ -101,11 +110,24 @@ export default function ProductSheetTools({ selectedGroup, compact = false }) {
                         <label className="my-3 flex items-center gap-2 text-sm"><input type="checkbox" checked={sheet.enabled} onChange={event => changeSheet(sheet.id, { enabled: event.target.checked })} className="rounded" />Impor tab ini</label>
                         {sheet.enabled && <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{Object.entries(draft.fields).map(([field, label]) => <label key={field} className="min-w-0 text-sm">{label}{['name', 'price', 'category'].includes(field) ? ' *' : ''}<select className={`${control} mt-1`} value={sheet.mapping[field] ?? ''} onChange={event => changeSheet(sheet.id, { mapping: { ...sheet.mapping, [field]: event.target.value === '' ? null : Number(event.target.value) } })}><option value="">Tidak digunakan</option>{sheet.headers.map((header, index) => <option key={index} value={index}>{index + 1}. {header || '(tanpa judul)'}</option>)}</select></label>)}</div>}
                     </details>)}
-                    <div className="flex flex-wrap gap-2"><button className={secondary} type="button" disabled={busy} onClick={() => { setDraft(null); setError(''); }}>Ganti file</button><button className={primary} type="button" disabled={busy} onClick={buildPreview}>{busy ? 'Memeriksa…' : 'Lihat pratinjau'}</button></div>
+                    <div className="flex flex-wrap gap-2"><button className={secondary} type="button" disabled={busy} onClick={() => { setDraft(null); setError(''); setCategoryParents([]); }}>Ganti file</button><button className={primary} type="button" disabled={busy} onClick={() => buildPreview()}>{busy ? 'Memeriksa…' : 'Lihat pratinjau'}</button></div>
                 </div> : <div className="space-y-4">
                     <p className="text-sm">{preview.rows.length} baris diperiksa · {eligible.length} dapat disimpan · {preview.rows.filter(row => row.errors.length > 0).length} bermasalah · {preview.rows.filter(row => row.action === 'skip').length} dilewati.</p>
                     <p className="rounded-lg bg-stone-100 p-3 text-sm text-stone-800 dark:bg-slate-800 dark:text-slate-200">Barang lama dicocokkan menggunakan Kode Barang, atau nama lengkap dan merek jika kode kosong. Periksa nama hasil pencocokan sebelum menyimpan. Stok hanya diperbarui jika opsi pembaruan stok dicentang dan kolom Stok terisi. Gambar, nama, kategori, dan satuan tetap.</p>
-                    <label className="flex items-center gap-2 text-sm"><input type="checkbox" className="rounded" checked={eligible.length > 0 && selected.length === eligible.length} onChange={event => setSelected(event.target.checked ? eligible : [])} />Pilih semua baris valid ({selected.length} dipilih)</label>
+                    {newCategories.length > 0 && (preview.category_parents?.length ?? 0) > 0 && <section className="rounded-lg border border-slate-200 p-3 dark:border-slate-700" aria-labelledby="import-category-parents">
+                        <h3 id="import-category-parents" className="text-sm font-semibold">Induk kategori baru</h3>
+                        <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">Periksa saran berdasarkan kata awal nama kategori. Pilihan berlaku untuk semua barang dengan kategori yang sama. Subkategori dibuat saat impor disimpan.</p>
+                        <div className="mt-3 grid max-h-60 gap-3 overflow-y-auto sm:grid-cols-2">
+                            {newCategories.map(row => <label key={row.category_key} className="min-w-0 text-sm">
+                                <span className="block break-words">{row.category || '(kategori kosong)'} <span className="text-xs text-slate-500 dark:text-slate-400">· {groups[row.group]}</span></span>
+                                <select className={`${control} mt-1`} value={row.category_parent_id ?? ''} disabled={busy} onChange={event => buildPreview(sheetParentChoices(preview.rows, row.category_key, event.target.value || null))}>
+                                    <option value="">Tanpa induk (kategori utama)</option>
+                                    {preview.category_parents.filter(parent => parent.group === row.group).map(parent => <option key={parent.id} value={parent.id}>{parent.name}</option>)}
+                                </select>
+                            </label>)}
+                        </div>
+                    </section>}
+                    <label className="flex items-center gap-2 text-sm"><input type="checkbox" className="rounded" checked={eligible.length > 0 && selected.length === eligible.length} disabled={busy} onChange={event => setSelected(event.target.checked ? eligible : [])} />Pilih semua baris valid ({selected.length} dipilih)</label>
                     <div className="max-h-[45vh] overflow-auto rounded-lg border dark:border-slate-700">
                         <table className="w-full min-w-[650px] text-left text-sm"><thead className="sticky top-0 bg-slate-100 text-slate-700"><tr><th className="p-3">Pilih</th><th className="p-3">Barang / asal</th><th className="p-3">Tindakan & harga</th><th className="p-3">Catatan</th></tr></thead><tbody>{preview.rows.map(row => <tr key={row.id} className="border-t align-top dark:border-slate-700">
                             <td className="p-3"><input type="checkbox" className="rounded" aria-label={`Pilih ${row.data.name || `baris ${row.number}`}`} disabled={row.errors.length > 0 || row.action === 'skip' || busy} checked={selected.includes(row.id)} onChange={event => setSelected(current => event.target.checked ? [...current, row.id] : current.filter(id => id !== row.id))} /></td>
