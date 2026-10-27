@@ -7,7 +7,7 @@ export const sheetFileSchema = z.custom(value => value && typeof value.name === 
 export const sheetPreviewSchema = z.object({
     token: z.uuid(),
     mode: z.enum(['add', 'upsert', 'update']),
-    default_group: z.enum(['automotive', 'electronics', 'hardware', 'bicycle']),
+    default_group: z.string().min(1, 'Pilih jenis produk untuk impor.'),
     use_estimated_cost: z.boolean(),
     update_stock: z.boolean().default(false),
     sheets: z.array(z.object({
@@ -25,6 +25,16 @@ export const sheetPreviewSchema = z.object({
         }
     })).min(1, 'Pilih minimal satu tab.'),
 });
+
+export function sheetPreviewSchemaForGroups(groups) {
+    return sheetPreviewSchema.extend({
+        default_group: z.string().refine(value => Object.hasOwn(groups, value), 'Pilih jenis produk yang tersedia di toko.'),
+    });
+}
+
+export function defaultSheetGroup(groups, selectedGroup) {
+    return selectedGroup && Object.hasOwn(groups, selectedGroup) ? selectedGroup : Object.keys(groups)[0] ?? '';
+}
 
 export function selectableSheetRows(rows) {
     return rows.filter(row => row.errors.length === 0 && row.action !== 'skip').map(row => row.id);

@@ -1,6 +1,26 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { sheetFileSchema, sheetPreviewSchema, selectableSheetRows } from '../../resources/js/Utils/productSheet.js';
+import { sheetFileSchema, sheetPreviewSchema, sheetPreviewSchemaForGroups, defaultSheetGroup, selectableSheetRows } from '../../resources/js/Utils/productSheet.js';
+
+test('import accepts the current custom groups and rejects absent or deleted groups', () => {
+    const input = { token: '00000000-0000-4000-8000-000000000001', mode: 'add', default_group: 'makanan', use_estimated_cost: false,
+        sheets: [{ id: 0, mapping: { name: 0, category: 1, price: 2 } }] };
+    const schema = sheetPreviewSchemaForGroups({ makanan: 'Makanan', minuman: 'Minuman' });
+    assert.equal(schema.safeParse(input).success, true);
+    assert.equal(schema.safeParse({ ...input, default_group: 'automotive' }).success, false);
+    assert.equal(schema.safeParse({ ...input, default_group: '' }).success, false);
+    assert.equal(schema.safeParse({ ...input, default_group: 'toString' }).success, false);
+    assert.equal(sheetPreviewSchemaForGroups({}).safeParse(input).success, false);
+    assert.equal(sheetPreviewSchemaForGroups({ minuman: 'Minuman' }).safeParse(input).success, false);
+});
+
+test('initial import group follows the selected type or the first available custom type', () => {
+    const groups = { makanan: 'Makanan', minuman: 'Minuman' };
+    assert.equal(defaultSheetGroup(groups, 'minuman'), 'minuman');
+    assert.equal(defaultSheetGroup(groups, 'automotive'), 'makanan');
+    assert.equal(defaultSheetGroup(groups), 'makanan');
+    assert.equal(defaultSheetGroup({}), '');
+});
 
 test('file validator rejects old Excel formats and oversized files', () => {
     assert.equal(sheetFileSchema.safeParse({ name: 'all.xlsx', size: 1000 }).success, true);
