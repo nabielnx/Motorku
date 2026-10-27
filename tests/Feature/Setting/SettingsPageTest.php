@@ -25,7 +25,7 @@ class SettingsPageTest extends TestCase
         $this->actingAs($owner)->postJson('/api/settings', ['settings' => [
             ['group' => 'promo_banner', 'key' => 'enabled', 'value' => 'true'],
         ]])->assertOk();
-        $this->get('/')->assertInertia(fn ($page) => $page->where('promoBanners.2', null));
+        $this->get($this->storeUrl('/'))->assertInertia(fn ($page) => $page->where('promoBanners.2', null));
 
         $urls = [];
         foreach ([1, 2, 3] as $slot) {
@@ -37,17 +37,17 @@ class SettingsPageTest extends TestCase
             $this->assertStringEndsWith('.webp', $path);
             Storage::disk('public')->assertExists($path);
             $this->assertSame([600, 1000], array_slice(getimagesize(Storage::disk('public')->path($path)), 0, 2));
-            $this->get('/')->assertInertia(fn ($page) => $page->where('promoBanners.'.$slot, $urls[$slot]));
+            $this->get($this->storeUrl('/'))->assertInertia(fn ($page) => $page->where('promoBanners.'.$slot, $urls[$slot]));
         }
-        $this->get('/')->assertInertia(fn ($page) => $page
+        $this->get($this->storeUrl('/'))->assertInertia(fn ($page) => $page
             ->where('promoBanners.1', $urls[1])->where('promoBanners.2', $urls[2])->where('promoBanners.3', $urls[3]));
         $this->deleteJson('/api/settings/banners/1')->assertOk();
-        $this->get('/')->assertInertia(fn ($page) => $page
+        $this->get($this->storeUrl('/'))->assertInertia(fn ($page) => $page
             ->where('promoBanners.1', null)->where('promoBanners.2', $urls[2])->where('promoBanners.3', $urls[3]));
         $this->postJson('/api/settings', ['settings' => [
             ['group' => 'promo_banner', 'key' => 'enabled', 'value' => 'false'],
         ]])->assertOk();
-        $this->get('/')->assertInertia(fn ($page) => $page
+        $this->get($this->storeUrl('/'))->assertInertia(fn ($page) => $page
             ->where('promoBanners.1', null)->where('promoBanners.2', null)->where('promoBanners.3', null));
     }
 

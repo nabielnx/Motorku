@@ -18,7 +18,7 @@ class AuditRemediationTest extends TestCase
     #[Test]
     public function public_cannot_confirm_payment_via_manual_endpoint(): void
     {
-        $response = $this->postJson('/api/customer/order/some-uuid/confirm-payment', [
+        $response = $this->postJson($this->storeUrl('/api/customer/order/some-uuid/confirm-payment'), [
             'customer_token' => str_repeat('a', 64),
         ]);
 
@@ -29,7 +29,7 @@ class AuditRemediationTest extends TestCase
     #[Test]
     public function customer_qris_payment_route_is_not_registered(): void
     {
-        $response = $this->postJson('/api/customer/payment/qris', [
+        $response = $this->postJson($this->storeUrl('/api/customer/payment/qris'), [
             'order_id' => '00000000-0000-0000-0000-000000000000',
         ]);
 

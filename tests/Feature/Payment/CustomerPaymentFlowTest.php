@@ -50,7 +50,7 @@ class CustomerPaymentFlowTest extends TestCase
 
     private function report(Order $order, array $data = [])
     {
-        return $this->postJson('/api/customer/order/'.$order->id.'/payment-review', array_merge([
+        return $this->postJson($this->storeUrl('/api/customer/order/'.$order->id.'/payment-review'), array_merge([
             'customer_token' => $order->customer_access_token, 'reference' => 'TX-123',
         ], $data));
     }
@@ -70,13 +70,13 @@ class CustomerPaymentFlowTest extends TestCase
         $order = $this->order();
         $product = Product::factory()->create(['price' => 15000, 'stock' => 50, 'is_available' => true]);
         for ($i = 0; $i < 5; $i++) {
-            $this->withHeader('X-Customer-Token', $order->customer_access_token)->getJson('/api/customer/order/'.$order->id.'/status')->assertOk();
+            $this->withHeader('X-Customer-Token', $order->customer_access_token)->getJson($this->storeUrl('/api/customer/order/'.$order->id.'/status'))->assertOk();
         }
         for ($i = 0; $i < 3; $i++) {
-            $this->postJson('/api/customer/order', $this->payload($product))->assertCreated();
+            $this->postJson($this->storeUrl('/api/customer/order'), $this->payload($product))->assertCreated();
         }
-        $this->postJson('/api/customer/order', $this->payload($product))->assertStatus(429)->assertHeader('Retry-After');
-        $this->withHeader('X-Customer-Token', $order->customer_access_token)->getJson('/api/customer/order/'.$order->id.'/status')->assertOk();
+        $this->postJson($this->storeUrl('/api/customer/order'), $this->payload($product))->assertStatus(429)->assertHeader('Retry-After');
+        $this->withHeader('X-Customer-Token', $order->customer_access_token)->getJson($this->storeUrl('/api/customer/order/'.$order->id.'/status'))->assertOk();
     }
 
     public function test_payment_report_is_idempotent_unpaid_and_protects_expiry_and_customer_cancellation(): void
@@ -87,7 +87,7 @@ class CustomerPaymentFlowTest extends TestCase
         $this->report($order, ['reference' => 'CHANGED'])->assertOk()->assertJsonPath('data.payment_reference', 'TX-123');
         $this->assertSame($version, $order->fresh()->sync_version);
         $this->assertDatabaseCount('payments', 0);
-        $this->postJson('/api/customer/order/'.$order->id.'/cancel', ['customer_token' => $order->customer_access_token])->assertUnprocessable();
+        $this->postJson($this->storeUrl('/api/customer/order/'.$order->id.'/cancel'), ['customer_token' => $order->customer_access_token])->assertUnprocessable();
         $this->travel(20)->minutes();
         $this->assertFalse(app(OrderCancellationService::class)->expire($order->id));
         $this->assertFalse(Order::stale()->whereKey($order->id)->exists());
@@ -101,7 +101,7 @@ class CustomerPaymentFlowTest extends TestCase
         $this->report($order, ['reference' => str_repeat('x', 101)])->assertUnprocessable();
         $business = Business::create(['name' => 'Other', 'slug' => 'other-flow']);
         $business->forceFill(['activated_at' => now()])->save();
-        $this->postJson('/api/customer/order/'.$order->id.'/payment-review?shop=other-flow', ['customer_token' => $order->customer_access_token])->assertUnauthorized();
+        $this->postJson($this->storeUrl('/api/customer/order/'.$order->id.'/payment-review?shop=other-flow'), ['customer_token' => $order->customer_access_token])->assertUnauthorized();
         $this->assertNull($order->fresh()->payment_review_requested_at);
     }
 
@@ -110,13 +110,13 @@ class CustomerPaymentFlowTest extends TestCase
         $this->configure();
         $product = Product::factory()->create(['price' => 16000, 'stock' => 10, 'is_available' => true]);
         $payload = $this->payload($product);
-        $this->postJson('/api/customer/order', $payload)->assertUnprocessable()->assertJsonValidationErrors('expected_total');
+        $this->postJson($this->storeUrl('/api/customer/order'), $payload)->assertUnprocessable()->assertJsonValidationErrors('expected_total');
         $this->assertDatabaseCount('orders', 0);
         $this->assertDatabaseCount('checkout_requests', 0);
         $this->assertEquals(10, $product->fresh()->stock);
         $payload['expected_total'] = 32000;
-        $this->postJson('/api/customer/order', $payload)->assertCreated()->assertJsonPath('data.total', 32000)->assertJsonPath('data.payment_preference', 'qris');
-        $this->postJson('/api/customer/order', $payload)->assertCreated();
+        $this->postJson($this->storeUrl('/api/customer/order'), $payload)->assertCreated()->assertJsonPath('data.total', 32000)->assertJsonPath('data.payment_preference', 'qris');
+        $this->postJson($this->storeUrl('/api/customer/order'), $payload)->assertCreated();
         $this->assertDatabaseCount('orders', 1);
         $this->assertEquals(8, $product->fresh()->stock);
     }
@@ -126,9 +126,9 @@ class CustomerPaymentFlowTest extends TestCase
         $this->configure();
         Setting::where('group', 'payment')->where('key', 'qris_enabled')->update(['value' => 'false']);
         $product = Product::factory()->create(['price' => 15000, 'stock' => 10, 'is_available' => true]);
-        $this->postJson('/api/customer/order', $this->payload($product))->assertUnprocessable()->assertJsonValidationErrors('payment_preference');
+        $this->postJson($this->storeUrl('/api/customer/order'), $this->payload($product))->assertUnprocessable()->assertJsonValidationErrors('payment_preference');
         $this->assertDatabaseCount('orders', 0);
-        $this->postJson('/api/customer/order', $this->payload($product, ['payment_preference' => 'kasir']))->assertCreated()->assertJsonPath('data.payment_preference', 'kasir');
+        $this->postJson($this->storeUrl('/api/customer/order'), $this->payload($product, ['payment_preference' => 'kasir']))->assertCreated()->assertJsonPath('data.payment_preference', 'kasir');
     }
 
     public function test_staff_can_resolve_a_report_then_customer_can_retry_and_staff_confirms_qris_exactly_once(): void
@@ -177,7 +177,7 @@ class CustomerPaymentFlowTest extends TestCase
         $this->travel(20)->minutes();
         $this->report($order)->assertUnprocessable();
         $this->assertTrue(app(OrderCancellationService::class)->expire($order->id));
-        $this->withHeader('X-Customer-Token', $order->customer_access_token)->getJson('/api/customer/order/'.$order->id.'/status')->assertOk()->assertJsonPath('data.cancel_reason', 'expired')->assertJsonPath('data.order_status', 'cancelled');
+        $this->withHeader('X-Customer-Token', $order->customer_access_token)->getJson($this->storeUrl('/api/customer/order/'.$order->id.'/status'))->assertOk()->assertJsonPath('data.cancel_reason', 'expired')->assertJsonPath('data.order_status', 'cancelled');
         $this->assertEquals(10, $order->items->first()->product->fresh()->stock);
     }
 
@@ -190,11 +190,11 @@ class CustomerPaymentFlowTest extends TestCase
         $item = $order->items->first();
         $return = ['request_id' => (string) Str::uuid(), 'order_item_id' => $item->id, 'quantity' => 1, 'refund_method' => 'bank_transfer', 'refund_reference' => 'REF-1', 'restock' => false, 'reason' => 'Tidak cocok'];
         app(OrderReturnService::class)->returnItem($order->id, $return);
-        $response = $this->withHeader('X-Customer-Token', $order->customer_access_token)->getJson('/api/customer/order/'.$order->id.'/status')->assertOk()->assertJsonPath('data.refunded_amount', 15000)->assertJsonPath('data.refunds.0.quantity', 1);
+        $response = $this->withHeader('X-Customer-Token', $order->customer_access_token)->getJson($this->storeUrl('/api/customer/order/'.$order->id.'/status'))->assertOk()->assertJsonPath('data.refunded_amount', 15000)->assertJsonPath('data.refunds.0.quantity', 1);
         $this->assertArrayNotHasKey('customer_token', $response->json('data'));
         $this->assertNotNull($response->json('data.invoice_number'));
         $return['request_id'] = (string) Str::uuid();
         app(OrderReturnService::class)->returnItem($order->id, $return);
-        $this->withHeader('X-Customer-Token', $order->customer_access_token)->getJson('/api/customer/order/'.$order->id.'/status')->assertOk()->assertJsonPath('data.refunded_amount', 30000)->assertJsonPath('data.payment_status', 'refunded');
+        $this->withHeader('X-Customer-Token', $order->customer_access_token)->getJson($this->storeUrl('/api/customer/order/'.$order->id.'/status'))->assertOk()->assertJsonPath('data.refunded_amount', 30000)->assertJsonPath('data.payment_status', 'refunded');
     }
 }

@@ -28,7 +28,7 @@ class PublicLaunchReadinessTest extends TestCase
             'engine_cc' => 110,
         ]);
 
-        $sitemap = $this->get('/sitemap.xml');
+        $sitemap = $this->get($this->storeUrl('/sitemap.xml'));
         $sitemap->assertOk()
             ->assertHeader('Content-Type', 'application/xml; charset=UTF-8')
             ->assertSee(route('home'), false)
@@ -41,13 +41,13 @@ class PublicLaunchReadinessTest extends TestCase
 
     public function test_transaction_pages_are_noindex_and_catalog_has_canonical_url(): void
     {
-        $this->get('/')
+        $this->get($this->storeUrl('/'))
             ->assertOk()
             ->assertSee('rel="canonical"', false)
             ->assertDontSee('name="robots" content="noindex', false)
             ->assertHeaderMissing('X-Robots-Tag');
 
-        $this->get('/payment')
+        $this->get($this->storeUrl('/payment'))
             ->assertOk()
             ->assertHeader('X-Robots-Tag', 'noindex, nofollow');
 
@@ -58,7 +58,7 @@ class PublicLaunchReadinessTest extends TestCase
 
     public function test_unknown_motorcycle_has_branded_404_page(): void
     {
-        $this->get('/motor-saya/motor-tidak-ada')
+        $this->get($this->storeUrl('/motor-saya/motor-tidak-ada'))
             ->assertNotFound()
             ->assertSee('Halaman yang kamu cari tidak ditemukan');
     }

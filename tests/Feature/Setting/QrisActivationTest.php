@@ -60,18 +60,18 @@ class QrisActivationTest extends TestCase
     {
         $this->configure();
         $this->actingAs($this->staff());
-        $this->get('/payment')->assertInertia(fn ($page) => $page->where('app_settings.customer_qris_enabled', false));
+        $this->get($this->storeUrl('/payment'))->assertInertia(fn ($page) => $page->where('app_settings.customer_qris_enabled', false));
         $this->get('/settings')->assertInertia(fn ($page) => $page
             ->where('initialSettings.payment_qris_enabled', 'false')
             ->where('qrisConfig.enabled', false)->where('qrisConfig.available', false)
             ->where('qrisConfig.dynamic_available', true));
         $this->getJson('/api/settings/qris-image')->assertOk()->assertJsonPath('enabled', false)->assertJsonPath('available', false);
         $this->toggle('true')->assertOk();
-        $this->get('/payment')->assertInertia(fn ($page) => $page->where('app_settings.customer_qris_enabled', true));
+        $this->get($this->storeUrl('/payment'))->assertInertia(fn ($page) => $page->where('app_settings.customer_qris_enabled', true));
         $this->getJson('/api/settings/qris-image')->assertOk()->assertJsonPath('enabled', true)->assertJsonPath('available', true);
         $this->get('/settings')->assertInertia(fn ($page) => $page->where('initialSettings.payment_qris_enabled', 'true'));
         $this->toggle('false')->assertOk();
-        $this->get('/payment')->assertInertia(fn ($page) => $page->where('app_settings.customer_qris_enabled', false));
+        $this->get($this->storeUrl('/payment'))->assertInertia(fn ($page) => $page->where('app_settings.customer_qris_enabled', false));
         $this->getJson('/api/settings/qris-image')->assertOk()->assertJsonPath('enabled', false)->assertJsonPath('available', false);
         $this->assertDatabaseCount('payments', 0);
     }
@@ -95,11 +95,11 @@ class QrisActivationTest extends TestCase
         $this->configure();
         $this->actingAs($this->staff());
         $this->toggle('true')->assertOk();
-        $this->get('/payment')->assertInertia(fn ($page) => $page->where('app_settings.customer_qris_enabled', true));
+        $this->get($this->storeUrl('/payment'))->assertInertia(fn ($page) => $page->where('app_settings.customer_qris_enabled', true));
         $this->deleteJson('/api/settings/qris-image')->assertOk();
         $this->assertSame('false', Setting::where('group', 'payment')->where('key', 'qris_enabled')->value('value'));
         $this->getJson('/api/settings/qris-image')->assertOk()->assertJsonPath('enabled', false)->assertJsonPath('url', null);
-        $this->get('/payment')->assertInertia(fn ($page) => $page->where('app_settings.customer_qris_enabled', false));
+        $this->get($this->storeUrl('/payment'))->assertInertia(fn ($page) => $page->where('app_settings.customer_qris_enabled', false));
         $this->postJson('/api/settings/qris-image', ['qris_image' => UploadedFile::fake()->image('new.png')])
             ->assertOk()->assertJsonPath('enabled', false)->assertJsonPath('available', false);
     }
@@ -109,7 +109,7 @@ class QrisActivationTest extends TestCase
         $this->actingAs($this->staff());
         $this->setting('payment', 'qris_enabled', 'true');
         $this->getJson('/api/settings/qris-image')->assertOk()->assertJsonPath('enabled', true)->assertJsonPath('available', false)->assertJsonPath('url', null);
-        $this->get('/payment')->assertInertia(fn ($page) => $page->where('app_settings.customer_qris_enabled', false));
+        $this->get($this->storeUrl('/payment'))->assertInertia(fn ($page) => $page->where('app_settings.customer_qris_enabled', false));
     }
 
     public function test_only_owner_can_toggle_and_invalid_values_are_rejected(): void

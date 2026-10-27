@@ -83,7 +83,7 @@ class CatalogSearchTest extends TestCase
         $parent = Category::factory()->create(['name' => 'Elektronik']);
         $category = Category::factory()->create(['name' => 'Kapasitor', 'parent_id' => $parent->id]);
         $product = Product::factory()->create(['name' => 'Premium X900', 'category_id' => $category->id, 'brand' => 'Acme', 'barcode' => '899000123', 'unit' => 'pcs', 'cost_price' => 12345]);
-        $this->get('/')->assertOk()->assertInertia(fn ($page) => $page
+        $this->get($this->storeUrl('/'))->assertOk()->assertInertia(fn ($page) => $page
             ->where('initialProducts.0.brand', 'Acme')
             ->where('initialProducts.0.barcode', '899000123')
             ->where('initialProducts.0.category.parent.name', 'Elektronik')

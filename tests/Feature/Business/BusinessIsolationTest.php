@@ -136,7 +136,7 @@ class BusinessIsolationTest extends TestCase
 
     public function test_public_catalogs_and_unknown_slugs_never_fall_back_to_another_store(): void
     {
-        $this->get('/')->assertOk()->assertInertia(fn ($page) => $page->where('initialProducts.0.id', $this->productA->id)->has('initialProducts', 1));
+        $this->get($this->storeUrl('/'))->assertOk()->assertInertia(fn ($page) => $page->where('initialProducts.0.id', $this->productA->id)->has('initialProducts', 1));
         $this->get('/s/usaha-b')->assertOk()->assertInertia(fn ($page) => $page->where('initialProducts.0.id', $this->productB->id)->has('initialProducts', 1)->where('shop_slug', 'usaha-b'));
         $this->get('/s/unknown-store')->assertNotFound();
         $this->get('/?shop[]=usaha-b')->assertNotFound();
@@ -146,23 +146,23 @@ class BusinessIsolationTest extends TestCase
     public function test_public_checkout_sequences_idempotency_inventory_and_customer_tokens_are_isolated(): void
     {
         $requestId = (string) Str::uuid();
-        $a = $this->postJson('/api/customer/order', $this->payload($this->productA, $requestId))->assertCreated()->json('data');
-        $b = $this->postJson('/api/customer/order?shop=usaha-b', $this->payload($this->productB, $requestId))->assertCreated()->json('data');
+        $a = $this->postJson($this->storeUrl('/api/customer/order'), $this->payload($this->productA, $requestId))->assertCreated()->json('data');
+        $b = $this->postJson($this->storeUrl('/api/customer/order?shop=usaha-b'), $this->payload($this->productB, $requestId))->assertCreated()->json('data');
         $this->assertNotSame($a['id'], $b['id']);
         $this->assertSame($a['order_number'], $b['order_number']);
         $this->assertSame(1, Order::count());
         $this->assertSame(1, InventoryLog::count());
         $this->assertDatabaseHas('products', ['id' => $this->productA->id, 'stock' => 9]);
         $this->assertDatabaseHas('products', ['id' => $this->productB->id, 'stock' => 19]);
-        $this->getJson('/api/customer/order/'.$b['id'].'/status?customer_token='.$b['customer_token'])->assertUnauthorized();
-        $this->getJson('/api/customer/order/'.$b['id'].'/status?shop=usaha-b&customer_token='.$b['customer_token'])->assertOk();
+        $this->getJson($this->storeUrl('/api/customer/order/'.$b['id'].'/status?customer_token='.$b['customer_token']))->assertUnauthorized();
+        $this->getJson($this->storeUrl('/api/customer/order/'.$b['id'].'/status?shop=usaha-b&customer_token='.$b['customer_token']))->assertOk();
         $this->assertDatabaseHas('order_items', ['order_id' => $b['id'], 'business_id' => $this->ownerB->business_id]);
     }
 
     public function test_cache_settings_and_invalidation_only_affect_the_selected_business(): void
     {
         app(SettingService::class)->upsertSetting('store', 'name', 'Usaha A');
-        $this->get('/')->assertInertia(fn ($page) => $page->where('app_settings.store_name', 'Usaha A'));
+        $this->get($this->storeUrl('/'))->assertInertia(fn ($page) => $page->where('app_settings.store_name', 'Usaha A'));
         $this->get('/s/usaha-b')->assertInertia(fn ($page) => $page->where('app_settings.store_name', 'Usaha B'));
         Cache::forever(CacheService::key(CacheService::SETTINGS_ALL), 'A');
         $this->inB(function (): void {
@@ -220,14 +220,14 @@ class BusinessIsolationTest extends TestCase
     {
         Setting::create(['group' => 'store', 'key' => 'qris_payload', 'value' => 'PRIVATE-QRIS-A']);
         $this->inB(fn () => Setting::create(['group' => 'store', 'key' => 'qris_payload', 'value' => 'PRIVATE-QRIS-B']));
-        $this->get('/')->assertOk()->assertDontSee('PRIVATE-QRIS-A')->assertDontSee('PRIVATE-QRIS-B')->assertInertia(fn ($page) => $page->missing('settings.store.qris_payload'));
+        $this->get($this->storeUrl('/'))->assertOk()->assertDontSee('PRIVATE-QRIS-A')->assertDontSee('PRIVATE-QRIS-B')->assertInertia(fn ($page) => $page->missing('settings.store.qris_payload'));
         $this->get('/s/usaha-b')->assertOk()->assertDontSee('PRIVATE-QRIS-A')->assertDontSee('PRIVATE-QRIS-B');
     }
 
     public function test_expiry_job_runs_with_each_business_stock_and_timezone(): void
     {
-        $a = $this->postJson('/api/customer/order', $this->payload($this->productA))->assertCreated()->json('data.id');
-        $b = $this->postJson('/api/customer/order?shop=usaha-b', $this->payload($this->productB))->assertCreated()->json('data.id');
+        $a = $this->postJson($this->storeUrl('/api/customer/order'), $this->payload($this->productA))->assertCreated()->json('data.id');
+        $b = $this->postJson($this->storeUrl('/api/customer/order?shop=usaha-b'), $this->payload($this->productB))->assertCreated()->json('data.id');
         Order::whereKey($a)->update(['expires_at' => now()->subMinute()]);
         $this->inB(fn () => Order::whereKey($b)->update(['expires_at' => now()->subMinute()]));
         $this->artisan('orders:expire-stale')->assertSuccessful();

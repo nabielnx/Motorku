@@ -64,7 +64,7 @@ final class CustomerAccountTest extends TestCase
         $this->assertDatabaseCount('businesses', 1);
         $this->assertDatabaseCount('users', 0);
         Notification::assertSentTo($customer, CustomerVerifyEmail::class);
-        $this->get('/')->assertInertia(fn ($page) => $page->where('customer.id', $customer->id)->where('auth.user', null));
+        $this->get($this->storeUrl('/'))->assertInertia(fn ($page) => $page->where('customer.id', $customer->id)->where('auth.user', null));
         $this->get('/dashboard')->assertRedirect('/login?expired=1');
         $this->getJson('/api/settings')->assertUnauthorized();
     }
@@ -83,10 +83,10 @@ final class CustomerAccountTest extends TestCase
     {
         $product = Product::factory()->create(['stock' => 10]);
         $customer = $this->customer();
-        $data = $this->postJson('/customer/checkout', [...$this->payload($product), 'customer_account_id' => $customer->id])->assertCreated()->json('data');
+        $data = $this->postJson($this->storeUrl('/customer/checkout'), [...$this->payload($product), 'customer_account_id' => $customer->id])->assertCreated()->json('data');
         $this->assertDatabaseHas('orders', ['id' => $data['id'], 'customer_account_id' => null]);
         $this->assertNotEmpty($data['customer_token']);
-        $this->getJson('/api/customer/order/'.$data['id'].'/status', ['X-Customer-Token' => $data['customer_token']])->assertOk();
+        $this->getJson($this->storeUrl('/api/customer/order/'.$data['id'].'/status'), ['X-Customer-Token' => $data['customer_token']])->assertOk();
     }
 
     public function test_signed_in_checkout_saves_contact_and_history_without_giving_admin_access(): void
@@ -95,17 +95,17 @@ final class CustomerAccountTest extends TestCase
         $customer = $this->customer();
         $this->login($customer);
         $payload = $this->payload($product);
-        $data = $this->postJson('/customer/checkout', $payload)->assertCreated()->json('data');
-        $this->postJson('/customer/checkout', $payload)->assertCreated()->assertJsonPath('data.id', $data['id']);
+        $data = $this->postJson($this->storeUrl('/customer/checkout'), $payload)->assertCreated()->json('data');
+        $this->postJson($this->storeUrl('/customer/checkout'), $payload)->assertCreated()->assertJsonPath('data.id', $data['id']);
         $this->assertDatabaseHas('orders', ['id' => $data['id'], 'customer_account_id' => $customer->id, 'cashier_id' => null, 'customer_phone' => '08123456789']);
         $this->assertSame('Pembeli', $customer->fresh()->name);
-        $this->getJson('/customer/orders')->assertOk()->assertJsonPath('total', 1)->assertJsonPath('data.0.id', $data['id'])->assertJsonMissingPath('data.0.customer_token');
-        $this->getJson('/customer/orders/'.$data['id'])->assertOk()->assertJsonPath('data.customer_token', $data['customer_token']);
+        $this->getJson($this->storeUrl('/customer/orders'))->assertOk()->assertJsonPath('total', 1)->assertJsonPath('data.0.id', $data['id'])->assertJsonMissingPath('data.0.customer_token');
+        $this->getJson($this->storeUrl('/customer/orders/'.$data['id']))->assertOk()->assertJsonPath('data.customer_token', $data['customer_token']);
         $this->assertSame(9, $product->fresh()->stock);
         $this->post('/customer/logout')->assertRedirect('/');
-        $this->getJson('/customer/orders')->assertUnauthorized();
+        $this->getJson($this->storeUrl('/customer/orders'))->assertUnauthorized();
         $this->login($customer); // Simulates another authenticated browser with no saved receipt.
-        $this->getJson('/customer/orders/'.$data['id'])->assertOk();
+        $this->getJson($this->storeUrl('/customer/orders/'.$data['id']))->assertOk();
     }
 
     public function test_history_never_uses_email_or_phone_to_claim_guest_or_other_customer_orders(): void
@@ -115,9 +115,9 @@ final class CustomerAccountTest extends TestCase
         $guest = Order::factory()->create(['customer_name' => $customer->name, 'customer_phone' => '08123456789']);
         $otherOrder = Order::factory()->create(['customer_account_id' => $other->id]);
         $this->login($customer);
-        $this->getJson('/customer/orders')->assertOk()->assertJsonPath('total', 0);
+        $this->getJson($this->storeUrl('/customer/orders'))->assertOk()->assertJsonPath('total', 0);
         foreach ([$guest, $otherOrder] as $order) {
-            $this->getJson('/customer/orders/'.$order->id)->assertNotFound();
+            $this->getJson($this->storeUrl('/customer/orders/'.$order->id))->assertNotFound();
         }
     }
 
@@ -131,10 +131,10 @@ final class CustomerAccountTest extends TestCase
         $a = Order::factory()->create(['customer_account_id' => $customer->id]);
         $b = app(BusinessContext::class)->run($ownerB->business_id, fn () => Order::factory()->create(['customer_account_id' => $customer->id, 'cashier_id' => $ownerB->id]));
         $this->login($customer);
-        $this->getJson('/customer/orders')->assertOk()->assertJsonPath('total', 1)->assertJsonPath('data.0.id', $a->id);
-        $this->getJson('/customer/orders/'.$b->id)->assertNotFound();
-        $this->getJson('/customer/orders?shop=toko-customer-b')->assertOk()->assertJsonPath('total', 1)->assertJsonPath('data.0.id', $b->id);
-        $this->getJson('/customer/orders/'.$a->id.'?shop=toko-customer-b')->assertNotFound();
+        $this->getJson($this->storeUrl('/customer/orders'))->assertOk()->assertJsonPath('total', 1)->assertJsonPath('data.0.id', $a->id);
+        $this->getJson($this->storeUrl('/customer/orders/'.$b->id))->assertNotFound();
+        $this->getJson($this->storeUrl('/customer/orders?shop=toko-customer-b'))->assertOk()->assertJsonPath('total', 1)->assertJsonPath('data.0.id', $b->id);
+        $this->getJson($this->storeUrl('/customer/orders/'.$a->id.'?shop=toko-customer-b'))->assertNotFound();
         $this->patch('/customer/account', ['name' => 'Nama A', 'phone' => '08111111111', 'address' => 'Jalan Toko A 10'])->assertSessionHasNoErrors();
         $this->get('/customer/account?shop=toko-customer-b')->assertInertia(fn ($page) => $page->where('customer.name', 'Nama A')->where('customer.phone', '08111111111')->where('customer.address', 'Jalan Toko A 10'));
         $this->patch('/customer/account?shop=toko-customer-b', ['name' => 'Nama B', 'phone' => '08222222222', 'address' => 'Jalan Toko B 20'])->assertSessionHasNoErrors();
@@ -149,13 +149,13 @@ final class CustomerAccountTest extends TestCase
         $profile = ['name' => 'Nama Baru', 'phone' => '08123456789', 'address' => "Jalan Merdeka 10\nDemak"];
         $this->patch('/customer/account', [...$profile, 'address' => str_repeat('x', 501)])->assertSessionHasErrors('address');
         $this->patch('/customer/account', [...$profile, 'email' => 'changed@example.test', 'google_id' => 'injected'])->assertSessionHasNoErrors();
-        $this->get('/')->assertInertia(fn ($page) => $page
+        $this->get($this->storeUrl('/'))->assertInertia(fn ($page) => $page
             ->where('customer.name', 'Nama Baru')->where('customer.address', $profile['address'])
             ->where('customer.email', $customer->email)->where('customer.joined_at', $customer->created_at->toDateString())
             ->where('customer.has_password', true)->where('customer.google_linked', false));
         $this->assertNull($customer->fresh()->google_id);
         $product = Product::factory()->create(['stock' => 10]);
-        $this->postJson('/customer/checkout', $this->payload($product))->assertCreated();
+        $this->postJson($this->storeUrl('/customer/checkout'), $this->payload($product))->assertCreated();
         $this->assertDatabaseHas('customer_accounts', ['id' => $customer->id, 'name' => 'Nama Baru', 'phone' => $profile['phone'], 'address' => $profile['address']]);
         $this->patch('/customer/account', [...$profile, 'address' => ''])->assertSessionHasNoErrors();
         $this->get('/customer/account')->assertInertia(fn ($page) => $page->where('customer.address', null));
@@ -182,8 +182,8 @@ final class CustomerAccountTest extends TestCase
         Order::factory()->count(21)->completed()->create(['cashier_id' => $staff->id, 'customer_account_id' => $customer->id]);
         $active = Order::factory()->create(['cashier_id' => $staff->id, 'customer_account_id' => $customer->id, 'created_at' => now()->subYear()]);
         $this->login($customer);
-        $this->getJson('/customer/orders')->assertOk()->assertJsonPath('total', 22)->assertJsonCount(20, 'data')->assertJsonPath('last_page', 2);
-        $this->getJson('/customer/orders?filter=active')->assertOk()->assertJsonPath('total', 1)->assertJsonPath('data.0.id', $active->id)
+        $this->getJson($this->storeUrl('/customer/orders'))->assertOk()->assertJsonPath('total', 22)->assertJsonCount(20, 'data')->assertJsonPath('last_page', 2);
+        $this->getJson($this->storeUrl('/customer/orders?filter=active'))->assertOk()->assertJsonPath('total', 1)->assertJsonPath('data.0.id', $active->id)
             ->assertJsonPath('counts.all', 22)->assertJsonPath('counts.active', 1)->assertJsonPath('counts.closed', 21);
     }
 
@@ -193,7 +193,7 @@ final class CustomerAccountTest extends TestCase
         $product = Product::factory()->create();
         $this->login($customer);
         app()->detectEnvironment(fn () => 'production');
-        $this->postJson('/customer/checkout', $this->payload($product))->assertStatus(419);
+        $this->postJson($this->storeUrl('/customer/checkout'), $this->payload($product))->assertStatus(419);
         $this->assertDatabaseCount('orders', 0);
     }
 
@@ -206,7 +206,7 @@ final class CustomerAccountTest extends TestCase
             'email' => $customer->email, 'token' => $token, 'password' => 'New@Strong123', 'password_confirmation' => 'New@Strong123',
         ])->assertRedirect('/customer/login');
         Auth::forgetGuards();
-        $this->getJson('/customer/orders')->assertUnauthorized();
+        $this->getJson($this->storeUrl('/customer/orders'))->assertUnauthorized();
         $this->post('/customer/login', ['email' => $customer->email, 'password' => 'Strong@1234'])->assertSessionHasErrors('email');
         $this->post('/customer/login', ['email' => $customer->email, 'password' => 'New@Strong123'])->assertRedirect('/customer/account');
         $this->assertDatabaseCount('users', 0);

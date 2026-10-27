@@ -192,7 +192,7 @@ erDiagram
 [ Customer Buka Katalog / Scan QR di Banner ]
                 │
                 ▼
-      Halaman Katalog (/)
+      Halaman Katalog (/s/{businessSlug})
    ├── Filter Kategori Sparepart
    ├── Filter Kompatibilitas Motor (Brand / Model)
    └── Cari Nama / SKU Produk
@@ -203,12 +203,12 @@ erDiagram
    └── Tambahkan Catatan Khusus
                 │
                 ▼
-  [ Checkout / Pembayaran (/payment) ]
+  [ Checkout / Pembayaran (/payment?shop={businessSlug}) ]
    ├── Isi Nama Pelanggan (Wajib)
    └── Bayar di kasir saat ambil pesanan
                 │
                 ▼
-  POST /api/customer/order (Database Transaction + lockForUpdate)
+  POST /api/customer/order?shop={businessSlug} (Database Transaction + lockForUpdate)
    ├── Validasi ketersediaan & stok barang
    ├── Buat nomor pesanan (ORD-YYYYMMDD-XXXX)
    ├── Kurangi stok & catat InventoryLog (SALE)
@@ -227,10 +227,12 @@ erDiagram
 
 ### 4.2 Alur Customer: Fitment Engine "Motor Saya"
 
-1. Customer membuka rute `/motor-saya`.
+**Pemilihan toko:** domain `/` adalah halaman netral. Katalog dibuka melalui `/s/{businessSlug}` dan alur publik berikutnya membawa `?shop={businessSlug}`. Tidak ada fallback publik ke toko bawaan. Akun pelanggan tetap global; riwayat dan transaksi dipisahkan sesuai toko. Owner membagikan link atau QR dari Pengaturan bagian Katalog. Lihat [aturan akses toko](docs/STORE_ACCESS.md).
+
+1. Customer membuka rute `/motor-saya?shop={businessSlug}` dari katalog toko.
 2. Customer memilih **Brand** (Honda, Yamaha, Suzuki, Kawasaki).
 3. Customer memilih **Model & Varian Motor** (misal: *Honda Beat ESP 110cc (2020-sekarang)*).
-4. Sistem memanggil `GET /api/motor-saya/{motorcycleId}/parts`.
+4. Sistem memanggil `GET /api/motor-saya/{motorcycleId}/parts?shop={businessSlug}`.
 5. Halaman menampilkan sparepart yang **100% kompatibel**, terkelompok rapi per sistem motor:
    - **Pelumas & Cairan**: Oli Mesin, Oli Gardan, Air Radiator, Minyak Rem.
    - **Kaki-kaki & Roda**: Ban Luar/Dalam Depan/Belakang, Bearing Roda, Shockbreaker.
@@ -447,8 +449,8 @@ Kelola Staf membuat undangan, bukan password untuk staf baru. Penerima membuat p
 ### 7.3 Rute Pesanan & Penjualan (Orders & POS)
 | Method | URI | Handler | Middleware / Role | Form Request / Validasi |
 |---|---|---|---|---|
-| `POST` | `/api/customer/order` | `CustomerMenuController@storeOrder` | Throttle (120/min) | `StoreCustomerOrderRequest` |
-| `GET` | `/api/customer/order/{id}/status` | `CustomerMenuController@orderStatus` | Throttle (240/min) | Customer Access Token |
+| `POST` | `/api/customer/order?shop={businessSlug}` | `CustomerMenuController@storeOrder` | Throttle checkout (3/min) | `StoreCustomerOrderRequest` |
+| `GET` | `/api/customer/order/{id}/status?shop={businessSlug}` | `CustomerMenuController@orderStatus` | Throttle (240/min) | Customer Access Token |
 | `GET` | `/orders` | `OrderController@indexWeb` | `role:owner\|cashier` | Status & search filter |
 | `POST` | `/api/orders` | `OrderController@store` | `role:owner\|cashier` | `StoreOrderRequest` |
 | `PATCH` | `/api/orders/{id}/status` | `OrderController@updateStatus` | `role:owner\|cashier` | `UpdateOrderStatusRequest` |

@@ -70,7 +70,7 @@ final class AuditHardeningTest extends TestCase
     public function test_bad_customer_name_is_a_validation_error_instead_of_a_server_error(): void
     {
         $product = Product::factory()->create();
-        $this->postJson('/api/customer/order', ['customer_name' => ['invalid'], 'items' => [['product_id' => $product->id, 'quantity' => 1]]])
+        $this->postJson($this->storeUrl('/api/customer/order'), ['customer_name' => ['invalid'], 'items' => [['product_id' => $product->id, 'quantity' => 1]]])
             ->assertUnprocessable()->assertJsonValidationErrors('customer_name');
         $this->assertDatabaseCount('orders', 0);
     }
@@ -107,7 +107,7 @@ final class AuditHardeningTest extends TestCase
     public function test_review_expires_after_24_hours_returns_stock_once_and_cannot_be_paid(): void
     {
         $product = Product::factory()->create(['price' => 1000, 'stock' => 5]);
-        $created = $this->postJson('/api/customer/order', ['customer_name' => 'Review expiry', 'items' => [['product_id' => $product->id, 'quantity' => 1]]])->assertCreated()->json('data');
+        $created = $this->postJson($this->storeUrl('/api/customer/order'), ['customer_name' => 'Review expiry', 'items' => [['product_id' => $product->id, 'quantity' => 1]]])->assertCreated()->json('data');
         Setting::updateOrCreate(['group' => 'payment', 'key' => 'qris_enabled'], ['value' => 'true']);
         Setting::updateOrCreate(['group' => 'store', 'key' => 'qris_image'], ['value' => 'qris/test.webp']);
         app(CustomerOrderService::class)->reportPayment($created['id'], $created['customer_token'], 'claim');

@@ -65,8 +65,8 @@ class FullAuditRemediationTest extends TestCase
     {
         $product = Product::factory()->create(['price' => 10000, 'stock' => 5]);
         $payload = ['request_id' => fake()->uuid(), 'customer_name' => 'Retry customer', 'items' => [['product_id' => $product->id, 'quantity' => 1]]];
-        $first = $this->postJson('/api/customer/order', $payload)->assertCreated();
-        $this->postJson('/api/customer/order', $payload)->assertCreated()
+        $first = $this->postJson($this->storeUrl('/api/customer/order'), $payload)->assertCreated();
+        $this->postJson($this->storeUrl('/api/customer/order'), $payload)->assertCreated()
             ->assertJsonPath('data.id', $first->json('data.id'))
             ->assertJsonPath('data.customer_token', $first->json('data.customer_token'));
         $this->assertDatabaseCount('orders', 1);
@@ -90,7 +90,7 @@ class FullAuditRemediationTest extends TestCase
     public function test_duplicate_product_lines_check_combined_stock(): void
     {
         $product = Product::factory()->create(['price' => 10000, 'stock' => 2]);
-        $this->postJson('/api/customer/order', [
+        $this->postJson($this->storeUrl('/api/customer/order'), [
             'customer_name' => 'Stock check',
             'items' => [
                 ['product_id' => $product->id, 'quantity' => 2, 'notes' => 'First package'],
@@ -176,8 +176,8 @@ class FullAuditRemediationTest extends TestCase
         $product = Product::factory()->create(['price' => 10000, 'stock' => 5]);
         $order = $this->publicOrder($product);
         Setting::create(['group' => 'qr_order', 'key' => 'enabled', 'value' => 'false']);
-        $this->get('/')->assertOk()->assertInertia(fn ($page) => $page->component('Order/Menu')->where('settings', fn ($settings) => $settings['qr_order.enabled'] === 'false'));
-        $this->getJson('/api/customer/order/'.$order->id.'/status?customer_token='.$order->customer_access_token)->assertOk();
+        $this->get($this->storeUrl('/'))->assertOk()->assertInertia(fn ($page) => $page->component('Order/Menu')->where('settings', fn ($settings) => $settings['qr_order.enabled'] === 'false'));
+        $this->getJson($this->storeUrl('/api/customer/order/'.$order->id.'/status?customer_token='.$order->customer_access_token))->assertOk();
         $this->assertSame('pending', $order->fresh()->order_status->value);
     }
 
@@ -185,7 +185,7 @@ class FullAuditRemediationTest extends TestCase
     {
         Setting::create(['group' => 'store', 'key' => 'promo_banner_1', 'value' => 'banners/example.webp']);
         Setting::create(['group' => 'promo_banner', 'key' => 'enabled', 'value' => 'false']);
-        $this->get('/')->assertOk()->assertInertia(fn ($page) => $page->component('Order/Menu')->where('promoBanners.1', null));
+        $this->get($this->storeUrl('/'))->assertOk()->assertInertia(fn ($page) => $page->component('Order/Menu')->where('promoBanners.1', null));
     }
 
     private function publicOrder(Product $product): Order
@@ -275,7 +275,7 @@ class FullAuditRemediationTest extends TestCase
     {
         Setting::create(['group' => 'qr_order', 'key' => 'enabled', 'value' => 'false']);
         $product = Product::factory()->create(['price' => 10000, 'stock' => 5]);
-        $this->postJson('/api/customer/order', ['customer_name' => 'Audit', 'items' => [['product_id' => $product->id, 'quantity' => 1]]])->assertForbidden();
+        $this->postJson($this->storeUrl('/api/customer/order'), ['customer_name' => 'Audit', 'items' => [['product_id' => $product->id, 'quantity' => 1]]])->assertForbidden();
         $this->assertDatabaseCount('orders', 0);
     }
 
@@ -284,7 +284,7 @@ class FullAuditRemediationTest extends TestCase
         Setting::create(['group' => 'system', 'key' => 'timezone', 'value' => 'Asia/Jayapura']);
         Carbon::setTestNow(Carbon::parse('2026-10-06 16:30:00', 'UTC'));
         $product = Product::factory()->create(['price' => 10000, 'stock' => 5]);
-        $response = $this->postJson('/api/customer/order', ['customer_name' => 'Audit', 'items' => [['product_id' => $product->id, 'quantity' => 1]]])->assertCreated();
+        $response = $this->postJson($this->storeUrl('/api/customer/order'), ['customer_name' => 'Audit', 'items' => [['product_id' => $product->id, 'quantity' => 1]]])->assertCreated();
         $orderId = $response->json('data.id');
         $this->assertStringContainsString('ORD-20261007-', $response->json('data.order_number'));
         $this->actingAs($this->owner)->postJson('/api/payments', ['order_id' => $orderId, 'payment_method' => 'cash', 'amount_received' => 10000])->assertCreated();
@@ -328,9 +328,9 @@ class FullAuditRemediationTest extends TestCase
             'year_start' => 2020, 'engine_cc' => 110, 'engine_type' => 'matic',
         ]);
         MotorcyclePart::create(['motorcycle_id' => $motorcycle->id, 'product_id' => $product->id, 'part_category' => 'oli_mesin']);
-        $this->getJson('/api/motor-saya/'.$motorcycle->id.'/parts')->assertOk()->assertJsonPath('parts.0.items.0.category_name', 'Before rename');
+        $this->getJson($this->storeUrl('/api/motor-saya/'.$motorcycle->id.'/parts'))->assertOk()->assertJsonPath('parts.0.items.0.category_name', 'Before rename');
         $this->actingAs($this->owner)->putJson('/api/categories/'.$category->id, ['name' => 'After rename'])->assertOk();
-        $this->getJson('/api/motor-saya/'.$motorcycle->id.'/parts')->assertOk()->assertJsonPath('parts.0.items.0.category_name', 'After rename');
+        $this->getJson($this->storeUrl('/api/motor-saya/'.$motorcycle->id.'/parts'))->assertOk()->assertJsonPath('parts.0.items.0.category_name', 'After rename');
         $this->assertSame('After rename', $category->fresh()->name);
     }
 

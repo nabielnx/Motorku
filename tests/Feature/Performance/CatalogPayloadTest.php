@@ -26,13 +26,13 @@ class CatalogPayloadTest extends TestCase
             ->where('initialProducts.0.id', $product->id)->where('initialProducts.0.price', '50000.00')->where('initialProducts.0.stock', 8)
             ->where('initialProducts.0.motorcycles.0.id', $motor->id)->where('initialProducts.0.motorcycles.0.model', 'Benchmark')
             ->missing('initialProducts.0.motorcycles.0.pivot')->missing('initialProducts.0.cost_price');
-        $this->get('/')->assertOk()->assertInertia($assertProduct);
+        $this->get($this->storeUrl('/'))->assertOk()->assertInertia($assertProduct);
         $this->seed(RoleSeeder::class);
         $owner = User::factory()->create();
         $owner->assignRole('owner');
         $this->actingAs($owner)->get('/pos')->assertOk()->assertInertia($assertProduct);
         $product->update(['price' => 60000, 'stock' => 3]);
-        foreach (['/', '/pos'] as $url) {
+        foreach (['/s/toko-utama', '/pos'] as $url) {
             $this->get($url)->assertOk()->assertInertia(fn ($page) => $page
                 ->where('initialProducts.0.price', '60000.00')->where('initialProducts.0.stock', 3));
         }

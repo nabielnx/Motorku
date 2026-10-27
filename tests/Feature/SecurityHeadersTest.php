@@ -36,7 +36,7 @@ class SecurityHeadersTest extends TestCase
     public function test_authentication_validation_and_not_found_errors_retain_the_security_headers(): void
     {
         $this->getJson('/api/users')->assertUnauthorized()->assertHeader('X-Content-Type-Options', 'nosniff');
-        $this->postJson('/api/customer/order', [])->assertUnprocessable()->assertHeader('Content-Security-Policy');
+        $this->postJson($this->storeUrl('/api/customer/order'), [])->assertUnprocessable()->assertHeader('Content-Security-Policy');
         $this->get('/not-a-route-for-security-test')->assertNotFound()->assertHeader('Referrer-Policy');
     }
 
@@ -53,7 +53,7 @@ class SecurityHeadersTest extends TestCase
     public function test_robots_header_protects_internal_routes_while_leaving_public_routes_indexable(): void
     {
         // Public route (home) should NOT have X-Robots-Tag: noindex
-        $homeResponse = $this->get('/');
+        $homeResponse = $this->get($this->storeUrl('/'));
         $this->assertNull($homeResponse->headers->get('X-Robots-Tag'));
 
         // Non-public routes (e.g. /login) should have X-Robots-Tag: noindex, nofollow
