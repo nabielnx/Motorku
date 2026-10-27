@@ -47,12 +47,18 @@
 
         <!-- Scripts -->
         @routes(null, Illuminate\Support\Facades\Vite::cspNonce())
-        @php $firstPromoBanner = collect(data_get($page, 'props.promoBanners', []))->filter()->first(); @endphp
+        @php
+            $firstPromoBanner = collect(data_get($page, 'props.promoBanners', []))->filter()->first();
+            $bannerImages = data_get($page, 'props.promoBannerImages', []);
+            $firstPromoImage = $bannerImages[$firstPromoBanner] ?? [];
+        @endphp
         @if (request()->routeIs('shop.home') && $firstPromoBanner)
-            <link rel="preload" as="image" href="{{ $firstPromoBanner }}" fetchpriority="high">
+            <link rel="preload" as="image" href="{{ $firstPromoImage['src'] ?? $firstPromoBanner }}" fetchpriority="high">
         @endif
         @viteReactRefresh
-        @vite(['resources/js/app.jsx'])
+        @vite(($page['component'] ?? '') === 'Order/Menu'
+            ? ['resources/js/app.jsx', 'resources/js/Pages/Order/Menu.jsx']
+            : ['resources/js/app.jsx'])
         @inertiaHead
     </head>
     <body class="font-sans antialiased h-full bg-[#f3f3ed]">

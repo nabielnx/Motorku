@@ -37,6 +37,8 @@ class ImageUploadService
                         if (! Storage::disk('public')->put($path, $bytes)) {
                             throw new \RuntimeException('Penyimpanan gambar gagal.');
                         }
+                        unset($image);
+                        app(ImagePreviewService::class)->generate($path);
 
                         return $path;
                     }

@@ -14,6 +14,7 @@ use App\Models\Setting;
 use App\Services\CacheService;
 use App\Services\CatalogPageService;
 use App\Services\CustomerOrderService;
+use App\Services\ImagePreviewService;
 use App\Services\OrderCancellationService;
 use App\Services\OrderService;
 use App\Services\QrisService;
@@ -46,7 +47,14 @@ class CustomerMenuController extends Controller
                 return [$slot => $path && ($settings['promo_banner.enabled'] ?? 'true') !== 'false' ? Storage::url($path) : null];
             })->all();
 
-            return compact('settings', 'promoBanners');
+            $promoBannerImages = [];
+            foreach ($promoBanners as $slot => $url) {
+                if ($url && ($image = app(ImagePreviewService::class)->banner($settings['store.promo_banner_'.$slot] ?? null))) {
+                    $promoBannerImages[$url] = $image;
+                }
+            }
+
+            return compact('settings', 'promoBanners', 'promoBannerImages');
         });
     }
 
@@ -75,6 +83,7 @@ class CustomerMenuController extends Controller
             'settings' => $settingsData['settings'],
             'bestSellerProductIds' => $bestSellerProductIds,
             'promoBanners' => $settingsData['promoBanners'],
+            'promoBannerImages' => $settingsData['promoBannerImages'] ?? [],
         ]);
     }
 

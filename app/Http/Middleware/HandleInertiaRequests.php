@@ -9,6 +9,7 @@ use App\Models\Setting;
 use App\Services\CacheService;
 use App\Services\CustomerAccountService;
 use App\Services\GoogleLoginService;
+use App\Services\ImagePreviewService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Middleware;
@@ -73,6 +74,7 @@ class HandleInertiaRequests extends Middleware
             ],
 
             'logo_url' => ! empty($s['store.logo']) ? (str_starts_with($s['store.logo'], 'http') ? $s['store.logo'] : '/storage/'.ltrim($s['store.logo'], '/')) : null,
+            'logo_preview_url' => ! empty($s['store.logo']) && ($preview = app(ImagePreviewService::class)->existing($s['store.logo'])) ? '/storage/'.$preview : null,
             'login_image_url' => ! empty($s['store.login_image']) ? (str_starts_with($s['store.login_image'], 'http') ? $s['store.login_image'] : '/storage/'.ltrim($s['store.login_image'], '/')) : null,
 
             'app_settings' => [
