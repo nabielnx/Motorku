@@ -59,6 +59,7 @@ export function StoreHeader({
     activePage = 'catalog',
     totalQty = 0,
     onCart,
+    onCartIntent,
     orderHref = '/order/status',
     hasAnyOrders = false,
     searchQuery = '',
@@ -131,6 +132,7 @@ export function StoreHeader({
                         {onCart ? (
                             <button
                                 type="button"
+                                onPointerEnter={onCartIntent} onFocus={onCartIntent}
                                 onClick={() => { setShowMotorHint(false); onCart(); }}
                                 className="store-action"
                                 aria-label={'Buka keranjang, ' + totalQty + ' item'}
