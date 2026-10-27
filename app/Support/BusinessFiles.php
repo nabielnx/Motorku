@@ -13,7 +13,12 @@ final class BusinessFiles
     public static function delete(string|array $paths): bool
     {
         if (is_string($paths)) {
-            $paths = [$paths];
+            if (! self::owns($paths)) {
+                return false;
+            }
+            $preview = ImagePreviewService::path($paths);
+
+            return Storage::disk('public')->delete($preview ? [$paths, $preview] : $paths);
         }
         $owned = array_values(array_filter((array) $paths, fn ($path) => is_string($path) && self::owns($path)));
         $files = [];
