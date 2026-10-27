@@ -1,11 +1,10 @@
 import useStorefront from '@/Hooks/useStorefront';
 import React, { useEffect, useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
-import { FiPackage, FiShoppingBag, FiShoppingCart, FiSearch, FiX, FiDisc, FiDroplet, FiZap, FiShield, FiLayers, FiSun, FiSliders, FiCpu } from 'react-icons/fi';
+import { FiPackage, FiShoppingBag, FiShoppingCart, FiSearch, FiX, FiDisc, FiDroplet, FiZap, FiShield, FiLayers, FiSun, FiSliders, FiCpu, FiBookOpen } from 'react-icons/fi';
 import AccountAvatar from './AccountAvatar';
 import clsx from 'clsx';
 import { getProductImage } from '@/Utils/productImage';
-import { RiMotorbikeFill } from 'react-icons/ri';
 import '../../../css/customer-storefront.css';
 
 export { default as MotorIcon } from '@/Components/MotorIcon';
@@ -75,7 +74,7 @@ export function StoreHeader({
     useEffect(() => { setLogoFailed(false); setLogoPreviewFailed(false); }, [rawLogo, props.logo_preview_url]);
     const [isSearchFocused, setIsSearchFocused] = useState(false);
     const [showMotorHint, setShowMotorHint] = useState(true);
-    const referencesEnabled = props.app_settings?.references_enabled !== false;
+    const referencesEnabled = props.app_settings?.references_enabled !== false && (props.public_reference_modules?.length ?? 0) > 0;
     const accountLabel = props.customer ? `Akun ${props.customer.name} · Sudah masuk` : 'Masuk sebagai pelanggan';
 
     return (
@@ -108,22 +107,22 @@ export function StoreHeader({
                     <nav aria-label="Navigasi toko" className="store-actions">
                         {referencesEnabled && <div className="store-motor-entry" onKeyDown={e => { if (e.key === 'Escape') setShowMotorHint(false); }}>
                             <Link
-                                href={storeUrl('/motor-saya')}
-                                title="Cari sparepart sesuai motor saya"
-                                aria-current={activePage === 'motor' ? 'page' : undefined}
+                                href={storeUrl('/cari-kecocokan')}
+                                title="Cari produk yang cocok berdasarkan referensi"
+                                aria-current={activePage === 'references' || activePage === 'motor' ? 'page' : undefined}
                                 aria-describedby={showMotorHint ? 'store-motor-hint-message' : undefined}
                                 className="store-action store-motor-action"
                                 onMouseEnter={() => setShowMotorHint(true)}
                                 onFocus={() => setShowMotorHint(true)}
                                 onClick={() => setShowMotorHint(false)}
                             >
-                                <RiMotorbikeFill size={20} aria-hidden="true" />
-                                <span>Motor Saya</span>
+                                <FiBookOpen size={20} aria-hidden="true" />
+                                <span>Cari Kecocokan</span>
                             </Link>
                             {showMotorHint && (
                                 <div id="store-motor-hint" role="status" className="store-motor-hint">
-                                    <p id="store-motor-hint-message">Cari sparepart sesuai motor saya</p>
-                                    <button type="button" onClick={() => setShowMotorHint(false)} aria-label="Tutup petunjuk Motor Saya">
+                                    <p id="store-motor-hint-message">Pilih referensi untuk melihat produk yang cocok</p>
+                                    <button type="button" onClick={() => setShowMotorHint(false)} aria-label="Tutup petunjuk Cari Kecocokan">
                                         <FiX size={16} aria-hidden="true" />
                                     </button>
                                 </div>

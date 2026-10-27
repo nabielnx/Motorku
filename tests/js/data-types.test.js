@@ -9,6 +9,14 @@ const fields = [
     { key: 'released', label: 'Tanggal rilis', type: 'date', required: false, options: [] },
 ];
 
+test('only reference types accept explicit customer visibility', () => {
+    for (const is_public of [true, false]) {
+        assert.equal(dataTypeSchema.parse({ kind: 'reference', name: 'Elektronik', fields, is_public }).is_public, is_public);
+        assert.equal(dataTypeSchema.safeParse({ kind: 'product', name: 'Kebun', fields: [], is_public }).success, false);
+    }
+    assert.equal(dataTypeSchema.safeParse({ kind: 'reference', name: 'Elektronik', fields, is_public: 'true' }).success, false);
+});
+
 test('reference definitions reject duplicate keys, invalid choices and unsafe field identifiers', () => {
     assert.equal(dataTypeSchema.safeParse({ kind: 'reference', name: 'Elektronik', fields }).success, true);
     assert.equal(dataTypeSchema.safeParse({ kind: 'product', name: 'Kebun', fields: [] }).success, true);

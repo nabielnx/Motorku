@@ -13,13 +13,23 @@ Pencarian data referensi memakai nama. Pencarian produk pada form mapping memaka
 
 Foto mengikuti aturan upload aplikasi (maksimal 4 MB, JPEG/PNG/WebP, batas dimensi/piksel) dan dikonversi ke WebP di bawah 1 MB. **Hapus Foto** berlaku setelah form disimpan dan menghapus file penyimpanan; mengganti atau menghapus data referensi juga membersihkan foto lamanya setelah transaksi berhasil.
 
+## Referensi untuk pelanggan
+
+Pengelolaan admin selalu tersedia bagi owner, terpisah dari pengaturan **Katalog → Referensi Pelanggan**. Pengaturan ini hanya membuka atau menutup pencarian pelanggan, tanpa menghapus data atau mapping.
+
+Di **Kelola Jenis → Data Referensi → Edit**, centang **Tampilkan di katalog pelanggan** untuk setiap jenis yang ingin dibuka. Jenis custom baru tersembunyi secara default. Menu **Cari Kecocokan** di katalog muncul jika setidaknya satu jenis dibuka dan pemesanan online aktif.
+
+Pelanggan memilih jenis, memilih nama referensi, lalu melihat produk tersedia yang benar-benar dimapping ke referensi tersebut. Daftar memakai pagination 12 data atau produk per halaman. Nama dan foto referensi ditampilkan; deskripsi dan nilai kolom tambahan tetap untuk admin. Harga modal dan atribut pivot tidak dikirim ke halaman pelanggan. Tombol **Lihat di katalog** mencari SKU produk di katalog toko yang sama.
+
+Pencarian generik memakai `/cari-kecocokan/{type?}/{entry?}?shop={slug}`. Toko harus disebutkan secara eksplisit. Jenis tersembunyi, data dari jenis berbeda, dan ID usaha lain menghasilkan 404. Jenis Motor tetap memakai `/motor-saya?shop={slug}` beserta form dan mapping khususnya. Menyembunyikan jenis Motor juga menutup URL lama, menghapus tautan motor dari sitemap, dan tidak mengirim mapping motor di katalog publik. Mapping tetap tersedia di POS/admin.
+
 ## Perubahan kolom dan keamanan data
 
 - Jenis bawaan memakai key lama. Referensi Motor tetap memakai form, endpoint, dan mapping khusus motor yang sudah tersedia; kolom fleksibel disediakan untuk jenis referensi baru.
 - Label kolom dan urutannya dapat diganti tanpa mengganti key/nilai tersimpan. Kolom yang sudah berada pada jenis berisi data tidak dapat dihapus atau diganti tipenya.
 - Penambahan kolom wajib, perubahan kolom menjadi wajib, atau pengurangan opsi diperiksa terhadap data tersimpan sebelum diterapkan. Jika tidak sesuai, perubahan ditolak. Tambahkan kolom opsional lebih dahulu untuk melengkapi data.
 - Versi jenis dan versi data diperiksa ketika menyimpan. Form yang sudah kedaluwarsa karena perubahan dari tab lain perlu dimuat ulang.
-- Jenis bawaan tidak dapat dihapus. Jenis custom baru dapat dihapus jika tidak memiliki kategori/data; foreign key juga melindungi relasi referensi. Data Motor dan produk lama tidak dimigrasikan ke tabel generik.
+- Hapus jenis mengikuti pengaturan izin hapus admin. Menghapus jenis produk menghapus kategori dan produk di dalamnya; menghapus jenis referensi menghapus entri dan mapping, tetapi mempertahankan produk terkait. Data Motor dan produk lama tidak dimigrasikan ke tabel generik.
 
 ## Struktur kode
 
@@ -33,6 +43,6 @@ Navigasi menerima `catalog_groups` dan `reference_modules` dari server. File fro
 
 Fitur pengelolaan jenis memerlukan dua migration baru: pembuatan tabel generik dan pengisian jenis lama. Migration tidak mengubah stok, transaksi, tabel motor, atau mapping motor. Key grup historis di kategori yang berada di luar preset juga dipertahankan sebagai jenis produk.
 
-Jalankan migration sebelum menggunakan kode baru. Deploy melalui PR ke develop dan verifikasi staging sebelum produksi. Tidak ada dependency baru.
+Visibilitas pelanggan memerlukan migration `2026_10_28_000001_add_public_visibility_to_reference_types.php`, yang menambahkan `is_public`. Jenis Motor yang sudah ada diaktifkan agar tautan pelanggan lama tetap berfungsi; jenis lain perlu diaktifkan owner. Pengaturan global yang sudah nonaktif tetap nonaktif. Migration tidak mengubah stok, harga, atau mapping. Jalankan migration saat deploy sebelum membuka kode baru. Tidak ada dependency baru.
 
 Untuk produksi gunakan perbaikan migration ke depan jika diperlukan. Menurunkan migration schema akan menghapus tabel jenis/referensi baru beserta datanya; backup diperlukan sebelum tindakan tersebut. `down()` migration pengisian preset sengaja mempertahankan konfigurasi pengguna. Rollback kode tanpa menghapus tabel mempertahankan data baru, tetapi versi lama belum menyediakan UI untuk mengelolanya.

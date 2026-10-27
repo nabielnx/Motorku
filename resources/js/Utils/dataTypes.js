@@ -4,6 +4,7 @@ export const fieldTypeLabels = { text: 'Teks', textarea: 'Teks panjang', number:
 export const dataTypeSchema = z.object({
     kind: z.enum(['product', 'reference']),
     name: z.string().trim().min(1, 'Nama jenis wajib diisi.').max(80),
+    is_public: z.boolean().optional(),
     fields: z.array(z.object({
         key: z.string().regex(/^[a-z][a-z0-9_]{0,39}$/, 'Kode kolom harus diawali huruf kecil, tanpa spasi.').refine(key => !['constructor', 'prototype'].includes(key), 'Kode kolom tidak dapat digunakan.'),
         label: z.string().trim().min(1, 'Nama kolom wajib diisi.').max(80),
@@ -15,6 +16,7 @@ export const dataTypeSchema = z.object({
     const keys = data.fields.map(field => field.key);
     if (new Set(keys).size !== keys.length) context.addIssue({ code: 'custom', path: ['fields'], message: 'Kode kolom tidak boleh sama.' });
     if (data.kind === 'product' && data.fields.length) context.addIssue({ code: 'custom', message: 'Kolom fleksibel digunakan pada referensi.' });
+    if (data.kind === 'product' && data.is_public !== undefined) context.addIssue({ code: 'custom', path: ['is_public'], message: 'Pengaturan katalog ini hanya untuk jenis referensi.' });
     data.fields.forEach((field, index) => {
         if (field.type === 'select' && (!field.options.length || new Set(field.options).size !== field.options.length)) {
             context.addIssue({ code: 'custom', path: ['fields', index, 'options'], message: 'Isi pilihan yang tidak ganda, satu per baris.' });

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\Business;
+use App\Models\DataType;
 use App\Models\Setting;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -14,6 +15,11 @@ class SettingService
     public function referencesEnabled(): bool
     {
         return Setting::where('group', 'references')->where('key', 'enabled')->value('value') !== 'false';
+    }
+
+    public function publicMotorcyclesEnabled(): bool
+    {
+        return $this->referencesEnabled() && DataType::where('kind', 'reference')->where('driver', 'motorcycles')->where('is_public', true)->exists();
     }
 
     public function publicValues(): array

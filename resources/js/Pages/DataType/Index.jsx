@@ -10,7 +10,7 @@ import Dialog, { DialogTitle } from '@/Components/Admin/Dialog';
 import { dataTypeSchema, dataTypeError, fieldTypeLabels, fieldKey } from '@/Utils/dataTypes';
 
 export default function DataTypeIndex({ types = [] }) {
-    const { url, props } = usePage();
+    const { url } = usePage();
     const kind = new URL(url, 'http://localhost').searchParams.get('kind') === 'reference' ? 'reference' : 'product';
     const [editing, setEditing] = useState(null);
     const [form, setForm] = useState(null);
@@ -19,7 +19,7 @@ export default function DataTypeIndex({ types = [] }) {
     const [error, setError] = useState('');
     const open = type => {
         setEditing(type); setError('');
-        setForm({ kind: type?.kind ?? kind, name: type?.name ?? '', fields: (type?.fields ?? []).map(field => ({ ...field, optionText: field.options.join('\n') })) });
+        setForm({ kind: type?.kind ?? kind, name: type?.name ?? '', ...((type?.kind ?? kind) === 'reference' ? { is_public: type?.is_public ?? false } : {}), fields: (type?.fields ?? []).map(field => ({ ...field, optionText: field.options.join('\n') })) });
     };
     const updateField = (index, changes) => setForm(current => ({ ...current, fields: current.fields.map((field, i) => i === index ? { ...field, ...changes } : field) }));
     const move = (index, offset) => setForm(current => {
@@ -53,11 +53,11 @@ export default function DataTypeIndex({ types = [] }) {
                 <Button onClick={() => open(null)}><FiPlus />Tambah Jenis</Button>
             </div>
             <nav aria-label="Jenis data" className="flex flex-wrap gap-2">
-                {[['product', 'Produk'], ['reference', 'Data Referensi']].filter(([key]) => key !== 'reference' || props.app_settings?.references_enabled !== false).map(([key, label]) => <Link key={key} href={`/data-types?kind=${key}`} aria-current={kind === key ? 'page' : undefined} className={`admin-button ${kind === key ? 'admin-button-primary' : 'admin-button-secondary'}`}>{label}</Link>)}
+                {[['product', 'Produk'], ['reference', 'Data Referensi']].map(([key, label]) => <Link key={key} href={`/data-types?kind=${key}`} aria-current={kind === key ? 'page' : undefined} className={`admin-button ${kind === key ? 'admin-button-primary' : 'admin-button-secondary'}`}>{label}</Link>)}
             </nav>
             <p className="text-xs leading-5 text-slate-600">{kind === 'product' ? 'Jenis baru otomatis tersedia di menu Produk, kategori, dan pilihan impor/ekspor.' : 'Tentukan kolom untuk setiap jenis, lalu buka jenis tersebut untuk mengisi data dan menghubungkan produk.'}</p>
             <div className="space-y-2">{listed.map(type => <article key={type.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4 dark:bg-slate-900 dark:border-slate-700">
-                <div className="min-w-0 flex-1"><Link className="break-words text-sm font-semibold hover:underline" href={kind === 'product' ? `/products?group=${type.key}` : type.driver === 'motorcycles' ? '/motorcycles' : `/references/${type.id}`}>{type.name}</Link><p className="mt-1 text-xs text-slate-500">{type.driver ? `Form khusus motor · ${type.records_count} data` : kind === 'reference' ? `${type.fields.length} kolom · ${type.entries_count} data` : `${type.categories_count} kategori`}{type.is_system ? ' · Bawaan' : ''}</p></div>
+                <div className="min-w-0 flex-1"><Link className="break-words text-sm font-semibold hover:underline" href={kind === 'product' ? `/products?group=${type.key}` : type.driver === 'motorcycles' ? '/motorcycles' : `/references/${type.id}`}>{type.name}</Link><p className="mt-1 text-xs text-slate-500">{type.driver ? `Form khusus motor · ${type.records_count} data` : kind === 'reference' ? `${type.fields.length} kolom · ${type.entries_count} data` : `${type.categories_count} kategori`}{type.is_system ? ' · Bawaan' : ''}</p>{kind === 'reference' && <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">{type.is_public ? 'Ditampilkan di katalog saat referensi pelanggan aktif.' : 'Hanya dikelola di admin.'}</p>}</div>
                 <div className="flex shrink-0 gap-2"><Button variant="secondary" onClick={() => open(type)} aria-label={`Edit jenis ${type.name}`}><FiEdit2 />Edit</Button><DeleteButton as={Button} variant="secondary" disabled={busy} onClick={() => { setDeleting(type); setError(''); }} aria-label={`Hapus jenis ${type.name}`}><FiTrash2 /></DeleteButton></div>
             </article>)}</div>
             {!listed.length && <div className="rounded-xl border border-slate-200 bg-white p-6 text-sm">Belum ada jenis. Tambahkan jenis pertama untuk mulai mengisi data.</div>}
@@ -68,6 +68,7 @@ export default function DataTypeIndex({ types = [] }) {
                 <fieldset disabled={busy} className="max-h-[65dvh] min-w-0 space-y-4 overflow-y-auto p-4 sm:p-5">
                     {error && <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</p>}
                     <label className="block text-xs font-semibold">Nama jenis<input autoFocus className="admin-control mt-1 w-full" value={form.name} maxLength={80} onChange={event => setForm({ ...form, name: event.target.value })} placeholder={kind === 'product' ? 'Contoh: Peralatan Kebun' : 'Contoh: Elektronik'} /></label>
+                    {kind === 'reference' && <label className="flex items-start gap-2 rounded-lg border border-slate-200 p-3 text-xs dark:border-slate-700"><input type="checkbox" className="mt-0.5 rounded" checked={form.is_public} onChange={event => setForm({ ...form, is_public: event.target.checked })} /><span><strong>Tampilkan di katalog pelanggan</strong><span className="mt-1 block font-normal leading-5 text-slate-600 dark:text-slate-300">Pelanggan dapat memilih referensi ini untuk melihat produk yang dihubungkan. Nama dan foto data referensi ditampilkan; deskripsi dan kolom tambahan tetap di admin. Pengaturan Referensi Pelanggan di Katalog juga harus aktif.</span></span></label>}
                     {kind === 'reference' && !editing?.driver && <>
                         <div className="flex flex-wrap items-center justify-between gap-2"><h2 className="text-sm font-semibold">Kolom tambahan ({form.fields.length}/20)</h2><Button variant="secondary" disabled={form.fields.length >= 20} onClick={() => setForm({ ...form, fields: [...form.fields, { key: `kolom_${Date.now().toString(36)}`, label: '', type: 'text', required: false, options: [], optionText: '' }] })}><FiPlus />Tambah Kolom</Button></div>
                         <p className="text-xs text-slate-500">Nama data, deskripsi, foto, dan mapping produk sudah tersedia. Kolom tambahan tampil sesuai urutan di bawah.</p>

@@ -77,7 +77,7 @@ export default function CustomerMenu({
     const catalogUrl = storeUrl('/catalog/products');
     useForceLightTheme();
     const { props } = usePage();
-    const referencesEnabled = props.app_settings?.references_enabled !== false;
+    const referencesEnabled = props.app_settings?.motorcycle_references_enabled !== false;
     const showTotalSold = (props.app_settings?.show_total_sold !== false) && (settings['catalog.show_total_sold'] !== 'false');
 
     const [isNavigating, setIsNavigating] = useState(false);
@@ -140,7 +140,7 @@ export default function CustomerMenu({
     const [cartMessage, setCartMessage] = useState('');
     const catalogRequest = useRef(null);
     const active = useRef(true);
-    const [searchQuery, setSearchQuery] = useState('');
+    const [searchQuery, setSearchQuery] = useState(() => typeof window === 'undefined' ? '' : new URLSearchParams(window.location.search).get('search')?.slice(0, 160) ?? '');
     const deferredSearch = useDeferredValue(searchQuery);
 
     const [selectedMainCategory, setSelectedMainCategory] = useState(null);

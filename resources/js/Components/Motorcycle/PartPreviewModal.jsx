@@ -7,7 +7,7 @@ export default function PartPreviewModal({
     setPreviewPart,
     previewPart
 }) {
-    const referencesEnabled = usePage().props.app_settings?.references_enabled !== false;
+    const referencesEnabled = usePage().props.app_settings?.motorcycle_references_enabled !== false;
     return (
         <Dialog
             open

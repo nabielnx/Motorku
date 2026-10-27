@@ -12,6 +12,7 @@ use App\Http\Controllers\Order\CustomerMenuController;
 use App\Http\Controllers\Order\OrderController;
 use App\Http\Controllers\Product\ProductController;
 use App\Http\Controllers\PwaManifestController;
+use App\Http\Controllers\Reference\PublicReferenceController;
 use App\Http\Controllers\Report\ReportController;
 use App\Http\Controllers\Setting\SettingController;
 use App\Http\Controllers\StoreEntryController;
@@ -29,7 +30,7 @@ Route::get('/s/{businessSlug}', [CustomerMenuController::class, 'index'])->name(
 Route::get('/pwa/manifest', PwaManifestController::class)->name('pwa.manifest');
 Route::get('/catalog/products', CatalogPageController::class)->middleware('throttle:60,1,catalog-public:')->name('customer.catalog');
 Route::get('/sitemap.xml', function (Request $request) {
-    $referencesEnabled = $request->attributes->has('business') && app(SettingService::class)->referencesEnabled();
+    $referencesEnabled = $request->attributes->has('business') && app(SettingService::class)->publicMotorcyclesEnabled();
 
     return response()->view('sitemap', [
         'referencesEnabled' => $referencesEnabled,
@@ -46,6 +47,9 @@ Route::get('/order/status', fn () => Inertia::render('Order/Status'))->name('cus
 // Public "Motor Saya" — motorcycle part finder
 Route::get('/motor-saya/{slug?}', [MotorSayaController::class, 'index'])->middleware(EnsureReferencesEnabled::class)->name('motor-saya');
 Route::get('/api/motor-saya/{motorcycleId}/parts', [MotorSayaController::class, 'compatibleParts'])->middleware(EnsureReferencesEnabled::class)->name('motor-saya.parts');
+Route::get('/cari-kecocokan/{type?}/{entry?}', PublicReferenceController::class)
+    ->whereUuid('type')->whereUuid('entry')->middleware([EnsureReferencesEnabled::class, 'throttle:60,1'])
+    ->name('customer.references');
 
 // Protected Web App
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -84,7 +88,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // Motorcycle management (admin)
-    Route::prefix('motorcycles')->middleware(['role:owner', EnsureReferencesEnabled::class])->group(function () {
+    Route::prefix('motorcycles')->middleware(['role:owner'])->group(function () {
         Route::get('/', [MotorcycleController::class, 'indexWeb'])->name('motorcycles.index');
         Route::post('/', [MotorcycleController::class, 'store'])->name('motorcycles.store');
         Route::post('/bulk-attach', [MotorcycleController::class, 'bulkAttach'])->name('motorcycles.bulk-attach');

@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Reference\DataTypeController;
 use App\Http\Controllers\Reference\ReferenceController;
-use App\Http\Middleware\EnsureReferencesEnabled;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['role:owner', 'throttle:120,1', EnsureReferencesEnabled::class])->group(function () {
+Route::middleware(['role:owner', 'throttle:120,1'])->group(function () {
     Route::get('/data-types', [DataTypeController::class, 'index'])->name('data-types.index');
     Route::post('/data-types', [DataTypeController::class, 'store'])->name('data-types.store');
     Route::put('/data-types/{type}', [DataTypeController::class, 'update'])->name('data-types.update');

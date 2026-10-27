@@ -73,9 +73,13 @@ class DataTypeService
             }
             if (! $type) {
                 return DataType::create(['kind' => $input['kind'], 'name' => $input['name'], 'fields' => $fields,
+                    'is_public' => $input['kind'] === 'reference' && ($input['is_public'] ?? false),
                     'key' => substr(Str::slug($input['name'], '_') ?: 'jenis', 0, 60).'_'.Str::lower(Str::random(8))]);
             }
             $type->fill(['name' => $input['name'], 'fields' => $fields]);
+            if ($type->kind === 'reference' && array_key_exists('is_public', $input)) {
+                $type->is_public = (bool) $input['is_public'];
+            }
             $type->sync_version++;
             $type->save();
 

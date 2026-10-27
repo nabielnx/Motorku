@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react';
 import { readQrisPayload, qrisErrorMessage } from '@/Utils/qris';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import AdminDialog, { DialogTitle } from '@/Components/Admin/Dialog';
-import { Head, router, usePage } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { FiSave, FiCheck, FiHome, FiPercent, FiCreditCard, FiPrinter, FiSmartphone, FiClock, FiSettings, FiUpload, FiClipboard, FiTrash2, FiAlertTriangle, FiBookOpen, FiRotateCcw } from 'react-icons/fi';
@@ -244,7 +244,7 @@ export default function SettingIndex() {
       setForm(prev => ({ ...prev, references_enabled: String(enabled) }));
       setSavedForm(prev => ({ ...prev, references_enabled: String(enabled) }));
       router.reload({ only: ['app_settings', 'reference_modules'] });
-      toast.success(enabled ? 'Referensi dan Motor Saya diaktifkan.' : 'Referensi dan Motor Saya dinonaktifkan. Data tetap tersimpan.');
+      toast.success(enabled ? 'Pencarian referensi pelanggan diaktifkan.' : 'Pencarian referensi pelanggan dinonaktifkan. Data tetap dapat dikelola di admin.');
     } catch (error) {
       const message = error.response?.data?.message || 'Status referensi gagal disimpan. Coba ubah toggle lagi.';
       setReferenceError(message);
@@ -628,12 +628,13 @@ export default function SettingIndex() {
         <section className="admin-surface admin-setting-section space-y-4 border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900 sm:p-6" aria-labelledby="reference-setting-title">
           <div className="admin-section-header flex items-center gap-2 border-b border-slate-200 pb-3 dark:border-slate-700">
             <FiBookOpen aria-hidden="true" size={20} />
-            <h3 id="reference-setting-title" className="flex-1 text-base font-semibold">Referensi &amp; Motor Saya</h3>
-            <Toggle label="Aktifkan Referensi dan Motor Saya" value={form.references_enabled} onChange={handleToggleReferences} disabled={savingReferences || loading} />
+            <h3 id="reference-setting-title" className="flex-1 text-base font-semibold">Referensi Pelanggan</h3>
+            <Toggle label="Tampilkan referensi untuk pelanggan" value={form.references_enabled} onChange={handleToggleReferences} disabled={savingReferences || loading} />
           </div>
           <div className="space-y-2">
-            <p role="status" className="text-sm font-semibold">{savingReferences ? 'Menyimpan status referensi…' : form.references_enabled === 'true' ? 'Aktif untuk pelanggan dan admin.' : 'Nonaktif. Data referensi tetap tersimpan.'}</p>
-            <p className="text-xs leading-relaxed text-slate-600 dark:text-slate-300">Mengatur menu Motor Saya, Data Referensi di admin, dan informasi kecocokan motor pada produk. Perubahan toggle langsung tersimpan.</p>
+            <p role="status" className="text-sm font-semibold">{savingReferences ? 'Menyimpan status referensi…' : form.references_enabled === 'true' ? 'Pencarian kecocokan aktif untuk pelanggan.' : 'Pencarian pelanggan nonaktif. Pengelolaan admin tetap tersedia.'}</p>
+            <p className="text-xs leading-relaxed text-slate-600 dark:text-slate-300">Pilih jenis yang ditampilkan melalui Edit Jenis → Tampilkan di katalog pelanggan. Jenis baru otomatis tersembunyi sampai dipilih. Perubahan toggle langsung tersimpan.</p>
+            <Link href="/data-types?kind=reference" className="inline-block text-xs font-semibold underline">Kelola jenis referensi yang ditampilkan</Link>
             {referenceError && <p role="alert" className="text-xs text-red-700 dark:text-red-300">{referenceError}</p>}
           </div>
         </section>

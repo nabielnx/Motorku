@@ -16,10 +16,15 @@ final class CatalogPageService
 
     public function query(): Builder
     {
+        $showMotorcycles = ! request()->attributes->get('public_store') || app(SettingService::class)->publicMotorcyclesEnabled();
+
         return Product::query()->where('is_available', true)
             ->select(['id', 'category_id', 'sku', 'barcode', 'brand', 'unit', 'rack_location', 'name', 'description', 'price', 'stock', 'image_path', 'is_available'])
-            ->withExists(['motorcycleParts as is_recommended' => fn ($parts) => $parts->where('is_recommended', true)])
-            ->with(['category:id,name,parent_id', 'category.parent:id,name', 'motorcycles:id,brand,model,engine_type,year_start,year_end']);
+            ->withExists(['motorcycleParts as is_recommended' => fn ($parts) => $parts->where('is_recommended', true)->when(! $showMotorcycles, fn ($query) => $query->whereRaw('1 = 0'))])
+            ->with(['category:id,name,parent_id', 'category.parent:id,name',
+                'motorcycles' => fn ($query) => $query->select(['motorcycles.id', 'motorcycles.brand', 'motorcycles.model', 'motorcycles.engine_type', 'motorcycles.year_start', 'motorcycles.year_end'])
+                    ->when(! $showMotorcycles, fn ($query) => $query->whereRaw('1 = 0')),
+            ]);
     }
 
     public function page(array $filters = []): array
