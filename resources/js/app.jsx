@@ -1,8 +1,7 @@
 import '../css/app.css';
 import '../css/customer-storefront.css';
 import '../css/customer-orders.css';
-import '../css/admin-controls.css';
-import '../css/admin-visual.css';
+import '../css/pagination.css';
 import './bootstrap';
 
 import { createInertiaApp, router } from '@inertiajs/react';

@@ -15,6 +15,7 @@ use App\Support\BusinessFiles;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Vite;
 use Intervention\Image\ImageManager;
 use Tests\TestCase;
 
@@ -75,6 +76,7 @@ final class ImagePreviewTest extends TestCase
 
     public function test_initial_store_html_preloads_its_page_module_and_the_same_banner_preview_returned_to_react(): void
     {
+        Vite::useHotFile(storage_path('framework/testing-storefront-assets.hot'));
         Storage::fake('public');
         $path = app(ImageUploadService::class)->store($this->photo(), 'promo_banners');
         $preview = app(ImagePreviewService::class)->existing($path);
