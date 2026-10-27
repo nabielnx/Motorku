@@ -766,6 +766,106 @@ class ProductSheetTest extends TestCase
         $this->postJson('/api/products/sheets/commit', $this->commitInput($draft, $preview))->assertOk()->assertJson(['updated' => 1, 'created' => 0]);
     }
 
+    public function test_canonical_web_column_names_are_mapped_and_saved_to_the_correct_product_fields(): void
+    {
+        $draft = $this->inspect($this->csv("Grup Barang,Kategori,Merek,Nama Barang,Deskripsi / Spesifikasi,Harga Modal (Rp),Harga Jual (Rp),Stok,Satuan,Kode Barang\nOtomotif,Oli,Brand A,Oli 4T,10W-40,42000,55000,7,botol,MODAL-001\n"));
+        $mapping = $draft['sheets'][0]['mapping'];
+        $this->assertSame(5, $mapping['cost_price']);
+        $this->assertSame(4, $mapping['description']);
+        $this->assertArrayNotHasKey('estimated_cost', $mapping);
+        $this->assertSame('Harga Modal (Rp)', $draft['fields']['cost_price']);
+        $preview = $this->preview($draft);
+        $row = $preview['rows'][0];
+        $this->assertSame('cost_price', $row['cost_source']);
+        $this->assertSame(42000, $row['data']['cost_price']);
+        $this->postJson('/api/products/sheets/commit', $this->commitInput($draft, $preview))->assertOk();
+        $this->assertDatabaseHas('products', ['sku' => 'MODAL-001', 'brand' => 'Brand A', 'description' => '10W-40', 'cost_price' => 42000, 'price' => 55000, 'stock' => 7, 'unit' => 'botol']);
+    }
+
+    public function test_legacy_purchase_cost_headers_remain_compatible_with_the_modal_field(): void
+    {
+        foreach (['Harga Beli (Rp)', 'Harga Beli', 'Harga Modal', 'Modal (Rp)', 'Cost Price'] as $header) {
+            $draft = $this->inspect($this->csv("Kategori,Nama Barang,{$header},Harga Jual\nOli,Oli 4T,42000,55000\n"));
+            $this->assertSame(2, $draft['sheets'][0]['mapping']['cost_price'], $header);
+            $preview = $this->preview($draft);
+            $this->assertSame(42000, $preview['rows'][0]['data']['cost_price'], $header);
+            $this->assertSame('cost_price', $preview['rows'][0]['cost_source'], $header);
+        }
+    }
+
+    public function test_unused_estimates_warn_and_preserve_old_modal_until_explicitly_enabled(): void
+    {
+        $product = Product::factory()->create(['sku' => 'KEEP-MODAL', 'cost_price' => 42000]);
+        $draft = $this->inspect($this->csv("Kategori,Nama Barang,Estimasi Modal (Rp),Harga Jual,Kode Barang\nOli,Oli 4T,30000,55000,KEEP-MODAL\n"));
+        $preview = $this->preview($draft, ['mode' => 'update']);
+        $row = $preview['rows'][0];
+        $this->assertSame(42000, (int) $row['old_cost_price']);
+        $this->assertNull($row['data']['cost_price']);
+        $this->assertNull($row['cost_source']);
+        $this->assertStringContainsString('Estimasi Modal tidak digunakan', implode(' ', $row['warnings']));
+        $this->postJson('/api/products/sheets/commit', $this->commitInput($draft, $preview))->assertOk();
+        $this->assertSame(42000, (int) $product->fresh()->cost_price);
+
+        $draft = $this->inspect($this->csv("Kategori,Nama Barang,Estimasi Modal (Rp),Harga Jual,Kode Barang\nOli,Oli 4T,30000,55000,KEEP-MODAL\n"));
+        $preview = $this->preview($draft, ['mode' => 'update', 'use_estimated_cost' => true]);
+        $this->assertSame('estimated_cost', $preview['rows'][0]['cost_source']);
+        $this->postJson('/api/products/sheets/commit', $this->commitInput($draft, $preview))->assertOk();
+        $this->assertSame(30000, (int) $product->fresh()->cost_price);
+    }
+
+    public function test_zero_modal_is_a_real_value_and_never_replaced_by_an_estimate(): void
+    {
+        $draft = $this->inspect($this->csv("Kategori,Nama Barang,Harga Modal (Rp),Estimasi Modal (Rp),Harga Jual\nOli,Oli 4T,0,30000,55000\n"));
+        $preview = $this->preview($draft, ['use_estimated_cost' => true]);
+        $this->assertSame(0, $preview['rows'][0]['data']['cost_price']);
+        $this->assertSame('cost_price', $preview['rows'][0]['cost_source']);
+        $this->postJson('/api/products/sheets/commit', $this->commitInput($draft, $preview))->assertOk();
+        $this->assertDatabaseHas('products', ['name' => 'Oli 4T', 'cost_price' => 0]);
+    }
+
+    public function test_duplicate_cost_headers_require_manual_source_selection_instead_of_using_the_first(): void
+    {
+        $draft = $this->inspect($this->csv("Kategori,Nama Barang,Harga Beli,Harga Modal (Rp),Modal,Harga Jual\nOli,Oli 4T,42000,30000,20000,55000\n"));
+        $this->assertNull($draft['sheets'][0]['mapping']['cost_price']);
+        $this->assertSame(['cost_price'], $draft['sheets'][0]['ambiguous_fields']);
+        $input = $this->input($draft);
+        $input['sheets'][0]['mapping']['cost_price'] = 3;
+        $preview = $this->postJson('/api/products/sheets/preview', $input)->assertOk()->json();
+        $this->assertSame(30000, $preview['rows'][0]['data']['cost_price']);
+        $this->postJson('/api/products/sheets/commit', $this->commitInput($draft, $preview))->assertOk();
+        $this->assertDatabaseHas('products', ['name' => 'Oli 4T', 'cost_price' => 30000]);
+    }
+
+    public function test_csv_and_xlsx_exports_roundtrip_modal_zero_and_empty_values_without_estimate_opt_in(): void
+    {
+        $category = Category::factory()->create(['name' => 'Oli']);
+        foreach (['ACTUAL' => 42000, 'ZERO' => 0, 'EMPTY' => null] as $sku => $cost) {
+            Product::factory()->create(['category_id' => $category->id, 'sku' => $sku, 'name' => 'Produk '.$sku, 'cost_price' => $cost, 'price' => 55000, 'stock' => 7, 'description' => '10W-40', 'unit' => 'botol']);
+        }
+        $expectedHeaders = ['Grup Barang', 'Kategori', 'Merek', 'Nama Barang', 'Deskripsi / Spesifikasi', 'Harga Modal (Rp)', 'Harga Jual (Rp)', 'Stok', 'Satuan', 'Margin (Rp)', 'Kode Barang'];
+        foreach (['csv', 'xlsx'] as $format) {
+            $response = $this->get('/api/products/sheets/export?format='.$format)->assertOk();
+            $path = $response->baseResponse->getFile()->getPathname();
+            $this->temporary[] = $path;
+            $draft = $this->inspect(new UploadedFile($path, 'export.'.$format, test: true));
+            $this->assertSame($expectedHeaders, $draft['sheets'][0]['headers']);
+            $this->assertSame([], $draft['sheets'][0]['ambiguous_fields']);
+            $this->assertSame(5, $draft['sheets'][0]['mapping']['cost_price']);
+            $this->assertArrayNotHasKey('estimated_cost', $draft['sheets'][0]['mapping']);
+            $preview = $this->preview($draft, ['mode' => 'update']);
+            $rows = collect($preview['rows'])->keyBy('data.sku');
+            $this->assertSame(42000, $rows['ACTUAL']['data']['cost_price']);
+            $this->assertSame(0, $rows['ZERO']['data']['cost_price']);
+            $this->assertNull($rows['EMPTY']['data']['cost_price']);
+            $this->assertSame('cost_price', $rows['ACTUAL']['cost_source']);
+            $this->assertSame('10W-40', $rows['ACTUAL']['data']['description']);
+            $this->postJson('/api/products/sheets/commit', $this->commitInput($draft, $preview))->assertOk()->assertJson(['created' => 0, 'updated' => 3]);
+            $this->assertDatabaseHas('products', ['sku' => 'ACTUAL', 'cost_price' => 42000, 'price' => 55000, 'stock' => 7]);
+            $this->assertDatabaseHas('products', ['sku' => 'ZERO', 'cost_price' => 0]);
+            $this->assertDatabaseHas('products', ['sku' => 'EMPTY', 'cost_price' => null]);
+        }
+    }
+
     public function test_xlsx_formula_cached_price_is_read_without_executing_formula(): void
     {
         $path = tempnam(sys_get_temp_dir(), 'sheet-test');

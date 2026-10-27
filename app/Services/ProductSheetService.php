@@ -8,6 +8,7 @@ use App\Enums\InventoryLogType;
 use App\Models\Category;
 use App\Models\DataType;
 use App\Models\Product;
+use App\Services\ProductSheet\ProductSheetColumns;
 use App\Services\ProductSheet\ProductSheetExporter;
 use App\Services\ProductSheet\ProductSheetReader;
 use Illuminate\Http\UploadedFile;
@@ -29,12 +30,7 @@ class ProductSheetService
         return $this->exporter->export($format, $group, $template);
     }
 
-    public const FIELDS = [
-        'group' => 'Grup Barang', 'category' => 'Kategori', 'brand' => 'Merek',
-        'name' => 'Nama Barang', 'description' => 'Spesifikasi / Keterangan',
-        'estimated_cost' => 'Estimasi Modal (Rp)', 'price' => 'Harga Jual (Rp)',
-        'stock' => 'Stok', 'unit' => 'Satuan', 'sku' => 'Kode Barang', 'cost_price' => 'Harga Beli (Rp)',
-    ];
+    public const FIELDS = ProductSheetColumns::FIELDS;
 
     public function inspect(UploadedFile $file, string $userId): array
     {
@@ -96,6 +92,7 @@ class ProductSheetService
                     $row['version'] = $product?->sync_version;
                     $row['fingerprint'] = $product ? $this->fingerprint($product) : null;
                     $row['old_price'] = $product?->price;
+                    $row['old_cost_price'] = $product?->cost_price;
                     $row['old_stock'] = $product?->stock;
                     $row['matched_name'] = $product?->name;
                     $row['action'] = $product ? 'update' : 'create';
@@ -342,17 +339,23 @@ class ProductSheetService
         }
         $data['price'] = $this->number($read('price'), 'Harga Jual', $errors, required: true);
         $cost = $read('cost_price');
+        $estimatedCost = $read('estimated_cost');
+        $costSource = $cost !== null && $cost !== '' ? 'cost_price' : null;
         if (($cost === null || $cost === '') && $options['use_estimated_cost']) {
-            $cost = $read('estimated_cost');
+            $cost = $estimatedCost;
+            $costSource = $cost !== null && $cost !== '' ? 'estimated_cost' : null;
         }
-        $data['cost_price'] = $this->number($cost, 'Harga Beli / Modal', $errors);
+        if ($costSource === null && $estimatedCost !== null && $estimatedCost !== '' && ! $options['use_estimated_cost']) {
+            $warnings[] = 'Estimasi Modal tidak digunakan. Harga Modal barang lama tetap; barang baru belum diisi. Centang opsi penggunaan estimasi jika ingin memakainya.';
+        }
+        $data['cost_price'] = $this->number($cost, 'Harga Modal', $errors);
         $data['stock'] = $this->number($read('stock'), 'Stok', $errors, max: 99999999);
         if ($data['unit'] === '') {
             $data['unit'] = 'pcs';
             $warnings[] = 'Satuan kosong: barang baru memakai pcs.';
         }
 
-        return ['data' => $data, 'category' => $category, 'group' => $group, 'errors' => $errors, 'warnings' => $warnings];
+        return ['data' => $data, 'category' => $category, 'group' => $group, 'cost_source' => $costSource, 'errors' => $errors, 'warnings' => $warnings];
     }
 
     private function number(mixed $value, string $label, array &$errors, bool $required = false, int $max = 9999999999999): ?int

@@ -119,7 +119,7 @@ export default function ProductFormModal({
 
                     <div className="grid grid-cols-2 gap-3">
                         <div>
-                            <label htmlFor="productformmodal-6" className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Harga modal (Rp)</label>
+                            <label htmlFor="productformmodal-6" className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Harga Modal (Rp)</label>
                             <MoneyInput id="productformmodal-6"
                                 value={productFormData.cost_price}
                                 onChange={(e) => setProductFormData({...productFormData, cost_price: e.target.value})}
