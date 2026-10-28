@@ -188,7 +188,8 @@ class AdminDeletionControlTest extends TestCase
     {
         $type = DataType::where('driver', 'motorcycles')->sole();
         $this->deleteJson('/data-types/'.$type->id)->assertOk();
-        $this->postJson('/motorcycles', ['brand' => 'Honda', 'model' => 'QA Motor', 'year_start' => 2020, 'engine_cc' => 110, 'engine_type' => 'matic'])->assertNotFound();
+        $this->assertDatabaseMissing('data_types', ['id' => $type->id]);
+        $this->postJson('/motorcycles', ['brand' => 'Honda', 'model' => 'QA Motor', 'year_start' => 2020, 'engine_cc' => 110, 'engine_type' => 'matic'])->assertForbidden();
         $this->assertDatabaseCount('motorcycles', 0);
     }
 
