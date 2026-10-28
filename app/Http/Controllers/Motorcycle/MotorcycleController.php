@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Motorcycle;
 
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\EnsureMotorcycleReferencesEnabled;
 use App\Http\Requests\Motorcycle\AttachMotorcyclePartRequest;
 use App\Http\Requests\Motorcycle\BulkAttachMotorcyclePartsRequest;
 use App\Http\Requests\Motorcycle\GetMotorcyclePartsRequest;
@@ -33,6 +34,7 @@ class MotorcycleController extends Controller implements HasMiddleware
     {
         return [
             new Middleware('role:owner'),
+            new Middleware(EnsureMotorcycleReferencesEnabled::class),
         ];
     }
 

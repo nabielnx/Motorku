@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Setting;
 
+use App\Http\Middleware\HandleInertiaRequests;
 use App\Models\Business;
 use App\Models\DataType;
 use App\Models\Motorcycle;
@@ -15,6 +16,7 @@ use App\Services\BusinessContext;
 use App\Services\SettingService;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Request;
 use Tests\TestCase;
 
 class MotorReferenceSettingTest extends TestCase
@@ -87,6 +89,73 @@ class MotorReferenceSettingTest extends TestCase
             $motorPage = $this->get('/motor-saya?shop='.$this->business->slug);
             $motor ? $motorPage->assertOk() : $motorPage->assertRedirect('/s/'.$this->business->slug);
         }
+    }
+
+    public function test_owner_cannot_open_disabled_motor_admin_even_with_another_shop_in_the_url(): void
+    {
+        $this->assertTrue(app(SettingService::class)->publicMotorcyclesEnabled());
+        $this->toggle('enabled', true);
+        $this->get('/motorcycles')->assertForbidden();
+        $this->get('/motorcycles?shop=toko-utama')->assertForbidden();
+        $version = app(HandleInertiaRequests::class)->version(Request::create('/motorcycles'));
+        $this->get('/motorcycles', ['X-Inertia' => 'true', 'X-Inertia-Version' => $version])->assertForbidden();
+        $this->getJson('/motorcycles')->assertForbidden();
+        $this->get('/data-types?kind=reference')->assertOk();
+        $this->get('/settings')->assertOk();
+        $this->inside(fn () => $this->assertSame(0, DataType::count()));
+    }
+
+    public function test_disabled_motor_blocks_all_crud_and_mapping_endpoints_without_changing_data(): void
+    {
+        $this->toggle('motorcycles_enabled', true);
+        [$motorcycle, $product, $mapping] = $this->inside(function () {
+            $motorcycle = Motorcycle::create(['brand' => 'Honda', 'model' => 'Keep me', 'slug' => 'keep-me', 'year_start' => 2025, 'engine_cc' => 110, 'engine_type' => 'matic']);
+            $product = Product::factory()->create(['stock' => 17]);
+            $mapping = MotorcyclePart::create(['motorcycle_id' => $motorcycle->id, 'product_id' => $product->id, 'part_category' => 'oli']);
+
+            return [$motorcycle, $product, $mapping];
+        });
+        $this->toggle('motorcycles_enabled', false);
+        $body = ['brand' => 'Honda', 'model' => 'Changed', 'year_start' => 2025, 'engine_cc' => 110, 'engine_type' => 'matic'];
+        foreach ([
+            ['GET', '/motorcycles/'.$motorcycle->id.'/parts', []],
+            ['POST', '/motorcycles', $body],
+            ['PUT', '/motorcycles/'.$motorcycle->id, $body],
+            ['DELETE', '/motorcycles/'.$motorcycle->id, []],
+            ['POST', '/motorcycles/'.$motorcycle->id.'/parts', ['product_id' => $product->id, 'part_category' => 'oli']],
+            ['PUT', '/motorcycles/'.$motorcycle->id.'/parts/'.$mapping->id, ['part_category' => 'oli']],
+            ['DELETE', '/motorcycles/'.$motorcycle->id.'/parts/'.$mapping->id, []],
+            ['POST', '/motorcycles/bulk-attach', ['motorcycle_ids' => [$motorcycle->id], 'product_ids' => [$product->id], 'part_category' => 'oli']],
+        ] as [$method, $url, $payload]) {
+            $this->json($method, $url, $payload)->assertForbidden();
+        }
+        $this->inside(function () use ($product, $mapping): void {
+            $this->assertSame('Keep me', Motorcycle::sole()->model);
+            $this->assertSame($mapping->id, MotorcyclePart::sole()->id);
+            $this->assertSame(17, $product->fresh()->stock);
+        });
+        $this->toggle('motorcycles_enabled', true);
+        $this->get('/motorcycles')->assertOk();
+        $this->getJson('/motorcycles/'.$motorcycle->id.'/parts')->assertOk();
+    }
+
+    public function test_enabled_owner_only_sees_own_motorcycles_and_cannot_read_or_change_foreign_mapping(): void
+    {
+        $foreignMotor = Motorcycle::create(['brand' => 'PrivateBrandA', 'model' => 'PrivateMotorA', 'slug' => 'private-motor-a', 'year_start' => 2025, 'engine_cc' => 110]);
+        $foreignProduct = Product::factory()->create(['name' => 'PrivateProductA', 'stock' => 7]);
+        $foreignMapping = MotorcyclePart::create(['motorcycle_id' => $foreignMotor->id, 'product_id' => $foreignProduct->id, 'part_category' => 'oli']);
+        $this->toggle('motorcycles_enabled', true);
+        $ownMotor = $this->inside(fn () => Motorcycle::create(['brand' => 'BrandB', 'model' => 'OwnMotorB', 'slug' => 'own-motor-b', 'year_start' => 2025, 'engine_cc' => 110]));
+        $this->get('/motorcycles?shop=toko-utama')->assertOk()->assertInertia(fn ($page) => $page
+            ->has('motorcycles', 1)->where('motorcycles.0.id', $ownMotor->id)->has('products', 0))
+            ->assertDontSee('PrivateBrandA')->assertDontSee('PrivateMotorA')->assertDontSee('PrivateProductA');
+        $this->getJson('/motorcycles/'.$foreignMotor->id.'/parts')->assertNotFound();
+        $this->deleteJson('/motorcycles/'.$foreignMotor->id)->assertNotFound();
+        $this->putJson('/motorcycles/'.$foreignMotor->id, ['brand' => 'Injected', 'model' => 'Injected', 'year_start' => 2025, 'engine_cc' => 110, 'engine_type' => 'matic'])->assertNotFound();
+        $this->deleteJson('/motorcycles/'.$ownMotor->id.'/parts/'.$foreignMapping->id)->assertNotFound();
+        $this->assertSame('PrivateMotorA', $foreignMotor->fresh()->model);
+        $this->assertSame(7, $foreignProduct->fresh()->stock);
+        $this->assertSame($foreignMapping->id, MotorcyclePart::whereKey($foreignMapping->id)->sole()->id);
     }
 
     public function test_turning_motor_off_and_on_preserves_models_mapping_stock_and_other_business(): void

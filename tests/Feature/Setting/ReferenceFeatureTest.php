@@ -70,7 +70,7 @@ class ReferenceFeatureTest extends TestCase
             ->where('app_settings.references_enabled', true)->where('reference_modules', fn ($modules) => collect($modules)->contains('key', $reference->key)));
     }
 
-    public function test_disabled_customer_feature_preserves_admin_management_and_mapping(): void
+    public function test_disabled_motor_blocks_management_but_preserves_data_and_other_reference_management(): void
     {
         $reference = $this->reference();
         $entry = $reference->entries()->create(['name' => 'Adaptor QA', 'values' => []]);
@@ -82,11 +82,11 @@ class ReferenceFeatureTest extends TestCase
         $this->toggle('false', 'motorcycles_enabled')->assertOk();
         $this->get($this->storeUrl('/motor-saya'))->assertRedirect('/s/toko-utama');
         $this->get($this->storeUrl('/motor-saya/qa-motor'))->assertRedirect('/s/toko-utama');
-        $this->get('/motorcycles')->assertOk();
+        $this->get('/motorcycles')->assertForbidden();
         $this->get('/data-types?kind=reference')->assertOk();
         $this->get('/references/'.$reference->id)->assertOk();
         $this->getJson($this->storeUrl('/api/motor-saya/'.$motorcycle->id.'/parts'))->assertForbidden();
-        $this->getJson('/motorcycles/'.$motorcycle->id.'/parts')->assertOk();
+        $this->getJson('/motorcycles/'.$motorcycle->id.'/parts')->assertForbidden();
         $this->getJson('/references/'.$reference->id.'/products')->assertOk();
         $this->postJson('/references/'.$reference->id.'/entries', ['name' => 'Other', 'schema_version' => 1, 'values' => []])->assertCreated();
         $this->assertDatabaseHas('reference_entries', ['id' => $entry->id]);
