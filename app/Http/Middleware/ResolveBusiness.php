@@ -29,7 +29,7 @@ final class ResolveBusiness
             if ($slug === null) {
                 abort_if($request->routeIs(
                     'shop.home', 'customer.catalog', 'customer.checkout', 'customer.payment',
-                    'customer.order.*', 'customer.orders', 'customer.orders.show',
+                    'customer.order.*', 'customer.orders', 'customer.orders.show', 'customer.references',
                     'api.customer.*', 'motor-saya', 'motor-saya.parts',
                 ), 404, 'Buka toko melalui tautan atau QR dari penjual.');
 

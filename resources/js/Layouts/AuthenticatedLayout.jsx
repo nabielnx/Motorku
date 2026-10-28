@@ -216,7 +216,6 @@ export default function AuthenticatedLayout({ header, pageTitle, noPadding = fal
                 },
                 {
                     name: locale === 'en' ? 'Reference Data' : 'Data Referensi',
-                    enabled: props.app_settings?.references_enabled !== false,
                     icon: FiBookOpen,
                     href: '/data-types?kind=reference',
                     current: managingReferences,

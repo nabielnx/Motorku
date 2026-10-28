@@ -30,6 +30,7 @@ class DataTypeRequest extends FormRequest
             'kind' => ['required', Rule::in(['product', 'reference'])],
             'name' => ['required', 'string', 'max:80', BusinessRule::unique('data_types', 'name')->where('kind', $type?->kind ?? $this->input('kind'))->ignore($type?->id)],
             'version' => [$type ? 'required' : 'sometimes', 'integer', 'min:1'],
+            'is_public' => ['sometimes', Rule::prohibitedIf(($type?->kind ?? $this->input('kind')) !== 'reference' || $type?->driver === 'motorcycles'), 'boolean'],
             'key' => ['prohibited'], 'driver' => ['prohibited'], 'is_system' => ['prohibited'],
             'fields' => ['present', 'array', 'max:20'],
             'fields.*' => ['array:key,label,type,required,options'],

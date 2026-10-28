@@ -285,10 +285,10 @@ export default function MotorSaya({
                             <div className="relative z-10 flex items-center justify-between min-h-[52px] sm:min-h-[58px] px-3.5 sm:px-5 gap-3">
                                 <div className="flex items-center gap-2.5 min-w-0">
                                     <Link
-                                        href={storeUrl('/')}
+                                        href={storeUrl('/cari-kecocokan')}
                                         className="p-1 -ml-1 text-[#FFDD00] hover:text-[#FFE838] transition-colors flex items-center justify-center shrink-0 active:scale-90"
-                                        aria-label="Kembali ke Katalog"
-                                        title="Kembali ke Katalog"
+                                        aria-label="Kembali ke Referensi"
+                                        title="Kembali ke Referensi"
                                     >
                                         <FiArrowLeft size={22} strokeWidth={2.5} />
                                     </Link>

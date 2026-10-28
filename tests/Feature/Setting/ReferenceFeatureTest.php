@@ -35,9 +35,9 @@ class ReferenceFeatureTest extends TestCase
         return $owner;
     }
 
-    private function toggle(string $enabled)
+    private function toggle(string $enabled, string $key = 'enabled')
     {
-        return $this->postJson('/api/settings', ['settings' => [['group' => 'references', 'key' => 'enabled', 'value' => $enabled]]]);
+        return $this->postJson('/api/settings', ['settings' => [['group' => 'references', 'key' => $key, 'value' => $enabled]]]);
     }
 
     private function reference(): DataType
@@ -61,7 +61,7 @@ class ReferenceFeatureTest extends TestCase
         $this->toggle('false')->assertOk();
         $this->get('/settings')->assertInertia(fn ($page) => $page
             ->where('initialSettings.references_enabled', 'false')
-            ->where('app_settings.references_enabled', false)->where('reference_modules', []));
+            ->where('app_settings.references_enabled', false)->where('reference_modules', fn ($modules) => ! collect($modules)->contains('key', $reference->key)));
         $this->get($this->storeUrl('/'))->assertInertia(fn ($page) => $page
             ->where('app_settings.references_enabled', false)->where('settings', fn ($settings) => ($settings['references.enabled'] ?? null) === 'false'));
         $this->get($this->storeUrl('/payment'))->assertInertia(fn ($page) => $page->where('app_settings.references_enabled', false));
@@ -70,7 +70,7 @@ class ReferenceFeatureTest extends TestCase
             ->where('app_settings.references_enabled', true)->where('reference_modules', fn ($modules) => collect($modules)->contains('key', $reference->key)));
     }
 
-    public function test_disabled_feature_redirects_old_pages_and_blocks_read_and_write_endpoints_without_deleting_data(): void
+    public function test_disabled_customer_feature_preserves_admin_management_and_mapping(): void
     {
         $reference = $this->reference();
         $entry = $reference->entries()->create(['name' => 'Adaptor QA', 'values' => []]);
@@ -79,27 +79,27 @@ class ReferenceFeatureTest extends TestCase
         MotorcyclePart::create(['motorcycle_id' => $motorcycle->id, 'product_id' => $product->id, 'part_category' => 'oli']);
         $this->actingAs($this->owner());
         $this->toggle('false')->assertOk();
+        $this->toggle('false', 'motorcycles_enabled')->assertOk();
         $this->get($this->storeUrl('/motor-saya'))->assertRedirect('/s/toko-utama');
         $this->get($this->storeUrl('/motor-saya/qa-motor'))->assertRedirect('/s/toko-utama');
-        $this->get('/motorcycles')->assertRedirect('/settings');
-        $this->get('/data-types?kind=reference')->assertRedirect('/settings');
-        $this->get('/references/'.$reference->id)->assertRedirect('/settings');
-        foreach (['/api/motor-saya/'.$motorcycle->id.'/parts?shop=toko-utama', '/motorcycles/'.$motorcycle->id.'/parts', '/references/'.$reference->id.'/products'] as $url) {
-            $this->getJson($url)->assertForbidden();
-        }
-        $this->postJson('/motorcycles', ['brand' => 'Test', 'model' => 'New'])->assertForbidden();
-        $this->postJson('/references/'.$reference->id.'/entries', ['name' => 'Other'])->assertForbidden();
-        $this->deleteJson('/references/'.$reference->id.'/entries/'.$entry->id)->assertForbidden();
+        $this->get('/motorcycles')->assertOk();
+        $this->get('/data-types?kind=reference')->assertOk();
+        $this->get('/references/'.$reference->id)->assertOk();
+        $this->getJson($this->storeUrl('/api/motor-saya/'.$motorcycle->id.'/parts'))->assertForbidden();
+        $this->getJson('/motorcycles/'.$motorcycle->id.'/parts')->assertOk();
+        $this->getJson('/references/'.$reference->id.'/products')->assertOk();
+        $this->postJson('/references/'.$reference->id.'/entries', ['name' => 'Other', 'schema_version' => 1, 'values' => []])->assertCreated();
         $this->assertDatabaseHas('reference_entries', ['id' => $entry->id]);
         $this->assertSame(9, $product->fresh()->stock);
         $this->assertSame($product->id, $motorcycle->products()->sole()->id);
         $this->toggle('true')->assertOk();
+        $this->toggle('true', 'motorcycles_enabled')->assertOk();
         $this->get($this->storeUrl('/motor-saya/qa-motor'))->assertOk();
         $this->get('/references/'.$reference->id)->assertOk();
         $this->getJson($this->storeUrl('/api/motor-saya/'.$motorcycle->id.'/parts'))->assertOk();
     }
 
-    public function test_product_types_remain_editable_but_spoofing_kind_cannot_bypass_reference_gate(): void
+    public function test_both_admin_type_kinds_remain_editable_but_kind_changes_are_rejected(): void
     {
         $reference = $this->reference();
         $this->actingAs($this->owner());
@@ -108,9 +108,8 @@ class ReferenceFeatureTest extends TestCase
         $input = ['kind' => 'product', 'name' => 'Peralatan QA', 'fields' => []];
         $id = $this->postJson('/data-types', $input)->assertCreated()->json('data.id');
         $this->putJson('/data-types/'.$id, [...$input, 'version' => 1, 'name' => 'Peralatan QA Baru'])->assertOk();
-        $this->postJson('/data-types', ['kind' => 'reference', 'name' => 'Hidden', 'fields' => []])->assertForbidden();
-        $this->putJson('/data-types/'.$reference->id, [...$input, 'version' => 1])->assertForbidden();
-        $this->deleteJson('/data-types/'.$reference->id.'?kind=product')->assertForbidden();
+        $this->postJson('/data-types', ['kind' => 'reference', 'name' => 'Hidden', 'fields' => []])->assertCreated()->assertJsonPath('data.is_public', false);
+        $this->putJson('/data-types/'.$reference->id, [...$input, 'version' => 1])->assertUnprocessable();
         $this->assertDatabaseHas('data_types', ['id' => $reference->id]);
         $this->get('/products')->assertOk();
         $this->get('/pos')->assertOk();
@@ -121,9 +120,9 @@ class ReferenceFeatureTest extends TestCase
         Motorcycle::create(['year_start' => 2025, 'engine_cc' => 110, 'brand' => 'Honda', 'model' => 'Sitemap QA', 'slug' => 'sitemap-qa']);
         $this->get($this->storeUrl('/sitemap.xml'))->assertOk()->assertSee('motor-saya/sitemap-qa');
         $this->actingAs($this->owner());
-        $this->toggle('false')->assertOk();
+        $this->toggle('false', 'motorcycles_enabled')->assertOk();
         $this->get($this->storeUrl('/sitemap.xml'))->assertOk()->assertDontSee('motor-saya');
-        $this->toggle('true')->assertOk();
+        $this->toggle('true', 'motorcycles_enabled')->assertOk();
         $this->get($this->storeUrl('/sitemap.xml'))->assertOk()->assertSee('motor-saya/sitemap-qa');
     }
 
@@ -144,12 +143,18 @@ class ReferenceFeatureTest extends TestCase
     {
         $other = Business::create(['name' => 'Other Shop QA', 'slug' => 'other-shop-qa', 'activated_at' => now()]);
         $other->forceFill(['activated_at' => now()])->save();
+        app(BusinessContext::class)->run($other->id, function () {
+            $type = DataType::create(['kind' => 'reference', 'key' => 'motor', 'name' => 'Motor', 'fields' => [], 'is_public' => true]);
+            $type->forceFill(['driver' => 'motorcycles'])->save();
+            app(SettingService::class)->saveAll([['group' => 'references', 'key' => 'motorcycles_enabled', 'value' => 'true']]);
+        });
         $this->actingAs($this->owner());
         $this->toggle('false')->assertOk();
         $this->get('/s/other-shop-qa')->assertInertia(fn ($page) => $page->where('app_settings.references_enabled', true));
         $this->get($this->storeUrl('/motor-saya?shop=other-shop-qa'))->assertOk();
         app(BusinessContext::class)->run($other->id, fn () => app(SettingService::class)->saveAll([
             ['group' => 'references', 'key' => 'enabled', 'value' => 'false'],
+            ['group' => 'references', 'key' => 'motorcycles_enabled', 'value' => 'false'],
         ]));
         $this->get($this->storeUrl('/motor-saya?shop=other-shop-qa'))->assertRedirect('/s/other-shop-qa');
         $this->toggle('true')->assertOk();

@@ -27,7 +27,7 @@ final class InitializeProduction extends Command
             if ($this->call('db:seed', ['--class' => RoleSeeder::class, '--force' => true]) !== self::SUCCESS) {
                 return self::FAILURE;
             }
-            $installation->prepareMigratedDatabase();
+            $installation->prepareMigratedDatabase(freshlyMigrated: true);
         } catch (LogicException $exception) {
             $this->error($exception->getMessage());
 

@@ -32,7 +32,7 @@ final class BusinessOnboardingService
                     'printer' => ['paper_size' => '80', 'auto_print_receipt' => 'false'],
                     'qr_order' => ['enabled' => 'true', 'session_timeout' => '120'],
                     'catalog' => ['show_total_sold' => 'true'],
-                    'references' => ['enabled' => 'true'],
+                    'references' => ['enabled' => 'true', 'motorcycles_enabled' => 'false'],
                 ];
                 foreach ($settings as $group => $values) {
                     foreach ($values as $key => $value) {

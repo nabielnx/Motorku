@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react';
 import { readQrisPayload, qrisErrorMessage } from '@/Utils/qris';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import AdminDialog, { DialogTitle } from '@/Components/Admin/Dialog';
-import { Head, router, usePage } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { FiSave, FiCheck, FiHome, FiPercent, FiCreditCard, FiPrinter, FiSmartphone, FiClock, FiSettings, FiUpload, FiClipboard, FiTrash2, FiAlertTriangle, FiBookOpen, FiRotateCcw } from 'react-icons/fi';
@@ -36,6 +36,7 @@ const fieldMap = {
   qr_order_enabled:            { group: 'qr_order',        key: 'enabled' },
   qr_order_session_timeout:    { group: 'qr_order',        key: 'session_timeout' },
   references_enabled: { group: 'references', key: 'enabled' },
+  references_motorcycles_enabled: { group: 'references', key: 'motorcycles_enabled' },
   catalog_show_total_sold:     { group: 'catalog',         key: 'show_total_sold' },
   promo_banner_enabled:        { group: 'promo_banner',    key: 'enabled' },
   store_open_time:             { group: 'store',           key: 'open_time' },
@@ -47,6 +48,7 @@ const fieldMap = {
 
 const defaults = {
   references_enabled: 'true',
+  references_motorcycles_enabled: 'false',
   store_tagline: 'POS & ORDER',
   store_name: 'TokoM', store_phone: '081234567890',
   store_email: '', store_address: 'Jl. Contoh No. 1',
@@ -103,7 +105,10 @@ export default function SettingIndex() {
     });
     return initial;
   });
-  const [selectedCategory, setSelectedCategory] = useState('store');
+  const [selectedCategory, setSelectedCategory] = useState(() => {
+    const category = typeof window === 'undefined' ? null : new URLSearchParams(window.location.search).get('category');
+    return settingCategories.some(item => item.key === category) ? category : 'store';
+  });
   const [savedForm, setSavedForm] = useState(form);
   const [savingReferences, setSavingReferences] = useState(false);
   const [referenceError, setReferenceError] = useState('');
@@ -234,17 +239,18 @@ export default function SettingIndex() {
     setDeleteConfirm({ type: 'logo' });
   };
 
-  const handleToggleReferences = async () => {
+  const handleToggleReferences = async (key) => {
     if (savingReferences || loading) return;
-    const enabled = form.references_enabled !== 'true';
+    const field = key === 'motorcycles_enabled' ? 'references_motorcycles_enabled' : 'references_enabled';
+    const enabled = form[field] !== 'true';
     setSavingReferences(true);
     setReferenceError('');
     try {
-      await axios.post('/api/settings', { settings: [{ group: 'references', key: 'enabled', value: String(enabled) }] });
-      setForm(prev => ({ ...prev, references_enabled: String(enabled) }));
-      setSavedForm(prev => ({ ...prev, references_enabled: String(enabled) }));
+      await axios.post('/api/settings', { settings: [{ group: 'references', key, value: String(enabled) }] });
+      setForm(prev => ({ ...prev, [field]: String(enabled) }));
+      setSavedForm(prev => ({ ...prev, [field]: String(enabled) }));
       router.reload({ only: ['app_settings', 'reference_modules'] });
-      toast.success(enabled ? 'Referensi dan Motor Saya diaktifkan.' : 'Referensi dan Motor Saya dinonaktifkan. Data tetap tersimpan.');
+      toast.success(`${key === 'motorcycles_enabled' ? 'Referensi Motor' : 'Referensi Lainnya'} ${enabled ? 'diaktifkan.' : 'dinonaktifkan. Data dan mapping tetap tersimpan.'}`);
     } catch (error) {
       const message = error.response?.data?.message || 'Status referensi gagal disimpan. Coba ubah toggle lagi.';
       setReferenceError(message);
@@ -628,12 +634,15 @@ export default function SettingIndex() {
         <section className="admin-surface admin-setting-section space-y-4 border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900 sm:p-6" aria-labelledby="reference-setting-title">
           <div className="admin-section-header flex items-center gap-2 border-b border-slate-200 pb-3 dark:border-slate-700">
             <FiBookOpen aria-hidden="true" size={20} />
-            <h3 id="reference-setting-title" className="flex-1 text-base font-semibold">Referensi &amp; Motor Saya</h3>
-            <Toggle label="Aktifkan Referensi dan Motor Saya" value={form.references_enabled} onChange={handleToggleReferences} disabled={savingReferences || loading} />
+            <h3 id="reference-setting-title" className="flex-1 text-base font-semibold">Referensi</h3>
           </div>
           <div className="space-y-2">
-            <p role="status" className="text-sm font-semibold">{savingReferences ? 'Menyimpan status referensi…' : form.references_enabled === 'true' ? 'Aktif untuk pelanggan dan admin.' : 'Nonaktif. Data referensi tetap tersimpan.'}</p>
-            <p className="text-xs leading-relaxed text-slate-600 dark:text-slate-300">Mengatur menu Motor Saya, Data Referensi di admin, dan informasi kecocokan motor pada produk. Perubahan toggle langsung tersimpan.</p>
+            <div className="space-y-4">
+              <div className="space-y-2"><div className="flex items-center justify-between gap-3"><h4 className="text-sm font-semibold">Referensi Motor</h4><Toggle label="Referensi Motor" value={form.references_motorcycles_enabled} onChange={() => handleToggleReferences('motorcycles_enabled')} disabled={savingReferences || loading} /></div><p className="text-xs leading-relaxed text-slate-600 dark:text-slate-300">Aktifkan untuk menyediakan modul Motor otomatis, termasuk form merek, model, tahun, dan mapping produk. Isi data motor dari halaman Referensi. Nonaktif menyembunyikan menu motor dan Motor Saya dari pelanggan, tanpa menghapus data atau mapping.</p></div>
+              <div className="space-y-2 border-t border-slate-200 pt-4 dark:border-slate-700"><div className="flex items-center justify-between gap-3"><h4 className="text-sm font-semibold">Referensi Lainnya</h4><Toggle label="Referensi Lainnya" value={form.references_enabled} onChange={() => handleToggleReferences('enabled')} disabled={savingReferences || loading} /></div><p className="text-xs leading-relaxed text-slate-600 dark:text-slate-300">Untuk jenis dengan form fleksibel, misalnya Sepeda atau Elektronik. Tambahkan jenis di halaman Referensi, lalu pilih Tampilkan di katalog pelanggan pada jenis yang ingin dibuka. Pengaturan ini tidak memengaruhi Motor.</p></div>
+            </div>
+            <p role="status" className="text-xs text-slate-600 dark:text-slate-300">{savingReferences ? 'Menyimpan status referensi…' : 'Kedua pengaturan tersimpan langsung dan terpisah.'}</p>
+            <Link href="/data-types?kind=reference" className="inline-block text-xs font-semibold underline">Buka halaman Referensi</Link>
             {referenceError && <p role="alert" className="text-xs text-red-700 dark:text-red-300">{referenceError}</p>}
           </div>
         </section>

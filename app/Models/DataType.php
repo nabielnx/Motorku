@@ -14,11 +14,11 @@ class DataType extends Model
     use BelongsToBusiness;
     use HasUuids;
 
-    protected $fillable = ['kind', 'key', 'name', 'fields'];
+    protected $fillable = ['kind', 'key', 'name', 'fields', 'is_public'];
 
-    protected $attributes = ['sync_version' => 1];
+    protected $attributes = ['sync_version' => 1, 'is_public' => false];
 
-    protected $casts = ['fields' => 'array', 'is_system' => 'boolean', 'sync_version' => 'integer'];
+    protected $casts = ['fields' => 'array', 'is_system' => 'boolean', 'sync_version' => 'integer', 'is_public' => 'boolean'];
 
     public function entries(): HasMany
     {

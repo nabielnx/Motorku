@@ -28,6 +28,7 @@ class AddRobotsHeader
         'home',
         'shop.home',
         'motor-saya',
+        'customer.references',
         'sitemap',
     ];
 

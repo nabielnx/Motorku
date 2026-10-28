@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Models\Business;
 use App\Models\Category;
 use App\Models\DataType;
 use App\Models\Motorcycle;
@@ -13,6 +14,12 @@ use Illuminate\Validation\ValidationException;
 
 class DataTypeService
 {
+    public function navigation(string $businessId, bool $motorEnabled, bool $otherEnabled): array
+    {
+        return array_values(array_filter(DataType::referenceModules($businessId),
+            fn ($module) => $module['path'] === '/motorcycles' ? $motorEnabled : $otherEnabled));
+    }
+
     public function listing(string $businessId): array
     {
         $categoryCounts = Category::where('business_id', $businessId)->selectRaw('catalog_group, COUNT(*) as total')->groupBy('catalog_group')->pluck('total', 'catalog_group');
@@ -29,6 +36,9 @@ class DataTypeService
     public function save(array $input, ?DataType $type = null): DataType
     {
         return DB::transaction(function () use ($input, $type) {
+            if (! $type && $input['kind'] === 'reference') {
+                Business::whereKey(app(BusinessContext::class)->id())->lockForUpdate()->firstOrFail();
+            }
             if ($type) {
                 $type = DataType::whereKey($type->id)->lockForUpdate()->firstOrFail();
                 if ($type->sync_version !== (int) $input['version'] || $type->kind !== $input['kind']) {
@@ -73,9 +83,13 @@ class DataTypeService
             }
             if (! $type) {
                 return DataType::create(['kind' => $input['kind'], 'name' => $input['name'], 'fields' => $fields,
+                    'is_public' => $input['kind'] === 'reference' && ($input['is_public'] ?? false),
                     'key' => substr(Str::slug($input['name'], '_') ?: 'jenis', 0, 60).'_'.Str::lower(Str::random(8))]);
             }
             $type->fill(['name' => $input['name'], 'fields' => $fields]);
+            if ($type->kind === 'reference' && array_key_exists('is_public', $input)) {
+                $type->is_public = (bool) $input['is_public'];
+            }
             $type->sync_version++;
             $type->save();
 
@@ -97,6 +111,10 @@ class DataTypeService
                 $type->entries()->eachById(fn ($entry) => app(ReferenceService::class)->delete($type, $entry), 100);
             }
             $type->delete();
+            if ($type->driver === 'motorcycles') {
+                app(SettingService::class)->upsertSetting('references', 'motorcycles_enabled', 'false');
+                DB::afterCommit(fn () => CacheService::flushSettings());
+            }
             DB::afterCommit(fn () => CacheService::flushMotorcycles());
         }, 3);
     }

@@ -144,6 +144,7 @@ class FullAuditRemediationTest extends TestCase
 
     public function test_settings_reject_unknown_keys_image_paths_and_malformed_values(): void
     {
+        $settingsBefore = Setting::count();
         $this->actingAs($this->owner);
         foreach ([
             ['group' => 'unknown', 'key' => 'flag', 'value' => 'true'],
@@ -153,7 +154,7 @@ class FullAuditRemediationTest extends TestCase
         ] as $item) {
             $this->postJson('/api/settings', ['settings' => [$item]])->assertUnprocessable();
         }
-        $this->assertDatabaseCount('settings', 0);
+        $this->assertDatabaseCount('settings', $settingsBefore);
     }
 
     public function test_children_keep_catalog_group_on_create_and_update(): void

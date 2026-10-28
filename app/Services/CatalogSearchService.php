@@ -297,7 +297,7 @@ class CatalogSearchService
 
     private function fitments(array $productIds): array
     {
-        if (! $productIds) {
+        if (! $productIds || (request()->attributes->get('public_store') && ! app(SettingService::class)->publicMotorcyclesEnabled())) {
             return [];
         }
         $context = app(BusinessContext::class);
