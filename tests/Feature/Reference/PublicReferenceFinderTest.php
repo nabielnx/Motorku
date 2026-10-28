@@ -115,7 +115,7 @@ class PublicReferenceFinderTest extends TestCase
         $motorcycle = Motorcycle::create(['year_start' => 2025, 'engine_cc' => 110, 'brand' => 'Honda', 'model' => 'Reference QA', 'slug' => 'reference-qa']);
         $product = Product::factory()->create(['is_available' => true]);
         MotorcyclePart::create(['motorcycle_id' => $motorcycle->id, 'product_id' => $product->id, 'part_category' => 'oli']);
-        $motor->update(['is_public' => false]);
+        app(SettingService::class)->saveAll([['group' => 'references', 'key' => 'motorcycles_enabled', 'value' => 'false']]);
         $this->get($this->storeUrl('/motor-saya'))->assertRedirect('/s/toko-utama');
         $this->get($this->storeUrl('/'))->assertInertia(fn ($page) => $page->where('app_settings.motorcycle_references_enabled', false));
         $this->getJson($this->storeUrl('/catalog/products'))->assertOk()->assertJsonPath('data.products.0.motorcycles', []);

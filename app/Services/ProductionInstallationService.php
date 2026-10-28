@@ -26,7 +26,7 @@ final class ProductionInstallationService
         'tax' => ['enabled' => 'false', 'percentage' => '0'],
         'payment' => ['cash_enabled' => 'true', 'qris_enabled' => 'false', 'card_enabled' => 'false'],
         'system' => ['timezone' => 'Asia/Jakarta', 'locale' => 'id', 'currency_symbol' => 'Rp', 'deletion_enabled' => 'true'],
-        'references' => ['enabled' => 'true'],
+        'references' => ['enabled' => 'true', 'motorcycles_enabled' => 'false'],
     ];
 
     public function assertNewDatabase(string $expectedDatabase): void
@@ -42,11 +42,18 @@ final class ProductionInstallationService
         }
     }
 
-    public function prepareMigratedDatabase(): void
+    public function prepareMigratedDatabase(bool $freshlyMigrated = false): void
     {
-        DB::transaction(function (): void {
+        DB::transaction(function () use ($freshlyMigrated): void {
             $this->assertNoOperationalData();
-            if (DB::table('settings')->exists()) {
+            $existing = DB::table('settings')->get();
+            $migrationFlag = $existing->count() === 1 ? $existing->first() : null;
+            $onlyMigrationFlag = $freshlyMigrated && $migrationFlag
+                && $migrationFlag->business_id === BusinessContext::LEGACY_ID
+                && $migrationFlag->group === 'references' && $migrationFlag->key === 'motorcycles_enabled'
+                && $migrationFlag->value === 'true' && $migrationFlag->type === 'string'
+                && (int) $migrationFlag->sync_version === 1;
+            if ($existing->isNotEmpty() && ! $onlyMigrationFlag) {
                 throw new LogicException('Pengaturan sudah ada. Instalasi awal dihentikan tanpa menimpa data.');
             }
             $types = DB::table('data_types')->get();
@@ -54,6 +61,9 @@ final class ProductionInstallationService
                 throw new LogicException('Jenis bukan preset migration baru. Tidak ada data yang dihapus.');
             }
             // Only migration-created presets in a verified unused installation.
+            if ($onlyMigrationFlag) {
+                DB::table('settings')->where('id', $migrationFlag->id)->delete();
+            }
             DB::table('data_types')->whereIn('id', $types->pluck('id'))->delete();
             foreach (self::DEFAULTS as $group => $settings) {
                 foreach ($settings as $key => $value) {

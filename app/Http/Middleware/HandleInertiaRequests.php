@@ -8,10 +8,10 @@ use App\Models\DataType;
 use App\Models\Setting;
 use App\Services\CacheService;
 use App\Services\CustomerAccountService;
+use App\Services\DataTypeService;
 use App\Services\GoogleLoginService;
 use App\Services\ImagePreviewService;
 use App\Services\PublicReferenceService;
-use App\Services\SettingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Middleware;
@@ -51,7 +51,8 @@ class HandleInertiaRequests extends Middleware
             'business' => $business ? ['id' => $business->id, 'name' => $business->name, 'slug' => $business->slug, 'public_url' => $business->publicUrl()] : null,
             'shop_slug' => $request->attributes->get('shop_slug'),
             'catalog_groups' => fn () => $platform ? [] : DataType::productGroups($user?->business_id ?? $business?->id),
-            'reference_modules' => fn () => ! $platform && $user?->hasRole('owner') ? DataType::referenceModules($user->business_id) : [],
+            'reference_modules' => fn () => ! $platform && $user?->hasRole('owner') ? app(DataTypeService::class)->navigation($user->business_id,
+                ($s['references.motorcycles_enabled'] ?? 'false') === 'true', ($s['references.enabled'] ?? 'true') !== 'false') : [],
             'public_reference_modules' => fn () => $request->attributes->get('public_store') && ! $platform ? app(PublicReferenceService::class)->modules() : [],
 
             'auth' => [
@@ -83,7 +84,8 @@ class HandleInertiaRequests extends Middleware
             'app_settings' => [
                 'deletion_enabled' => ! array_key_exists('system.deletion_enabled', $s) || $s['system.deletion_enabled'] === 'true',
                 'references_enabled' => ($s['references.enabled'] ?? 'true') !== 'false',
-                'motorcycle_references_enabled' => ! $request->attributes->get('public_store') || (! $platform && app(SettingService::class)->publicMotorcyclesEnabled()),
+                'motorcycle_module_enabled' => ! $platform && ($s['references.motorcycles_enabled'] ?? 'false') === 'true',
+                'motorcycle_references_enabled' => ! $platform && ($s['references.motorcycles_enabled'] ?? 'false') === 'true',
                 'cash_enabled' => ($s['payment.cash_enabled'] ?? 'true') !== 'false',
                 'customer_qris_enabled' => ($s['payment.qris_enabled'] ?? 'true') !== 'false' && ! empty($s['store.qris_image']),
                 'timezone' => $timezone,

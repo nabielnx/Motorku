@@ -74,7 +74,7 @@ export function StoreHeader({
     useEffect(() => { setLogoFailed(false); setLogoPreviewFailed(false); }, [rawLogo, props.logo_preview_url]);
     const [isSearchFocused, setIsSearchFocused] = useState(false);
     const [showMotorHint, setShowMotorHint] = useState(true);
-    const referencesEnabled = props.app_settings?.references_enabled !== false && (props.public_reference_modules?.length ?? 0) > 0;
+    const referencesEnabled = (props.public_reference_modules?.length ?? 0) > 0;
     const accountLabel = props.customer ? `Akun ${props.customer.name} · Sudah masuk` : 'Masuk sebagai pelanggan';
 
     return (
@@ -117,7 +117,7 @@ export function StoreHeader({
                                 onClick={() => setShowMotorHint(false)}
                             >
                                 <FiBookOpen size={20} aria-hidden="true" />
-                                <span>Cari Kecocokan</span>
+                                <span>Referensi</span>
                             </Link>
                             {showMotorHint && (
                                 <div id="store-motor-hint" role="status" className="store-motor-hint">

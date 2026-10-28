@@ -16,7 +16,7 @@ class EnsureReferencesEnabled
     public function handle(Request $request, Closure $next): Response
     {
         $settings = app(SettingService::class);
-        $enabled = $request->routeIs('motor-saya', 'motor-saya.parts') ? $settings->publicMotorcyclesEnabled() : $settings->referencesEnabled();
+        $enabled = $request->routeIs('motor-saya', 'motor-saya.parts') ? $settings->publicMotorcyclesEnabled() : ($settings->referencesEnabled() || $settings->publicMotorcyclesEnabled());
         if ($enabled) {
             return $next($request);
         }

@@ -11,12 +11,24 @@ final class PublicReferenceService
 {
     public function modules(): array
     {
-        if (! app(SettingService::class)->referencesEnabled()
-            || Setting::where('group', 'qr_order')->where('key', 'enabled')->value('value') === 'false') {
+        if (Setting::where('group', 'qr_order')->where('key', 'enabled')->value('value') === 'false') {
+            return [];
+        }
+        $settings = app(SettingService::class);
+        $motorEnabled = $settings->publicMotorcyclesEnabled();
+        $otherEnabled = $settings->referencesEnabled();
+        if (! $motorEnabled && ! $otherEnabled) {
             return [];
         }
 
-        return DataType::where('kind', 'reference')->where('is_public', true)->orderBy('name')
+        return DataType::where('kind', 'reference')->where(function ($query) use ($motorEnabled, $otherEnabled): void {
+            if ($motorEnabled) {
+                $query->orWhere('driver', 'motorcycles');
+            }
+            if ($otherEnabled) {
+                $query->orWhere(fn ($custom) => $custom->whereNull('driver')->where('is_public', true));
+            }
+        })->orderBy('name')
             ->get(['id', 'name', 'driver'])->map(fn ($type) => [
                 'id' => $type->id, 'name' => $type->name,
                 'path' => $type->driver === 'motorcycles' ? '/motor-saya' : '/cari-kecocokan/'.$type->id,
@@ -25,7 +37,11 @@ final class PublicReferenceService
 
     public function type(string $id): DataType
     {
-        return DataType::where('kind', 'reference')->where('is_public', true)->findOrFail($id);
+        $type = DataType::where('kind', 'reference')->findOrFail($id);
+        $settings = app(SettingService::class);
+        abort_unless($type->driver === 'motorcycles' ? $settings->publicMotorcyclesEnabled() : ($settings->referencesEnabled() && $type->is_public), 404);
+
+        return $type;
     }
 
     public function page(?DataType $type, ?string $entryId, array $filters): array

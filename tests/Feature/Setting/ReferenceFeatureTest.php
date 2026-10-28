@@ -35,9 +35,9 @@ class ReferenceFeatureTest extends TestCase
         return $owner;
     }
 
-    private function toggle(string $enabled)
+    private function toggle(string $enabled, string $key = 'enabled')
     {
-        return $this->postJson('/api/settings', ['settings' => [['group' => 'references', 'key' => 'enabled', 'value' => $enabled]]]);
+        return $this->postJson('/api/settings', ['settings' => [['group' => 'references', 'key' => $key, 'value' => $enabled]]]);
     }
 
     private function reference(): DataType
@@ -61,7 +61,7 @@ class ReferenceFeatureTest extends TestCase
         $this->toggle('false')->assertOk();
         $this->get('/settings')->assertInertia(fn ($page) => $page
             ->where('initialSettings.references_enabled', 'false')
-            ->where('app_settings.references_enabled', false)->where('reference_modules', fn ($modules) => collect($modules)->contains('key', $reference->key)));
+            ->where('app_settings.references_enabled', false)->where('reference_modules', fn ($modules) => ! collect($modules)->contains('key', $reference->key)));
         $this->get($this->storeUrl('/'))->assertInertia(fn ($page) => $page
             ->where('app_settings.references_enabled', false)->where('settings', fn ($settings) => ($settings['references.enabled'] ?? null) === 'false'));
         $this->get($this->storeUrl('/payment'))->assertInertia(fn ($page) => $page->where('app_settings.references_enabled', false));
@@ -79,6 +79,7 @@ class ReferenceFeatureTest extends TestCase
         MotorcyclePart::create(['motorcycle_id' => $motorcycle->id, 'product_id' => $product->id, 'part_category' => 'oli']);
         $this->actingAs($this->owner());
         $this->toggle('false')->assertOk();
+        $this->toggle('false', 'motorcycles_enabled')->assertOk();
         $this->get($this->storeUrl('/motor-saya'))->assertRedirect('/s/toko-utama');
         $this->get($this->storeUrl('/motor-saya/qa-motor'))->assertRedirect('/s/toko-utama');
         $this->get('/motorcycles')->assertOk();
@@ -92,6 +93,7 @@ class ReferenceFeatureTest extends TestCase
         $this->assertSame(9, $product->fresh()->stock);
         $this->assertSame($product->id, $motorcycle->products()->sole()->id);
         $this->toggle('true')->assertOk();
+        $this->toggle('true', 'motorcycles_enabled')->assertOk();
         $this->get($this->storeUrl('/motor-saya/qa-motor'))->assertOk();
         $this->get('/references/'.$reference->id)->assertOk();
         $this->getJson($this->storeUrl('/api/motor-saya/'.$motorcycle->id.'/parts'))->assertOk();
@@ -118,9 +120,9 @@ class ReferenceFeatureTest extends TestCase
         Motorcycle::create(['year_start' => 2025, 'engine_cc' => 110, 'brand' => 'Honda', 'model' => 'Sitemap QA', 'slug' => 'sitemap-qa']);
         $this->get($this->storeUrl('/sitemap.xml'))->assertOk()->assertSee('motor-saya/sitemap-qa');
         $this->actingAs($this->owner());
-        $this->toggle('false')->assertOk();
+        $this->toggle('false', 'motorcycles_enabled')->assertOk();
         $this->get($this->storeUrl('/sitemap.xml'))->assertOk()->assertDontSee('motor-saya');
-        $this->toggle('true')->assertOk();
+        $this->toggle('true', 'motorcycles_enabled')->assertOk();
         $this->get($this->storeUrl('/sitemap.xml'))->assertOk()->assertSee('motor-saya/sitemap-qa');
     }
 
@@ -144,6 +146,7 @@ class ReferenceFeatureTest extends TestCase
         app(BusinessContext::class)->run($other->id, function () {
             $type = DataType::create(['kind' => 'reference', 'key' => 'motor', 'name' => 'Motor', 'fields' => [], 'is_public' => true]);
             $type->forceFill(['driver' => 'motorcycles'])->save();
+            app(SettingService::class)->saveAll([['group' => 'references', 'key' => 'motorcycles_enabled', 'value' => 'true']]);
         });
         $this->actingAs($this->owner());
         $this->toggle('false')->assertOk();
@@ -151,6 +154,7 @@ class ReferenceFeatureTest extends TestCase
         $this->get($this->storeUrl('/motor-saya?shop=other-shop-qa'))->assertOk();
         app(BusinessContext::class)->run($other->id, fn () => app(SettingService::class)->saveAll([
             ['group' => 'references', 'key' => 'enabled', 'value' => 'false'],
+            ['group' => 'references', 'key' => 'motorcycles_enabled', 'value' => 'false'],
         ]));
         $this->get($this->storeUrl('/motor-saya?shop=other-shop-qa'))->assertRedirect('/s/other-shop-qa');
         $this->toggle('true')->assertOk();

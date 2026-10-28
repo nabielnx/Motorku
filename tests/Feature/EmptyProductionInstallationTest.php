@@ -23,7 +23,7 @@ final class EmptyProductionInstallationTest extends TestCase
     public function test_preparation_removes_only_migration_presets_and_keeps_accounts_and_catalog_empty(): void
     {
         $this->seed(RoleSeeder::class);
-        app(ProductionInstallationService::class)->prepareMigratedDatabase();
+        app(ProductionInstallationService::class)->prepareMigratedDatabase(freshlyMigrated: true);
         foreach (['users', 'customer_accounts', 'customer_profiles', 'products', 'categories', 'data_types', 'reference_entries', 'motorcycles', 'suppliers', 'orders', 'payments', 'inventory_logs'] as $table) {
             $this->assertDatabaseCount($table, 0);
         }
@@ -31,7 +31,31 @@ final class EmptyProductionInstallationTest extends TestCase
         $this->assertDatabaseHas('settings', ['group' => 'store', 'key' => 'address', 'value' => '']);
         $this->assertDatabaseHas('settings', ['group' => 'payment', 'key' => 'qris_enabled', 'value' => 'false']);
         $this->assertDatabaseHas('settings', ['group' => 'tax', 'key' => 'enabled', 'value' => 'false']);
+        $this->assertDatabaseHas('settings', ['group' => 'references', 'key' => 'motorcycles_enabled', 'value' => 'false']);
         app(ProductionInstallationService::class)->assertReadyForRegistration();
+    }
+
+    public function test_preparation_cannot_discard_settings_without_the_fresh_migration_path(): void
+    {
+        DB::table('settings')->insertOrIgnore(['id' => fake()->uuid(), 'business_id' => BusinessContext::LEGACY_ID,
+            'group' => 'references', 'key' => 'motorcycles_enabled', 'value' => 'true', 'type' => 'string',
+            'sync_version' => 1, 'created_at' => now(), 'updated_at' => now()]);
+        $this->expectException(LogicException::class);
+        app(ProductionInstallationService::class)->prepareMigratedDatabase();
+    }
+
+    public function test_fresh_migration_path_still_rejects_any_additional_configuration(): void
+    {
+        DB::table('settings')->insert(['id' => fake()->uuid(), 'business_id' => BusinessContext::LEGACY_ID,
+            'group' => 'store', 'key' => 'name', 'value' => 'Configured shop', 'type' => 'string',
+            'created_at' => now(), 'updated_at' => now()]);
+        try {
+            app(ProductionInstallationService::class)->prepareMigratedDatabase(freshlyMigrated: true);
+            $this->fail('Additional configuration must block preparation.');
+        } catch (LogicException) {
+            $this->assertDatabaseHas('settings', ['group' => 'store', 'key' => 'name', 'value' => 'Configured shop']);
+            $this->assertDatabaseCount('data_types', 5);
+        }
     }
 
     public function test_preparation_refuses_existing_user_and_leaves_presets_untouched(): void
@@ -96,7 +120,7 @@ final class EmptyProductionInstallationTest extends TestCase
     public function test_empty_installation_check_cannot_hide_existing_ownerless_data(): void
     {
         $this->seed(RoleSeeder::class);
-        app(ProductionInstallationService::class)->prepareMigratedDatabase();
+        app(ProductionInstallationService::class)->prepareMigratedDatabase(freshlyMigrated: true);
         Product::factory()->create();
         $this->artisan('app:check-deployment', ['--allow-empty-installation' => true])
             ->expectsOutput('FAIL: Empty installation ready for registration')->assertFailed();
