@@ -17,6 +17,8 @@ Foto mengikuti aturan upload aplikasi (maksimal 4 MB, JPEG/PNG/WebP, batas dimen
 
 Halaman **Referensi** di admin menyatukan modul Motor dan jenis referensi lainnya. Di **Pengaturan → Katalog → Referensi**, tersedia dua toggle yang berdiri sendiri:
 
+Saat Referensi Motor OFF, pemeriksaan backend pada seluruh `MotorcycleController` menolak halaman `/motorcycles`, CRUD, pembacaan mapping, dan perubahan/bulk mapping dengan HTTP 403. Menempel URL atau menambahkan `?shop=` tidak mengganti usaha admin aktif. Saat ON, owner hanya dapat mengelola data usaha dari akun yang sedang login; ID motor/mapping usaha lain tetap ditolak. Halaman pengaturan dan Kelola Jenis tetap dapat dibuka untuk mengaktifkan fitur.
+
 - **Referensi Motor** (`references.motorcycles_enabled`): saat ON, server otomatis membuat modul khusus Motor untuk usaha aktif jika belum ada. Form merek/model/tahun dan mapping `motorcycle_parts` tetap dipakai. Tidak perlu membuat jenis Motor manual, dan tidak ada contoh data motor yang ditambahkan. OFF menyembunyikan modul di submenu dan katalog pelanggan tanpa menghapus model, mapping, produk, atau stok. ON kembali memakai modul/data yang sama. Toko baru default OFF.
 - **Referensi Lainnya** (`references.enabled`): mengatur submenu dan pencarian pelanggan untuk jenis dengan form fleksibel, terpisah dari Motor. Konfigurasi/data jenis tetap dapat diedit owner di halaman Referensi saat nonaktif.
 
